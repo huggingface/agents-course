@@ -40,7 +40,7 @@
     title: Get Your Certificate
   - local: unit1/conclusion
     title: Conclusion
-- title: When the next steps are published?
+- title: When will the next units be published?
   sections:
   - local: communication/next-units
     title: Next Units

@@ -6,7 +6,7 @@ If you like the course, **don't hesitate to ⭐ star this repository**. This hel
 
 ## Content
 
-The course is divided into 5 units. That will take you from **the basics of agents to a final assignment with a benchmark**.
+The course is divided into 5 units. These will take you from **the basics of agents to a final assignment with a benchmark**.
 
 Sign up here (it's free) 👉 <a href="https://bit.ly/hf-learn-agents" target="_blank">https://bit.ly/hf-learn-agents</a>
 
@@ -32,7 +32,7 @@ If you want to contribute to this course, you're welcome to do so. Feel free to 
 
 ### Small typo and grammar fixes
 
-If you find a small typo or grammar mistake, please fix it yourself and submit a pull request. This is very helpful for the students.
+If you find a small typo or grammar mistake, please fix it yourself and submit a pull request. This is very helpful for students.
 
 ### New unit
 

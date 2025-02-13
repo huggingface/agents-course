@@ -19,13 +19,13 @@ This lightweight library is designed for simplicity, but it abstracts away much 
 
 We're going to get deeper into smolagents in the next Unit. Meanwhile, you can also check this <a href="https://huggingface.co/blog/smolagents" target="_blank">blog post</a> or the library's <a href="https://github.com/huggingface/smolagents" target="_blank">repo in GitHub</a>.
 
-In short, smolagents is a library that focuses on **codeAgent**, a kind of agent that performs **"Actions"** through code blocks, and then **"Observes"** results by executing the code.
+In short, `smolagents` is a library that focuses on **codeAgent**, a kind of agent that performs **"Actions"** through code blocks, and then **"Observes"** results by executing the code.
 
 Here is an example of what we'll build! 
 
 We provided our agent with an **Image generation tool** and asked it to generate an image of a cat.
 
-The agent inside smolagents is going to have the **same behaviors as the custom one we built previously**: it's going **to think, act and observe in cycle** until it reaches a final answer:
+The agent inside `smolagents` is going to have the **same behaviors as the custom one we built previously**: it's going **to think, act and observe in cycle** until it reaches a final answer:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
@@ -34,13 +34,13 @@ Exciting, right?
 ## Let's build our Agent!
 
 To start, duplicate this Space: <a href="https://huggingface.co/spaces/agents-course/First_agent_template" target="_blank">https://huggingface.co/spaces/agents-course/First_agent_template</a>
-> Thanks to <a href="https://huggingface.co/spaces/m-ric" target="_blank">Aymeric</a> for this template! 🙌
+> Thanks to <a href="https://huggingface.co/m-ric" target="_blank">Aymeric</a> for this template! 🙌
 
 
 Duplicating this space means **creating a local copy on your own profile**:
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplicate"/>
 
-Throughout this lesson, the only file you will need to modify is the (currently incomplete) "**app.py**". You can see here the [original one in the template](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py). To find yours, go to your copy of the space, then click the `Files` tab and then on `app.py` in the directory listing.
+Throughout this lesson, the only file you will need to modify is the (currently incomplete) **"app.py"**. You can see here the [original one in the template](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py). To find yours, go to your copy of the space, then click the `Files` tab and then on `app.py` in the directory listing.
 
 Let's break down the code together:
 
@@ -64,8 +64,8 @@ Now let's get into the tools! If you want a refresher about tools, don't hesitat
 
 ```python
 @tool
-def my_custom_tool(arg1:str, arg2:int)-> str: #it's import to specify the return type
-    #Keep this format for the description / args / args description but feel free to modify the tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # it's important to specify the return type
+    # Keep this format for the tool description / args description but feel free to modify the tool
     """A tool that does nothing yet 
     Args:
         arg1: the first argument
@@ -119,7 +119,7 @@ with open("prompts.yaml", 'r') as stream:
 # We're creating our CodeAgent
 agent = CodeAgent(
     model=model,
-    tools=[final_answer], ## add your tools here (don't remove final answer)
+    tools=[final_answer], # add your tools here (don't remove final_answer)
     max_steps=6,
     verbosity_level=1,
     grammar=None,
@@ -134,7 +134,7 @@ GradioUI(agent).launch()
 
 This Agent still uses the `InferenceClient` we saw in an earlier section behind the **HfApiModel** class!
 
-We will give more in-depth examples when we present the framework in Unit 2. For now, you need to focus on **adding new tools to the list of tools** using the **tools** parameter of your Agent.
+We will give more in-depth examples when we present the framework in Unit 2. For now, you need to focus on **adding new tools to the list of tools** using the `tools` parameter of your Agent.
 
 For example, you could use the `DuckDuckGoSearchTool` that was imported in the first line of the code, or you can examine the `image_generation_tool` that is loaded from the Hub later in the code.
 
@@ -152,10 +152,10 @@ from tools.final_answer import FinalAnswerTool
 
 from Gradio_UI import GradioUI
 
-# Below is an example of a tool that does nothing. Amaze us with your creativity !
+# Below is an example of a tool that does nothing. Amaze us with your creativity!
 @tool
-def my_custom_tool(arg1:str, arg2:int)-> str: #it's import to specify the return type
-    #Keep this format for the description / args / args description but feel free to modify the tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # it's important to specify the return type
+    # Keep this format for the tool description / args description but feel free to modify the tool
     """A tool that does nothing yet 
     Args:
         arg1: the first argument
@@ -196,7 +196,7 @@ with open("prompts.yaml", 'r') as stream:
     
 agent = CodeAgent(
     model=model,
-    tools=[final_answer], ## add your tools here (don't remove final answer)
+    tools=[final_answer], # add your tools here (don't remove final_answer)
     max_steps=6,
     verbosity_level=1,
     grammar=None,
@@ -212,7 +212,7 @@ GradioUI(agent).launch()
 
 Your **Goal** is to get familiar with the Space and the Agent. 
 
-Currently, the agent in the template **does not use any tools, so try to provide it with some of the pre-made ones or even make some new tools yourself**!
+Currently, the agent in the template **does not use any tools, so try to provide it with some of the pre-made ones or even make some new tools yourself!**
 
 We are eagerly waiting for your amazing agents output in the discord channel **#agents-course-showcase**!
 

@@ -203,21 +203,22 @@ print(output)
 ```
 output:
 
-```
+````
 Action:
-    ```
+```
 {
   "action": "get_weather",
-  "action": {"location": "London"}
+  "action_input": {"location": "London"}
 }
-    ```
+```
 Thought: I will check the weather in London.
 Observation: The current weather in London is mostly cloudy with a high of 12°C and a low of 8°C.
-```
+````
 
 Do you see the issue?
 >The answer was hallucinated by the model. We need to stop to actually execute the function!
-Let's now stop on "Observation" so that we don't hallucinate the actual function response
+Let's now stop on "Observation" so that we don't hallucinate the actual function response.
+
 ```python
 output = client.text_generation(
     prompt,
@@ -229,23 +230,23 @@ print(output)
 ```
 output:
 
-```
+````
 Action:
-    ```
+```
 {
   "action": "get_weather",
-  "action": {"location": "London"}
+  "action_input": {"location": "London"}
 }
-    ```
+```
 Thought: I will check the weather in London.
 Observation:
-```
+````
 
 Much Better! 
 Let's now create a dummy get weather function.  In a real situation, you would likely call an API.
 
 ```python
-#Dummy function
+# Dummy function
 def get_weather(location):
     return f"the weather in {location} is sunny with low temperatures. \n"
 
@@ -259,7 +260,7 @@ output:
 Let's concatenate the base prompt, the completion until function execution and the result of the function as an Observation and resume generation.
 
 ```python
-new_prompt=prompt+output+get_weather('London')
+new_prompt = prompt + output + get_weather('London')
 final_output = client.text_generation(
     new_prompt,
     max_new_tokens=200,
@@ -311,7 +312,7 @@ Action:
 ```
 {
   "action": "get_weather",
-  "action": {"location": {"type": "string", "value": "London"}
+  "action_input": {"location": {"type": "string", "value": "London"}
 }
 ```
 Thought: I will check the weather in London.
