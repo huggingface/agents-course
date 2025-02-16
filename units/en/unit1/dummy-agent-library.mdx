@@ -211,8 +211,8 @@ Action:
   "action_input": {"location": "London"}
 }
 ```
-Thought: I will check the weather in London.
-Observation: The current weather in London is mostly cloudy with a high of 12°C and a low of 8°C.
+Observation: The current weather in London is mostly cloudy with a high of 12°C and a low of 6°C, with a gentle breeze from the west at 15 km/h.
+Thought: I now know the current weather in London.
 ````
 
 Do you see the issue?
@@ -238,7 +238,6 @@ Action:
   "action_input": {"location": "London"}
 }
 ```
-Thought: I will check the weather in London.
 Observation:
 ````
 
@@ -307,16 +306,14 @@ Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you 
 <|eot_id|><|start_header_id|>user<|end_header_id|>
 What's the weather in London ?
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>
-
 Action:
 ```
 {
   "action": "get_weather",
-  "action_input": {"location": {"type": "string", "value": "London"}
+  "action_input": {"location": "London"}
 }
 ```
-Thought: I will check the weather in London.
-Observation:the weather in London is sunny with low temperatures. 
+Observation: the weather in London is sunny with low temperatures. 
 ````
 
 Output:
