@@ -93,8 +93,8 @@ This system prompt is a bit more complex than the one we saw earlier, but it alr
 1. **Information about the tools**
 2. **Cycle instructions** (Thought → Action → Observation)
 
-```
-Answer the following questions as best you can. You have access to the following tools:
+```python
+SYSTEM_PROMPT="""Answer the following questions as best you can. You have access to the following tools:
 
 get_weather: Get the current weather in a given location
 
@@ -126,7 +126,7 @@ You must always end your output with the following format:
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
-Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you provide a definitive answer.
+Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you provide a definitive answer."""
 ```
 
 Since we are running the "text_generation" method, we need to apply the prompt manually:
@@ -146,7 +146,7 @@ messages=[
     {"role": "user", "content": "What's the weather in London ?"},
     ]
 from transformers import AutoTokenizer
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+prompt = tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
 
 tokenizer.apply_chat_template(messages, tokenize=False,add_generation_prompt=True)
 ```
