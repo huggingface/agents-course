@@ -260,7 +260,7 @@ output:
 Let's concatenate the base prompt, the completion until function execution and the result of the function as an Observation and resume generation.
 
 ```python
-new_prompt = prompt + output + get_weather('London')
+new_prompt = prompt + " " + output + " " + get_weather('London')
 final_output = client.text_generation(
     new_prompt,
     max_new_tokens=200,
