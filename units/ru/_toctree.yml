@@ -23,7 +23,7 @@
   - local: unit1/messages-and-special-tokens
     title: Сообщения и специальные токены
   - local: unit1/tools
-    title:  Что такое инструменты?
+    title: Что такое инструменты?
   - local: unit1/quiz2
     title: Быстрый тест 2
   - local: unit1/agent-steps-and-structure
