@@ -1,0 +1,172 @@
+# Building Agents That Use Code
+
+Code agents are the default agent type in smolagents. They generate their own Python tool calls to perform actions, improving both efficiency and accuracy. Code agents are really streamlined because they reduce the number of actions required, simplify complex operations, and enable the reuse of existing functions from code. We'll build on these advantages throughout this page. smolagents provides a lightweight framework for building code agents, with a core implementation of approximately 1,000 lines of code.
+
+![Code vs JSON Actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+Graphic from the paper [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)
+
+<Tip>If you want to learn more about why code agents are effective, check out <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">this guide</a> from the smolagents documentation. </Tip>
+
+## Why Code Agents?
+
+In a multi-step agent process, the LLM writes and executes actions, often involving external tool calls. Without code agents, these actions are written in JSON format, specifying tool names and arguments as strings, which the system must parse to determine which tool to execute.
+
+However, research has shown that it's more effective for tool-calling LLMs to work directly with code. This is one of the core ideas behind smolagents, as illustrated in the diagram above from the paper [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030).
+
+Some key advantages of writing actions in code rather than JSON include:
+
+* **Composability**: Easily nest or reuse actions.
+* **Object Management**: Store complex structures, such as images, directly in code.
+* **Generality**: Code can express any task a computer is capable of performing.
+* **Representation in LLM Training Data**: High-quality code is already part of the LLM's training dataset.
+
+## How Does a Code Agent Work?
+
+![From https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+The diagram above illustrates how `CodeAgent.run()` operates, following the [ReAct framework](https://huggingface.co/papers/2210.03629), which is currently the preferred approach for building multi-step agents. We introduced the `MultiStepAgent` in the previous section, which serves as the core building block for smolagents. Within these agents, we can incorporate a `CodeAgent`, as we will see in this example.
+
+A `CodeAgent` performs actions through a cycle of steps, with existing variables and knowledge being incorporated into the agent’s logs as follows:
+
+1. The system prompt is stored in a `SystemPromptStep`, and the user query is logged in a `TaskStep`.
+
+2. Then, the following while loop is executed:
+
+    2.1 `agent.write_memory_to_messages()` writes the agent's logs into a list of LLM-readable [chat messages](https://huggingface.co/docs/transformers/en/chat_templating).
+    
+    2.2 These messages are sent to a `Model`, which generates a completion. The completion is parsed to extract the action, which, in our case, could be a code snippet since we’re working with a `CodeAgent`.
+    
+    2.3 The action is executed.
+    
+    2.4 The results are logged into memory in an `ActionStep`.
+
+At the end of each step, if the agent includes any function calls (in `agent.step_callback`), they are executed. Below, you can see an comparison diagram between a multi-step agent using the ReAct framework and a one step agent.
+
+![Comparison diagram between a multi-step agent using the ReAct framework and a one step agent](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/open-source-llms-as-agents/ReAct.png)
+
+## Let's See Some Examples
+
+Alfred is planning a party at the Wayne family mansion and needs your help to ensure everything goes smoothly. To assist him, we'll apply what we've learned about how a multi-step `CodeAgent` operates.
+
+If you haven't installed `smolagents` yet, you can do so by running the following command:
+
+```bash
+pip install smolagents
+```
+
+Let's also login to the HF Hub to have access to the Inference API.
+
+```python
+from huggingface_hub import notebook_login
+
+notebook_login()
+```
+
+### Selecting a playlist for the party using `smolagents`
+
+An important part of a successful party is the music. Alfred needs some help selecting the playlist, and we're covered using `smolagents`. We can build an agent capable of searching the web using DuckDuckGo. To give the agent access to this tool, we include it in the tool list when creating the agent.
+
+For the model, we'll rely on `HfApiModel`, which provides access to Hugging Face's [Inference API](https://huggingface.co/docs/api-inference/index). The default model is `"Qwen/Qwen2.5-Coder-32B-Instruct"`, which is performant and available for fast inference, but you can select any compatible model from the hub.
+
+Running an agent is quite straightforward:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+When you run this example, the output will display a trace of the workflow steps being executed. It will also print the corresponding Python code with the message: 
+
+```python
+ ─ Executing parsed code: ──────────────────────────────────────────────────────────────────────────────────────── 
+  results = web_search(query="best music for a Batman party")                                                      
+  print(results)                                                                                                   
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+```
+
+After a few steps, you'll see the generated playlist that Alfred can use for the party! 🎵
+
+### Using a custom tool to prepare the menu
+
+Now that we have selected a playlist, we need to organize the menu for the guests. Again, Alfred can take advantage of smolagents to do so. Here, we use the `@tool` decorator to define a custom function that acts as a tool. We'll cover tool creation in more detail later, so for now, we can simply run the code.
+
+As you can see, the generated tool is included in the `tools` list.
+
+```python
+from smolagents import CodeAgent, tool
+
+# Tool to suggest a menu based on the occasion
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion: The type of occasion for the party.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+# Alfred, the butler, preparing the menu for the party
+agent = CodeAgent(tools=[suggest_menu], model=HfApiModel())
+
+# Preparing the menu for the party
+agent.run("Prepare a formal menu for the party.")
+```
+
+The agent will run for a few steps until finding the answer.
+
+The menu is ready! 🥗
+
+### Using imports from Python inside the Agent to check the when the party will be ready
+
+We now have the playlist and the menu, but we need to check something else that is really important: the time needed to prepare everything!
+
+Alfred needs to check what time everything would be ready if he started preparing the party right now, just in case they need to ask for help from other superheroes.
+
+To do so, as you can see, when creating the agent, we use `additional_authorized_imports`. Code execution enforces strict security measures, meaning that imports outside a predefined safe list are not allowed by default. However, developers can authorize additional imports by passing them as a list of strings in `additional_authorized_imports`. In this case, we need to import `datetime` to request the current time.
+
+For more details on secure code execution, check out the official [guide](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution).
+
+```python
+from smolagents import CodeAgent, HfApiModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=HfApiModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred needs to prepare for the party. Here are the tasks:
+    1. Prepare the drinks - 30 minutes
+    2. Decorate the mansion - 60 minutes
+    3. Set up the menu - 45 minutes
+    3. Prepare the music and playlist - 45 minutes
+
+    If we start right now, at what time will the party be ready?
+    """
+)
+```
+
+These examples are just the beginning of what you can do with code agents, and we're already starting to see their utility for preparing the party. You can learn more about how to build code agents in the [smolagents documentation](https://huggingface.co/docs/smolagents).
+
+smolagents specializes in agents that write and execute Python code snippets, offering sandboxed execution for security. It supports both open-source and proprietary language models, making it adaptable to various development environments.
+
+### Share an Agent to the Hub
+
+TODO
+
+## Resources
+
+- [smolagents Blog](https://huggingface.co/blog/smolagents) - Introduction to smolagents and code interactions
+- [smolagents: Building Good Agents](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - Best practices for reliable agents
+- [Building Effective Agents - Anthropic](https://www.anthropic.com/research/building-effective-agents) - Agent design principles
