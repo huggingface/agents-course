@@ -58,3 +58,20 @@
   sections:
   - local: communication/next-units
     title: Next Units
+- title: Unit 2. Frameworks
+  local: unit2/introduction
+  sections:
+    - title: LlamaIndex
+      sections:
+        - local: unit2/llama-index/llama-index
+          title: What is LLamaIndex?
+        - local: unit2/llama-index/llama-hub
+          title: What is the LlamaHub?
+        - local: unit2/llama-index/components
+          title: What are Components in LlamaIndex?
+        - local: unit2/llama-index/tools
+          title: Using Tools in LlamaIndex
+        - local: unit2/llama-index/agents
+          title: Using Agents in LlamaIndex
+        - local: unit2/llama-index/workflows
+          title: Creating Agentic Workflows in LlamaIndex

@@ -1,0 +1,12 @@
+[
+    {
+        "question": "What is the main difference between LlamaIndex and other frameworks?",
+        "answer_a": "LlamaIndex is a data framework for your LLM application.",
+        "answer_b": "LlamaIndex is a tool for building agents.",
+        "answer_c": "LlamaIndex is a framework for building workflows.",
+        "answer_d": "LlamaIndex is a tool for building prompts.",
+        "correct_answer": "A"
+    }
+]
+
+
