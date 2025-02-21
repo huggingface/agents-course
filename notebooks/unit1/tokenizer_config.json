@@ -1,0 +1,154 @@
+{
+    "add_prefix_space": false,
+    "added_tokens_decoder": {
+      "0": {
+        "content": "<|endoftext|>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "1": {
+        "content": "<|im_start|>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "2": {
+        "content": "<|im_end|>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "3": {
+        "content": "<repo_name>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "4": {
+        "content": "<reponame>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "5": {
+        "content": "<file_sep>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "6": {
+        "content": "<filename>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "7": {
+        "content": "<gh_stars>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "8": {
+        "content": "<issue_start>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "9": {
+        "content": "<issue_comment>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "10": {
+        "content": "<issue_closed>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "11": {
+        "content": "<jupyter_start>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "12": {
+        "content": "<jupyter_text>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "13": {
+        "content": "<jupyter_code>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "14": {
+        "content": "<jupyter_output>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "15": {
+        "content": "<jupyter_script>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      },
+      "16": {
+        "content": "<empty_output>",
+        "lstrip": false,
+        "normalized": false,
+        "rstrip": false,
+        "single_word": false,
+        "special": true
+      }
+    },
+    "additional_special_tokens": [
+      "<|im_start|>",
+      "<|im_end|>"
+    ],
+    "bos_token": "<|im_start|>",
+    "chat_template": "{% for message in messages %}{% if loop.first and messages[0]['role'] != 'system' %}{{ '<|im_start|>system\nYou are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>\n' }}{% endif %}{{'<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>' + '\n'}}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}",
+    "clean_up_tokenization_spaces": false,
+    "eos_token": "<|im_end|>",
+    "model_max_length": 8192,
+    "pad_token": "<|im_end|>",
+    "tokenizer_class": "GPT2Tokenizer",
+    "unk_token": "<|endoftext|>",
+    "vocab_size": 49152
+  }
