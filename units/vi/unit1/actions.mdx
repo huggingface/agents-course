@@ -1,0 +1,119 @@
+# Hành động: Giúp Agent (tác nhân) Tương tác với Môi trường
+
+<Tip>
+Trong phần này, chúng ta sẽ khám phá các bước cụ thể mà một Agent AI thực hiện để tương tác với môi trường.
+
+Ta sẽ tìm hiểu cách biểu diễn hành động (sử dụng JSON hoặc code), tầm quan trọng của phương pháp dừng và phân tích (stop and parse approach), cùng các loại Agent khác nhau.
+</Tip>
+
+Hành động là những bước cụ thể **một Agent AI thực hiện để tương tác với môi trường**. 
+
+Dù là duyệt web để tìm thông tin hay điều khiển thiết bị vật lý, mỗi hành động đều là một thao tác có chủ đích được Agent thực thi. 
+
+Ví dụ: một Agent hỗ trợ dịch vụ khách hàng có thể truy xuất dữ liệu khách hàng, đề xuất bài viết hỗ trợ hoặc chuyển vấn đề cho nhân viên con người.
+
+## Các loại Hành động của Agent
+
+Có nhiều loại Agent thực hiện hành động theo cách khác nhau:
+
+| Loại Agent             | Mô tả                                                                                      |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| JSON Agent             | Hành động được xác định bằng định dạng JSON.                                                  |
+| Code Agent             | Agent viết một khối code để hệ thống bên ngoài thực thi.                                    |
+| Function-calling Agent | Là nhánh con của JSON Agent đã được fine-tuning để tạo thông điệp mới cho mỗi hành động. |
+
+Bản thân các hành động có thể phục vụ nhiều mục đích:
+
+| Loại Hành động          | Mô tả                                                                              |
+|--------------------------|------------------------------------------------------------------------------------------|
+| Thu thập thông tin    | Thực hiện tìm kiếm web, truy vấn cơ sở dữ liệu, truy xuất tài liệu.                    |
+| Sử dụng Tools (công cụ) | Gọi API, chạy tính toán, thực thi code.                              |
+| Tương tác môi trường  | Thao tác giao diện số hoặc điều khiển thiết bị vật lý.                         |
+| Giao tiếp            | Tương tác với người dùng qua chat hoặc hợp tác với Agent khác.                         |
+
+Một phần quan trọng của Agent là **khả năng DỪNG tạo token mới khi hoàn thành hành động**, đúng với mọi định dạng Agent: JSON, code hay function-calling. Điều này ngăn đầu ra ngoài ý muốn và đảm bảo phản hồi của Agent rõ ràng, chính xác.
+
+LLM (Tìm kiếm và tạo ra câu trả lời) chỉ xử lý văn bản, dùng nó để mô tả hành động muốn thực hiện và tham số cần cung cấp cho công cụ.
+
+## Phương pháp Dừng và Phân tích
+
+Một phương pháp chính để triển khai hành động là **stop and parse approach**. Phương pháp này đảm bảo đầu ra của Agent có cấu trúc và dự đoán được:
+
+1. **Tạo đầu ra định dạng cấu trúc**:
+
+Agent xuất hành động dự định bằng định dạng xác định trước (JSON hoặc code).
+
+2. **Dừng tạo token tiếp theo**:
+
+Khi hoàn thành hành động, **Agent dừng tạo token mới** để tránh đầu ra thừa/lỗi.
+
+3. **Phân tích đầu ra**:
+
+Bộ phân tích bên ngoài đọc hành động đã định dạng, xác định Tool cần gọi và trích xuất tham số cần thiết.
+
+Ví dụ: một Agent cần kiểm tra thời tiết có thể đưa ra quyết định:
+
+```json
+Suy nghĩ: Tôi cần kiểm tra thời tiết hiện tại ở New York.
+Hành động:
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+
+Framework sau đó dễ dàng phân tích tên hàm cần gọi và đối số cần áp dụng.
+
+Định dạng rõ ràng, máy đọc được này giảm thiểu lỗi và giúp công cụ bên ngoài xử lý chính xác lệnh của Agent.
+
+Lưu ý: Function-calling Agent hoạt động tương tự bằng cách cấu trúc mỗi hành động để gọi hàm được chỉ định với đúng đối số.
+Chúng ta sẽ tìm hiểu sâu hơn về các loại Agent này trong chương sau.
+
+## Code Agent
+
+Một cách tiếp cận khác là sử dụng *Code Agent*.
+Ý tưởng: **thay vì xuất object JSON đơn giản**, Code Agent tạo **khối code thực thi được - thường bằng ngôn ngữ cấp cao như Python**. 
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Code Agents" />
+
+Cách này có nhiều ưu điểm:
+
+- **Linh hoạt:** Code có thể biểu diễn logic phức tạp như vòng lặp, điều kiện, hàm lồng nhau, linh hoạt hơn JSON.
+- **Module và tái sử dụng:** Code tạo ra có thể chứa hàm/module dùng lại cho nhiều hành động/tác vụ.
+- **Dễ debug:** Với cú pháp lập trình xác định, lỗi code thường dễ phát hiện và sửa hơn.
+- **Tích hợp trực tiếp:** Code Agent tích hợp trực tiếp với thư viện/API bên ngoài, cho phép thao tác phức tạp như xử lý data hay ra quyết định thời gian thực.
+
+Ví dụ: Code Agent được giao nhiệm vụ lấy thông tin thời tiết có thể tạo đoạn Python sau:
+
+```python
+# Ví dụ Code Agent: Lấy thông tin thời tiết
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "Không có thông tin thời tiết")
+    else:
+        return "Lỗi: Không thể lấy dữ liệu thời tiết."
+
+# Thực thi hàm và chuẩn bị câu trả lời cuối
+result = get_weather("New York")
+final_answer = f"Thời tiết hiện tại ở New York là: {result}"
+print(final_answer)
+```
+
+Trong ví dụ này, Code Agent:
+- Lấy data thời tiết **qua gọi API**,
+- Xử lý phản hồi,
+- Dùng hàm print() để xuất câu trả lời cuối.
+
+Phương pháp này **cũng tuân theo stop and parse approach** bằng cách xác định rõ khối code và báo hiệu khi hoàn thành (ở đây là in final_answer).
+
+---
+
+Chúng ta đã học được rằng Hành động kết nối lập luận nội bộ của Agent với tương tác thực tế thông qua thực thi các tác vụ có cấu trúc rõ ràng - dù qua JSON, code hay lệnh gọi hàm.
+
+Việc thực thi có chủ đích này đảm bảo mỗi hành động chính xác và sẵn sàng cho xử lý bên ngoài qua phương pháp dừng và phân tích. Ở phần tiếp theo, ta sẽ khám phá Quan sát để xem Agent thu thập và tích hợp phản hồi từ môi trường thế nào.
+
+Sau đó, **chúng ta sẽ sẵn sàng xây dựng Agent đầu tiên của mình!**

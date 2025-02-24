@@ -1,0 +1,58 @@
+- title: Chương 0. Welcome to the course
+  sections:
+  - local: unit0/introduction
+    title: Chào mừng bạn đến với khóa học 🤗
+  - local: unit0/onboarding
+    title: Làm quen
+  - local: unit0/discord101
+    title: (Bổ trợ) Discord 101 (Giới thiệu cơ bản về Discord)
+- title: Live 1. Cách khóa học vận hành + Hỏi và Đáp
+  sections:
+  - local: communication/live1
+    title: Live 1. Cách khóa học vận hành + Hỏi và Đáp
+- title: Chương 1. Giới thiệu về Agents
+  sections:
+  - local: unit1/introduction
+    title: Giới thiệu
+  - local: unit1/what-are-agents
+    title: Agent là gì?
+  - local: unit1/quiz1
+    title: Kiểm tra nhanh 1
+  - local: unit1/what-are-llms
+    title: LLM là gì?
+  - local: unit1/messages-and-special-tokens
+    title: Tin nhắn và Special Token
+  - local: unit1/tools
+    title: Tools là gì?
+  - local: unit1/quiz2
+    title: Kiểm tra nhanh 2
+  - local: unit1/agent-steps-and-structure
+    title: Hiểu về AI Agents qua chu kỳ Thought-Action-Observation
+  - local: unit1/thoughts
+    title: Suy nghĩ, Lập luận nội bộ và phương pháp Re-Act
+  - local: unit1/actions
+    title: Hành động, Giúp Agent tương tác với môi trường
+  - local: unit1/observations
+    title: Quan sát, Tích hợp phản hồi để điều chỉnh
+  - local: unit1/dummy-agent-library
+    title: Thư viện Dummy Agent
+  - local: unit1/tutorial
+    title: Hãy tạo Agent đầu tiên với Smolagents
+  - local: unit1/final-quiz
+    title: Bài kiểm tra cuối chương 1
+  - local: unit1/conclusion
+    title: Kết luận
+- title: Chương bổ trợ 1. Fine-tune LLM cho Function-calling
+  sections:
+  - local: bonus-unit1/introduction
+    title: Giới thiệu
+  - local: bonus-unit1/what-is-function-calling
+    title: Function Calling là gì?
+  - local: bonus-unit1/fine-tuning
+    title: Hãy fine-tuning model cho Function-calling
+  - local: bonus-unit1/conclusion
+    title: Kết luận
+- title: Khi nào các bước tiếp theo được công bố?
+  sections:
+  - local: communication/next-units
+    title: Các chương tiếp theo

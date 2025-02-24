@@ -1,0 +1,47 @@
+# Hãy fine-Tune model của bạn cho chức năng function-calling
+
+Chúng ta đã sẵn sàng để fine-tune (tinh chỉnh) model đầu tiên cho function-calling rồi đây 🔥.
+
+## Làm thế nào để training model cho function-calling?
+
+> Câu trả lời: Ta cần **data**
+
+Quá trình training model có thể chia thành 3 bước:
+
+1. **Model được pretrain trên lượng data khổng lồ**. Kết quả của bước này là **pretrained model**. Ví dụ: [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b). Đây là model nền tảng và chỉ biết **dự đoán token tiếp theo mà không có khả năng tuân theo chỉ dẫn**.
+
+2. Để hữu ích trong bối cảnh chat, model cần được **fine-tune** để tuân theo hướng dẫn. Ở bước này, quá trình training có thể được thực hiện bởi nhà phát triển model, cộng đồng mã nguồn mở, bạn hay bất kỳ ai. Ví dụ: [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) là model đã được fine-tune để tuân theo chỉ dẫn bởi đội ngũ Google của dự án Gemma.
+
+3. Model sau đó có thể được **alignment** (cân chỉnh) theo mong muốn của người tạo. Ví dụ: model chat hỗ trợ khách hàng không bao giờ được bất lịch sự.
+
+Thông thường các sản phẩm hoàn chỉnh như Gemini hay Mistral **sẽ trải qua cả 3 bước**, trong khi các model bạn tìm thấy trên Hugging Face đã hoàn thành một hoặc nhiều bước training.
+
+Trong hướng dẫn này, chúng ta sẽ xây dựng model function-calling dựa trên [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it). Ta chọn model đã fine-tune [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) thay vì model nền tảng [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b) vì model đã fine-tune đã được cải thiện cho use-case của ta.
+
+Nếu bắt đầu từ pretrained model **sẽ cần training nhiều hơn để học cách tuân theo chỉ dẫn, chat VÀ function-calling**.
+
+Bằng cách bắt đầu từ model đã fine-tune để tuân theo chỉ dẫn, **ta giảm thiểu lượng thông tin model cần học**.
+
+## LoRA (Low-Rank Adaptation of Large Language Models)
+
+LoRA là kỹ thuật training nhẹ và phổ biến giúp **giảm đáng kể số parameters cần training**.
+
+Nó hoạt động bằng cách **chèn một lượng nhỏ weights mới vào model như adapter để training**. Điều này giúp training với LoRA nhanh hơn, tiết kiệm bộ nhớ hơn, và tạo ra weights model nhỏ hơn (vài trăm MB), dễ lưu trữ và chia sẻ.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
+
+LoRA hoạt động bằng cách thêm các cặp ma trận phân tách hạng vào các lớp Transformer, thường tập trung vào các lớp tuyến tính. Trong quá trình training, ta sẽ "đóng băng" phần còn lại của model và chỉ cập nhật weights của các adapter mới này.
+
+Nhờ vậy, số **parameters** cần training giảm đáng kể vì ta chỉ cần cập nhật weights của adapter.
+
+Trong quá trình inference, đầu vào sẽ đi qua adapter và model nền tảng, hoặc các weights adapter có thể được hợp nhất với model nền tảng mà không gây thêm độ trễ.
+
+LoRA đặc biệt hữu ích để điều chỉnh các mô hình ngôn ngữ **lớn** cho các tác vụ hoặc lĩnh vực cụ thể trong khi vẫn quản lý được yêu cầu tài nguyên. Điều này giúp giảm bộ nhớ **required** để training model.
+
+Nếu muốn tìm hiểu thêm về cách hoạt động của LoRA, hãy xem [hướng dẫn này](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt).
+
+## Fine-Tuning (tinh chỉnh) Model cho Function-Calling
+
+Bạn có thể truy cập notebook hướng dẫn tại đây 👉 [đây](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb).
+
+Sau đó, click vào [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) để chạy notebook trên Colab.

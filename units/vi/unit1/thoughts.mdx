@@ -1,0 +1,56 @@
+# Tư duy: Lập luận nội bộ và phương pháp Re-Act
+
+<Tip> 
+Trong phần này, ta sẽ tìm hiểu cách thức hoạt động bên trong của một AI agent (tác nhân AI)—khả năng lập luận và lập kế hoạch. Ta sẽ khám phá cách agent tận dụng cuộc đối thoại nội bộ để phân tích thông tin, chia nhỏ vấn đề phức tạp thành các bước quản lý được, và quyết định hành động tiếp theo. Ngoài ra, ta sẽ giới thiệu phương pháp Re-Act, một kỹ thuật prompting khuyến khích model suy nghĩ "từng bước một" trước khi hành động.
+</Tip>
+
+Tư duy đại diện cho **quá trình lập luận và lập kế hoạch nội bộ của Agent** để giải quyết nhiệm vụ.
+
+Điều này sử dụng khả năng LLM (Large Language Model - Mô hình ngôn ngữ lớn) của agent **để phân tích thông tin được trình bày trong prompt**.
+
+Hãy xem đây như cuộc đối thoại nội bộ của agent, nơi nó xem xét nhiệm vụ hiện tại và lên chiến lược tiếp cận.
+
+Tư duy của Agent chịu trách nhiệm truy cập các quan sát hiện tại và quyết định hành động tiếp theo nên là gì.
+
+Thông qua quá trình này, agent có thể **chia nhỏ các vấn đề phức tạp thành các bước nhỏ hơn, dễ quản lý hơn**, phản ánh từ kinh nghiệm trước đó, và liên tục điều chỉnh kế hoạch dựa trên thông tin mới.
+
+Dưới đây là một số ví dụ về các loại tư duy phổ biến:
+
+| Loại tư duy          | Ví dụ |
+|----------------------|---------|
+| Lập kế hoạch        | "Tôi cần chia nhiệm vụ này thành ba bước: 1) thu thập dữ liệu, 2) phân tích xu hướng, 3) tạo báo cáo" |
+| Phân tích           | "Dựa trên thông báo lỗi, vấn đề có vẻ liên quan đến tham số kết nối cơ sở dữ liệu" |
+| Ra quyết định       | "Với hạn chế về ngân sách của người dùng, tôi nên đề xuất tùy chọn tầm trung" |
+| Giải quyết vấn đề   | "Để tối ưu hóa đoạn mã này, tôi nên chạy phân tích hiệu suất để xác định điểm nghẽn" |
+| Tích hợp bộ nhớ     | "Người dùng đã đề cập rằng họ thích Python trước đó, vì vậy tôi sẽ cung cấp ví dụ bằng Python" |
+| Tự phản ánh         | "Cách tiếp cận trước của tôi không hiệu quả, tôi nên thử một chiến lược khác" |
+| Thiết lập mục tiêu  | "Để hoàn thành nhiệm vụ này, tôi cần xác định tiêu chí chấp nhận trước tiên" |
+| Ưu tiên hóa         | "Lỗ hổng bảo mật cần được giải quyết trước khi thêm tính năng mới" |
+
+> **Lưu ý:** Trường hợp với các LLM đã được fine-tuning (tinh chỉnh) cho function-calling, quá trình tư duy là tùy chọn.
+> *Nếu bạn chưa quen với function-calling, sẽ có thêm chi tiết trong phần Hành động.*
+
+## Phương pháp Re-Act
+
+Một phương pháp quan trọng là **ReAct**, kết hợp giữa "Lập luận / Suy nghĩ" (Think) và "Hành động" (Act).
+
+ReAct là kỹ thuật prompting đơn giản bằng cách thêm "Let's think step by step" (hãy suy nghĩ từng bước một) trước khi để LLM giải mã các token tiếp theo.
+
+Việc nhắc model suy nghĩ "từng bước" thực sự khuyến khích quá trình giải mã tạo ra **một kế hoạch**, thay vì giải pháp cuối cùng ngay lập tức, vì model được khuyến khích **chia nhỏ** vấn đề thành các *nhiệm vụ con*.
+
+Cách này cho phép model xem xét các bước con chi tiết hơn, thường dẫn đến ít lỗi hơn so với việc cố gắng tạo ra giải pháp cuối cùng trực tiếp.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+<figcaption>Hình (d) là ví dụ về phương pháp Re-Act khi ta prompt "Let's think step by step"
+</figcaption>
+</figure>
+
+<Tip>
+Gần đây chúng ta thấy nhiều sự quan tâm đến các chiến lược lập luận. Đây là nền tảng của các model như Deepseek R1 hay OpenAI's o1 - những model đã được fine-tuning để "suy nghĩ trước khi trả lời".
+
+Những model này được training để luôn bao gồm các phần _tư duy_ cụ thể (được đặt giữa các token đặc biệt `<think>` và `</think>`). Đây không chỉ là kỹ thuật prompting như ReAct, mà là phương pháp training nơi model học cách tạo ra các phần này sau khi phân tích hàng ngàn ví dụ thể hiện điều chúng ta mong đợi.
+</Tip>
+
+--- 
+Bây giờ chúng ta đã hiểu rõ hơn về quá trình Tư duy, hãy đi sâu vào phần thứ hai của quy trình: Hành động.

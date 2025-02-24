@@ -1,0 +1,164 @@
+---
+### Q1: Agent (tác nhân) là gì?
+Lựa chọn nào sau đây mô tả đúng nhất về AI Agent?
+
+<Question
+choices={[
+{
+text: "Hệ thống chỉ xử lý văn bản tĩnh, không có cơ chế tương tác động với môi trường xung quanh hay thực hiện hành động có ý nghĩa.",
+explain: "Agent phải có khả năng thực hiện hành động và tương tác với môi trường.",
+},
+{
+text: "Mô hình AI có thể lập luận, lên kế hoạch và sử dụng công cụ để tương tác với môi trường nhằm đạt mục tiêu cụ thể.",
+explain: "Định nghĩa này nắm bắt được đặc tính cốt lõi của Agent.",
+correct: true
+},
+{
+text: "Trợ lý ảo chỉ trả lời câu hỏi, không có khả năng thực hiện hành động hay tương tác với hệ thống bên ngoài.",
+explain: "Chatbot như vậy thiếu khả năng hành động, khác biệt so với Agent.",
+},
+{
+text: "Kho thông tin trực tuyến cung cấp nội dung tĩnh, không có khả năng thực thi tác vụ hay tương tác chủ động với người dùng.",
+explain: "Agent tương tác chủ động với môi trường thay vì chỉ cung cấp thông tin tĩnh.",
+}
+]}
+/>
+
+---
+
+### Q2: Vai trò của Hoạch định trong Agent
+Tại sao Agent cần lập kế hoạch trước khi hành động?
+
+<Question
+choices={[
+{
+text: "Để lưu trữ/ghi nhớ các tương tác trong quá khứ thay vì vạch ra chuỗi hành động tương lai.",
+explain: "Hoạch định liên quan đến xác định hành động tương lai, không phải lưu trữ quá khứ.",
+},
+{
+text: "Để quyết định trình tự hành động và chọn công cụ phù hợp nhằm đáp ứng yêu cầu của người dùng.",
+explain: "Hoạch định giúp Agent xác định các bước và công cụ tối ưu để hoàn thành tác vụ.",
+correct: true
+},
+{
+text: "Để thực thi chuỗi hành động ngẫu nhiên, thiếu chiến lược hoặc mục tiêu rõ ràng.",
+explain: "Hoạch định đảm bảo hành động của Agent có chủ đích, không phải ngẫu nhiên.",
+},
+{
+text: "Chỉ để chuyển đổi văn bản, bỏ qua quá trình xây dựng trình tự hành động có chủ đích hay lập luận chiến lược.",
+explain: "Hoạch định liên quan đến cấu trúc hành động, không chỉ chuyển đổi văn bản.",
+}
+]}
+/>
+
+---
+
+### Q3: Công cụ (Tools) nâng cao khả năng của Agent như thế nào?
+Tại sao công cụ (Tools) lại quan trọng với Agent?
+
+<Question
+choices={[
+{
+text: "Công cụ không có tác dụng thực sự và không giúp Agent thực hiện hành động vượt qua việc tạo văn bản cơ bản.",
+explain: "Công cụ mở rộng khả năng của Agent bằng cách cho phép thực hiện hành động vượt xa tạo văn bản.",
+},
+{
+text: "Công cụ cho phép Agent thực hiện các hành động mà mô hình tạo văn bản không làm được, như pha cà phê hay tạo ảnh.",
+explain: "Công cụ giúp Agent tương tác với thế giới thực và hoàn thành tác vụ.",
+correct: true
+},
+{
+text: "Công cụ chỉ dùng để lưu trữ bộ nhớ, không có khả năng hỗ trợ thực thi tác vụ hay nâng cao hiệu suất tương tác.",
+explain: "Công cụ chủ yếu dùng để thực hiện hành động, không chỉ lưu trữ dữ liệu.",
+},
+{
+text: "Công cụ hạn chế Agent chỉ ở việc tạo văn bản, ngăn không cho thực hiện các hành động tương tác đa dạng hơn.",
+explain: "Ngược lại, công cụ cho phép Agent vượt xa phản hồi dạng văn bản.",
+}
+]}
+/>
+
+---
+
+### Q4: Hành động (Action) khác Công cụ (Tools) như thế nào?
+Điểm khác biệt chính giữa Hành động (Action) và Công cụ (Tools) là gì?
+
+<Question
+choices={[
+{
+text: "Hành động là các bước Agent thực hiện, còn Công cụ là tài nguyên bên ngoài Agent có thể sử dụng.",
+explain: "Hành động là mục tiêu cấp cao, còn Công cụ là chức năng cụ thể Agent gọi đến.",
+correct: true
+},
+{
+text: "Hành động và Công cụ hoàn toàn giống nhau, có thể thay thế cho nhau.",
+explain: "Không, Hành động là mục tiêu/tác vụ, còn Công cụ là tiện ích cụ thể Agent dùng để đạt mục tiêu.",
+},
+{
+text: "Công cụ được coi là tiện ích đa năng, còn Hành động bị hiểu nhầm là chỉ liên quan tương tác vật lý.",
+explain: "Không hẳn. Hành động có thể bao gồm cả tác vụ số và vật lý.",
+},
+{
+text: "Hành động bắt buộc phải dùng LLM để xác định và thực thi, còn Công cụ hoạt động độc lập không phụ thuộc.",
+explain: "Dù LLM giúp quyết định Hành động, bản thân Hành động không phụ thuộc vào LLM.",
+}
+]}
+/>
+
+---
+
+### Q5: Vai trò của LLM (Mô hình ngôn ngữ lớn) trong Agent
+LLM đóng góp thế nào vào chức năng của Agent?
+
+<Question
+choices={[
+{
+text: "LLM chỉ là kho lưu trữ thụ động, không có khả năng xử lý đầu vào hay tạo phản hồi động.",
+explain: "LLM xử lý đầu vào văn bản và tạo phản hồi một cách chủ động.",
+},
+{
+text: "LLM đóng vai trò 'bộ não' lập luận của Agent, xử lý đầu vào văn bản để hiểu chỉ dẫn và lập kế hoạch hành động.",
+explain: "LLM giúp Agent diễn giải, lập kế hoạch và quyết định các bước tiếp theo.",
+correct: true
+},
+{
+text: "LLM bị hiểu nhầm là chỉ xử lý ảnh, trong khi chức năng chính là xử lý và tạo văn bản.",
+explain: "LLM chủ yếu làm việc với văn bản, dù đôi khi có thể xử lý đa phương thức.",
+},
+{
+text: "LLM hoàn toàn không liên quan đến hoạt động của AI Agent, là thành phần thừa trong ứng dụng thực tế.",
+explain: "LLM là thành phần cốt lõi của AI Agent hiện đại.",
+}
+]}
+/>
+
+---
+
+### Q6: Ví dụ thực tế nào minh họa rõ nhất AI Agent?
+Ví dụ nào trong thực tế thể hiện rõ nhất AI Agent đang hoạt động?
+
+<Question
+choices={[
+{
+text: "Trang FAQ tĩnh trên website chỉ cung cấp thông tin cố định, không có khả năng phản hồi tương tác.",
+explain: "Trang FAQ tĩnh không tương tác động hay thực hiện hành động.",
+},
+{
+text: "Trợ lý ảo như Siri/Alexa có thể hiểu lệnh thoại, lập luận và thực hiện tác vụ như đặt nhắc nhở hay gửi tin nhắn.",
+explain: "Ví dụ này bao gồm lập luận, hoạch định và tương tác với môi trường.",
+correct: true
+},
+{
+text: "Máy tính đơn giản thực hiện phép toán dựa trên quy tắc cố định, không có khả năng lập luận hay hoạch định.",
+explain: "Máy tính tuân theo quy tắc cố định mà không cần lập luận, nên không phải Agent.",
+},
+{
+text: "NPC trong game hoạt động theo kịch bản cố định, không thể lập luận, lập kế hoạch hay dùng công cụ bên ngoài.",
+explain: "NPC không thể lập luận, hoạch định hay dùng công cụ thì không phải AI Agent.",
+}
+]}
+/>
+
+---
+
+Chúc mừng bạn đã hoàn thành Kiểm tra nhanh 🥳! Nếu cần ôn lại nội dung nào, hãy xem lại chương này để củng cố kiến thức trước khi đi sâu vào "bộ não" của Agent: LLM.

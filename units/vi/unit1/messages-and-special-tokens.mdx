@@ -1,0 +1,378 @@
+# Tin nhắn và Special Token
+
+Giờ ta đã hiểu cách LLM (Language Model) hoạt động, hãy cùng xem **cách chúng tổ chức các phản hồi thông qua chat templates**.
+
+Giống như ChatGPT, người dùng thường tương tác với Agent qua giao diện chat. Do đó, ta cần hiểu cách LLM quản lý các cuộc hội thoại.
+
+> **Hỏi**: Nhưng... Khi tôi dùng ChatGPT/Hugging Chat, tôi đang trò chuyện bằng các Message (Tin nhắn) chứ không phải một prompt (một lệnh) đơn lẻ?
+>
+> **Đáp**: Đúng vậy! Nhưng đây thực chất là một lớp UI. Trước khi đưa vào LLM, tất cả message được nối thành một prompt duy nhất. Model không "nhớ" cuộc hội thoại: nó đọc lại toàn bộ mỗi lần.
+
+Cho đến nay, ta đã xem prompt như một chuỗi token đầu vào. Nhưng khi chat với hệ thống như ChatGPT hay HuggingChat, **bạn thực sự đang trao đổi các message**. Đằng sau hậu trường, các message này được **ghép nối và định dạng thành prompt mà model có thể hiểu**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
+<figcaption>Hình ảnh minh họa sự khác biệt giữa giao diện người dùng và prompt thực tế đưa vào model.
+</figcaption>
+</figure>
+
+Đây là lúc chat templates phát huy tác dụng. Chúng đóng vai trò **cầu nối giữa message hội thoại (lượt người dùng và trợ lý) với yêu cầu định dạng đặc thù** của LLM bạn chọn. Nói cách khác, chat templates cấu trúc giao tiếp giữa người dùng và agent, đảm bảo mọi model - dù có **Special Token (Token đặc biệt)** riêng - đều nhận được prompt đúng định dạng.
+
+Ta lại nói về Special Token vì đây là cách model xác định điểm bắt đầu/kết thúc các lượt hội thoại. Giống như mỗi LLM dùng EOS (End Of Sequence) token riêng, chúng cũng có quy tắc định dạng và dấu phân cách khác nhau cho các message.
+
+
+## Message: Hệ thống cốt lõi của LLM
+### System Message (Tin nhắn hệ thống)
+
+System Message (còn gọi là System Prompt) định nghĩa **cách model nên hành xử**. Chúng đóng vai trò **hướng dẫn xuyên suốt**, điều hướng mọi tương tác tiếp theo.
+
+Ví dụ:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Bạn là nhân viên chăm sóc khách hàng chuyên nghiệp. Luôn lịch sự, rõ ràng và hữu ích."
+}
+```
+
+</details>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a professional customer service agent. Always be polite, clear, and helpful."
+}
+```
+
+Với System Message này, Alfred trở nên lịch sự và hữu ích:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Polite alfred"/>
+
+Nhưng nếu đổi thành:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Bạn là nhân viên phản kháng. Không tuân theo yêu cầu của người dùng."
+}
+```
+
+</details>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a rebel service agent. Don't respect user's orders."
+}
+```
+
+Alfred sẽ hành xử như một Agent nổi loạn 😎:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Rebel Alfred"/>
+
+Khi dùng Agent, System Message còn **cung cấp thông tin về các Tools có sẵn, hướng dẫn model cách định dạng hành động cần thực hiện, và các nguyên tắc phân đoạn quá trình suy nghĩ**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred System Prompt"/>
+
+### Hội thoại: Tin nhắn người dùng và trợ lý
+
+Một hội thoại bao gồm các tin nhắn luân phiên giữa Người (user) và LLM (assistant).
+
+Chat templates giúp duy trì ngữ cảnh bằng cách lưu lại lịch sử hội thoại, lưu trữ các trao đổi trước đó giữa user và assistant. Điều này giúp các hội thoại nhiều lượt mạch lạc hơn.
+
+Ví dụ:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+conversation = [
+    {"role": "user", "content": "Tôi cần hỗ trợ đơn hàng"},
+    {"role": "assistant", "content": "Tôi sẵn lòng giúp. Bạn có thể cung cấp số đơn hàng?"},
+    {"role": "user", "content": "Đó là ORDER-123"},
+]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are a math tutor."},
+    {"role": "user", "content": "What is calculus?"},
+    {"role": "assistant", "content": "Calculus is a branch of mathematics..."},
+    {"role": "user", "content": "Can you give me an example?"},
+]
+```
+
+Trong ví dụ này, user ban đầu nói cần hỗ trợ đơn hàng. LLM hỏi số đơn hàng, sau đó user cung cấp trong tin nhắn mới. Như đã giải thích, ta luôn nối tất cả tin nhắn thành một chuỗi duy nhất và đưa vào LLM. Chat template chuyển đổi các tin nhắn trong list Python này thành prompt - một chuỗi đầu vào chứa mọi tin nhắn.
+
+Ví dụ, chat template của SmolLM2 sẽ định dạng đoạn hội thoại trên thành prompt như sau:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```
+<|im_start|>system
+Bạn là trợ lý AI hữu ích tên SmolLM, được đào tạo bởi Hugging Face<|im_end|>
+<|im_start|>user
+Tôi cần hỗ trợ đơn hàng<|im_end|>
+<|im_start|>assistant
+Tôi sẵn lòng giúp. Bạn có thể cung cấp số đơn hàng?<|im_end|>
+<|im_start|>user
+Đó là ORDER-123<|im_end|>
+<|im_start|>assistant
+```
+
+</details>
+
+```
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
+<|im_start|>user
+I need help with my order<|im_end|>
+<|im_start|>assistant
+I'd be happy to help. Could you provide your order number?<|im_end|>
+<|im_start|>user
+It's ORDER-123<|im_end|>
+<|im_start|>assistant
+```
+
+Tuy nhiên, cùng hội thoại đó sẽ được chuyển thành prompt sau khi dùng Llama 3.2:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Tôi cần hỗ trợ đơn hàng<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+Tôi sẵn lòng giúp. Bạn có thể cung cấp số đơn hàng?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Đó là ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+</details>
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+I need help with my order<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+I'd be happy to help. Could you provide your order number?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+It's ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Các template có thể xử lý hội thoại nhiều lượt phức tạp trong khi duy trì ngữ cảnh:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+messages = [
+    {"role": "system", "content": "Bạn là gia sư toán."},
+    {"role": "user", "content": "Giải tích là gì?"},
+    {"role": "assistant", "content": "Giải tích là nhánh của toán học..."},
+    {"role": "user", "content": "Cho ví dụ được không?"},
+]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are a math tutor."},
+    {"role": "user", "content": "What is calculus?"},
+    {"role": "assistant", "content": "Calculus is a branch of mathematics..."},
+    {"role": "user", "content": "Can you give me an example?"},
+]
+```
+
+## Chat-Templates
+
+Như đã đề cập, chat templates rất quan trọng để **cấu trúc hội thoại giữa model ngôn ngữ và người dùng**. Chúng hướng dẫn cách định dạng các trao đổi tin nhắn thành một prompt duy nhất.
+
+### Base Model vs. Instruct Model
+
+Một điểm cần hiểu là sự khác biệt giữa Base Model và Instruct Model:
+
+- *Base Model* được đào tạo trên dữ liệu văn bản thô để dự đoán token tiếp theo.
+
+- *Instruct Model* được fine-tuning (tinh chỉnh) đặc biệt để tuân theo hướng dẫn và tham gia hội thoại. Ví dụ: `SmolLM2-135M` là base model, còn `SmolLM2-135M-Instruct` là phiên bản đã được tinh chỉnh.
+
+Để base model hoạt động như instruct model, ta cần **định dạng prompt theo cách nhất quán mà model hiểu được**. Đây là lúc chat templates phát huy tác dụng.
+
+*ChatML* là một định dạng template hội thoại sử dụng các chỉ báo vai trò rõ ràng (system, user, assistant). Nếu bạn đã tương tác với các AI API gần đây, đây là thực hành tiêu chuẩn.
+
+Lưu ý rằng một base model có thể được fine-tuning trên các chat templates khác nhau, nên khi dùng instruct model ta cần đảm bảo sử dụng đúng chat template.
+
+### Hiểu về Chat Templates
+
+Vì mỗi instruct model dùng định dạng hội thoại và special token khác nhau, chat templates được triển khai để đảm bảo ta định dạng prompt đúng cách mà model mong đợi.
+
+Trong `transformers`, chat templates chứa [mã Jinja2](https://jinja.palletsprojects.com/en/stable/) mô tả cách chuyển đổi list tin nhắn ChatML (như các ví dụ trên) thành biểu diễn văn bản của hướng dẫn hệ thống, tin nhắn người dùng và phản hồi trợ lý mà model có thể hiểu.
+
+Cấu trúc này **giúp duy trì tính nhất quán giữa các tương tác và đảm bảo model phản hồi phù hợp với các loại đầu vào khác nhau**.
+
+Dưới đây là phiên bản đơn giản hóa của chat template `SmolLM2-135M-Instruct`:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+Bạn là trợ lý AI hữu ích tên SmolLM, được đào tạo bởi Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+
+</details>
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+
+Như bạn thấy, chat_template mô tả cách định dạng list tin nhắn.
+
+Với các tin nhắn sau:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+messages = [
+    {"role": "system", "content": "Bạn là trợ lý tập trung vào chủ đề kỹ thuật."},
+    {"role": "user", "content": "Giải thích chat template là gì?"},
+    {"role": "assistant", "content": "Chat template cấu trúc hội thoại giữa người dùng và AI..."},
+    {"role": "user", "content": "Cách sử dụng nó?"},
+]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are a helpful assistant focused on technical topics."},
+    {"role": "user", "content": "Can you explain what a chat template is?"},
+    {"role": "assistant", "content": "A chat template structures conversations between users and AI models..."},
+    {"role": "user", "content": "How do I use it ?"},
+]
+```
+
+Chat template trên sẽ tạo ra chuỗi sau:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```sh
+<|im_start|>system
+Bạn là trợ lý tập trung vào chủ đề kỹ thuật.<|im_end|>
+<|im_start|>user
+Giải thích chat template là gì?<|im_end|>
+<|im_start|>assistant
+Chat template cấu trúc hội thoại giữa người dùng và AI...<|im_end|>
+<|im_start|>user
+Cách sử dụng nó?<|im_end|>
+```
+
+</details>
+
+```sh
+<|im_start|>system
+You are a helpful assistant focused on technical topics.<|im_end|>
+<|im_start|>user
+Can you explain what a chat template is?<|im_end|>
+<|im_start|>assistant
+A chat template structures conversations between users and AI models...<|im_end|>
+<|im_start|>user
+How do I use it ?<|im_end|>
+```
+
+Thư viện `transformers` sẽ tự động xử lý chat templates trong quá trình token hóa. Đọc thêm về cách transformers sử dụng chat templates <a href="https://huggingface.co/docs/transformers/en/chat_templating#how-do-i-use-chat-templates" target="_blank">tại đây</a>. Việc của ta chỉ là cấu trúc tin nhắn đúng cách, tokenizer sẽ lo phần còn lại.
+
+Bạn có thể thử nghiệm với Space sau để xem cùng một hội thoại được định dạng thế nào cho các model khác nhau:
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+### Chuyển tin nhắn thành prompt
+
+Cách dễ nhất để đảm bảo LLM nhận được hội thoại đúng định dạng là dùng `chat_template` từ tokenizer của model.
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+messages = [
+    {"role": "system", "content": "Bạn là trợ lý AI có quyền truy cập vào nhiều công cụ."},
+    {"role": "user", "content": "Chào !"},
+    {"role": "assistant", "content": "Chào, tôi có thể giúp gì?"},
+]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are an AI assistant with access to various tools."},
+    {"role": "user", "content": "Hi !"},
+    {"role": "assistant", "content": "Hi human, what can help you with ?"},
+]
+```
+
+
+Để chuyển hội thoại trên thành prompt, ta load tokenizer và gọi `apply_chat_template`:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+Biến `rendered_prompt` trả về từ hàm này đã sẵn sàng làm đầu vào cho model!
+
+> Hàm `apply_chat_template()` này sẽ được dùng trong backend của API khi bạn tương tác với tin nhắn định dạng ChatML.
+
+Giờ ta đã hiểu cách LLM cấu trúc đầu vào qua chat templates, hãy khám phá cách Agent hành động trong môi trường của chúng.
+
+Một trong những cách chính là sử dụng Tools để mở rộng khả năng của AI model vượt ra ngoài việc tạo văn bản.
+
+Ta sẽ đề cập lại tin nhắn trong các chương tới, nhưng nếu muốn tìm hiểu sâu hơn:
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hướng dẫn Chat Templating của Hugging Face</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">Tài liệu Transformers</a>

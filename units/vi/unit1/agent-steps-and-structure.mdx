@@ -1,0 +1,163 @@
+# Hiểu về AI Agent thông qua chu kỳ Thought-Action-Observation (Suy nghĩ - Hành động - Quan sát)
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Kế hoạch chương 1"/>
+
+Trong các phần trước, ta đã học:
+
+- **Cách các công cụ được cung cấp cho agent trong system prompt**
+- **Cách AI Agent là hệ thống có thể 'lập luận', lên kế hoạch và tương tác với môi trường**
+
+Trong phần này, **chúng ta sẽ khám phá Quy trình AI Agent hoàn chỉnh** - chu kỳ được định nghĩa là Thought-Action-Observation (Suy nghĩ - Hành động - Quan sát).
+
+Sau đó, ta sẽ đi sâu vào từng bước trong chu kỳ này.
+
+## Thành phần cốt lõi
+
+Agent hoạt động theo chu kỳ liên tục: **suy nghĩ (Thought) → hành động (Act) → quan sát (Observe)**.
+
+Cùng phân tích từng hành động:
+
+1. **Thought (Suy nghĩ)**: Phần LLM (mô hình ngôn ngữ lớn) của Agent quyết định bước tiếp theo cần làm
+2. **Action (Hành động)**: Agent thực hiện hành động bằng cách gọi các công cụ với tham số liên quan
+3. **Observation (Quan sát)**: Model phản ánh lại phản hồi từ công cụ
+
+## Chu kỳ Thought-Action-Observation
+
+Ba thành phần này kết hợp với nhau trong một vòng lặp liên tục. Dùng phép so sánh từ lập trình, agent sử dụng **vòng lặp while**: lặp lại cho đến khi hoàn thành mục tiêu.
+
+Trực quan, quy trình trông như thế này:
+
+Chú thích hình ảnh:
+- Query: truy vấn từ phía người dùng
+- Think: lập luận bởi Agent
+- Act: hành động của Agent
+- Observe: phản hồi từ môi trường
+- END: kết thúc chu kỳ
+- Finish or Another Action needed?: xác định xem chu kỳ đã hoàn thành hay cần thêm hành động
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Chu kỳ Think, Act, Observe"/>
+
+Trong nhiều framework Agent, **các quy tắc và hướng dẫn được nhúng trực tiếp vào system prompt**, đảm bảo mọi chu kỳ tuân theo logic định sẵn.
+
+Phiên bản đơn giản hóa của system prompt có thể như sau:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Chu kỳ Think, Act, Observe"/>
+
+> Bạn là một trợ lý AI được thiết kế để giúp người dùng một cách hiệu quả và chính xác. Mục tiêu chính của bạn là cung cấp các câu trả lời hữu ích, chính xác và rõ ràng.
+> 
+> Bạn có quyền truy cập vào các công cụ sau:  
+> Tên công cụ: calculator, Mô tả: Nhân hai số nguyên., Tham số: a: int, b: int, Đầu ra: int  
+> 
+> Bạn nên suy nghĩ từng bước để hoàn thành mục tiêu với lập luận được chia thành các phần Suy nghĩ/Hành động/Quan sát > có thể lặp lại nhiều lần nếu cần thiết.  
+> 
+> Trước tiên, bạn nên phản ánh bằng ‘Suy nghĩ: {your_thoughts}’ về tình huống hiện tại, sau đó (nếu cần), gọi một công cụ với định dạng JSON thích hợp ‘Hành động: {JSON_BLOB}’, hoặc in câu trả lời cuối cùng của bạn bắt đầu với tiền tố ‘Câu trả lời cuối cùng:’
+
+
+Ta thấy ở System Message đã định nghĩa:
+
+- *Hành vi của Agent*
+- *Các công cụ Agent có quyền truy cập* như đã mô tả ở phần trước
+- *Chu kỳ Thought-Action-Observation* được tích hợp vào hướng dẫn cho LLM
+
+Hãy xem một ví dụ nhỏ để hiểu quy trình trước khi đi sâu vào từng bước.
+
+## Alfred - Agent thời tiết
+
+Chúng mình tạo ra Alfred, Agent thời tiết.
+
+Người dùng hỏi Alfred: "Hôm nay thời tiết ở New York thế nào?"
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Agent Alfred"/>
+
+Nhiệm vụ của Alfred là trả lời câu hỏi này bằng công cụ API thời tiết.
+
+Đây là cách chu kỳ diễn ra:
+
+### Thought (Suy nghĩ)
+
+**Lập luận nội bộ:**
+
+Khi nhận câu hỏi, Alfred tự độc thoại:
+
+*"Người dùng cần thông tin thời tiết hiện tại ở New York. Mình có công cụ lấy dữ liệu thời tiết. Đầu tiên cần gọi API thời tiết để lấy thông tin mới nhất."*
+
+Bước này cho thấy agent phân tách vấn đề thành các bước: đầu tiên là thu thập dữ liệu cần thiết.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Agent Alfred"/>
+
+### Action (Hành động)
+
+**Sử dụng công cụ:**
+
+Dựa trên lập luận và biết về công cụ `get_weather`, Alfred chuẩn bị lệnh định dạng JSON để gọi API thời tiết. Ví dụ:
+
+Thought: Tôi cần kiểm tra thời tiết hiện tại ở New York.
+
+ ```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+ ```
+
+Ở đây, hành động chỉ rõ công cụ cần gọi (get_weather) và tham số truyền vào ("location": "New York").
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Agent Alfred"/>
+
+### Observation (Quan sát)
+
+**Phản hồi từ môi trường:**
+
+Sau khi gọi công cụ, Alfred nhận được quan sát. Đây có thể là dữ liệu thời tiết thô từ API như:
+
+*"Thời tiết hiện tại tại New York: nhiều mây, 15°C, độ ẩm 60%."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Agent Alfred"/>
+
+Quan sát này được thêm vào prompt như ngữ cảnh bổ sung. Nó đóng vai trò phản hồi thực tế, xác nhận hành động thành công và cung cấp thông tin cần thiết.
+
+### Cập nhật suy nghĩ
+
+**Phản ánh:**
+
+Với quan sát mới, Alfred cập nhật lập luận nội bộ:
+
+*"Giờ mình đã có dữ liệu thời tiết New York, có thể tổng hợp câu trả lời cho người dùng."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Agent Alfred"/>
+
+### Hành động cuối cùng
+
+Alfred tạo phản hồi cuối cùng theo định dạng đã hướng dẫn:
+
+Thought: Tôi đã có dữ liệu thời tiết. Thời tiết hiện tại ở New York nhiều mây với nhiệt độ 15°C và độ ẩm 60%.
+
+Final answer: Thời tiết hiện tại ở New York nhiều mây với nhiệt độ 15°C và độ ẩm 60%.
+
+Hành động cuối này gửi câu trả lời về người dùng, khép vòng lặp.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Agent Alfred"/>
+
+Những gì ta thấy trong ví dụ:
+
+- **Agent lặp qua vòng lặp đến khi hoàn thành mục tiêu:**
+    
+**Quy trình của Alfred mang tính chu kỳ**. Bắt đầu bằng suy nghĩ, hành động gọi công cụ, sau đó quan sát kết quả. Nếu quan sát cho thấy lỗi hoặc thiếu dữ liệu, Alfred có thể vào lại chu kỳ để điều chỉnh.
+    
+- **Tích hợp công cụ:**
+
+Khả năng gọi công cụ (như API thời tiết) giúp Alfred vượt **khỏi kiến thức tĩnh để truy xuất dữ liệu thời gian thực** - yếu tố thiết yếu của nhiều AI Agent.
+
+- **Thích ứng linh hoạt:**
+
+Mỗi chu kỳ cho phép agent kết hợp thông tin mới (quan sát) vào lập luận (suy nghĩ), đảm bảo câu trả lời cuối chính xác và đầy đủ.
+    
+Ví dụ này minh họa khái niệm cốt lõi của *ReAct cycle* (khái niệm sẽ được phát triển ở phần sau): **sự tương tác giữa Thought, Action và Observation trao quyền cho AI Agent giải quyết tác vụ phức tạp một cách lặp**. 
+
+Bằng cách hiểu và áp dụng các nguyên tắc này, bạn có thể thiết kế agent không chỉ lập luận về tác vụ mà còn **sử dụng hiệu quả công cụ bên ngoài để hoàn thành chúng**, đồng thời liên tục tinh chỉnh đầu ra dựa trên phản hồi môi trường.
+
+---
+
+Giờ hãy cùng đi sâu vào từng bước Thought, Action, Observation trong quy trình.

@@ -1,0 +1,42 @@
+# Observe: Tích hợp phản hồi để phản ánh và thích ứng
+
+Observation (Quan sát) là **cách Agent (tác nhân) nhận thức hậu quả từ hành động của nó**. 
+
+Chúng cung cấp thông tin quan trọng thúc đẩy quá trình suy nghĩ của Agent và định hướng các hành động tiếp theo. 
+
+Chúng là **tín hiệu từ môi trường**—dù là dữ liệu từ API, thông báo lỗi hay nhật ký hệ thống—để hướng dẫn chu kỳ suy nghĩ tiếp theo.
+
+Trong giai đoạn quan sát, agent sẽ:
+- **Thu thập phản hồi:** Nhận dữ liệu hoặc xác nhận về việc hành động đã thành công (hay chưa?)
+- **Thêm kết quả:** Tích hợp thông tin mới vào ngữ cảnh hiện có, cập nhật bộ nhớ.
+- **Điều chỉnh chiến lược:** Sử dụng ngữ cảnh đã cập nhật để cải thiện các suy nghĩ/hành động tiếp theo.
+
+Ví dụ: Nếu weather API trả về dữ liệu *"partly cloudy, 15°C, 60% humidity"* (trời có mây, 15°C, độ ẩm 60%), observation này sẽ được thêm vào bộ nhớ của agent (cuối prompt). 
+
+Agent sau đó dùng nó để quyết định xem cần thêm thông tin hay đã sẵn sàng đưa ra câu trả lời cuối.
+
+**Việc lặp lại tích hợp phản hồi đảm bảo agent luôn alignment (cân chỉnh) động với mục tiêu**, liên tục học và điều chỉnh dựa trên kết quả thực tế.
+
+Các observation **có nhiều dạng**, từ đọc văn bản webpage đến giám sát vị trí cánh tay robot. Điều này giống như "logs" của Tool cung cấp phản hồi dạng văn bản về việc thực thi Action.
+
+| Loại quan sát       | Ví dụ                                                                     |
+|---------------------|---------------------------------------------------------------------------|
+| Phản hồi hệ thống   | Thông báo lỗi, thông báo thành công, status codes                         |
+| Thay đổi dữ liệu    | Cập nhật database, thay đổi file hệ thống, thay đổi trạng thái           |
+| Dữ liệu môi trường  | Đọc cảm biến, số liệu hệ thống, mức độ sử dụng tài nguyên                 |
+| Phân tích phản hồi  | API responses, kết quả truy vấn, đầu ra tính toán                         |
+| Sự kiện theo thời gian | Hết hạn deadline, hoàn thành task theo lịch                              |
+
+## Kết quả được thêm vào như thế nào?
+
+Sau khi thực hiện action, framework sẽ làm theo các bước sau:
+1. **Phân tích hành động** để xác định function(s) cần gọi và argument(s) sử dụng.  
+2. **Thực thi hành động.**  
+3. **Thêm kết quả** dưới dạng **Observation**.  
+
+---
+Chúng ta đã tìm hiểu về Chu kỳ Thought-Action-Observation (Suy nghĩ-Hành động-Quan sát) của Agent.
+
+Nếu một số khía cạnh vẫn còn mơ hồ, đừng lo—chúng ta sẽ quay lại và đào sâu các khái niệm này trong các chương tiếp theo.
+
+Giờ là lúc áp dụng kiến thức vào thực tế bằng cách viết code cho Agent đầu tiên của bạn!

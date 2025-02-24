@@ -1,0 +1,53 @@
+# Giới thiệu
+
+![Hình ảnh minh họa chương bổ trợ 1](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit1/thumbnail.jpg)
+
+Chào mừng bạn đến với **chương bổ trợ đầu tiên** này, nơi ta sẽ học cách **tinh chỉnh (fine-tuning) Mô hình Ngôn ngữ Lớn (LLM) cho function calling**.
+
+Với LLMs, function calling đang nhanh chóng trở thành kỹ thuật *phải-biết*. 
+
+Ý tưởng là thay vì chỉ dựa vào phương pháp prompt-based như trong chương 1, function calling sẽ huấn luyện model của bạn **thực hiện hành động và diễn giải quan sát trong giai đoạn training**, giúp AI trở nên mạnh mẽ hơn.
+
+> **Khi nào nên học chương bổ trợ này?**
+>
+> Phần này **không bắt buộc** và nâng cao hơn chương 1. Bạn có thể học ngay hoặc quay lại sau khi nâng cao kiến thức nhờ khóa học.
+>  
+> Đừng lo, chương bổ trợ được thiết kế để cung cấp đầy đủ thông tin cần thiết. Chúng mình sẽ hướng dẫn bạn từng khái niệm cốt lõi về tinh chỉnh model cho function calling dù bạn chưa hiểu sâu về fine-tuning.
+
+Để học tốt chương bổ trợ này, bạn cần:
+
+1. Biết cách Tinh chỉnh LLM với Transformers. Nếu chưa biết, [xem tại đây](https://huggingface.co/learn/nlp-course/chapter3/1?fw=pt).
+
+2. Biết dùng `SFTTrainer` để tinh chỉnh model. Tìm hiểu thêm tại [tài liệu này](https://huggingface.co/learn/nlp-course/en/chapter11/1). 
+
+---
+
+## Nội dung học
+
+1. **Function Calling**  
+   Cách LLMs hiện đại tổ chức hội thoại hiệu quả để kích hoạt **Tools (công cụ)**.
+
+2. **LoRA (Low-Rank Adaptation)**  
+   Phương pháp tinh chỉnh **nhẹ và hiệu quả** giúp giảm chi phí tính toán và lưu trữ. LoRA giúp huấn luyện model lớn *nhanh hơn, rẻ hơn, dễ triển khai hơn*.
+
+3. **Chu trình Suy nghĩ → Hành động → Quan sát** trong model Function Calling  
+   Cách tiếp cận đơn giản nhưng mạnh mẽ để model quyết định khi nào (và cách nào) gọi function, theo dõi các bước trung gian, và diễn giải kết quả từ Tools/API bên ngoài.
+
+4. **Token Đặc biệt Mới**  
+   Chúng ta sẽ giới thiệu **các marker đặc biệt** giúp model phân biệt:
+   - Lý luận nội bộ kiểu "chain-of-thought" (luồng suy luận)  
+   - Lệnh gọi function  
+   - Phản hồi từ công cụ bên ngoài
+
+---
+
+Kết thúc chương bổ trợ này, bạn sẽ có thể:
+
+- **Hiểu** cách hoạt động nội bộ của APIs khi sử dụng Tools  
+- **Tinh chỉnh** model bằng kỹ thuật LoRA  
+- **Triển khai** và **tùy chỉnh** chu trình Thought → Act → Observe để tạo workflow Function-calling mạnh mẽ  
+- **Thiết kế và sử dụng** token đặc biệt để tách biệt lý luận nội bộ của model với hành động bên ngoài
+
+Và quan trọng nhất: **Bạn sẽ có model được tinh chỉnh để thực hiện function calling!** 🔥
+
+Cùng khám phá **function calling** thôi!

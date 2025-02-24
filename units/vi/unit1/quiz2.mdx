@@ -1,0 +1,117 @@
+# Kiểm tra nhanh tự đánh giá (không chấm điểm) [[quiz2]] 
+
+Gì nữa? Lại Quiz á? Chúng mình biết, chúng mình biết... 😅 Nhưng bài kiểm tra ngắn không chấm điểm này giúp bạn **củng cố các khái niệm quan trọng vừa học**.
+
+Quiz này bao gồm Large Language Models (LLMs), hệ thống tin nhắn và tools - những thành phần thiết yếu để hiểu và xây dựng AI Agent.
+
+### Q1: Đâu là mô tả chính xác nhất về AI Tool?
+
+<Question
+choices={[
+{
+text: "Quy trình chỉ tạo phản hồi văn bản",
+explain: "",
+},
+{
+text: "Quy trình thực thi hoặc API bên ngoài cho phép Agent thực hiện tác vụ cụ thể và tương tác với môi trường bên ngoài",
+explain: "Tools là các hàm thực thi mà Agent có thể sử dụng để thực hiện tác vụ và tương tác với môi trường bên ngoài.",
+correct: true
+},
+{
+text: "Tính năng lưu trữ hội thoại của Agent",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q2: AI Agent sử dụng Tools như hình thức "hành động" trong môi trường thế nào?
+
+<Question
+choices={[
+{
+text: "Bằng cách thụ động chờ hướng dẫn từ người dùng",
+explain: "",
+},
+{
+text: "Chỉ sử dụng các phản hồi được lập trình sẵn",
+explain: "",
+},
+{
+text: "Bằng cách yêu cầu LLM sinh code gọi Tool khi cần và chạy Tool thay mặt model",
+explain: "Agent có thể kích hoạt Tools và sử dụng luồng suy luận để lập kế hoạch/cập nhật kế hoạch dựa trên thông tin thu được.",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q3: Large Language Model (LLM) là gì?
+
+<Question
+choices={[
+{
+text: "Chatbot đơn giản với các câu trả lời định sẵn",
+explain: "",
+},
+{
+text: "Mô hình deep learning được training trên lượng lớn văn bản để hiểu và tạo ngôn ngữ giống con người",
+explain: "",
+correct: true
+},
+{
+text: "AI dựa trên luật với các lệnh định nghĩa cứng nhắc",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q4: Vai trò của Special Token trong LLMs là gì?
+
+<Question
+choices={[
+{
+text: "Là các từ bổ sung trong từ vựng của model để nâng cao chất lượng sinh văn bản",
+explain: "",
+},
+{
+text: "Thực hiện chức năng cụ thể như đánh dấu cuối chuỗi (EOS) hoặc phân tách các vai trò tin nhắn trong model chat",
+explain: "",
+correct: true
+},
+{
+text: "Là token được chèn ngẫu nhiên để tăng tính đa dạng của phản hồi",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q5: AI Chat Model xử lý tin nhắn người dùng nội bộ thế nào?
+
+<Question
+choices={[
+{
+text: "Trực tiếp diễn giải tin nhắn như lệnh có cấu trúc mà không biến đổi",
+explain: "",
+},
+{
+text: "Chuyển đổi tin nhắn thành prompt định dạng bằng cách nối các tin nhắn system, user và assistant",
+explain: "",
+correct: true
+},
+{
+text: "Sinh phản hồi ngẫu nhiên dựa trên hội thoại trước đó",
+explain: "",
+}
+]}
+/>
+
+---
+
+Hiểu rồi chứ? Tuyệt! Giờ hãy **khám phá luồng hoạt động đầy đủ của Agent và bắt đầu xây dựng AI Agent đầu tiên thôi!**

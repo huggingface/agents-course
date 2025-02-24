@@ -1,0 +1,145 @@
+# Agent (tác nhân) là gì?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Unit 1 planning"/>
+
+Đến cuối phần này, các bạn sẽ hiểu rõ khái niệm Agent và các ứng dụng đa dạng của chúng trong AI.
+
+Để giải thích Agent là gì, hãy bắt đầu với một phép so sánh.
+
+## Bức tranh tổng thể: Alfred The Agent
+
+Hãy gặp Alfred. Alfred là một **Agent** (tác nhân).
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="This is Alfred"/>
+
+Hãy tưởng tượng Alfred **nhận được lệnh**, ví dụ: "Alfred, cho tôi một ly cà phê nhé."
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="I would like a coffee"/>
+
+Vì Alfred **hiểu ngôn ngữ tự nhiên**, cậu ấy nhanh chóng nắm bắt yêu cầu của ta.
+
+Trước khi thực hiện, Alfred thực hiện **lập luận và lập kế hoạch**, xác định các bước và công cụ cần thiết để:
+
+1. Đến bếp  
+2. Dùng máy pha cà phê  
+3. Pha cà phê  
+4. Mang cà phê lại
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="Reason and plan"/>
+
+Sau khi có kế hoạch, cậu ấy **phải hành động**. Để thực hiện kế hoạch, **cậu ấy có thể dùng các Tools từ danh sách công cụ đã biết**. 
+
+Trong trường hợp này, để pha cà phê, cậu ấy dùng máy pha cà phê. Cậu kích hoạt máy để pha.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="Make coffee"/>
+
+Cuối cùng, Alfred mang ly cà phê vừa pha đến cho ta.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Bring coffee"/>
+
+Và đó chính là Agent: **một model AI có khả năng lập luận, lập kế hoạch và tương tác với môi trường**. 
+
+Chúng ta gọi nó là Agent vì nó có _tính chủ động_, tức khả năng tương tác với môi trường.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="Agent process"/>
+
+## Định nghĩa chính thức hơn
+
+Giờ bạn đã nắm tổng quan, đây là định nghĩa chính xác hơn:
+
+> Agent là hệ thống sử dụng model AI để tương tác với môi trường nhằm đạt mục tiêu do người dùng xác định. Nó kết hợp lập luận, lập kế hoạch và thực thi hành động (thường qua các Tools bên ngoài) để hoàn thành nhiệm vụ.
+
+Có thể hình dung Agent gồm hai phần chính:
+
+1. **Bộ não (AI Model)**
+
+Nơi diễn ra mọi suy nghĩ. AI model **xử lý lập luận và lập kế hoạch**.
+Nó quyết định **Actions nào cần thực hiện dựa trên tình huống**.
+
+2. **Cơ thể (Khả năng và Tools)**
+
+Phần này đại diện cho **mọi thứ Agent có thể làm**.
+
+**Phạm vi hành động khả thi** phụ thuộc vào **những gì Agent được trang bị**. Ví dụ: vì con người không có cánh, chúng ta không thể thực hiện Action "bay", nhưng có thể thực hiện các Actions như "đi bộ", "chạy", "nhảy", "cầm nắm", v.v.
+
+## Loại AI Models nào được dùng cho Agents?
+
+AI model phổ biến nhất trong Agents là LLM (Mô hình ngôn ngữ lớn), nhận đầu vào là **Văn bản** và cũng xuất ra **Văn bản**.
+
+Ví dụ nổi tiếng như **GPT4** từ **OpenAI**, **LLama** từ **Meta**, **Gemini** từ **Google**, v.v. Các model này được training trên lượng văn bản khổng lồ và có khả năng tổng quát hóa tốt. Chúng ta sẽ tìm hiểu thêm về LLMs ở [phần tiếp theo](what-are-llms).
+
+<Tip>
+Ta cũng có thể dùng các model nhận đầu vào khác làm core model cho Agent. Ví dụ: Vision Language Model (VLM) - giống LLM nhưng hiểu được cả hình ảnh. Hiện tại ta tập trung vào LLMs và sẽ thảo luận các lựa chọn khác sau.
+</Tip>
+
+## AI thực hiện hành động thế nào trên môi trường?
+
+LLMs là những model tuyệt vời, nhưng **chúng chỉ có thể tạo văn bản**. 
+
+Tuy nhiên, nếu bạn yêu cầu ứng dụng chat như HuggingChat hay ChatGPT tạo ảnh, chúng làm được! Làm thế nào vậy?
+
+Câu trả lời là các nhà phát triển HuggingChat, ChatGPT và ứng dụng tương tự đã triển khai chức năng bổ sung (gọi là **Tools**), mà LLM có thể dùng để tạo ảnh.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="Eiffel Brocolis"/>
+<figcaption>Model đã dùng Image Generation Tool để tạo ảnh này.
+</figcaption>
+</figure>
+
+Chúng ta sẽ tìm hiểu thêm về Tools ở phần [Tools](tools).
+
+## Agent có thể làm những loại nhiệm vụ nào?
+
+Agent có thể thực hiện bất kỳ nhiệm vụ nào mà ta triển khai qua **Tools** để hoàn thành **Actions**.
+
+Ví dụ: nếu tôi viết một Agent làm trợ lý cá nhân (như Siri) trên máy tính, và yêu cầu nó "gửi email cho Quản lý đề nghị dời cuộc họp hôm nay", tôi có thể cung cấp code để gửi email. Đây sẽ là Tool mới mà Agent có thể dùng khi cần gửi email. Ta có thể viết bằng Python:
+
+```python
+def send_message_to(recipient, message):
+    """Hữu ích để gửi email đến người nhận"""
+    ...
+```
+
+Như chúng ta sẽ thấy, LLM sẽ sinh code để chạy tool khi cần, từ đó hoàn thành nhiệm vụ.
+
+```python
+send_message_to("Manager", "Can we postpone today's meeting?")
+```
+
+**Thiết kế Tools rất quan trọng và ảnh hưởng lớn đến chất lượng Agent**. Một số nhiệm vụ cần Tools đặc biệt được tạo riêng, số khác có thể giải quyết bằng Tools đa năng như "web_search".
+
+> Lưu ý **Actions không giống Tools**. Một Action có thể liên quan đến việc sử dụng nhiều Tools để hoàn thành.
+
+Việc cho phép Agent tương tác với môi trường **mở ra ứng dụng thực tế cho doanh nghiệp và cá nhân**.
+
+### Ví dụ 1: Trợ lý ảo cá nhân
+
+Các trợ lý ảo như Siri, Alexa hay Google Assistant hoạt động như Agents khi tương tác thay mặt người dùng qua môi trường số.
+
+Chúng tiếp nhận yêu cầu, phân tích ngữ cảnh, truy xuất thông tin từ database, và cung cấp phản hồi hoặc khởi tạo hành động (như đặt lời nhắc, gửi tin nhắn, điều khiển thiết bị thông minh).
+
+### Ví dụ 2: Chatbot hỗ trợ khách hàng
+
+Nhiều công ty triển khai chatbot như Agents tương tác với khách hàng bằng ngôn ngữ tự nhiên.
+
+Các Agents này có thể trả lời câu hỏi, hướng dẫn xử lý sự cố, mở ticket trong database nội bộ, hay thậm chí hoàn tất giao dịch.
+
+Mục tiêu định sẵn của chúng có thể bao gồm cải thiện trải nghiệm người dùng, giảm thời gian chờ, hoặc tăng tỷ lệ chốt sale. Bằng cách tương tác trực tiếp với khách hàng, học hỏi từ hội thoại và điều chỉnh phản hồi theo thời gian, chúng thể hiện nguyên lý cốt lõi của Agent.
+
+### Ví dụ 3: NPC AI trong game
+
+Các Agents AI sử dụng LLMs có thể làm NPC trở nên năng động và khó đoán hơn.
+
+Thay vì tuân theo các behavior tree cứng nhắc, chúng có thể **phản ứng theo ngữ cảnh, thích ứng với tương tác của người chơi**, và tạo hội thoại tinh tế hơn. Tính linh hoạt này giúp tạo ra các nhân vật sống động, hấp dẫn hơn và phát triển cùng hành động của người chơi.
+
+---
+
+Tóm lại, Agent là hệ thống sử dụng AI Model (thường là LLM) làm động cơ lập luận chính, để:
+
+- **Hiểu ngôn ngữ tự nhiên:** Diễn giải và phản hồi chỉ dẫn của con người theo cách có ý nghĩa.
+
+- **Lập luận và lập kế hoạch:** Phân tích thông tin, đưa quyết định và xây dựng chiến lược giải quyết vấn đề.
+
+- **Tương tác với môi trường:** Thu thập thông tin, thực hiện hành động và quan sát kết quả.
+
+Giờ bạn đã nắm vững khái niệm Agent, hãy củng cố kiến thức bằng một **Kiểm tra nhanh** không tính điểm. Sau đó, chúng ta sẽ đi sâu vào "bộ não" của Agent: [LLMs](what-are-llms).
