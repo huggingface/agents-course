@@ -6,10 +6,10 @@
     title: Вводная часть
   - local: unit0/discord101
     title: (Необязательно) Discord 101
-- title: Прямой эфир 1. Как работает курс и вопросы и ответы
+- title: Прямой эфир 1. Как работает курс, вопросы и ответы
   sections:
   - local: communication/live1
-    title: Прямой эфир 1. Как работает курс и вопросы и ответы
+    title: Прямой эфир 1. Как работает курс, вопросы и ответы
 - title: Раздел 1. Введение в Агентов
   sections:
   - local: unit1/introduction
@@ -41,7 +41,7 @@
   - local: unit1/final-quiz
     title: Раздел 1 Финальный тест
   - local: unit1/get-your-certificate
-    title: Получение сертификата
+    title: Получите свой сертификат
   - local: unit1/conclusion
     title: Заключение
 - title: Бонусный раздел 1. Дообучение LLM для вызова функций
@@ -51,7 +51,7 @@
   - local: bonus-unit1/what-is-function-calling
     title: Что такое вызов функции?
   - local: bonus-unit1/fine-tuning
-    title: Let's Fine-Tune вашу модель для вызова функций
+    title: Давайте дообучим вашу модель для вызова функций
   - local: bonus-unit1/conclusion
     title: Заключение
 - title: Когда будут опубликованы следующие шаги?
