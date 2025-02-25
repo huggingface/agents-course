@@ -172,7 +172,7 @@ agent.run(
     1. Prepare the drinks - 30 minutes
     2. Decorate the mansion - 60 minutes
     3. Set up the menu - 45 minutes
-    3. Prepare the music and playlist - 45 minutes
+    4. Prepare the music and playlist - 45 minutes
 
     If we start right now, at what time will the party be ready?
     """
@@ -296,7 +296,7 @@ agent = CodeAgent(
     verbosity_level=2
 )
 
-agent.run("Give me best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
+agent.run("Give me the best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
 ```
 
 As you can see, we've created a `CodeAgent` with several tools that enhance the agent's functionality, turning it into the ultimate party planner ready to share with the community! 🎉
@@ -363,13 +363,13 @@ alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=Tru
 alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
 ```
 
-Alfred can now access this logs [here](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z) to review and analyze them.  
+Alfred can now access these logs [here](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z) to review and analyze them.  
 
 Meanwhile, the [suggested playlist](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw) sets the perfect vibe for the party preparations. Cool, right? 🎶  
 
 ---
 
-Now that we created our first Code Agent, let's  **learn how we can create Tool Calling Agents**, the second type of agent available in `smolagents`.
+Now that we have created our first Code Agent, let's **learn how we can create Tool Calling Agents**, the second type of agent available in `smolagents`.
 
 ## Resources
 
