@@ -1,0 +1,112 @@
+# Using Agents in LlamaIndex
+
+Remember Alfred, our helpful butler agent from earlier? Well, he's about to get an upgrade!
+Now that we understand the tools available in LlamaIndex, we can give Alfred new capabilities to better serve us.
+But before we continue, let's remind ourselves what makes an agent like Alfred tick.
+Back in Unit 1, we learned that:
+
+> An Agent is a system that leverages an AI model to interact with its environment in order to achieve a user-defined objective. It combines reasoning, planning, and the execution of actions (often via external tools) to fulfill tasks.
+
+LlamaIndex supports **three main types of reasoning agents:**
+
+![Agents](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agents.png)
+
+1. `Function Calling Agents` - These work with AI models that can call specific functions.
+2. `ReAct Agents` - These can work with any AI that does chat or text endpoint and deal with complex reasoning tasks.
+3. `Advanced Agents` - These use more complex methods like LLMCompiler or Chain-of-Abstraction.
+
+<Tip>Find more information on advanced agents on <a href="https://github.com/run-llama/llama_index/tree/main/llama-index-packs">LlamaIndex GitHub</a></Tip>
+
+## Initialising Agents
+
+To create an agent, we start by providing it with a set of Tools that define its capabilities.
+Let's look at how to create a ReAct agent with some basic tools.
+ReAct agents are particularly good at complex reasoning tasks and can work with any LLM that has chat or text completion capabilities.
+
+```python
+from llama_index.core.tools import FunctionTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPILM
+from llama_index.core.agent import ReActAgent
+
+# define sample Tool
+def multiply(a: int, b: int) -> int:
+    """Multiple two integers and returns the result integer"""
+    return a * b
+
+multiply_tool = FunctionTool.from_defaults(fn=multiply)
+
+# initialize llm
+llm = HuggingFaceInferenceAPILM(model_name="meta-llama/Meta-Llama-3-8B-Instruct")
+
+# initialize ReAct agent
+agent = ReActAgent.from_tools([multiply_tool], llm=llm, verbose=True)
+```
+
+Similarly, we can use the **`AgentRunner` to automatically pick the best agent reasoning flow** depending on the LLM.
+Under the hood, it will thus pick either a Function Calling Agent or a ReAct Agent depending on the LLM.
+
+```python
+from llama_index.core.agent import AgentRunner
+
+agent_runner = AgentRunner.from_llm(llm, verbose=True)
+```
+
+**Agents support both chat and query methods** with `query()` and `chat()`, where chat interactions keep a history of messages.
+This might be useful if you want to use an agent that needs to remember previous interactions, like a chatbot that maintains context across multiple messages or a task manager that needs to track progress over time.
+
+```python
+response = agent.query("What is 2 times 2?")
+```
+
+Now we've gotten the basics, let's take a look at how we can use tools in our agents.
+
+## Creating RAG Agents with QueryEngineTools
+
+**Agentic RAG is a powerful way to use agents to answer questions about your data.** We can pass various tools to Alfred to help him answer questions.
+However, instead of answering the question on top of documents automatically, Alfred can decide to use any other tool or flow to answer the question.
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+It is easy to **wrap `QueryEngine` as tools** for an agent.
+When doing so, we need to **define a name and description within the `ToolMetadata`**. The LLM will use this information to correctly use the tool.
+Let's see how to load in a `QueryEngineTool` using the `QueryEngine` we created in the [component section](02_components.mdx).
+
+```python
+from llama_index.core.tools import QueryEngineTool, ToolMetadata
+
+query_engine = index.as_query_engine(similarity_top_k=3) # as shown in the previous section
+
+query_engine_tool = QueryEngineTool(
+    query_engine=query_engine,
+    metadata=ToolMetadata(
+        name="a specific name",
+        description="a specific description",
+    ),
+    return_direct=False,
+)
+query_engine_agent = ReActAgent.from_tools([query_engine_tool], llm=llm, verbose=True)
+```
+
+## Creating Multi-agent systems
+
+**Agents in LlamaIndex can directly be used as tools** for other agents by loading them as a `QueryEngineTool`.
+
+```python
+from llama_index.core.tools import QueryEngineTool
+
+query_engine_agent = # as defined in the previous section
+
+query_engine_agent_tool = QueryEngineTool(
+    query_engine=query_engine_agent,
+    metadata=ToolMetadata(
+        name="a specific name",
+        description="a specific description",
+    ),
+)
+
+multi_agent = ReActAgent.from_tools([query_engine_agent_tool], llm=llm, verbose=True)
+```
+
+<Tip>Haven't learned enough yet? There is a lot more to discover about agents and tools in LlamaIndex within the <a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/modules/">Agent Component Guide</a> or the <a href="https://docs.llamaindex.ai/en/stable/understanding/agent/">Agent Learning Guide</a>.</Tip>
+
+Now that we understand the basics of agents and tools in LlamaIndex, let's see how we can use LlamaIndex to **create configurable and manageable workflows!**
