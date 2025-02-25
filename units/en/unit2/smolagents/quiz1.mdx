@@ -37,13 +37,13 @@ Which situation aligns well with what smolagents does best?
 <Question
 choices={[
   {
-    text: "Building a large-scale enterprise system where you need dozens of microservices and real-time data pipelines",
-    explain: "While possible, smolagents is more focused on lightweight, code-centric experimentation rather than heavy enterprise infrastructure.",
-  },
-  {
     text: "Prototyping or experimenting quickly with agent logic, particularly when your application is relatively straightforward",
     explain: "Yes. smolagents is designed for simple and nimble agent creation without extensive setup overhead.",
     correct: true
+  },
+  {
+    text: "Building a large-scale enterprise system where you need dozens of microservices and real-time data pipelines",
+    explain: "While possible, smolagents is more focused on lightweight, code-centric experimentation rather than heavy enterprise infrastructure.",
   },
   {
     text: "Needing a framework that only supports cloud-based LLMs and forbids local inference",
@@ -68,17 +68,17 @@ choices={[
     explain: "smolagents supports multiple different backends and user-defined models.",
   },
   {
-    text: "It can be used with a wide range of LLMs, offering predefined classes like TransformersModel, HfApiModel, and LiteLLMModel",
-    explain: "This is correct. smolagents supports flexible model integration through various classes.",
-    correct: true
-  },
-  {
     text: "It requires you to implement your own model connector for every LLM usage",
     explain: "There are multiple prebuilt connectors that make LLM integration straightforward.",
   },
   {
     text: "It only integrates with open-source LLMs but not commercial APIs",
     explain: "smolagents can integrate with both open-source and commercial model APIs.",
+  },
+  {
+    text: "It can be used with a wide range of LLMs, offering predefined classes like TransformersModel, HfApiModel, and LiteLLMModel",
+    explain: "This is correct. smolagents supports flexible model integration through various classes.",
+    correct: true
   }
 ]}
 />
@@ -122,13 +122,13 @@ choices={[
     explain: "Hub integration doesn't change the license tier for models or tools.",
   },
   {
+    text: "It disables local inference entirely, forcing remote model usage only",
+    explain: "Users can still do local inference if they prefer; pushing to the Hub doesn't override local usage.",
+  },
+  {
     text: "It allows you to push and share agents or tools, making them easily discoverable and reusable by other developers",
     explain: "Correct. smolagents supports uploading agents and tools to the HF Hub for others to reuse.",
     correct: true
-  },
-  {
-    text: "It disables local inference entirely, forcing remote model usage only",
-    explain: "Users can still do local inference if they prefer; pushing to the Hub doesn't override local usage.",
   },
   {
     text: "It permanently stores all your code-based agents, preventing any updates or versioning",
