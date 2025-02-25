@@ -200,7 +200,7 @@ To download the agent again, use the code below:
 
 ```python
 # Change to your username and repo name
-alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent')
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
 
 alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
 ```
