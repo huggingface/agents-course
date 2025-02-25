@@ -57,7 +57,7 @@
   - local: unit2/smolagents/code_agents
     title: Building Agents That Use Code
   - local: unit2/smolagents/tool_calling_agents
-    title: Integrating Agents With Tools
+    title: Writing actions as code snippets or JSON blobs
   - local: unit2/smolagents/tools
     title: Tools
   - local: unit2/smolagents/retrieval_agents
