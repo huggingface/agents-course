@@ -1,0 +1,83 @@
+# Introduction to Gradio for AI Agents
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-gradio/whiteboard.jpg" alt="Gradio Module Planning"/>
+
+In the previous units, we learned how to create powerful AI Agents that can reason, plan, and take actions. But an Agent is only as effective as its ability to interact with users. This is where **Gradio** comes in.
+
+## Why Do We Need a UI for Our Agents?
+
+Meet Sarah, a data scientist who built an amazing AI Agent that can analyze financial data and generate reports. But there's a challenge:
+
+- Her teammates need to interact with the Agent
+- Not everyone is comfortable with code or command line
+- Users want to see the Agent's thought process
+- The Agent needs to handle file uploads and display visualizations
+
+The solution? A user-friendly interface that makes the Agent accessible to everyone.
+
+## What is Gradio?
+
+Gradio is a Python library that makes it easy to create **beautiful web interfaces** for your AI models and Agents. Think of it as a bridge between your Agent's capabilities and its users:
+
+
+With Gradio, you can:
+- Create chat interfaces for your Agents in just a few lines of code
+- Display your Agent's thought process and tool usage
+- Handle file uploads and multimedia content that can be useful for your AI agents
+- Share your Agent with anyone via a URL
+- Deploy your Agent UI to Hugging Face Spaces
+
+## Why Gradio for Agents?
+
+Gradio is particularly well-suited for AI Agents because it offers:
+
+1. **Native Chat Support**: Built-in components for chat interfaces that match how Agents communicate
+
+2. **Thought Process Visualization**: Special features to display your Agent's reasoning steps and tool usage
+
+3. **Real-time Updates**: Stream your Agent's responses and show its progress
+
+4. **File Handling**: Easy integration of file uploads for Agents that process documents or media
+
+Here's a quick example of how simple it is to create an Agent interface with Gradio:
+
+```python
+from smolagents import (
+    load_tool,
+    CodeAgent,
+    HfApiModel,
+    GradioUI
+)
+
+# Import tool from Hub
+image_generation_tool = load_tool("m-ric/text-to-image", trust_remote_code=True)
+# initialize a model
+model = HfApiModel()
+# Initialize the agent with the image generation tool
+agent = CodeAgent(tools=[image_generation_tool], model=model)
+# launch the gradio agentic ui
+GradioUI(agent).launch(share=True)
+```
+
+This creates a complete chat interface:
+
+<need to add an image of the generated ui with an example in the agents-course dataset at https://huggingface.co/datasets/agents-course/course-images>
+
+
+## Setting Up Gradio
+
+Before we dive deeper, let's set up Gradio in your environment:
+
+```bash
+pip install gradio
+```
+
+
+If you're working in Google Colab or Jupyter, you can restart your runtime after installing Gradio to ensure all components are properly loaded.
+
+In the next section, we'll build our first Agent interface using Gradio's ChatInterface. We'll see how to:
+- Create a basic chat UI
+- Display the Agent's responses
+- Handle user inputs effectively
+
+Ready to build your first Agent UI? Let's move on to the next chapter!

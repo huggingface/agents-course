@@ -1,0 +1,274 @@
+# Enhancing Agent Interactions with ChatMessage
+
+In the previous chapters, we created a basic Agent interface. Now, let's enhance it to display the rich behaviors that make Agents special: their thought processes, reasoning steps, and tool usage.
+
+## Understanding gr.ChatMessage Format
+
+For advanced Agent UIs, we need more control over message formatting. This is where the `gr.ChatMessage` class comes in:
+
+```python
+from gradio import ChatMessage
+
+# Basic usage
+message = ChatMessage(
+    content="Hello, I'm an AI Assistant",
+    role="assistant"
+)
+
+# Example with metadata dictionary for displaying thoughts
+thinking_message = ChatMessage(
+    content="Let me analyze this step by step...",
+    role="assistant",
+    metadata={"title": "🧠 Thinking"}
+)
+```
+
+- The ChatMessage dataclass has this structure:
+
+```python
+@dataclass
+class ChatMessage:
+   content: str | Component  # Text or media component
+   role: str  # "user" or "assistant"
+   metadata: dict = None  # For thought display, nesting, etc.
+   options: list[dict] = None  # For suggested responses
+```
+
+The only required field is content. The value of `gr.Chatbot` is a list of these ChatMessage dataclasses.
+
+- The MetadataDict is a typed dictionary to represent metadata for a message in the Chatbot component. An instance of this dictionary is used for the metadata field in a ChatMessage when the chat message should be displayed as a thought.
+
+```python
+class MetadataDict(TypedDict):
+   title: str # Title of the thought bubble
+   id: int | str # For nested thought, Agents
+   parent_id: int | str # For nested thoughts, Agents 
+   duration: float # For time duration of your step
+   status: Literal # "pending" or "done"
+   log: str # For loging any other information for a step
+```
+The only required field is title. When status is set "pending", an animated spinner is shown next to the title, when set as "done" the spinner stops and disappear.
+
+- The OptionDict is a typed dictionary to represent an option in a ChatMessage. A list of these dictionaries is used for the options field in a ChatMessage.
+
+```python
+class OptionDict(TypedDict):
+   label: str # label of the option
+   value: str # value that is returned on selection
+```
+Use the `options` key in the `gr.ChatMessage` instance to specify the preset responses in a given chat message.
+
+
+## Displaying Agent Thoughts and Reasoning
+
+One of the most powerful features of Agents is their ability to reason through problems. With `gr.ChatMessage`, we can make this thinking visible:
+
+```python
+import gradio as gr
+from gradio import ChatMessage
+
+def reasoning_agent(query, history):
+    """
+    Example of using agents with reasoning LLM like DeepSeek-r1 
+    """
+...
+...
+demo.launch()
+```
+
+This creates an interface where users can see the Agent's thought process unfold in real-time.
+
+< Add a gif of the app deployed on Spaces >
+
+
+## Tool Usage Visualization
+
+Now let's visualize dummy Agents using the `gr.ChatMessage` dataclass - a key capability we learned above:
+
+```python
+import gradio as gr
+from gradio import ChatMessage
+import time
+import random
+
+def calculator_tool(expression):
+    """Simple calculator tool"""
+    try:
+        return eval(expression)
+    except:
+        return "Error: Could not evaluate expression"
+
+def weather_tool(location):
+    """Simulated weather tool"""
+    conditions = ["sunny", "cloudy", "rainy", "snowy"]
+    temp = random.randint(0, 35)
+    return f"{random.choice(conditions)}, {temp}°C in {location}"
+
+def agent_with_tools(query, history):
+    # Add user message
+    history.append({"role": "user", "content": query})
+    yield history
+    
+    # Initial thinking
+    thinking = ChatMessage(
+        role="assistant",
+        content="Let me think about this query...",
+        metadata={"title": "🧠 Thinking", "id": 1}
+    )
+    history.append(thinking)
+    yield history
+    
+    # Decide which tool to use based on query
+    if "calculate" in query.lower() or any(op in query for op in ['+', '-', '*', '/']):
+        # Extract the expression (simplified for demo)
+        expression = query.split("calculate")[-1].strip() if "calculate" in query.lower() else query
+        
+        # Show tool usage as nested thought
+        tool_call = ChatMessage(
+            role="assistant",
+            content=f"Expression to evaluate: {expression}",
+            metadata={
+                "title": "🧮 Calculator Tool", 
+                "parent_id": 1,
+                "id": 2,
+                "status": "pending"
+            }
+        )
+        history.append(tool_call)
+        yield history
+        
+        # Simulate calculation time
+        time.sleep(1)
+        
+        # Get result and update tool call
+        result = calculator_tool(expression)
+        tool_call.content = f"Expression: {expression}\nResult: {result}"
+        tool_call.metadata["status"] = "done"
+        tool_call.metadata["duration"] = 0.8  # Simulated duration
+        yield history
+        
+        # Final response
+        response = ChatMessage(
+            role="assistant",
+            content=f"I calculated that for you. The result is {result}."
+        )
+        
+    elif "weather" in query.lower():
+        # Extract location (simplified)
+        location = query.split("weather in")[-1].strip() if "weather in" in query.lower() else "your location"
+        
+        # Show tool usage
+        tool_call = ChatMessage(
+            role="assistant",
+            content=f"Checking weather for: {location}",
+            metadata={
+                "title": "🌤️ Weather Tool", 
+                "parent_id": 1,
+                "id": 2,
+                "status": "pending"
+            }
+        )
+        history.append(tool_call)
+        yield history
+        
+        # Simulate API call
+        time.sleep(1.5)
+        
+        # Get result and update tool call
+        result = weather_tool(location)
+        tool_call.content = f"Location: {location}\nCurrent conditions: {result}"
+        tool_call.metadata["status"] = "done"
+        tool_call.metadata["duration"] = 1.2  # Simulated duration
+        yield history
+        
+        # Final response
+        response = ChatMessage(
+            role="assistant",
+            content=f"I checked the weather for you. It's currently {result}."
+        )
+    else:
+        # Default response for other queries
+        time.sleep(1)
+        response = ChatMessage(
+            role="assistant",
+            content=f"I understand you're asking about '{query}', but I don't have a specific tool for that. I can help with calculations or weather."
+        )
+    
+    # Add final response
+    history.append(response)
+    yield history
+
+demo = gr.ChatInterface(
+    agent_with_tools,
+    title="Agent with Tool Visualization",
+    description="Ask me to calculate something or check the weather!",
+    examples=[
+        "Calculate 145 * 32", 
+        "What's the weather in Tokyo?",
+        "Tell me about quantum physics"
+    ],
+    type="messages"
+)
+
+demo.launch()
+```
+
+This creates an interface that visually shows:
+1. The Agent thinking
+2. The Agent deciding which tool to use
+3. The tool execution as a nested step
+4. The final response that incorporates tool results
+
+< Add a gif of the gradio ui for this chatbot: https://huggingface.co/spaces/ysharma/Enhance_UI_with_ChatMEssage>
+
+
+## Nested Thoughts for Complex Reasoning
+
+For Agents that follow complex reasoning chains, we can use nested thoughts:
+
+```python
+# Parent thought
+parent = ChatMessage(
+    role="assistant",
+    content="Breaking down the problem",
+    metadata={"title": "🧠 Main Analysis", "id": "main"}
+)
+
+# Child thoughts
+child1 = ChatMessage(
+    role="assistant",
+    content="Analyzing first component",
+    metadata={"title": "Step 1", "parent_id": "main", "id": "step1"}
+)
+
+child2 = ChatMessage(
+    role="assistant",
+    content="Analyzing second component",
+    metadata={"title": "Step 2", "parent_id": "main", "id": "step2"}
+)
+```
+
+This approach can be used to represent nested-agents too.
+When using IDs for nested thoughts, the IDs can be any unique strings or numbers. Just make sure the `parent_id` of a child thought matches the `id` of its parent.
+
+< To Dos>
+Add real examples for 
+- Multi-step reasoning (smolagents)
+- Nested agents (smolagents)
+
+## What's Next?
+
+You've now learned how to create advanced Agent interfaces that display:
+- Structured thinking processes
+- Tool usage with status indicators
+- Complex reasoning with nested thoughts and nested agents
+
+In the next chapter, we'll explore additional advanced features like:
+- Adding file upload capabilities
+- Customizing with Sidebar and Multipage components
+- Styling and theming your Agent UI < re look>
+- < need to add more things >
+
+These features will help you build fully-featured Agent applications that are intuitive and powerful for users.
+
+Try combining the examples in this chapter with your own Agent logic. Experiment with different thought structures and tool visualizations to find the clearest way to display your Agent's capabilities.

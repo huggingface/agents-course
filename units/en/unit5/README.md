@@ -9,16 +9,16 @@
 - Building Your First Agent Interface
     - Introduction to gr.ChatInterface
     - Basic Agent chat UI implementation
-    - Quick Quiz 1
+    - Adding more features to the chat UI
+
 
 - Enhancing Agent Interactions with ChatMessage
     - Understanding gr.ChatMessage format
     - Displaying Agent thoughts and reasoning
     - Tool usage visualization
-    - Quick Quiz 2
+
 
 - Advanced Agent UI Features
-    - Implementing chat history
     - Adding file upload capabilities
     - Customizing with Sidebar and Multipage
     - Styling and theming your Agent UI
