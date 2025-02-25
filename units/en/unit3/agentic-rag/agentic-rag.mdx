@@ -1,0 +1,34 @@
+# Agentic Retrieval Augmented Generation (RAG)
+
+In this unit, we'll be taking a look at how we can use Agentic RAG to help Alfred, your friendly neighborhood agent, prepare for the amazing gala.
+
+<Tip>We know we've already discussed Retrieval Augmented Generation (RAG) and agentic RAG in the previous unit, so feel free to skip ahead if you're already familiar with the concepts.</Tip>
+
+LLMs are trained on enormous bodies of data to learn general knowledge.
+However, the world knowledge model of LLMs may not always be relevant and up-to-date data.
+**RAG solves this problem by finding and retrieving relevant information from your data and forward that to the LLM.**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/rag.png)
+
+Now, think about how Alfred works:
+
+1. We've ask Alfred to help plan a gala
+2. Alfred needs to find the latest news and weather information
+3. Alfred needs to strcucture and search the guest information
+
+Just as Alfred needs to search through your household information to be helpful, any agent needs a way to find and understand relevant data.
+As we've seen in the previous unit, the `QueryEngine` in LlamaIndex provides exactly this capability.
+Even better, it can be converted as an agentic tool that can be used by an agent, opening up the gateway to agentic RAG.
+
+**Agentic RAG is a powerful way to use agents to answer questions about your data.** We can pass various tools to Alfred to help him answer questions.
+However, instead of answering the question on top of documents automatically, Alfred can decide to use any other tool or flow to answer the question.
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/agentic-rag.png)
+
+Let's start creating the tools for our agentic RAG workflow!
+
+
+
+
+
+
