@@ -1,0 +1,55 @@
+# Pensée : Raisonnement Interne et l'Approche Re-Act
+
+<Tip> 
+Dans cette section, nous plongeons dans le fonctionnement interne d'un agent d'IA — sa capacité à raisonner et à planifier. Nous explorerons comment l'agent utilise son dialogue interne pour analyser l'information, décomposer des problèmes complexes en étapes gérables, et décider de l'action à entreprendre ensuite. De plus, nous présentons l'approche Re-Act, une technique d'invite qui encourage le modèle à réfléchir « étape par étape » avant d'agir. 
+</Tip>
+
+Les pensées représentent les **processus internes de raisonnement et de planification de l'agent** pour résoudre la tâche.
+
+Cela exploite la capacité du Large Language Model (LLM) de l'agent **à analyser l'information lorsqu'elle est présentée dans son prompt**.
+
+Pensez-y comme le dialogue interne de l'agent, où il considère la tâche à accomplir et élabore sa stratégie.
+
+Les pensées de l'agent sont responsables d'accéder aux observations actuelles et de décider quelles seront les prochaines actions.
+
+Grâce à ce processus, l'agent peut **décomposer des problèmes complexes en étapes plus petites et gérables**, réfléchir sur des expériences passées et ajuster continuellement ses plans en fonction des nouvelles informations.
+
+Voici quelques exemples de pensées courantes :
+
+| Type de Pensée         | Exemple                                                                                                   |
+|------------------------|-----------------------------------------------------------------------------------------------------------|
+| Planification          | "Je dois décomposer cette tâche en trois étapes : 1) recueillir les données, 2) analyser les tendances, 3) générer le rapport" |
+| Analyse                | "D'après le message d'erreur, le problème semble provenir des paramètres de connexion à la base de données" |
+| Prise de Décision      | "Étant donné les contraintes budgétaires de l'utilisateur, je devrais recommander l'option de milieu de gamme" |
+| Résolution de Problème | "Pour optimiser ce code, je devrais d'abord le profiler pour identifier les goulets d'étranglement"         |
+| Intégration de la Mémoire | "L'utilisateur avait mentionné sa préférence pour Python plus tôt, donc je fournirai des exemples en Python"     |
+| Auto-Réflexion         | "Ma dernière approche n'a pas bien fonctionné, je devrais essayer une stratégie différente"                 |
+| Définition d'Objectifs | "Pour accomplir cette tâche, je dois d'abord établir les critères d'acceptation"                           |
+| Priorisation           | "La vulnérabilité de sécurité doit être traitée avant d'ajouter de nouvelles fonctionnalités"               |
+
+> **Remarque :** Dans le cas des LLMs ajustés pour l'appel de fonction, le processus de pensée est optionnel.  
+> *Si vous n'êtes pas familier avec l'appel de fonction, plus de détails seront donnés dans la section Actions.*
+
+## L'approche Re-Act
+
+Une méthode clé est l'**approche Re-Act**, qui est la concaténation de "Raisonnement" (Reasoning) et "Action" (Act). 
+
+Re-Act est une technique de prompting simple qui ajoute "Réfléchissons étape par étape" avant de laisser le LLM décoder les tokens suivants. 
+
+En effet, inviter le modèle à réfléchir "étape par étape" encourage le processus de décodage vers des tokens **qui génèrent un plan**, plutôt qu'une solution finale, puisque le modèle est incité à **décomposer** le problème en *sous-tâches*.
+
+Cela permet au modèle d'examiner les sous-étapes plus en détail, ce qui conduit généralement à moins d'erreurs que d'essayer de générer directement la solution finale.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+<figcaption>Le (d) est un exemple de l'approche Re-Act où nous invitons "Réfléchissons étape par étape"</figcaption>
+</figure>
+
+<Tip>
+Nous avons récemment observé un vif intérêt pour les stratégies de raisonnement. C'est ce qui sous-tend des modèles comme Deepseek R1 ou l'o1 d'OpenAI, qui ont été ajustés pour "réfléchir avant de répondre".
+
+Ces modèles ont été entraînés pour inclure systématiquement des sections spécifiques de _réflexion_ (encadrées par les tokens spéciaux `<think>` et `</think>`). Il ne s'agit pas simplement d'une technique d'invite comme Re-Act, mais d'une méthode d'entraînement où le modèle apprend à générer ces sections après avoir analysé des milliers d'exemples montrant ce que nous attendons de lui.
+</Tip>
+
+--- 
+Maintenant que nous comprenons mieux le processus de pensée, approfondissons la seconde partie du processus : l'Action.
