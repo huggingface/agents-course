@@ -40,6 +40,14 @@ To start, duplicate this Space: <a href="https://huggingface.co/spaces/agents-co
 Duplicating this space means **creating a local copy on your own profile**:
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplicate"/>
 
+After duplicating the Space, you'll need to add your Hugging Face API token so your agent can access the model API:
+
+1. First, get your Hugging Face token from [https://hf.co/settings/tokens](https://hf.co/settings/tokens) if you don't already have one
+2. Go to your duplicated Space and click on the **Settings** tab
+3. Scroll down to the **Variables and Secrets** section and click **New Secret**
+4. Create a secret with the name `HF_TOKEN` and paste your token as the value
+5. Click **Save** to store your token securely
+
 Throughout this lesson, the only file you will need to modify is the (currently incomplete) **"app.py"**. You can see here the [original one in the template](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py). To find yours, go to your copy of the space, then click the `Files` tab and then on `app.py` in the directory listing.
 
 Let's break down the code together:
@@ -210,7 +218,6 @@ agent = CodeAgent(
 GradioUI(agent).launch()
 ```
 
-Your **Goal** is to get familiar with the Space and the Agent. 
 
 Currently, the agent in the template **does not use any tools, so try to provide it with some of the pre-made ones or even make some new tools yourself!**
 
