@@ -1,7 +1,57 @@
-# Live 1: How the Course Works and First Q&A
-
+# Live 1: How the Course Works, First Q&A and additional tips
+ 
 In this first live stream of the Agents Course, we explained how the course **works** (scope, units, challenges, and more) and answered your questions.
-
+ 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/iLVyYDbdSmM?si=TCX5Ai3uZuKLXq45" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+ 
+To know when the next live session is scheduled, check our **Discord server**. We will also send you an email. If you can't participate, don't worry, we **record all live sessions**.
 
-To know when the next live session is scheduled, check our **Discord server**. We will also send you an email. If you can’t participate, don’t worry, we **record all live sessions**.
+## Using API Keys in Google Colab
+
+When working with the notebooks in this course, you'll need to use API keys for various services. Here's how to securely store and access them in Google Colab:
+
+### How to Set Up and Use Secret Keys:
+
+1. **Access the Secrets Manager**: Click on the key icon in the left sidebar to access the secret keys manager
+2. **Create a New Secret**: Name your key (without spaces) and enter your API key value
+3. **Make the Secret Available**: Click the checkbox to share the secret with your notebook
+4. **Access in Your Code**: Use this code snippet to access your secret in the notebook:
+
+```python
+from google.colab import userdata
+api_key = userdata.get('<your-scretkey-name-here>')
+```
+
+## API Tips
+
+### Together.ai
+
+Signing up for an API key at [together.ai](https://www.together.ai/) gives you access to $1 free credit for API use. 
+
+To use your Together.ai API key, modify the code in the notebook from:
+
+```python
+model = HfApiModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together")
+```
+
+To:
+
+```python
+model = HfApiModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together", token=api_key)
+```
+
+This will significantly speed up the process.
+
+### Alternative Models
+
+If you encounter query limits or usage restrictions from Together.ai with DeepSeek R1, you can switch models:
+
+From:
+```python
+model = HfApiModel(model_id="deepseek-ai/DeepSeek-R1", provider="together")
+```
+
+To:
+```python
+model = HfApiModel(model_id="mistralai/Mixtral-8x22B-Instruct-v0.1", provider="together")
+```
