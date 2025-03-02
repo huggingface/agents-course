@@ -1,0 +1,32 @@
+# Importing a Tool from the LlamaHub to Websearch Actualities
+
+Remember that we want Alfred to establish his presence as true renaissance host, with a deep knowledge of the world.
+
+To do so, we need to make sure that Alfred has access to the latest news and information about the world.
+
+Let's start by creating a web search tool for Alfred!
+
+## Websearch using DuckDuckGoSearchToolSpec
+
+Remember the [`ToolSpecs`](https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/tools/#tool-specs) from the previous unit?
+We can use them to create a web search tool for Alfred.
+Generally, when working with web search, DuckDuckGo is a good choice, as it is a search engine that is open to all and does not require any authentication.
+To create a web search tool for Alfred, we can use the [`DuckDuckGoSearchToolSpec`](https://llamahub.ai/l/tools/llama-index-tools-duckduckgo?from=).
+
+Let's create the tool spec for the web search tool.
+
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.agent.openai import OpenAIAgent
+
+tool_spec = DuckDuckGoSearchToolSpec()
+
+agent = OpenAIAgent.from_tools(DuckDuckGoSearchToolSpec.to_tool_list())
+
+agent.chat("What are the latest developments in machine learning?")
+agent.chat("What does the word 'renaissance' mean?")
+```
+
+We can see that the agent is able to use the tool to search the web for information.
+
+Great, let's continue with a a tool that can help Alfred get the weather information!
