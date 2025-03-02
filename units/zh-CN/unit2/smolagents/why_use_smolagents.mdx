@@ -1,0 +1,67 @@
+![smolagents 标志](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/license_to_call.png)
+# 为什么选择 smolagents
+
+在本模块中，我们将探讨使用 [smolagents](https://huggingface.co/docs/smolagents/en/index) 的优缺点，帮助您做出明智的决策，判断它是否是满足您需求的正确框架。
+
+## 什么是 `smolagents`？
+
+`smolagents` 是一个简单而强大的框架，用于构建 AI 智能体。它为 LLM 提供了与现实世界互动的能力，例如搜索或生成图像。
+
+正如我们在第 1 单元中学到的，AI 智能体是使用 LLM 基于 **'观察'** 生成 **'思考'** 并执行 **'操作'** 的程序。接下来我们来探讨这在 smolagents 中是如何实现的。
+
+### `smolagents` 的关键优势
+- **简洁性：** 最小的代码复杂性和抽象层，使框架易于理解、采用和扩展。
+- **灵活的 LLM 支持：** 通过与 Hugging Face 工具和外部 API 的集成，支持任何 LLM。
+- **代码优先方法：** 首选支持直接在代码中编写操作的 Code Agents，无需解析并简化工具调用。
+- **HF Hub 集成：** 与 Hugging Face Hub 无缝集成，允许使用 Gradio Spaces 作为工具。
+
+### 何时使用 smolagents？
+
+考虑到这些优势，我们应该在什么情况下选择 smolagents 而不是其他框架？
+
+smolagents 在以下情况下是最理想的：
+- 您需要一个 **轻量级且最小化的解决方案**。
+- 您希望 **快速实验** 而无需复杂的配置。
+- 您的应用逻辑 **相对简单**。
+
+### 代码 vs. JSON 操作
+与其他框架中的智能体以 JSON 形式编写操作不同，`smolagents` **专注于代码中的工具调用**，简化了执行过程。这是因为无需解析 JSON 来构建调用工具的代码：输出可以直接执行。
+
+下图展示了这种差异：
+
+![代码 vs. JSON 操作](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+要回顾代码与 JSON 操作之间的区别，您可以重新访问 [第 1 单元的操作部分](https://huggingface.co/learn/agents-course/unit1/actions#actions-enabling-the-agent-to-engage-with-its-environment)。
+
+### `smolagents` 中的智能体类型
+
+`smolagents` 中的智能体作为 **多步骤智能体** 运行。
+
+每个 [`MultiStepAgent`](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.MultiStepAgent) 执行：
+- 一次思考
+- 一次工具调用和执行
+
+除了使用 **[CodeAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.CodeAgent)** 作为主要类型的智能体外，smolagents 还支持 **[ToolCallingAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.ToolCallingAgent)**，后者以 JSON 形式编写工具调用。
+
+我们将在接下来的部分中更详细地探讨每种智能体类型。
+
+<Tip> 
+在 smolagents 中，工具是使用 <code>@tool</code> 装饰器包装 Python 函数或 <code>Tool</code> 类定义的。
+</Tip>
+
+### `smolagents` 中的模型集成
+`smolagents` 支持灵活的 LLM 集成，允许使用符合 [某些标准](https://huggingface.co/docs/smolagents/main/en/reference/models) 的任何可调用模型。该框架提供了多个预定义类以简化模型连接：
+
+- **[TransformersModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.TransformersModel):** 实现本地 `transformers` 管道以实现无缝集成。
+- **[HfApiModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.HfApiModel):** 通过 [Hugging Face 的基础设施](https://huggingface.co/docs/api-inference/index) 或越来越多的 [第三方推理提供商](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks) 支持 [无服务器推理](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference) 调用。
+- **[LiteLLMModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.LiteLLMModel):** 利用 [LiteLLM](https://www.litellm.ai/) 实现轻量级模型交互。
+- **[OpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.OpenAIServerModel):** 连接到提供 OpenAI API 接口的任何服务。
+- **[AzureOpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.AzureOpenAIServerModel):** 支持与任何 Azure OpenAI 部署集成。
+
+这种灵活性确保开发人员可以选择最适合其特定用例的模型和服务，并允许轻松进行实验。
+
+现在我们已经了解了何时以及为何使用 smolagents，让我们深入探讨这个强大的库吧！
+
+## 资源
+
+- [smolagents 博客](https://huggingface.co/blog/smolagents) - 关于 smolagents 和代码交互的介绍

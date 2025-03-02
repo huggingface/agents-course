@@ -1,0 +1,70 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/tool_calling_agents.ipynb"},
+]} />
+
+# 将操作编写为代码片段或 JSON 结构
+
+<Tip>
+您可以通过 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">此 Notebook</a> 跟随代码实践，该文件支持在 Google Colab 中运行。
+</Tip>
+
+工具调用代理（Tool Calling Agents）是 `smolagents` 中提供的第二种代理类型。与使用 Python 代码片段的代码代理（Code Agents）不同，这类代理**利用 LLM 提供商的内置工具调用能力**来生成 **JSON 结构**的工具调用指令。这是 OpenAI、Anthropic 等主流提供商采用的标准方法。
+
+当 Alfred 想要搜索餐饮服务和派对创意时，`CodeAgent` 会生成并运行如下 Python 代码：
+
+```python
+for query in [
+    "Best catering services in Gotham City", 
+    "Party theme ideas for superheroes"
+]:
+    print(web_search(f"Search for: {query}"))
+```
+
+而 `ToolCallingAgent` 则会创建 JSON 结构：
+
+```python
+[
+    {"name": "web_search", "arguments": "Best catering services in Gotham City"},
+    {"name": "web_search", "arguments": "Party theme ideas for superheroes"}
+]
+```
+
+该 JSON 结构随后会被用于执行工具调用。
+
+尽管 `smolagents` 主要专注于 `CodeAgents`（因为[它们整体表现更好](https://arxiv.org/abs/2402.01030)），但对于不需要变量处理或复杂工具调用的简单系统，`ToolCallingAgents` 仍然可以高效工作。
+
+![代码操作与 JSON 操作对比](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+## 工具调用代理的工作原理
+
+工具调用代理遵循与代码代理相同的多步骤工作流程（详见[前一章节](./code_agents)）。关键区别在于**操作结构方式**：代理不再生成可执行代码，而是**生成指定工具名称和参数的 JSON 对象**，系统随后**解析这些指令**来执行相应工具。
+
+## 示例：运行工具调用代理
+
+让我们重新审视 Alfred 开始筹备派对的示例，这次使用 `ToolCallingAgent` 来展示区别。我们将构建一个能够使用 DuckDuckGo 进行网页搜索的代理，与代码代理示例的唯一区别在于代理类型——框架会处理其他所有细节：
+
+```python
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, HfApiModel
+
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+当查看代理的执行跟踪时，您将看到类似以下内容而非 `Executing parsed code:`：
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "best music recommendations for a party at Wayne's         │
+│ mansion"}                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```  
+
+代理生成结构化的工具调用指令，系统通过处理这些指令来生成输出，而非像 `CodeAgent` 那样直接执行代码。
+
+现在我们已经了解两种代理类型，可以根据需求选择合适的一种。让我们继续探索 `smolagents`，让 Alfred 的派对大获成功！🎉
+
+## 资源
+- [ToolCallingAgent 文档](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - ToolCallingAgent 的官方文档
