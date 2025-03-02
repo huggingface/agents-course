@@ -1,0 +1,56 @@
+# Pensamiento: Razonamiento Interno y el Enfoque Re-Act
+
+<Tip> 
+En esta sección, profundizamos en el funcionamiento interno de un agente de IA—su capacidad para razonar y planificar. Exploraremos cómo el agente aprovecha su diálogo interno para analizar información, desglosar problemas complejos en pasos manejables y decidir qué acción tomar a continuación. Además, presentamos el enfoque Re-Act, una técnica de prompting que anima al modelo a pensar "paso a paso" antes de actuar. 
+</Tip>
+
+Los pensamientos representan los **procesos internos de razonamiento y planificación del Agente** para resolver la tarea.
+
+Esto utiliza la capacidad del Modelo de Lenguaje Grande (LLM) del agente **para analizar información cuando se presenta en su prompt**.
+
+Piensalo como el diálogo interno del agente, donde considera la tarea en cuestión y forma la estrategia de su enfoque.
+
+Los pensamientos del Agente son responsables de acceder a las observaciones actuales y decidir cuál(es) debería(n) ser la(s) siguiente(s) acción(es).
+
+A través de este proceso, el agente puede **desglosar problemas complejos en pasos más pequeños y manejables**, reflexionar sobre experiencias pasadas y ajustar continuamente sus planes basándose en nueva información.
+
+Aquí hay algunos ejemplos de pensamientos comunes:
+
+| Tipo de Pensamiento | Ejemplo |
+|----------------|---------|
+| Planificación | "Necesito dividir esta tarea en tres pasos: 1) recopilar datos, 2) analizar tendencias, 3) generar informe" |
+| Análisis | "Basado en el mensaje de error, el problema parece estar en los parámetros de conexión de la base de datos" |
+| Toma de Decisiones | "Dadas las restricciones presupuestarias del usuario, debería recomendar la opción de nivel medio" |
+| Resolución de Problemas | "Para optimizar este código, primero debería perfilarlo para identificar cuellos de botella" |
+| Integración de Memoria | "El usuario mencionó su preferencia por Python anteriormente, así que proporcionaré ejemplos en Python" |
+| Auto-reflexión | "Mi último enfoque no funcionó bien, debería probar una estrategia diferente" |
+| Establecimiento de Objetivos | "Para completar esta tarea, primero necesito establecer los criterios de aceptación" |
+| Priorización | "La vulnerabilidad de seguridad debe abordarse antes de agregar nuevas características" |
+
+> **Nota:** En el caso de LLMs afinados para llamadas a funciones, el proceso de pensamiento es opcional.
+> *En caso de que no estés familiarizado con las llamadas a funciones, habrá más detalles en la sección de Acciones.*
+
+## El Enfoque Re-Act
+
+Un método clave es el **enfoque ReAct**, que es la concatenación de "Razonamiento" (Think) con "Actuar" (Act). 
+
+ReAct es una técnica de prompting simple que añade "Pensemos paso a paso" antes de permitir que el LLM decodifique los siguientes tokens. 
+
+De hecho, indicar al modelo que piense "paso a paso" fomenta el proceso de decodificación hacia los siguientes tokens **que generan un plan**, en lugar de una solución final, ya que se anima al modelo a **descomponer** el problema en *sub-tareas*.
+
+Esto permite que el modelo considere los sub-pasos con más detalle, lo que en general conduce a menos errores que intentar generar la solución final directamente.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+<figcaption>El (d) es un ejemplo del enfoque Re-Act donde indicamos "Pensemos paso a paso"
+</figcaption>
+</figure>
+
+<Tip>
+Recientemente hemos visto mucho interés por las estrategias de razonamiento. Esto es lo que está detrás de modelos como Deepseek R1 o o1 de OpenAI, que han sido afinados para "pensar antes de responder".
+
+Estos modelos han sido entrenados para incluir siempre secciones específicas de _pensamiento_ (encerradas entre tokens especiales `<think>` y `</think>`). Esto no es solo una técnica de prompting como ReAct, sino un método de entrenamiento donde el modelo aprende a generar estas secciones después de analizar miles de ejemplos que muestran lo que esperamos que haga.
+</Tip>
+
+--- 
+Ahora que entendemos mejor el proceso de Pensamiento, profundicemos en la segunda parte del proceso: Actuar.
