@@ -11,7 +11,7 @@ You can access Unit 1 on hf.co/learn 👉 <a href="https://hf.co/learn/agents-co
 | [Dummy Agent Library](4_dummy_agent_library.md) | Introduction to using a dummy agent library and serverless API. |
 | [Tools](5_tools.md) | Overview of Pydantic for agent tools and other common tool formats. |
 | [Agent Steps and Structure](6_agent_steps_and_structure.md) | Steps involved in an agent, including thoughts, actions, observations, and a comparison between code agents and JSON agents. |
-| [Thoughts](7_thoughts.md) | Explanation of thoughts and the ReAct approach. |
+| [Thoughts](7_thoughts.md) | Explanation of thoughts and the Zero-shot CoT approach. |
 | [Actions](8_actions.md) | Overview of actions and stop and parse approach. |
 | [Observations](9_observations.md) | Explanation of observations and append result to reflect. |
 | [Quizz](10_quizz.md) | Contains quizzes to test understanding of the concepts. |
