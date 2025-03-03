@@ -1,0 +1,88 @@
+- title: Unidad 0. Bienvenida al curso
+  sections:
+  - local: 0/introducción
+    title: Bienvenida al curso 🤗
+  - local: unit0/incorporación
+    title: Incorporación
+  - local: unit0/discord101
+    title: (Opcional) Discord 101
+- title: Live 1. Como funciona el curso y preguntas y respuestas
+  sections:
+  - local: communication/live1
+    title: Live 1. Como funciona el curso y preguntas y respuestas
+- title: Unidad 1. Introducción a Agentes
+  sections:
+  - local: unit1/introduction
+    title: Introducción
+  - local: unit1/Que es un Agente?
+    title: Que es un Agente?
+  - local: unit1/quiz1
+    title: Prueba rápida 1
+  - local: unit1/Qué son los LLMs?
+    title: Que son los LLMs?
+  - local: unit1/messages-and-special-tokens
+    title: Mensajes y tokens especiales
+  - local: unit1/tools
+    title: Que son las Herramientas?
+  - local: unit1/quiz2
+    title: Prueba rápida 2
+  - local: unit1/agent-steps-and-structure
+    title: Entendiendo los Agentes a través del Ciclo de Pensamiento, Acción y Observación
+  - local: unit1/thoughts
+    title: Pensamiento Interno y el Enfoque Re-Act
+  - local: unit1/actions
+    title: Acciones, Habilitando al Agente para Interactuar con su Entorno
+  - local: unit1/observations
+    title: Observar, Integrando Feedback para Reflejar y Adaptar
+  - local: unit1/dummy-agent-library
+    title: Biblioteca de Agentes Dummy
+  - local: unit1/tutorial
+    title: Creemos nuesto primer Agente usando smolagents
+  - local: unit1/final-quiz
+    title: Prueba Final de Unidad 1
+  - local: unit1/conclusion
+    title: Conclusion
+- title: Unidad 2. Frameworks para Agentes de IA
+  sections:
+  - local: unit2/introduction
+    title: Frameworks para Agentes de IA
+- title: Unidad 2.1 Framework smolagents
+  sections:
+  - local: unit2/smolagents/introduction
+    title: Introducción a smolagents
+  - local: unit2/smolagents/why_use_smolagents
+    title: Por que usar smolagents? 
+  - local: unit2/smolagents/quiz1
+    title: Prueba rápida 1
+  - local: unit2/smolagents/code_agents
+    title: Construyendo Agentes que Utilizan Código
+  - local: unit2/smolagents/tool_calling_agents
+    title: Escribiendo acciones como snippets de código o bloques JSON
+  - local: unit2/smolagents/tools
+    title: Herramientas
+  - local: unit2/smolagents/retrieval_agents
+    title: Agentes de Recuperación
+  - local: unit2/smolagents/quiz2
+    title: Prueba rápida 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: Sistemas de Agentes Multiples
+  - local: unit2/smolagents/vision_agents
+    title: Agentes de Visión y Navegación
+  - local: unit2/smolagents/final_quiz
+    title: Prueba Final
+  - local: unit2/smolagents/conclusion
+    title: Conclusion
+- title: Unidad Extra 1. Fine-tuning un LLM para Function-calling
+  sections:
+  - local: bonus-unit1/introduction
+    title: Introducción
+  - local: bonus-unit1/what-is-function-calling
+    title: Que es Function Calling?
+  - local: bonus-unit1/fine-tuning
+    title: Hagamos fine-tuning de tu modelo para Function-calling
+  - local: bonus-unit1/conclusion
+    title: Conclusion
+- title: Cuando las siguientes unidades estén publicadas?
+  sections:
+  - local: communication/next-units
+    title: Siguientes unidades
