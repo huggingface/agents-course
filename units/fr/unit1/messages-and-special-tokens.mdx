@@ -1,0 +1,33 @@
+# Messages et Tokens Spéciaux
+
+Maintenant que nous comprenons comment fonctionnent les LLMs, examinons **comment ils structurent leurs générations via des modèles de chat**.
+
+Tout comme avec ChatGPT, les utilisateurs interagissent généralement avec les Agents via une interface de chat. Par conséquent, nous souhaitons comprendre comment les LLMs gèrent les chats.
+
+> **Q** : Mais… Lorsque j'interagis avec ChatGPT/Hugging Chat, j'ai une conversation en utilisant des messages de chat, et non une seule séquence de prompt  
+>  
+> **A** : C'est exact ! Mais il s'agit en réalité d'une abstraction de l'interface utilisateur. Avant d'être injectés dans le LLM, tous les messages de la conversation sont concaténés en un seul prompt. Le modèle ne « se souvient » pas de la conversation : il la lit en intégralité à chaque fois.
+
+Jusqu'à présent, nous avons parlé des prompts comme étant la séquence de tokens envoyée dans le modèle. Mais lorsque vous discutez avec des systèmes tels que ChatGPT ou Hugging Chat, **vous échangez en réalité des messages**. Dans les coulisses, ces messages sont **concaténés et formatés en un prompt que le modèle peut comprendre**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Derrière les modèles"/>
+<figcaption>Nous voyons ici la différence entre ce que nous voyons dans l'interface utilisateur et le prompt envoyée au modèle.</figcaption>
+</figure>
+
+C'est là qu'interviennent les modèles de chat. Ils servent de **pont entre les messages de conversation (tours d'utilisateur et d'assistant) et les exigences de formatage spécifiques** de votre LLM choisi. En d'autres termes, les modèles de chat structurent la communication entre l'utilisateur et l'agent, en s'assurant que chaque modèle — malgré ses tokens spéciaux uniques — reçoive le prompt correctement formatée.
+
+Nous parlons à nouveau des tokens spéciaux, car ce sont eux que les modèles utilisent pour délimiter le début et la fin des tours de l'utilisateur et de l'assistant. De même que chaque LLM utilise son propre token EOS (End Of Sequence), ils emploient également différentes règles de formatage et délimiteurs pour les messages dans la conversation.
+
+## Messages : Le système sous-jacent des LLMs
+### Messages Système
+
+Les messages système (également appelés prompts système) définissent **comment le modèle doit se comporter**. Ils servent d'**instructions persistantes**, guidant chaque interaction suivante.
+
+Par exemple :
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Vous êtes un agent de service client professionnel. Soyez toujours poli, clair et utile."
+}
