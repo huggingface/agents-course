@@ -54,7 +54,7 @@ from smolagents import CodeAgent, OpenAIServerModel
 
 model = OpenAIServerModel(model_id="gpt-4o")
 
-# Instantiate the agent
+# 实例化智能体
 agent = CodeAgent(
     tools=[],
     model=model,
@@ -113,7 +113,7 @@ response = agent.run(
 pip install "smolagents[all]" helium selenium python-dotenv
 ```
 
-我们需要一组专为浏览设计的代理工具，例如“search_item_ctrl_f”、“go_back”和“close_popups”。这些工具允许代理像浏览网页的人一样行事。
+我们需要一组专为浏览设计的智能体工具，例如“search_item_ctrl_f”、“go_back”和“close_popups”。这些工具允许智能体像浏览网页的人一样行事。
 
 ```python
 @tool
@@ -148,31 +148,31 @@ def close_popups() -> str:
     webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 ```
 
-我们还需要保存屏幕截图的功能，因为这是我们的 VLM 代理完成任务时必不可少的一部分。此功能会捕获屏幕截图并将其保存在 `step_log.observations_images = [image.copy()]` 中，从而允许代理在导航时动态存储和处理图像。
+我们还需要保存屏幕截图的功能，因为这是我们的 VLM 智能体完成任务时必不可少的一部分。此功能会捕获屏幕截图并将其保存在 `step_log.observations_images = [image.copy()]` 中，从而允许智能体在导航时动态存储和处理图像。
 
 ```python
 def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
-    sleep(1.0)  # Let JavaScript animations happen before taking the screenshot
+    sleep(1.0)  # 让 JavaScript 动画在截图之前完成
     driver = helium.get_driver()
     current_step = step_log.step_number
     if driver is not None:
-        for step_logs in agent.logs:  # Remove previous screenshots from logs for lean processing
+        for step_logs in agent.logs:  # 从日志中删除先前的截图以进行精简处理
             if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
                 step_logs.observations_images = None
         png_bytes = driver.get_screenshot_as_png()
         image = Image.open(BytesIO(png_bytes))
         print(f"Captured a browser screenshot: {image.size} pixels")
-        step_log.observations_images = [image.copy()]  # Create a copy to ensure it persists, important!
+        step_log.observations_images = [image.copy()]  # 创建副本以确保其持久保存，重要！!
 
-    # Update observations with current URL
+    # 使用当前 URL 更新观察结果 
     url_info = f"Current url: {driver.current_url}"
     step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
     return
 ```
 
-此函数作为 `step_callback` 传递给代理，因为它在代理执行的每一步结束时被触发。这使得代理能够在整个过程中动态捕获和存储屏幕截图。
+此函数作为 `step_callback` 传递给智能体，因为它在智能体执行的每一步结束时被触发。这使得智能体能够在整个过程中动态捕获和存储屏幕截图。
 
-现在，我们可以生成用于浏览网页的视觉代理，为其提供我们创建的工具，以及 `DuckDuckGoSearchTool` 以探索网页。此工具将帮助代理根据视觉线索检索验证访客身份所需的信息。
+现在，我们可以生成用于浏览网页的视觉智能体，为其提供我们创建的工具，以及 `DuckDuckGoSearchTool` 以探索网页。此工具将帮助智能体根据视觉线索检索验证访客身份所需的信息。
 
 ```python
 from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
@@ -192,13 +192,13 @@ agent = CodeAgent(
 
 ```python
 agent.run("""
-我是韦恩庄园的管家 Alfred，负责核实参加派对的宾客身份。一位超级英雄来到入口处，声称自己是神奇女侠，但我需要确认她是否就是她说的那个人。
+I am Alfred, the butler of Wayne Manor, responsible for verifying the identity of guests at party. A superhero has arrived at the entrance claiming to be Wonder Woman, but I need to confirm if she is who she says she is.
 
-请搜索神奇女侠的图像，并根据这些图像生成详细的视觉描述。此外，导航到维基百科以获取关于她外貌的关键信息。利用这些信息，我可以决定是否允许她进入活动。
+Please search for images of Wonder Woman and generate a detailed visual description based on those images. Additionally, navigate to Wikipedia to gather key details about her appearance. With this information, I can determine whether to grant her access to the event.
 """ + helium_instructions)
 ```
 
-您可以看到，我们将 `helium_instructions` 作为任务的一部分包含在内。这个特殊的提示旨在控制代理的导航，确保它在浏览网页时遵循正确的步骤。
+您可以看到，我们将 `helium_instructions` 作为任务的一部分包含在内。这个特殊的提示旨在控制智能体的导航，确保它在浏览网页时遵循正确的步骤。
 
 让我们看看这在下面的视频中是如何工作的：
 
@@ -209,7 +209,7 @@ agent.run("""
 这是最终输出：
 
 ```python
-最终答案：神奇女侠通常被描绘成穿着红色和金色的紧身衣，蓝色短裤或短裙上有白色星星，戴着金色王冠，戴着银色手镯，手持金色真言套索。她是提坦尼亚岛的公主戴安娜，也被称作人类世界中的戴安娜·普林斯。
+Final answer: Wonder Woman is typically depicted wearing a red and gold bustier, blue shorts or skirt with white stars, a golden tiara, silver bracelets, and a golden Lasso of Truth. She is Princess Diana of Themyscira, known as Diana Prince in the world of men.
 ```
 
 通过这些步骤，我们成功地为派对创建了一个身份验证系统！ Alfred 现在拥有必要的工具，可以确保只有正确的宾客能够进入庄园。一切准备就绪，可以享受在韦恩庄园的美好时光！
@@ -217,6 +217,6 @@ agent.run("""
 
 ## 进一步阅读
 
-- [我们让 smolagents 有了视觉能力](https://huggingface.co/blog/smolagents-can-see) -  博客文章描述了视觉代理的功能。
-- [使用智能体进行网页浏览 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - 使用视觉代理进行网页浏览的示例。
-- [网页浏览视觉代理示例](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - 使用视觉代理进行网页浏览的示例。
+- [我们让 smolagents 有了视觉能力](https://huggingface.co/blog/smolagents-can-see) -  博客文章描述了视觉智能体的功能。
+- [使用智能体进行网页浏览 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - 使用视觉智能体进行网页浏览的示例。
+- [网页浏览视觉智能体示例](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - 使用视觉智能体进行网页浏览的示例。

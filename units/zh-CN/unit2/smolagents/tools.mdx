@@ -6,7 +6,7 @@
 
 # 工具
 
-正如我们在[第一单元](https://huggingface.co/learn/agents-course/unit1/tools)所探讨的，代理通过工具执行各类操作。在`smolagents`框架中，工具被视为 **LLM 可以在代理系统中调用的函数**。
+正如我们在[第一单元](https://huggingface.co/learn/agents-course/unit1/tools)所探讨的，智能体通过工具执行各类操作。在`smolagents`框架中，工具被视为 **LLM 可以在智能体系统中调用的函数**。
 
 要使LLM能够调用工具，需要为其提供包含以下关键要素的**接口描述**：
 
@@ -26,7 +26,7 @@
 
 下方动画展示了工具调用的管理流程：
 
-![来自 https://huggingface.co/docs/smolagents/conceptual_guides/react 的代理流程](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/Agent_ManimCE.gif)
+![来自 https://huggingface.co/docs/smolagents/conceptual_guides/react 的智能体流程](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/Agent_ManimCE.gif)
 
 ## 工具创建方法
 
@@ -63,12 +63,12 @@ from smolagents import CodeAgent, HfApiModel, tool
 @tool
 def catering_service_tool(query: str) -> str:
     """
-    该工具返回哥谭市评分最高的餐饮服务
+    This tool returns the highest-rated catering service in Gotham City.
     
     Args:
-        query: 用于查找餐饮服务的搜索词
+        query: A search term for finding catering services.
     """
-    # 示例餐饮服务及评分列表
+   # 示例餐饮服务及评分列表
     services = {
         "Gotham Catering Co.": 4.9,
         "Wayne Manor Catering": 4.8,
@@ -83,7 +83,7 @@ def catering_service_tool(query: str) -> str:
 
 agent = CodeAgent(tools=[catering_service_tool], model=HfApiModel())
 
-# 运行代理寻找最佳餐饮服务
+# 运行智能体寻找最佳餐饮服务
 result = agent.run(
     "Can you give me the name of the highest-rated catering service in Gotham City?"
 )
@@ -96,7 +96,7 @@ print(result)   # Output: Gotham Catering Co.
 此方法需要创建[`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool)的子类。对于复杂工具，我们可以通过类封装函数及其元数据来帮助 LLM 理解使用方式。在类中需要定义：
 
 - `name`: 工具名称  
-- `description`: 用于构建代理系统提示的描述  
+- `description`: 用于构建智能体系统提示的描述  
 - `inputs`: 包含`type`和`description`的字典，帮助Python解释器处理输入  
 - `output_type`: 指定期望的输出类型  
 - `forward`: 包含执行逻辑的方法  
@@ -115,13 +115,13 @@ from smolagents import Tool, CodeAgent, HfApiModel
 class SuperheroPartyThemeTool(Tool):
     name = "superhero_party_theme_generator"
     description = """
-    该工具根据给定类别生成超级英雄主题的派对创意
-    返回独特的派对主题方案"""
+    This tool suggests creative superhero-themed party ideas based on a category.
+    It returns a unique party theme idea."""
     
     inputs = {
         "category": {
             "type": "string",
-            "description": "派对主题分类（如：'经典英雄'、'反派假面舞会'、'未来哥谭'）",
+            "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
         }
     }
     
@@ -129,30 +129,30 @@ class SuperheroPartyThemeTool(Tool):
 
     def forward(self, category: str):
         themes = {
-            "classic heroes": "正义联盟晚宴：宾客装扮成DC经典英雄，提供'氪石特饮'等主题鸡尾酒",
-            "villain masquerade": "哥谭恶棍舞会：神秘假面派对，宾客装扮成经典蝙蝠侠反派角色",
-            "futuristic Gotham": "新哥谭之夜：受《蝙蝠侠：未来》启发的赛博朋克风格派对，配备霓虹装饰与未来科技装置"
+            "classic heroes": "Justice League Gala: Guests come dressed as their favorite DC heroes with themed cocktails like 'The Kryptonite Punch'.",
+            "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
+            "futuristic Gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
         }
         
-        return themes.get(category.lower(), "未找到匹配主题。请尝试'经典英雄'、'反派假面舞会'或'未来哥谭'")
+        return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
 
 # 实例化工具
 party_theme_tool = SuperheroPartyThemeTool()
 agent = CodeAgent(tools=[party_theme_tool], model=HfApiModel())
 
-# 运行代理生成派对主题
+# 运行智能体生成派对主题
 result = agent.run(
-    "为'反派假面舞会'主题推荐一个超级英雄派对的创意方案"
+    "What would be a good superhero party idea for a 'villain masquerade' theme?"
 )
 
-print(result)  # 输出："哥谭恶棍舞会：神秘假面派对，宾客装扮成经典蝙蝠侠反派角色"
+print(result)  # Output: "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains."
 ```
 
 借助此工具，Alfred 将成为终极超级管家，为宾客呈现难忘的超级英雄主题派对！🦸♂️🦸♀️
 
 ## 默认工具箱  
 
-`smolagents` 自带一组预构建工具，可直接注入到您的代理中。[默认工具箱](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) 包含:  
+`smolagents` 自带一组预构建工具，可直接注入到您的智能体中。[默认工具箱](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) 包含:  
 
 - **PythonInterpreterTool**  
 - **FinalAnswerTool**  
@@ -208,7 +208,7 @@ agent = CodeAgent(
     model=HfApiModel()
 )
 
-agent.run("生成韦恩庄园豪华超级英雄主题派对的图像，包含虚构的超级英雄。")
+agent.run("Generate an image of a luxurious superhero-themed party at Wayne Manor with made-up superheros.")
 ```
 
 ### 将 Hugging Face Space 导入为工具
@@ -267,4 +267,4 @@ agent.run("Search for luxury entertainment ideas for a superhero-themed event, s
 - [工具教程](https://huggingface.co/docs/smolagents/tutorials/tools) - 通过本教程学习如何高效使用工具
 - [工具文档](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools) - 全面的工具参考文档
 - [工具使用导览](https://huggingface.co/docs/smolagents/v1.8.1/en/guided_tour#tools) - 逐步指导如何构建和使用工具
-- [构建高效代理](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 关于开发可靠高性能自定义函数代理的最佳实践指南
+- [构建高效智能体](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 关于开发可靠高性能自定义函数智能体的最佳实践指南

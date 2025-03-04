@@ -1,6 +1,6 @@
 # 小测验（不计分）[[quiz2]]
 
-现在该测试您对*代码代理*、*工具调用代理*和*工具*章节的理解了。本测验为可选且不计分。
+现在该测试您对*代码智能体*、*工具调用智能体*和*工具*章节的理解了。本测验为可选且不计分。
 
 ---
 
@@ -20,8 +20,8 @@ choices={[
     correct: true
   },
   {
-    text: "<code>@tool</code> 只能用于多代理系统，而创建 <code>Tool</code> 的子类适用于单代理场景",
-    explain: "所有代理（单或多）都可以使用这两种方法定义工具，没有此类限制。",
+    text: "<code>@tool</code> 只能用于多智能体系统，而创建 <code>Tool</code> 的子类适用于单智能体场景",
+    explain: "所有智能体（单或多）都可以使用这两种方法定义工具，没有此类限制。",
   },
   {
     text: "用 <code>@tool</code> 装饰函数可以替代文档字符串，而子类工具必须不包含文档字符串",
@@ -39,8 +39,8 @@ choices={[
 <Question
 choices={[
   {
-    text: "它将每个步骤传递给多代理系统中的不同代理，然后合并结果",
-    explain: "尽管多代理系统可以分配任务，但 CodeAgent 本身可以使用 ReAct 独立处理多个步骤。",
+    text: "它将每个步骤传递给多智能体系统中的不同智能体，然后合并结果",
+    explain: "尽管多智能体系统可以分配任务，但 CodeAgent 本身可以使用 ReAct 独立处理多个步骤。",
   },
   {
     text: "它将所有操作存储为 JSON 格式以便解析，然后一次性执行所有操作",
@@ -77,7 +77,7 @@ choices={[
   },
   {
     text: "它确保只有 CodeAgent 可以调用该工具，而 ToolCallingAgent 无法调用",
-    explain: "CodeAgent 和 ToolCallingAgent 都可以调用共享工具，没有基于代理类型的限制。",
+    explain: "CodeAgent 和 ToolCallingAgent 都可以调用共享工具，没有基于智能体类型的限制。",
   },
   {
     text: "它会将您的工具转换为具备完整视觉能力的图像处理函数",
@@ -95,12 +95,12 @@ choices={[
 <Question
 choices={[
   {
-    text: "ToolCallingAgent 仅兼容多代理系统，而 CodeAgent 可以单独运行",
-    explain: "两种代理都可以单独使用或作为多代理系统的一部分。",
+    text: "ToolCallingAgent 仅兼容多智能体系统，而 CodeAgent 可以单独运行",
+    explain: "两种智能体都可以单独使用或作为多智能体系统的一部分。",
   },
   {
-    text: "ToolCallingAgent 将所有推理委托给单独的检索代理，然后返回最终答案",
-    explain: "ToolCallingAgent 仍然使用主 LLM 进行推理，不完全依赖检索代理。",
+    text: "ToolCallingAgent 将所有推理委托给单独的检索智能体，然后返回最终答案",
+    explain: "ToolCallingAgent 仍然使用主 LLM 进行推理，不完全依赖检索智能体。",
   },
   {
     text: "ToolCallingAgent 输出指定工具调用和参数的 JSON 指令，这些指令会被解析并执行",
@@ -124,7 +124,7 @@ choices={[
 choices={[
   {
     text: "它提供常用工具集（如 DuckDuckGo 搜索、PythonInterpreterTool 和最终答案工具）用于快速原型开发",
-    explain: "正确。默认工具箱包含这些现成工具，便于在构建代理时快速集成。",
+    explain: "正确。默认工具箱包含这些现成工具，便于在构建智能体时快速集成。",
     correct: true
   },
   {
@@ -132,8 +132,8 @@ choices={[
     explain: "尽管 smolagents 可以集成视觉功能，但默认工具箱并非专门面向视觉任务。",
   },
   {
-    text: "它专门为多代理系统设计，与单 CodeAgent 不兼容",
-    explain: "默认工具箱适用于任何代理类型，包括单代理和多代理设置。",
+    text: "它专门为多智能体系统设计，与单 CodeAgent 不兼容",
+    explain: "默认工具箱适用于任何智能体类型，包括单智能体和多智能体设置。",
   },
   {
     text: "它添加了基于检索的高级功能，支持来自向量存储的大规模问答",
@@ -144,4 +144,4 @@ choices={[
 
 ---
 
-恭喜完成测验！🎉 如果有任何问题让您感到困难，请重新访问*代码代理*、*工具调用代理*或*工具*章节以加强理解。如果您表现出色，那么您已踏上构建强大 smolagents 应用的道路！
+恭喜完成测验！🎉 如果有任何问题让您感到困难，请重新访问*代码智能体*、*工具调用智能体*或*工具*章节以加强理解。如果您表现出色，那么您已踏上构建强大 smolagents 应用的道路！
