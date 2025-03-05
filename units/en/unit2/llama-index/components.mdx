@@ -68,13 +68,13 @@ A `Node` is just a chunk of text from the original document that's easier for th
 
 The `IngestionPipeline` helps us create these nodes through two key transformations.
 1. `SentenceSplitter` breaks down documents into manageable chunks by splitting them at natural sentence boundaries.
-2. `HuggingFaceInferenceAPIEmbedding` converts each chunk into numerical embeddings - vector representations that capture the semantic meaning in a way AI can process efficiently.
+2. `HuggingFaceEmbedding` converts each chunk into numerical embeddings - vector representations that capture the semantic meaning in a way AI can process efficiently.
 
 This process helps us organise our documents in a way that's more useful for searching and analysis.
 
 ```python
 from llama_index.core import Document
-from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.ingestion import IngestionPipeline
 
@@ -82,7 +82,7 @@ from llama_index.core.ingestion import IngestionPipeline
 pipeline = IngestionPipeline(
     transformations=[
         SentenceSplitter(chunk_overlap=0),
-        HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
     ]
 )
 
@@ -117,7 +117,7 @@ vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 pipeline = IngestionPipeline(
     transformations=[
         SentenceSplitter(chunk_size=25, chunk_overlap=0),
-        HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
     ],
     vector_store=vector_store,
 )
@@ -133,9 +133,9 @@ Let's see how to create this index from our vector store and embeddings:
 
 ```python
 from llama_index.core import VectorStoreIndex
-from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-embed_model = HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5")
+embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
 index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
 ```
 
