@@ -1,0 +1,299 @@
+# ¿Qué son las Herramientas?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Planificación de la Unidad 1"/>
+
+Un aspecto crucial de los Agentes de IA es su capacidad para realizar **acciones**. Como vimos, esto sucede a través del uso de **Herramientas**.
+
+En esta sección, aprenderemos qué son las Herramientas, cómo diseñarlas de manera efectiva y cómo integrarlas en tu Agente a través del Mensaje del Sistema.
+
+Al proporcionar a tu Agente las Herramientas adecuadas —y describir claramente cómo funcionan esas Herramientas— puedes aumentar dramáticamente lo que tu IA puede lograr. ¡Vamos a profundizar!
+
+
+## ¿Qué son las Herramientas de IA?
+
+Una **Herramienta es una función proporcionada al LLM**. Esta función debe cumplir un **objetivo claro**.
+
+Aquí hay algunas herramientas comúnmente utilizadas en agentes de IA:
+
+| Herramienta     | Descripción                                                   |
+|----------------|---------------------------------------------------------------|
+| Búsqueda Web    | Permite al agente obtener información actualizada de internet. |
+| Generación de Imágenes | Crea imágenes basadas en descripciones textuales.        |
+| Recuperación    | Recupera información de una fuente externa.                   |
+| Interfaz de API | Interactúa con una API externa (GitHub, YouTube, Spotify, etc.). |
+
+¡Esos son solo ejemplos, ya que de hecho puedes crear una herramienta para cualquier caso de uso!
+
+Una buena herramienta debería ser algo que **complemente el poder de un LLM**. 
+
+Por ejemplo, si necesitas realizar operaciones aritméticas, proporcionar una **herramienta de calculadora** a tu LLM proporcionará mejores resultados que confiar en las capacidades nativas del modelo.
+
+Además, **los LLMs predicen la finalización de un prompt basándose en sus datos de entrenamiento**, lo que significa que su conocimiento interno solo incluye eventos anteriores a su entrenamiento. Por lo tanto, si tu agente necesita datos actualizados, debes proporcionarlos a través de alguna herramienta.
+
+Por ejemplo, si le preguntas directamente a un LLM (sin una herramienta de búsqueda) sobre el clima de hoy, el LLM potencialmente alucinará un clima aleatorio.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Clima"/>
+
+- Una Herramienta debe contener:
+
+  - Una **descripción textual de lo que hace la función**.
+  - Un *Callable* (algo para realizar una acción).
+  - *Argumentos* con tipos.
+  - (Opcional) Salidas con tipos.
+
+## ¿Cómo funcionan las herramientas?
+
+Los LLMs, como vimos, solo pueden recibir entradas de texto y generar salidas de texto. No tienen forma de llamar a herramientas por sí mismos. Lo que queremos decir cuando hablamos de _proporcionar herramientas a un Agente_, es que **enseñamos** al LLM sobre la existencia de herramientas, y pedimos al modelo que genere texto que invocará herramientas cuando las necesite. Por ejemplo, si proporcionamos una herramienta para verificar el clima en una ubicación desde Internet, y luego preguntamos al LLM sobre el clima en París, el LLM reconocerá esa pregunta como una oportunidad relevante para usar la herramienta "clima" que le enseñamos. El LLM generará _texto_, en forma de código, para invocar esa herramienta. Es responsabilidad del **Agente** analizar la salida del LLM, reconocer que se requiere una llamada a una herramienta e invocar la herramienta en nombre del LLM. La salida de la herramienta luego se enviará de vuelta al LLM, que compondrá su respuesta final para el usuario.
+
+La salida de una llamada a una herramienta es otro tipo de mensaje en la conversación. Los pasos de llamada a herramientas típicamente no se muestran al usuario: el Agente recupera la conversación, llama a la(s) herramienta(s), obtiene las salidas, las agrega como un nuevo mensaje de conversación y envía la conversación actualizada al LLM nuevamente. Desde el punto de vista del usuario, es como si el LLM hubiera usado la herramienta, pero de hecho fue nuestro código de aplicación (el **Agente**) quien lo hizo.
+
+Hablaremos mucho más sobre este proceso en sesiones futuras.
+
+## ¿Cómo proporcionamos herramientas a un LLM?
+
+La respuesta completa puede parecer abrumadora, pero esencialmente usamos el prompt del sistema para proporcionar descripciones textuales de las herramientas disponibles al modelo:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="Prompt del sistema para herramientas"/>
+
+Para que esto funcione, tenemos que ser muy precisos y exactos sobre:
+
+1. **Lo que hace la herramienta**
+2. **Qué entradas exactas espera**
+
+Esta es la razón por la que las descripciones de herramientas generalmente se proporcionan utilizando estructuras expresivas pero precisas, como lenguajes de computadora o JSON. No es _necesario_ hacerlo así, cualquier formato preciso y coherente funcionaría.
+
+Si esto parece demasiado teórico, vamos a entenderlo a través de un ejemplo concreto.
+
+Implementaremos una herramienta **calculadora** simplificada que solo multiplicará dos enteros. Esta podría ser nuestra implementación en Python:
+
+```python
+def calculadora(a: int, b: int) -> int:
+    """Multiplica dos enteros."""
+    return a * b
+```
+
+Así que nuestra herramienta se llama `calculadora`, **multiplica dos enteros**, y requiere las siguientes entradas:
+
+- **`a`** (*int*): Un entero.
+- **`b`** (*int*): Un entero.
+
+La salida de la herramienta es otro número entero que podemos describir así:
+- (*int*): El producto de `a` y `b`.
+
+Todos estos detalles son importantes. Vamos a juntarlos en una cadena de texto que describe nuestra herramienta para que el LLM la entienda.
+
+```text
+Nombre de Herramienta: calculadora, Descripción: Multiplica dos enteros., Argumentos: a: int, b: int, Salidas: int
+```
+
+> **Recordatorio:** Esta descripción textual es *lo que queremos que el LLM sepa sobre la herramienta*.
+
+Cuando pasamos la cadena anterior como parte de la entrada al LLM, el modelo la reconocerá como una herramienta, y sabrá qué necesita pasar como entradas y qué esperar de la salida.
+
+Si queremos proporcionar herramientas adicionales, debemos ser consistentes y siempre usar el mismo formato. Este proceso puede ser frágil, y podríamos pasar por alto accidentalmente algunos detalles.
+
+¿Hay una mejor manera?
+
+### Auto-formateo de secciones de Herramientas
+
+Nuestra herramienta fue escrita en Python, y la implementación ya proporciona todo lo que necesitamos:
+
+- Un nombre descriptivo de lo que hace: `calculadora`
+- Una descripción más larga, proporcionada por el comentario docstring de la función: `Multiplica dos enteros.`
+- Las entradas y su tipo: la función claramente espera dos `int`s.
+- El tipo de la salida.
+
+Hay una razón por la que la gente usa lenguajes de programación: son expresivos, concisos y precisos.
+
+Podríamos proporcionar el código fuente de Python como la _especificación_ de la herramienta para el LLM, pero la forma en que se implementa la herramienta no importa. Todo lo que importa es su nombre, lo que hace, las entradas que espera y la salida que proporciona.
+
+Aprovecharemos las características de introspección de Python para aprovechar el código fuente y construir una descripción de herramienta automáticamente para nosotros. Todo lo que necesitamos es que la implementación de la herramienta use sugerencias de tipo, docstrings y nombres de función sensatos. Escribiremos algo de código para extraer las partes relevantes del código fuente.
+
+Después de terminar, solo necesitaremos usar un decorador de Python para indicar que la función `calculadora` es una herramienta:
+
+```python
+@tool
+def calculadora(a: int, b: int) -> int:
+    """Multiplica dos enteros."""
+    return a * b
+
+print(calculadora.to_string())
+```
+
+Nota el decorador `@tool` antes de la definición de la función.
+
+Con la implementación que veremos a continuación, podremos recuperar el siguiente texto automáticamente del código fuente a través de la función `to_string()` proporcionada por el decorador:
+
+```text
+Nombre de Herramienta: calculadora, Descripción: Multiplica dos enteros., Argumentos: a: int, b: int, Salidas: int
+```
+
+Como puedes ver, ¡es lo mismo que escribimos manualmente antes!
+
+### Implementación genérica de Herramienta
+
+Creamos una clase genérica `Tool` que podemos reutilizar siempre que necesitemos usar una herramienta.
+
+> **Descargo de responsabilidad:** Esta implementación de ejemplo es ficticia pero se parece mucho a implementaciones reales en la mayoría de las bibliotecas.
+
+```python
+class Tool:
+    """
+    Una clase que representa un fragmento de código reutilizable (Herramienta).
+    
+    Atributos:
+        name (str): Nombre de la herramienta.
+        description (str): Una descripción textual de lo que hace la herramienta.
+        func (callable): La función que esta herramienta envuelve.
+        arguments (list): Una lista de argumentos.
+        outputs (str or list): El tipo(s) de retorno de la función envuelta.
+    """
+    def __init__(self, 
+                 name: str, 
+                 description: str, 
+                 func: callable, 
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Devuelve una representación en cadena de la herramienta, 
+        incluyendo su nombre, descripción, argumentos y salidas.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+        
+        return (
+            f"Nombre de Herramienta: {self.name},"
+            f" Descripción: {self.description},"
+            f" Argumentos: {args_str},"
+            f" Salidas: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoca la función subyacente (callable) con los argumentos proporcionados.
+        """
+        return self.func(*args, **kwargs)
+```
+
+Puede parecer complicado, pero si lo recorremos lentamente podemos ver lo que hace. Definimos una clase **`Tool`** que incluye:
+
+- **`name`** (*str*): El nombre de la herramienta.
+- **`description`** (*str*): Una breve descripción de lo que hace la herramienta.
+- **`function`** (*callable*): La función que ejecuta la herramienta.
+- **`arguments`** (*list*): Los parámetros de entrada esperados.
+- **`outputs`** (*str* o *list*): Las salidas esperadas de la herramienta.
+- **`__call__()`**: Llama a la función cuando se invoca la instancia de la herramienta.
+- **`to_string()`**: Convierte los atributos de la herramienta en una representación textual.
+
+Podríamos crear una Herramienta con esta clase usando código como el siguiente:
+
+```python
+calculadora_tool = Tool(
+    "calculadora",                   # nombre
+    "Multiplica dos enteros.",       # descripción
+    calculadora,                     # función a llamar
+    [("a", "int"), ("b", "int")],   # entradas (nombres y tipos)
+    "int",                          # salida
+)
+```
+
+¡Pero también podemos usar el módulo `inspect` de Python para recuperar toda la información por nosotros! Esto es lo que hace el decorador `@tool`.
+
+> Si estás interesado, puedes revelar la siguiente sección para ver la implementación del decorador.
+
+<details>
+<summary> código del decorador</summary>
+
+```python
+def tool(func):
+    """
+    Un decorador que crea una instancia de Tool a partir de la función dada.
+    """
+    # Obtener la firma de la función
+    signature = inspect.signature(func)
+    
+    # Extraer pares (param_name, param_annotation) para entradas
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__ 
+            if hasattr(param.annotation, '__name__') 
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+    
+    # Determinar la anotación de retorno
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "Sin anotación de retorno"
+    else:
+        outputs = (
+            return_annotation.__name__ 
+            if hasattr(return_annotation, '__name__') 
+            else str(return_annotation)
+        )
+    
+    # Usar el docstring de la función como descripción (por defecto si es None)
+    description = func.__doc__ or "No se proporcionó descripción."
+    
+    # El nombre de la función se convierte en el nombre de la Herramienta
+    name = func.__name__
+    
+    # Devolver una nueva instancia de Tool
+    return Tool(
+        name=name, 
+        description=description, 
+        func=func, 
+        arguments=arguments, 
+        outputs=outputs
+    )
+```
+
+</details>
+
+Solo para reiterar, con este decorador en su lugar podemos implementar nuestra herramienta así:
+
+```python
+@tool
+def calculadora(a: int, b: int) -> int:
+    """Multiplica dos enteros."""
+    return a * b
+
+print(calculadora.to_string())
+```
+
+Y podemos usar el método `to_string` de la `Tool` para recuperar automáticamente un texto adecuado para ser utilizado como descripción de herramienta para un LLM:
+
+```text
+Nombre de Herramienta: calculadora, Descripción: Multiplica dos enteros., Argumentos: a: int, b: int, Salidas: int
+```
+
+La descripción se **inyecta** en el prompt del sistema. Tomando el ejemplo con el que comenzamos esta sección, así es como se vería después de reemplazar el `tools_description`:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Prompt del sistema para herramientas"/>
+
+En la sección [Acciones](actions.mdx), aprenderemos más sobre cómo un Agente puede **Llamar** a esta herramienta que acabamos de crear.
+
+---
+
+Las herramientas juegan un papel crucial en la mejora de las capacidades de los agentes de IA.
+
+Para resumir, aprendimos:
+
+- *Qué son las Herramientas*: Funciones que dan a los LLMs capacidades adicionales, como realizar cálculos o acceder a datos externos.
+
+- *Cómo Definir una Herramienta*: Proporcionando una descripción textual clara, entradas, salidas y una función invocable.
+
+- *Por qué las Herramientas son Esenciales*: Permiten a los Agentes superar las limitaciones del entrenamiento estático del modelo, manejar tareas en tiempo real y realizar acciones especializadas.
+
+Ahora, podemos pasar al [Flujo de Trabajo del Agente](agent-steps-and-structure.mdx) donde verás cómo un Agente observa, piensa y actúa. Esto **reúne todo lo que hemos cubierto hasta ahora** y prepara el escenario para crear tu propio Agente de IA completamente funcional.
+
+Pero primero, ¡es hora de otro cuestionario corto!

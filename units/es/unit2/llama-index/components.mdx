@@ -1,0 +1,238 @@
+# ¿Qué son los componentes en LlamaIndex?
+
+¿Recuerdas a Alfred, nuestro útil agente mayordomo de la Unidad 1? 
+Para ayudarnos de manera efectiva, Alfred necesita entender nuestras solicitudes y **preparar, encontrar y usar información relevante para ayudar a completar tareas.**
+Aquí es donde entran los componentes de LlamaIndex.
+
+Aunque LlamaIndex tiene muchos componentes, **nos centraremos específicamente en el componente `QueryEngine`**. ¿Por qué? Porque se puede usar como una herramienta de Generación Aumentada por Recuperación (RAG) para un agente.
+
+Entonces, ¿qué es RAG? Los LLMs están entrenados en enormes cuerpos de datos para aprender conocimiento general. Sin embargo, pueden no estar entrenados en datos relevantes y actualizados.
+RAG resuelve este problema encontrando y recuperando información relevante de tus datos y dándosela al LLM.
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Ahora, piensa en como funciona Alfred:
+
+1. Le pides a Alfred que te ayude a planear una cena
+2. Alfred necesita revisar tu calendario, preferencias dietéticas y menús exitosos anteriores
+3. El `QueryEngine` ayuda a Alfred a encontrar esta información y usarla para planear la cena
+
+Esto hace que el `QueryEngine` **sea un componente clave para construir flujos de trabajo RAG agentic** en LlamaIndex.
+Así como Alfred necesita buscar en la información de tu hogar para ser útil, cualquier agente necesita una forma de encontrar y entender datos relevantes.
+El `QueryEngine` proporciona exactamente esta capacidad.
+
+Ahora, profundicemos un poco más en los componentes y veamos como puedes **combinar componentes para crear un pipeline RAG.**
+
+
+## Creando un pipeline RAG usando componentes
+
+<Tip>
+Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">este notebook</a> que puedes ejecutar usando Google Colab.
+</Tip>
+
+Hay cinco etapas clave dentro de RAG, que a su vez serán parte de la mayoría de las aplicaciones más grandes que construyas. Estas son:
+
+1. **Carga**: esto se refiere a obtener tus datos desde donde residen -- ya sean archivos de texto, PDFs, otro sitio web, una base de datos o una API -- e incorporarlos a tu flujo de trabajo. LlamaHub proporciona cientos de integraciones para elegir.
+2. **Indexación**: significa crear una estructura de datos que permita consultar la información. Para los LLMs, esto casi siempre significa crear embeddings vectoriales, que son representaciones numéricas del significado de los datos. La indexación también puede referirse a numerosas estrategias de metadatos para facilitar la búsqueda precisa de datos contextualmente relevantes basados en propiedades.
+3. **Almacenamiento**: una vez que tus datos están indexados, querrás almacenar tu índice, así como otros metadatos, para evitar tener que volver a indexarlos.
+4. **Consulta**: para cualquier estrategia de indexación hay muchas formas en que puedes utilizar LLMs y estructuras de datos de LlamaIndex para consultar, incluyendo subconsultas, consultas de múltiples pasos y estrategias híbridas.
+5. **Evaluación**: un paso crítico en cualquier flujo es comprobar qué tan efectivo es en relación con otras estrategias, o cuando realizas cambios. La evaluación proporciona medidas objetivas de cuán precisas, fieles y rápidas son tus respuestas a las consultas.
+
+A continuación, veamos cómo podemos reproducir estas etapas usando componentes.
+
+### Carga y embedding de documentos
+
+Como se mencionó anteriormente, LlamaIndex puede trabajar sobre tus propios datos, sin embargo, **antes de acceder a los datos, necesitamos cargarlos.**
+Hay tres formas principales de cargar datos en LlamaIndex:
+
+1. `SimpleDirectoryReader`: Un cargador integrado para varios tipos de archivos desde un directorio local.
+2. `LlamaParse`: LlamaParse, la herramienta oficial de LlamaIndex para el análisis de PDFs, disponible como API gestionada.
+3. `LlamaHub`: Un registro de cientos de bibliotecas de carga de datos para ingerir datos desde cualquier fuente.
+
+<Tip>Familiarízate con los cargadores de <a href="https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/">LlamaHub</a> y el analizador <a href="https://github.com/run-llama/llama_cloud_services/blob/main/parse.md">LlamaParse</a> para fuentes de datos más complejas.</Tip>
+
+**La forma más sencilla de cargar datos es con `SimpleDirectoryReader`.**
+Este componente versátil puede cargar varios tipos de archivos desde una carpeta y convertirlos en objetos `Document` con los que LlamaIndex puede trabajar.
+Veamos cómo podemos usar `SimpleDirectoryReader` para cargar datos desde una carpeta.
+
+```python
+from llama_index.core import SimpleDirectoryReader
+
+reader = SimpleDirectoryReader(input_dir="path/to/directory")
+documents = reader.load_data()
+```
+
+Después de cargar nuestros documentos, necesitamos dividirlos en piezas más pequeñas llamadas objetos `Node`.
+Un `Node` es simplemente un fragmento de texto del documento original que es más fácil de manejar para la IA, mientras que mantiene referencias al objeto `Document` original.
+
+El `IngestionPipeline` nos ayuda a crear estos nodos a través de dos transformaciones clave.
+1. `SentenceSplitter` descompone los documentos en fragmentos manejables dividiéndolos en los límites naturales de las oraciones.
+2. `HuggingFaceInferenceAPIEmbedding` convierte cada fragmento en embeddings numéricos - representaciones vectoriales que capturan el significado semántico de una manera que la IA puede procesar eficientemente.
+
+Este proceso nos ayuda a organizar nuestros documentos de una manera que es más útil para la búsqueda y el análisis.
+
+```python
+from llama_index.core import Document
+from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.ingestion import IngestionPipeline
+
+# crear el pipeline con transformaciones
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_overlap=0),
+        HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ]
+)
+
+nodes = await pipeline.arun(documents=[Document.example()])
+```
+
+
+### Almacenamiento e indexación de documentos
+
+Después de crear nuestros objetos `Node`, necesitamos indexarlos para hacerlos buscables, pero antes de poder hacerlo, necesitamos un lugar para almacenar nuestros datos.
+
+Como estamos usando un pipeline de ingesta, podemos adjuntar directamente un almacén vectorial al pipeline para poblarlo.
+En este caso, usaremos `Chroma` para almacenar nuestros documentos.
+
+<details>
+<summary>Instalar ChromaDB</summary>
+Como se introdujo en la [sección sobre LlamaHub](llama-hub), podemos instalar el almacén vectorial ChromaDB con el siguiente comando:
+
+```bash
+pip install llama-index-vector-stores-chroma
+```
+</details>
+
+```python
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_size=25, chunk_overlap=0),
+        HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ],
+    vector_store=vector_store,
+)
+```
+
+<Tip>Una visión general de los diferentes almacenes vectoriales se puede encontrar en la <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">documentación de LlamaIndex</a>.</Tip>
+
+
+Aquí es donde entran los embeddings vectoriales - al incorporar tanto la consulta como los nodos en el mismo espacio vectorial, podemos encontrar coincidencias relevantes.
+El `VectorStoreIndex` se encarga de esto por nosotros, utilizando el mismo modelo de embedding que usamos durante la ingesta para garantizar la consistencia.
+
+Veamos cómo crear este índice a partir de nuestro almacén vectorial y embeddings:
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+
+embed_model = HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5")
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+```
+
+Toda la información se persiste automáticamente dentro del objeto `ChromaVectorStore` y la ruta del directorio proporcionado.
+
+¡Genial! Ahora que podemos guardar y cargar nuestro índice fácilmente, exploremos cómo consultarlo de diferentes maneras.
+
+### Consultando un VectorStoreIndex con prompts y LLMs
+
+Antes de poder consultar nuestro índice, necesitamos convertirlo a una interfaz de consulta. Las opciones de conversión más comunes son:
+
+- `as_retriever`: Para recuperación básica de documentos, devolviendo una lista de objetos `NodeWithScore` con puntuaciones de similitud
+- `as_query_engine`: Para interacciones de pregunta-respuesta simples, devolviendo una respuesta escrita
+- `as_chat_engine`: Para interacciones conversacionales que mantienen la memoria a través de múltiples mensajes, devolviendo una respuesta escrita utilizando el historial de chat y el contexto indexado
+
+Nos centraremos en el motor de consulta ya que es más común para interacciones tipo agente.
+También pasamos un LLM al motor de consulta para usarlo en la respuesta.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(
+    llm=llm,
+    response_mode="tree_summarize",
+)
+query_engine.query("¿Cuál es el significado de la vida?")
+# El significado de la vida es 42
+```
+
+### Procesamiento de Respuestas
+
+Bajo el capó, el motor de consulta no solo usa el LLM para responder a la pregunta, sino que también utiliza un `ResponseSynthesizer` como estrategia para procesar la respuesta.
+Una vez más, esto es completamente personalizable, pero hay tres estrategias principales que funcionan bien de forma predeterminada:
+
+- `refine`: crear y refinar una respuesta recorriendo secuencialmente cada fragmento de texto recuperado. Esto hace una llamada LLM separada por cada Node/fragmento recuperado.
+- `compact` (predeterminado): similar a refinar pero concatenando los fragmentos de antemano, resultando en menos llamadas LLM.
+- `tree_summarize`: crear una respuesta detallada recorriendo cada fragmento de texto recuperado y creando una estructura de árbol de la respuesta.
+
+<Tip>Toma control detallado de tus flujos de consulta con la <a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">API de composición de bajo nivel</a>. Esta API te permite personalizar y ajustar cada paso del proceso de consulta para que coincida con tus necesidades exactas, lo que también se combina muy bien con <a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">Flujos de trabajo</a> </Tip>
+
+El modelo de lenguaje no siempre funcionará de manera predecible, por lo que no podemos estar seguros de que la respuesta que obtenemos sea siempre correcta. Podemos lidiar con esto **evaluando la calidad de la respuesta**.
+
+### Evaluación y observabilidad
+
+LlamaIndex proporciona **herramientas de evaluación integradas para evaluar la calidad de la respuesta.**
+Estos evaluadores aprovechan los LLMs para analizar respuestas a través de diferentes dimensiones.
+Veamos los tres evaluadores principales disponibles:
+
+- `FaithfulnessEvaluator`: Evalúa la fidelidad de la respuesta comprobando si está respaldada por el contexto.
+- `AnswerRelevancyEvaluator`: Evalúa la relevancia de la respuesta comprobando si es relevante para la pregunta.
+- `CorrectnessEvaluator`: Evalúa la corrección de la respuesta comprobando si es correcta.
+
+```python
+from llama_index.core.evaluation import FaithfulnessEvaluator
+
+query_engine = # de la sección anterior
+llm = # de la sección anterior
+
+# consultar índice
+evaluator = FaithfulnessEvaluator(llm=llm)
+response = query_engine.query(
+    "¿Qué batallas tuvieron lugar en la ciudad de Nueva York durante la Revolución Americana?"
+)
+eval_result = evaluator.evaluate_response(response=response)
+eval_result.passing
+```
+
+Incluso sin evaluación directa, podemos **obtener información sobre cómo está funcionando nuestro sistema a través de la observabilidad.**
+Esto es especialmente útil cuando estamos construyendo flujos de trabajo más complejos y queremos entender cómo está funcionando cada componente.
+
+<details>
+<summary>Instalar LlamaTrace</summary>
+Como se introdujo en la [sección sobre LlamaHub](llama-hub), podemos instalar el callback LlamaTrace de Arize Phoenix con el siguiente comando:
+
+```bash
+pip install -U llama-index-callbacks-arize-phoenix
+```
+
+Además, necesitamos establecer la variable de entorno `PHOENIX_API_KEY` con nuestra clave API de LlamaTrace. Podemos obtenerla:
+- Creando una cuenta en [LlamaTrace](https://llamatrace.com/login)
+- Generando una clave API en la configuración de tu cuenta
+- Usando la clave API en el código siguiente para habilitar el seguimiento
+
+</details>
+
+```python
+import llama_index
+import os
+
+PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
+llama_index.core.set_global_handler(
+    "arize_phoenix",
+    endpoint="https://llamatrace.com/v1/traces"
+)
+```
+
+<Tip>¿Quieres aprender más sobre los componentes y cómo usarlos? Continúa tu viaje con las <a href="https://docs.llamaindex.ai/en/stable/module_guides/">Guías de Componentes</a> o la <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">Guía sobre RAG</a>.</Tip>
+
+Hemos visto cómo usar componentes para crear un `QueryEngine`. Ahora, ¡veamos cómo **usar el `QueryEngine` como una herramienta para un agente!**
