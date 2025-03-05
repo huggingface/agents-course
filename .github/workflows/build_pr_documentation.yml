@@ -17,4 +17,5 @@ jobs:
       package_name: agents-course
       path_to_docs: agents-course/units/
       additional_args: --not_python_module
-      languages: en zh-CN vi
+      languages: en zh-CN ru-RU vi
+
