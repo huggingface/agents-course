@@ -56,6 +56,12 @@
   sections:
   - local: communication/next-units
     title: Next Units
+- title: Unit 3.1 Use Cases - Agentic RAG using smolagents
+  sections:
+  - local: unit3/agentic-rag/gala.mdx
+    title: A Gala to Remember
+  - local: unit3/agentic-rag/agentic-rag.mdx
+    title: Agentic Retrieval Augmented Generation (RAG)
 - title: Unit 3.2 Use Cases - Agentic RAG
   sections:
   - local: unit3/agentic-rag/gala.mdx
