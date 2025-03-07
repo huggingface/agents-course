@@ -52,10 +52,10 @@ Let's see how to create a `QueryEngineTool` from a `QueryEngine` in the example 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.tools import QueryEngineTool
 from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
-from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
-embed_model = HuggingFaceInferenceAPIEmbedding("BAAI/bge-small-en-v1.5")
+embed_model = HuggingFaceEmbedding("BAAI/bge-small-en-v1.5")
 
 db = chromadb.PersistentClient(path="./alfred_chroma_db")
 chroma_collection = db.get_or_create_collection("alfred")
