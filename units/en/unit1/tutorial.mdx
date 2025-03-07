@@ -148,6 +148,14 @@ For example, you could use the `DuckDuckGoSearchTool` that was imported in the f
 
 **Adding tools will give your agent new capabilities**, try to be creative here!
 
+### The System Prompt
+
+The agent's system prompt is stored in a seperate `prompts.yaml` file. This file contains predefined instructions that guide the agent's behavior.
+
+Storing prompts in a YAML file allows for easy customization and reuse across different agents or use cases. 
+
+You can check the [Space's file structure](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main) to see where the `prompts.yaml` file is located and how it's organized within the project.
+
 The complete "app.py": 
 
 ```python
@@ -188,17 +196,18 @@ def get_current_time_in_timezone(timezone: str) -> str:
 
 
 final_answer = FinalAnswerTool()
-model = HfApiModel(
-max_tokens=2096,
-temperature=0.5,
-model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
-custom_role_conversions=None,
+    model = HfApiModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
 )
 
 
 # Import tool from Hub
 image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
 
+# Load system prompt from prompt.yaml file
 with open("prompts.yaml", 'r') as stream:
     prompt_templates = yaml.safe_load(stream)
     
@@ -211,7 +220,7 @@ agent = CodeAgent(
     planning_interval=None,
     name=None,
     description=None,
-    prompt_templates=prompt_templates
+    prompt_templates=prompt_templates # Pass system prompt to CodeAgent
 )
 
 
