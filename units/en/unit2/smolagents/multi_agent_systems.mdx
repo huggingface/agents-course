@@ -53,7 +53,7 @@ Let's build this!
 This example needs some additional packages, so let's install them first:
 
 ```bash
-pip install 'smolagents[litellm]' matplotlib geopandas shapely kaleido -q
+pip install 'smolagents[litellm]' plotly geopandas shapely kaleido -q
 ```
 
 ### We first make a tool to get the cargo plane transfer time.
@@ -231,7 +231,7 @@ Multi-agent structures allow to separate memories between different sub-tasks, w
 
 Let's create a team with a dedicated web search agent, managed by another agent.
 
-The manager agent should have plotting capabilities to write its final report: so let us give it access to additional imports, including `matplotlib`, and `geopandas` + `shapely` for spatial plotting.
+The manager agent should have plotting capabilities to write its final report: so let us give it access to additional imports, including `plotly`, and `geopandas` + `shapely` for spatial plotting.
 
 ```python
 model = HfApiModel(
