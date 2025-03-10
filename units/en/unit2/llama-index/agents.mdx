@@ -80,12 +80,12 @@ However, instead of answering the question on top of documents automatically, Al
 
 It is easy to **wrap `QueryEngine` as a tool** for an agent.
 When doing so, we need to **define a name and description**. The LLM will use this information to correctly use the tool.
-Let's see how to load in a `QueryEngineTool` using the `QueryEngine` we created in the [component section](02_components).
+Let's see how to load in a `QueryEngineTool` using the `QueryEngine` we created in the [component section](components.mdx).
 
 ```python
 from llama_index.core.tools import QueryEngineTool
 
-query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # as shown in the previous section
+query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # as shown in the Components in LlamaIndex section
 
 query_engine_tool = QueryEngineTool.from_defaults(
     query_engine=query_engine,
