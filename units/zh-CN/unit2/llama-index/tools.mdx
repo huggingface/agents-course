@@ -1,0 +1,111 @@
+# 在 LlamaIndex 中使用工具
+
+**定义清晰明确的工具集对性能至关重要。** 正如我们在[第一单元](../../unit1/tools)中讨论的，清晰的工具接口更便于 LLM 使用。
+就像人类工程师使用的软件API接口一样，如果工具的工作原理容易理解，LLM就能更好地利用它。
+
+LlamaIndex 中主要包含**四种工具类型**：
+
+![工具](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1. `FunctionTool`：将任意 Python 函数转换为智能体可以使用的工具。它能自动识别函数的工作原理。
+2. `QueryEngineTool`：让智能体能够使用查询引擎的工具。由于智能体本身基于查询引擎构建，因此它们也可以将其他智能体作为工具使用。
+3. `Toolspecs`：由社区创建的预设工具集，通常包含针对特定服务（如 Gmail）的工具。
+4. `Utility Tools`：帮助处理来自其他工具的大量数据的特殊工具。
+
+下面我们将详细讲解每种工具的使用方法。
+
+## 创建FunctionTool
+
+<Tip>
+您可以通过<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">这个 Notebook</a>中的代码进行实践（支持 Google Colab 运行）。
+</Tip>
+
+FunctionTool 提供了一种简单的方式，可以将任意 Python 函数封装成智能体可用的工具。
+你可以传递同步或异步函数给这个工具，并可选地指定`name`和`description`参数。
+工具名称和描述尤为重要，它们能帮助智能体理解何时以及如何有效地使用该工具。
+以下示例演示了如何创建并调用 FunctionTool。
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Useful for getting the weather for a given location."""
+    print(f"Getting weather for {location}")
+    return f"The weather in {location} is sunny"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Useful for getting the weather for a given location.",
+)
+tool.call("New York")
+```
+
+<Tip>使用带有函数调用的智能体或 LLM 时，所选工具（以及为该工具编写的参数）在很大程度上取决于工具名称以及工具用途和参数的描述。在<a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/modules/function_calling.html">函数调用指南</a>和<a href="https://docs.llamaindex.ai/en/stable/understanding/agent/function_calling.html">函数调用学习指南</a>中了解有关函数调用的更多信息。</Tip>
+
+## 创建 QueryEngineTool
+
+我们在上一单元中定义的 `QueryEngine` 可以使用 `QueryEngineTool` 类轻松转换为工具。
+让我们看看如何在下面的示例中从 `QueryEngine` 创建 `QueryEngineTool`。
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceInferenceAPIEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## 创建 Toolspecs
+
+将 `ToolSpecs` 视为可以和谐协作的工具集合 - 就像一个组织良好的专业工具包。
+就像机械师的工具包包含用于车辆维修的互补工具一样，`ToolSpec` 会将相关工具组合起来用于特定目的。
+例如，会计智能体的 `ToolSpec` 可以优雅地集成电子表格功能、电子邮件功能和计算工具，以精确高效地处理财务任务。
+
+<details>
+<summary>安装 Google Toolspec</summary>
+正如 [LlamaHub 部分](llama-hub) 中介绍的那样，我们可以使用以下命令安装 Google toolspec：
+
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+现在我们可以加载工具规范并将其转换为工具列表。
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+```
+
+为了更详细地了解这些工具，我们可以查看每个工具的`元数据`。
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+## 实用工具
+
+很多时候，直接查询 API **可能会返回过量数据**，其中部分可能无关紧要、超出 LLM 的上下文窗口容量，或导致不必要的 token 消耗。
+让我们详细了解以下两个主要实用工具：
+
+1. `OnDemandToolLoader`：该工具可将任何现有的 LlamaIndex 数据加载器（BaseReader 类）转化为智能体可使用的工具。该工具可通过调用数据加载器`load_data`所需的所有参数以及自然语言查询字符串来触发。在执行过程中，我们首先从数据加载器加载数据，建立索引（例如使用向量存储），然后进行"按需"查询。这三个步骤都在单个工具调用中完成。
+2. `LoadAndSearchToolSpec`：该工具规范接受任何现有工具作为输入。作为工具规范，它实现了`to_tool_list`方法，调用该方法时会返回两个工具：加载工具和搜索工具。加载工具的执行会调用底层工具并对输出建立索引（默认使用向量索引）。搜索工具的执行会接受查询字符串作为输入并调用底层索引。
+
+<Tip>您可以在<a href="https://llamahub.ai/">LlamaHub</a>找到各种工具规范和实用工具</Tip>
+
+现在我们已经理解了 LlamaIndex 中智能体和工具的基础知识，接下来让我们看看如何**使用 LlamaIndex 创建可配置且易管理的工作流程！**

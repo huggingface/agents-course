@@ -1,0 +1,160 @@
+# 在 LlamaIndex 中使用智能体
+
+还记得我们之前那位得力的管家智能体 Alfred 吗？现在他要迎来重大升级了！
+在了解了 LlamaIndex 中的工具后，我们可以赋予 Alfred 新的能力来更好地服务我们。
+
+不过在继续之前，让我们先回顾一下智能体（如 Alfred）的核心机制。
+在第一单元中我们学习到：
+
+> 智能体是一个利用 AI 模型与环境交互以实现用户定义目标的系统。它通过结合推理、规划和动作执行（通常通过外部工具）来完成各种任务。
+
+LlamaIndex 支持**三种主要类型的推理智能体**：
+
+![智能体类型](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agents.png)
+
+1. `函数调用智能体` - 适用于支持调用特定函数的 AI 模型
+2. `ReAct 智能体` - 适用于具有聊天或文本完成能力的 AI 模型，擅长处理复杂推理任务
+3. `高级自定义智能体` - 使用更复杂的方法处理高阶任务和工作流
+
+<Tip>有关高级智能体的更多信息，请访问 <a href="https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/agent/workflow/base_agent.py">BaseWorkflowAgent</a></Tip>
+
+## 初始化智能体
+
+<Tip>
+您可以通过 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb" target="_blank">这个 Notebook</a> 跟随代码实践（使用 Google Colab 运行）。
+</Tip>
+
+创建智能体时，我们首先需要为其提供**定义其能力的功能/工具集合**。
+让我们看看如何使用基础工具创建智能体。当前实现中，智能体会自动使用函数调用 API（如果可用），或标准的 ReAct 智能体循环。
+
+支持工具/函数 API 的 LLM 是相对较新的技术，它们通过避免特定提示工程、允许 LLM 根据提供的模式创建工具调用，提供了强大的工具调用能力。
+
+ReAct 智能体同样擅长复杂推理任务，可与任何具备聊天或文本完成能力的 LLM 配合使用。这类智能体的响应更详细，会展示其决策背后的推理过程。
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.core.tools import FunctionTool
+
+# 定义示例工具--类型注释、函数名和 docstrings 都包含在解析的模式中！
+def multiply(a: int, b: int) -> int:
+    """Multiplies two integers and returns the resulting integer"""
+    return a * b
+
+# 初始化 llm
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# 初始化 agent
+agent = AgentWorkflow.from_tools_or_functions(
+    [FunctionTool.from_defaults(multiply)],
+    llm=llm
+)
+```
+
+**智能体默认是无状态的**，如需记忆过往交互，需显式使用 `Context` 对象。
+这在需要记忆历史交互的场景中非常有用，例如：需要跨消息保持上下文的聊天机器人，或需要追踪长期任务进度的任务管理器。
+
+```python
+# stateless
+response = await agent.run("What is 2 times 2?")
+
+# remembering state
+from llama_index.core.workflow import Context
+
+ctx = Context(agent)
+
+response = await agent.run("My name is Bob.", ctx=ctx)
+response = await agent.run("What was my name again?", ctx=ctx)
+```
+
+您会注意到 `LlamaIndex` 中的智能体采用异步模式（使用 Python 的 `await` 操作符）。如果您是 Python 异步编程的新手，或需要复习相关知识，请参考 [官方异步编程指南](https://docs.llamaindex.ai/en/stable/getting_started/async_python/)。
+
+现在我们已经掌握基础知识，接下来让我们探索如何为智能体赋予更复杂的工具能力。
+
+## 使用 QueryEngineTools 创建 RAG 智能体
+
+**智能体增强检索（Agentic RAG）** 是通过智能体实现数据问答的强大范式。我们可以为 Alfred 配备多种工具来辅助问题解答。
+但不同于传统 RAG 直接基于文档回答问题，Alfred 能够自主决定是否使用其他工具或流程来响应查询。
+
+![智能体增强 RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+将 `QueryEngine` 封装为智能体工具非常简单。
+在此过程中，我们需要**定义工具名称和描述**，这些元数据将帮助 LLM 正确选择和使用工具。
+以下示例演示如何基于[组件章节](02_components)创建的 `QueryEngine` 加载 `QueryEngineTool`：
+
+```python
+from llama_index.core.tools import QueryEngineTool
+
+query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # as shown in the previous section
+
+query_engine_tool = QueryEngineTool.from_defaults(
+    query_engine=query_engine,
+    name="name",
+    description="a specific description",
+    return_direct=False,
+)
+query_engine_agent = AgentWorkflow.from_tools_or_functions(
+    [query_engine_tool],
+    llm=llm,
+    system_prompt="You are a helpful assistant that has access to a database containing persona descriptions. "
+)
+```
+
+## 创建多智能体系统
+
+`AgentWorkflow` 类原生支持多智能体系统。通过为每个智能体分配名称和描述，系统可维护单一活跃会话主体，同时允许智能体之间进行任务交接。
+
+通过精准定义每个智能体的职责边界，我们能够有效提升系统响应消息时的整体准确性。
+
+**LlamaIndex 中的智能体也可直接作为其他智能体的工具**，这种设计支持构建复杂的定制化场景：
+
+```python
+from llama_index.core.agent.workflow import (
+    AgentWorkflow,
+    FunctionAgent,
+    ReActAgent,
+)
+
+# Define some tools
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+
+def subtract(a: int, b: int) -> int:
+    """Subtract two numbers."""
+    return a - b
+
+
+# 创建智能体配置
+# 注意：我们可以在此使用 FunctionAgent 或 ReActAgent。
+# FunctionAgent 适用于具有函数调用 API 的 LLM。
+# ReActAgent 适用于任何 LLM。
+calculator_agent = ReActAgent(
+    name="calculator",
+    description="Performs basic arithmetic operations",
+    system_prompt="You are a calculator assistant. Use your tools for any math operation.",
+    tools=[add, subtract],
+    llm=llm,
+)
+
+query_agent = ReActAgent(
+    name="info_lookup",
+    description="Looks up information about XYZ",
+    system_prompt="Use your tool to query a RAG system to answer information about XYZ",
+    tools=[query_engine_tool],
+    llm=llm
+)
+
+# 创建并运行工作流程
+agent = AgentWorkflow(
+    agents=[calculator_agent, query_agent], root_agent="calculator"
+)
+
+# 运行系统
+response = await agent.run(user_msg="Can you add 5 and 3?")
+```
+
+<Tip>还没学够吗？在<a href="https://docs.llamaindex.ai/en/stable/examples/agent/agent_workflow_basic/">《AgentWorkflow 基本介绍》</a>或<a href="https://docs.llamaindex.ai/en/stable/understanding/agent/">《Agent 学习指南》</a>中，您可以了解到更多关于流媒体、上下文序列化和人在环路中的信息！</Tip>
+
+现在我们已经掌握了 LlamaIndex 中智能体和工具的基础知识，接下来让我们探索如何利用 LlamaIndex 来**创建可配置、易管理的工作流**！
