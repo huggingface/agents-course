@@ -1,0 +1,228 @@
+# Building Your First Agent Interface
+
+Now that we understand why Gradio is useful for Agents, let's create our first Agent interface! We'll start with the gr.ChatInterface, which provides everything we need to get an Agent up and running quickly.
+
+## The ChatInterface Component
+
+The `gr.ChatInterface` is a high-level component that handles all the essential parts of a chat application:
+- Message history management
+- User input handling
+- Bot response display
+- Real-time / streaming updates
+
+
+## Your First Agent UI
+
+Let's create a simple Agent that helps with weather information. Here's how to build it:
+
+```python
+import os
+import gradio as gr
+from gradio import ChatMessage
+import requests
+from typing import Dict, List
+from langchain_core.messages import HumanMessage
+from langchain_core.tools import tool
+from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import create_react_agent
+
+# Weather and location tools
+@tool
+def get_lat_lng(location_description: str) -> dict[str, float]:
+    """Get the latitude and longitude of a location."""
+    return {"lat": 51.1, "lng": -0.1}  # London coordinates as dummy response
+
+@tool
+def get_weather(lat: float, lng: float) -> dict[str, str]:
+    """Get the weather at a location."""
+    return {"temperature": "21°C", "description": "Sunny"}  # Dummy response
+        
+
+def stream_from_agent(message: str, history: List[Dict[str, str]]) -> gr.ChatMessage:
+    """Process messages through the LangChain agent with visible reasoning."""
+    
+    # Initialize the agent
+    llm = ChatOpenAI(temperature=0, model="gpt-4")
+    memory = MemorySaver()
+    tools = [get_lat_lng, get_weather]
+    agent_executor = create_react_agent(llm, tools, checkpointer=memory)
+    
+    # Add message to history
+    past_messages = [HumanMessage(content=message)]
+    for h in history:
+        if h["role"] == "user":
+            past_messages.append(HumanMessage(content=h["content"]))
+    
+    messages_to_display = []
+    final_response = None
+    
+    for chunk in agent_executor.stream(
+        {"messages": past_messages},
+        config={"configurable": {"thread_id": "abc123"}}
+    ):
+        # Handle agent's actions and tool usage
+        if chunk.get("agent"):
+            for msg in chunk["agent"]["messages"]:
+                if msg.content:
+                    final_response = msg.content
+                
+                # Handle tool calls
+                for tool_call in msg.tool_calls:
+                    tool_message = ChatMessage(
+                        content=f"Parameters: {tool_call['args']}",
+                        metadata={
+                            "title": f"🛠️ Using {tool_call['name']}",
+                            "id": tool_call["id"],
+                            }
+                    )
+                    messages_to_display.append(tool_message)
+                    yield messages_to_display
+                    
+        # Handle tool responses
+        if chunk.get("tools"):
+            for tool_response in chunk["tools"]["messages"]:
+                # Find the corresponding tool message
+                for msg in messages_to_display:
+                    if msg.metadata.get("id") == tool_response.tool_call_id:
+                        msg.content += f"\nResult: {tool_response.content}"
+                        yield messages_to_display
+    
+    # Add the final response as a regular message
+    if final_response:
+        messages_to_display.append(ChatMessage(content=final_response))
+        yield messages_to_display
+
+# Create the Gradio interface
+demo = gr.ChatInterface(
+    fn=stream_from_agent,
+    type="messages",
+    title="🌤️ Weather Assistant",
+    description="Ask about the weather anywhere! Watch as I gather the information step by step.",
+    examples=[
+        "What's the weather like in Tokyo?",
+        "Is it sunny in Paris right now?",
+        "Should I bring an umbrella in New York today?"
+    ],
+
+)
+
+demo.launch()
+```
+
+This creates a complete chat interface:
+<add an image or a gif of the chatinterface. It is available at the location: https://huggingface.co/spaces/ysharma/Your_First_Agent_UI. Note that we first need to set OpenAI API key as an env variable oin the Space>
+
+## Understanding the key elements
+
+Let's break down what's happening:
+
+1. **The Agent Function**:
+   ```python
+   def stream_from_agent(message: str, history: List[Dict[str, str]]) -> gr.ChatMessage:
+   ```
+   - Processes messages through the LangChain agent
+   - Takes the current message and chat history
+   - Uses `yield` to show intermediate tool-usage and thoughts
+   - Returns the final response
+
+2. **Tools available**:
+   ```python
+   def get_lat_lng(location_description: str) -> dict[str, float]:
+   def get_weather(lat: float, lng: float) -> dict[str, str]:
+   ```
+   - get_lat_lng : Get lattitude and longitude of a place from the place description
+   - get_weather : Get weather details for the given latitude and logitude 
+
+3. **ChatInterface Configuration**:
+   ```python
+    demo = gr.ChatInterface(
+        fn=stream_from_agent,
+        title="🌤️ Weather Assistant",
+       ...
+   )
+   ```
+   - Connects the Agent function
+   - Sets up the UI appearance
+   - Configures interactive features
+   <I can add more latest features to the chatbot (like history, sidebar etc.)>
+
+3. **Streaming Responses**:
+   - Using `yield` enables real-time updates
+   - Shows the Agent's thought process and tool-usage in real time
+   - Keeps users engaged while waiting
+
+We are using `type="messages"` in gr.ChatInterface. This passes the history as a list of dictionaries with openai-style "role" and "content" keys.
+
+## Adding More Features
+
+Let's enhance our Agent UI with more capabilities:
+
+1. **Auto closing the tool usage accordion after the agent is done populating them.**
+
+Using the Metadata dictionary key called `status` to communicate to the gradio ui when the tool usage is complete. 
+This also adds a spinner appears next to the thought title. If the `status` is "done", the thought accordion becomes closed. If not provided, the thought accordion is open and no spinner is displayed.
+
+```python
+
+def stream_from_agent(message: str, history: List[Dict[str, str]]) -> gr.ChatMessage:
+    """
+    Process messages through the LangChain agent with visible reasoning.
+    """
+    ...
+    # Handle tool calls
+    for tool_call in msg.tool_calls:
+        tool_message = ChatMessage(
+            content=f"Parameters: {tool_call['args']}",
+            metadata={
+                "title": f"🛠️ Using {tool_call['name']}",
+                "id": tool_call["id"],
+                "status": "pending",
+            }
+        )
+        messages_to_display.append(tool_message)
+        yield messages_to_display
+        tool_message.metadata["status"] = "done"    
+    ...
+```
+
+2. **Add more features**
+- Allow editing of past messages to regenerate response.
+- Add example icons to the examples
+- Display Chatgpt type Chat history in the UI. 
+
+```python
+
+# Create enhanced Gradio interface
+demo = gr.ChatInterface(
+    fn=stream_from_agent,
+    type="messages",
+    title="🌤️ Weather Assistant",
+    description="Ask about the weather anywhere! Watch as I gather the information step by step.",
+    examples=[
+        "What's the weather like in Tokyo?",
+        "Is it sunny in Paris right now?",
+        "Should I bring an umbrella in New York today?"
+    ],
+    example_icons=["https://cdn3.iconfinder.com/data/icons/landmark-outline/432/japan_tower_tokyo_landmark_travel_architecture_tourism_view-256.png", 
+                   "https://cdn2.iconfinder.com/data/icons/city-building-1/200/ArcdeTriomphe-256.png",
+                   "https://cdn2.iconfinder.com/data/icons/city-icons-for-offscreen-magazine/80/new-york-256.png"
+                  ],
+    save_history=True,
+    editable=True
+
+)
+```
+
+
+## What's Next?
+
+You now have a foundation for building Agent interfaces! In the next chapter, we'll dive deeper into `gr.ChatMessage` and learn how to display complex Agent behaviors like:
+- Tool usage visualization
+- Structured thought processes
+- Multi-step reasoning
+- Nested agents
+
+We'll also explore how to integrate these interfaces with more world-class LLMs and external tools.
+
+Try modifying the examples above to create your own Agent interface. Experiment with different use-cases like research, article-writing, travel-planner, _etc._ !
