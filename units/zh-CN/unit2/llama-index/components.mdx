@@ -1,0 +1,239 @@
+# LlamaIndex 中的组件是什么？
+
+还记得第一单元中我们那位得力的管家智能体 Alfred 吗？
+要有效协助我们，Alfred 需要理解我们的请求，并**准备、查找和使用相关信息来帮助完成任务**。
+这正是 LlamaIndex 组件发挥作用的地方。
+
+虽然 LlamaIndex 包含众多组件，但**我们将重点关注 `QueryEngine` 组件**。
+为什么？因为它可以作为智能体的检索增强生成（RAG）工具。
+
+那么什么是 RAG？大语言模型通过海量数据训练获得通用知识，
+但它们可能缺乏相关且最新的特定领域数据。
+RAG 通过从您的数据中检索相关信息并传递给 LLM 来解决这个问题。
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+试想 Alfred 的工作机制：
+
+1. 您让 Alfred 帮忙策划晚宴
+2. Alfred 需要查看您的日历、饮食偏好和过往成功菜单
+3. `QueryEngine` 帮助 Alfred 查找这些信息并用于晚宴策划
+
+这使得 `QueryEngine` 成为在 LlamaIndex 中**构建智能 RAG 工作流的核心组件**。
+正如 Alfred 需要检索家庭信息才能发挥作用，任何智能体都需要理解和查找相关数据的能力。
+`QueryEngine` 正好提供了这种核心能力。
+
+现在让我们深入探讨如何**组合组件来创建 RAG 流程**。
+
+## 使用组件构建 RAG 流程
+
+<Tip>
+您可以通过 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">这个 Notebook</a> 跟随代码实践（使用 Google Colab 运行）。
+</Tip>
+
+RAG 包含五个关键阶段，这些阶段将构成您构建的大部分应用：
+
+1. **加载**：将数据从原始位置（文本文件、PDF、网站、数据库或 API）导入工作流。LlamaHub 提供数百种集成方案
+2. **索引**：创建便于查询的数据结构。对于 LLM 通常意味着创建向量嵌入——数据的语义数值表示，也可以包含其他元数据策略
+3. **存储**：索引完成后需要持久化存储，避免重复构建
+4. **查询**：支持多种检索策略，包括子查询、多步查询和混合策略
+5. **评估**：通过客观指标评估响应准确性、忠实度和响应速度，对比不同策略效果
+
+接下来我们将演示如何使用组件实现这些阶段。
+
+### 数据加载与嵌入
+
+如前所述，LlamaIndex 可以基于您的自有数据进行操作，但**在访问数据之前，我们需要先完成加载**。
+LlamaIndex 提供三种主要的数据加载方式：
+
+1. `SimpleDirectoryReader`: 内置加载器，支持从本地目录加载多种文件类型
+2. `LlamaParse`: LlamaIndex 官方 PDF 解析工具，提供托管 API 服务
+3. `LlamaHub`: 包含数百个数据加载库的注册中心，支持从任意数据源获取数据
+
+<Tip>对于复杂数据源，建议深入了解 <a href="https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/">LlamaHub</a> 加载器和 <a href="https://github.com/run-llama/llama_cloud_services/blob/main/parse.md">LlamaParse</a> 解析器的使用方法。</Tip>
+
+**最简单的数据加载方式是使用 `SimpleDirectoryReader`**。
+这个多功能组件可以从文件夹中加载各类文件，并将其转换为 LlamaIndex 可处理的 `Document` 对象。
+以下是具体使用方法：
+
+```python
+from llama_index.core import SimpleDirectoryReader
+
+reader = SimpleDirectoryReader(input_dir="path/to/directory")
+documents = reader.load_data()
+```
+
+加载文档后，我们需要将其分解为更小的单元——`Node`对象。
+`Node`是原始文档中的文本片段，既便于AI处理，又保留了对原`Document`对象的引用。
+
+`IngestionPipeline`通过两个关键转换步骤帮助我们创建这些节点：
+1. `SentenceSplitter`通过自然语句边界将文档拆分为可管理的文本块
+2. `HuggingFaceInferenceAPIEmbedding`将每个文本块转换为数值化的向量表示——这种以AI能高效处理的方式捕捉语义信息
+
+该流程能帮助我们以更适合搜索和分析的方式组织文档。
+
+```python
+from llama_index.core import Document
+from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.ingestion import IngestionPipeline
+
+# 通过转换创建管道
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_overlap=0),
+        HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ]
+)
+
+nodes = await pipeline.arun(documents=[Document.example()])
+```
+
+
+### 存储与索引文档
+
+创建完`节点`对象后，我们需要对其进行索引，使其可以被搜索，但在此之前，我们需要一个存储数据的地方。
+
+由于我们使用的是摄取管道，因此可以直接在管道上附加一个向量存储来填充数据。
+在本例中，我们将使用 `Chroma` 来存储我们的文档。
+
+<details>
+<summary>安装 ChromaDB</summary>
+正如在[关于 LlamaHub 的章节](llama-hub)中所介绍的，我们可以使用以下命令安装 ChromaDB 向量存储：
+
+```bash
+pip install llama-index-vector-stores-chroma
+```
+</details>
+
+```python
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_size=25, chunk_overlap=0),
+        HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ],
+    vector_store=vector_store,
+)
+```
+
+<Tip>An overview of the different vector stores can be found in the <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">LlamaIndex documentation</a>.</Tip>
+
+
+这就是向量嵌入的作用所在--通过将查询和节点嵌入同一向量空间，我们可以找到相关的匹配项。
+`向量存储索引`会为我们处理这个问题，使用我们在摄取时使用的相同嵌入模型来确保一致性。
+
+让我们看看如何从向量存储和嵌入中创建该索引：
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+
+embed_model = HuggingFaceInferenceAPIEmbedding(model_name="BAAI/bge-small-en-v1.5")
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+```
+
+所有信息都会自动保存在 `ChromaVectorStore` 对象和传递的目录路径中。
+
+太棒了 现在我们可以轻松保存和加载索引了，让我们探索一下如何以不同方式查询索引。
+
+### 使用提示词和 LLM 查询 VectorStoreIndex
+
+在查询索引之前，我们需要将其转换为查询接口。最常见的转换选项包括：
+
+- `as_retriever`：用于基础文档检索，返回带有相似度得分的`NodeWithScore`对象列表
+- `as_query_engine`：用于单次问答交互，返回书面响应
+- `as_chat_engine`：用于需要保持跨消息记忆的对话交互，通过聊天历史记录和索引上下文返回书面响应
+
+我们将重点介绍查询引擎（query engine），因为它在类智能体交互中更为常见。
+我们还需要向查询引擎传入一个大语言模型（LLM）用于生成响应。
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(
+    llm=llm,
+    response_mode="tree_summarize",
+)
+query_engine.query("What is the meaning of life?")
+# The meaning of life is 42
+```
+
+### 响应处理
+
+底层实现中，查询引擎不仅使用 LLM 来回答问题，还会采用 `ResponseSynthesizer` 作为响应处理策略。
+同样，该组件完全可定制，但默认提供三种高效的工作策略：
+
+- `refine`（迭代优化）: 通过逐个处理每个检索到的文本块来创建并优化答案。每个 Node/文本块都会触发独立的 LLM 调用
+- `compact`（紧凑模式，默认）: 与迭代优化类似，但会预先拼接文本块，从而减少 LLM 调用次数
+- `tree_summarize`（树状归纳）: 通过遍历所有检索到的文本块并构建答案的树状结构来生成详细响应
+
+<Tip>通过<a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">底层组合 API</a> 实现查询流程的精细控制。该 API 允许您自定义和优化查询流程的每个步骤，与 <a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">Workflows</a> 配合使用效果更佳</Tip>
+
+由于语言模型的输出具有不可预测性，我们需要**通过评估答案质量**来确保结果的可靠性。
+
+### 评估与可观测性
+
+LlamaIndex 提供**内置评估工具来量化响应质量**。
+这些评估器利用 LLM 对回答进行多维度分析。
+主要评估器包括：
+
+- `FaithfulnessEvaluator`（忠实性评估器）: 验证答案是否得到上下文的支持
+- `AnswerRelevancyEvaluator`（答案相关性评估器）: 评估答案与问题的关联程度
+- `CorrectnessEvaluator`（正确性评估器）: 检验答案的正确性
+
+```python
+from llama_index.core.evaluation import FaithfulnessEvaluator
+
+query_engine = # from the previous section
+llm = # from the previous section
+
+# 查询索引
+evaluator = FaithfulnessEvaluator(llm=llm)
+response = query_engine.query(
+    "What battles took place in New York City in the American Revolution?"
+)
+eval_result = evaluator.evaluate_response(response=response)
+eval_result.passing
+```
+
+即使没有直接评估，我们也可以**通过可观察性深入了解我们的系统是如何运行的。**
+当我们构建更复杂的工作流程并想要了解每个组件是如何运行的时候，这尤其有用。
+
+<details>
+<summary>安装 LlamaTrace</summary>
+正如 [LlamaHub 部分](llama-hub) 中介绍的那样，我们可以使用以下命令从 Arize Phoenix 安装 LlamaTrace 回调：
+
+```bash
+pip install -U llama-index-callbacks-arize-phoenix
+```
+
+此外，我们需要将 `PHOENIX_API_KEY` 环境变量设置为我们的 LlamaTrace API 密钥。我们可以通过以下方式获取此密钥：
+- 在 [LlamaTrace](https://llamatrace.com/login) 创建一个帐户
+- 在您的帐户设置中生成 API 密钥
+- 使用下面代码中的 API 密钥启用跟踪
+
+</details>
+
+```python
+import llama_index
+import os
+
+PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
+llama_index.core.set_global_handler(
+    "arize_phoenix",
+    endpoint="https://llamatrace.com/v1/traces"
+)
+```
+
+<Tip>想要了解有关组件的更多信息以及如何使用它们？继续您的旅程，阅读<a href="https://docs.llamaindex.ai/en/stable/module_guides/">组件指南</a>或<a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">RAG 指南</a>。</Tip>
+
+我们已经了解了如何使用组件创建 `QueryEngine`。现在，让我们看看如何**将 `QueryEngine` 用作智能体的工具！**

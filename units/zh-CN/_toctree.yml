@@ -27,17 +27,17 @@
   - local: unit1/quiz2
     title: 快速测验 2
   - local: unit1/agent-steps-and-structure
-    title: 通过思考-行动-观察循环理解 AI 代理
+    title: 通过思考-行动-观察循环理解 AI 智能体
   - local: unit1/thoughts
     title: 思考、内部推理和 Re-Act 方法
   - local: unit1/actions
-    title: 行动，使代理能够与环境交互
+    title: 行动，使智能体能够与环境交互
   - local: unit1/observations
     title: 观察，整合反馈以反思和适应
   - local: unit1/dummy-agent-library
-    title: 简单代理库
+    title: 简单智能体库
   - local: unit1/tutorial
-    title: 使用 Smolagents 创建我们的第一个代理
+    title: 使用 Smolagents 创建我们的第一个智能体
   - local: unit1/final-quiz
     title: 第 1 单元最终测验
   - local: unit1/conclusion
