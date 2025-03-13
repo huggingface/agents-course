@@ -1,0 +1,147 @@
+# Pequeño Quiz (no calificado) [[quiz2]]
+
+Es hora de poner a prueba tu comprensión de las secciones *Agentes de Código*, *Agentes de Llamada a Herramientas* y *Herramientas*. Este quiz es opcional y no está calificado.
+
+---
+
+### P1: ¿Cuál es la diferencia clave entre crear una herramienta con el decorador `@tool` versus crear una subclase de `Tool` en smolagents?
+
+¿Qué afirmación describe mejor la distinción entre estos dos enfoques para definir herramientas?
+
+<Question
+choices={[
+  {
+    text: "El uso del decorador <code>@tool</code> es obligatorio para herramientas basadas en recuperación, mientras que las subclases de <code>Tool</code> son solo para tareas de generación de texto",
+    explain: "Ambos enfoques pueden usarse para cualquier tipo de herramienta, incluidas las basadas en recuperación o generación de texto.",
+  },
+  {
+    text: "El decorador <code>@tool</code> se recomienda para herramientas simples basadas en funciones, mientras que las subclases de <code>Tool</code> ofrecen más flexibilidad para funcionalidades complejas o metadatos personalizados",
+    explain: "Esto es correcto. El enfoque del decorador es más simple, pero la subclasificación permite un comportamiento más personalizado.",
+    correct: true
+  },
+  {
+    text: "<code>@tool</code> solo puede usarse en sistemas multi-agente, mientras que crear una subclase de <code>Tool</code> es para escenarios de un solo agente",
+    explain: "Todos los agentes (individuales o múltiples) pueden usar cualquiera de los enfoques para definir herramientas; no existe tal restricción.",
+  },
+  {
+    text: "Decorar una función con <code>@tool</code> reemplaza la necesidad de un docstring, mientras que las subclases no deben incluir docstrings",
+    explain: "Ambos métodos se benefician de docstrings claros. El decorador no los reemplaza, y una subclase también puede tener docstrings.",
+  }
+]}
+/>
+
+---
+
+### P2: ¿Cómo maneja un CodeAgent tareas de múltiples pasos utilizando el enfoque ReAct (Reason + Act)?
+
+¿Qué afirmación describe correctamente cómo el CodeAgent ejecuta una serie de pasos para resolver una tarea?
+
+<Question
+choices={[
+  {
+    text: "Pasa cada paso a un agente diferente en un sistema multi-agente, luego combina los resultados",
+    explain: "Aunque los sistemas multi-agente pueden distribuir tareas, el CodeAgent por sí mismo puede manejar múltiples pasos usando ReAct.",
+  },
+  {
+    text: "Almacena cada acción en JSON para facilitar el análisis antes de ejecutarlas todas a la vez",
+    explain: "Este comportamiento coincide con el enfoque basado en JSON de ToolCallingAgent, no con CodeAgent.",
+  },
+  {
+    text: "Cicla entre escribir pensamientos internos, generar código Python, ejecutar el código y registrar los resultados hasta llegar a una respuesta final",
+    explain: "Correcto. Esto describe el patrón ReAct que usa CodeAgent, incluyendo razonamiento iterativo y ejecución de código.",
+    correct: true
+  },
+  {
+    text: "Se basa en un módulo de visión para validar la salida del código antes de continuar con el siguiente paso",
+    explain: "Las capacidades de visión son compatibles en smolagents, pero no son un requisito predeterminado para CodeAgent o el enfoque ReAct.",
+  }
+]}
+/>
+
+---
+
+### P3: ¿Cuál de las siguientes es una ventaja principal de compartir una herramienta en Hugging Face Hub?
+
+Selecciona la mejor razón por la que un desarrollador podría subir y compartir su herramienta personalizada.
+
+<Question
+choices={[
+  {
+    text: "Integra automáticamente la herramienta con un MultiStepAgent para generación aumentada por recuperación",
+    explain: "Compartir una herramienta no configura automáticamente la lógica de recuperación o de múltiples pasos. Solo hace que la herramienta esté disponible.",
+  },
+  {
+    text: "Permite que otros descubran, reutilicen e integren tu herramienta en sus smolagents sin configuración adicional",
+    explain: "Sí. Compartir en el Hub hace que las herramientas sean accesibles para que cualquiera (incluido tú mismo) las descargue y reutilice rápidamente.",
+    correct: true
+  },
+  {
+    text: "Garantiza que solo los CodeAgents puedan invocar la herramienta mientras que los ToolCallingAgents no pueden",
+    explain: "Tanto los CodeAgents como los ToolCallingAgents pueden invocar herramientas compartidas. No hay restricción por tipo de agente.",
+  },
+  {
+    text: "Convierte tu herramienta en una función completamente capaz de visión para procesamiento de imágenes",
+    explain: "Compartir herramientas no altera la funcionalidad de la herramienta ni agrega capacidades de visión automáticamente.",
+  }
+]}
+/>
+
+---
+
+### P4: ToolCallingAgent difiere de CodeAgent en cómo ejecuta acciones. ¿Qué afirmación es correcta?
+
+Elige la opción que describe con precisión cómo funciona ToolCallingAgent.
+
+<Question
+choices={[
+  {
+    text: "ToolCallingAgent solo es compatible con un sistema multi-agente, mientras que CodeAgent puede ejecutarse solo",
+    explain: "Cualquiera de los agentes puede usarse solo o como parte de un sistema multi-agente.",
+  },
+  {
+    text: "ToolCallingAgent delega todo el razonamiento a un agente de recuperación separado, luego devuelve una respuesta final",
+    explain: "ToolCallingAgent todavía usa un LLM principal para el razonamiento; no depende únicamente de agentes de recuperación.",
+  },
+  {
+    text: "ToolCallingAgent genera instrucciones JSON que especifican llamadas a herramientas y argumentos, que luego se analizan y ejecutan",
+    explain: "Esto es correcto. ToolCallingAgent utiliza el enfoque JSON para definir llamadas a herramientas.",
+    correct: true
+  },
+  {
+    text: "ToolCallingAgent está destinado solo para tareas de un solo paso y se detiene automáticamente después de llamar a una herramienta",
+    explain: "ToolCallingAgent puede realizar múltiples pasos si es necesario, al igual que CodeAgent.",
+  }
+]}
+/>
+
+---
+
+### P5: ¿Qué se incluye en la caja de herramientas predeterminada de smolagents y por qué podrías usarla?
+
+¿Qué afirmación captura mejor el propósito y el contenido de la caja de herramientas predeterminada en smolagents?
+
+<Question
+choices={[
+  {
+    text: "Proporciona un conjunto de herramientas de uso común como la búsqueda de DuckDuckGo, PythonInterpreterTool y una herramienta de respuesta final para prototipos rápidos",
+    explain: "Correcto. La caja de herramientas predeterminada contiene estas herramientas listas para usar para una fácil integración al construir agentes.",
+    correct: true
+  },
+  {
+    text: "Solo admite tareas basadas en visión como clasificación de imágenes u OCR por defecto",
+    explain: "Aunque smolagents puede integrar características basadas en visión, la caja de herramientas predeterminada no está exclusivamente orientada a la visión.",
+  },
+  {
+    text: "Está destinada únicamente para sistemas multi-agente y es incompatible con un solo CodeAgent",
+    explain: "La caja de herramientas predeterminada puede ser utilizada por cualquier tipo de agente, configuraciones de agente único o múltiple por igual.",
+  },
+  {
+    text: "Agrega funcionalidad avanzada basada en recuperación para responder preguntas a gran escala desde un almacén de vectores",
+    explain: "Si bien puedes construir herramientas de recuperación, la caja de herramientas predeterminada no proporciona automáticamente características avanzadas de RAG.",
+  }
+]}
+/>
+
+---
+
+¡Felicidades por completar este quiz! 🎉 Si alguna pregunta te dio problemas, revisa las secciones *Agentes de Código*, *Agentes de Llamada a Herramientas* o *Herramientas* para fortalecer tu comprensión. Si lo has hecho bien, ¡estás en buen camino para construir aplicaciones robustas con smolagents!

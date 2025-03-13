@@ -1,0 +1,73 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/tool_calling_agents.ipynb"},
+]} />
+
+# Escribiendo acciones como fragmentos de código o estructuras JSON
+
+<Tip>
+Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">este notebook</a> que puedes ejecutar usando Google Colab.
+</Tip>
+
+Los Agentes de Llamada a Herramientas son el segundo tipo de agente disponible en `smolagents`. A diferencia de los Agentes de Código que utilizan fragmentos de Python, estos agentes **utilizan las capacidades integradas de llamada a herramientas de los proveedores de LLM** para generar llamadas a herramientas como **estructuras JSON**. Este es el enfoque estándar utilizado por OpenAI, Anthropic y muchos otros proveedores.
+
+Veamos un ejemplo. Cuando Alfred quiere buscar servicios de catering e ideas para fiestas, un `CodeAgent` generaría y ejecutaría código Python como este:
+
+```python
+for query in [
+    "Mejores servicios de catering en Ciudad Gótica", 
+    "Ideas de temas de fiesta para superhéroes"
+]:
+    print(web_search(f"Buscar: {query}"))
+```
+
+Un `ToolCallingAgent` en cambio crearía una estructura JSON:
+
+```python
+[
+    {"name": "web_search", "arguments": "Mejores servicios de catering en Ciudad Gótica"},
+    {"name": "web_search", "arguments": "Ideas de temas de fiesta para superhéroes"}
+]
+```
+
+Esta estructura JSON se utiliza luego para ejecutar las llamadas a herramientas.
+
+Aunque `smolagents` se centra principalmente en `CodeAgents` ya que [tienen un mejor rendimiento general](https://arxiv.org/abs/2402.01030), los `ToolCallingAgents` pueden ser efectivos para sistemas simples que no requieren manejo de variables o llamadas a herramientas complejas.
+
+![Acciones de Código vs JSON](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)  
+
+## ¿Cómo Funcionan los Agentes de Llamada a Herramientas?  
+
+Los Agentes de Llamada a Herramientas siguen el mismo flujo de trabajo de múltiples pasos que los Agentes de Código (consulta la [sección anterior](./code_agents) para más detalles). 
+
+La diferencia clave está en **cómo estructuran sus acciones**: en lugar de código ejecutable, **generan objetos JSON que especifican nombres de herramientas y argumentos**. El sistema luego **analiza estas instrucciones** para ejecutar las herramientas apropiadas.
+
+## Ejemplo: Ejecutando un Agente de Llamada a Herramientas  
+
+Revisemos el ejemplo anterior donde Alfred comenzó los preparativos de la fiesta, pero esta vez usaremos un `ToolCallingAgent` para destacar la diferencia. Construiremos un agente que pueda buscar en la web usando DuckDuckGo, al igual que en nuestro ejemplo de Agente de Código. La única diferencia es el tipo de agente - el framework se encarga de todo lo demás:
+
+```python
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, HfApiModel
+
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+
+agent.run("Busca las mejores recomendaciones de música para una fiesta en la mansión Wayne.")
+```
+
+Cuando examines el rastro del agente, en lugar de ver `Executing parsed code:`, verás algo como:
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Llamando a herramienta: 'web_search' con argumentos: {'query': "mejores recomendaciones de música para una      │
+│ fiesta en la mansión Wayne"}                                                                                    │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```  
+
+El agente genera una llamada a herramienta estructurada que el sistema procesa para producir la salida, en lugar de ejecutar directamente código como un `CodeAgent`.
+
+Ahora que entendemos ambos tipos de agentes, podemos elegir el adecuado para nuestras necesidades. ¡Continuemos explorando `smolagents` para hacer que la fiesta de Alfred sea un éxito! 🎉
+
+## Recursos
+
+- [Documentación de ToolCallingAgent](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - Documentación oficial para ToolCallingAgent
