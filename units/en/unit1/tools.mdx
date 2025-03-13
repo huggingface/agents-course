@@ -24,7 +24,7 @@ Here are some commonly used tools in AI agents:
 
 Those are only examples, as you can in fact create a tool for any use case!
 
-A good tool should be something that **complements the power of an LLM**. 
+A good tool should be something that **complements the power of an LLM**.
 
 For instance, if you need to perform arithmetic, giving a **calculator tool** to your LLM will provide better results than relying on the native capabilities of the model.
 
@@ -140,7 +140,7 @@ We create a generic `Tool` class that we can reuse whenever we need to use a too
 class Tool:
     """
     A class representing a reusable piece of code (Tool).
-    
+
     Attributes:
         name (str): Name of the tool.
         description (str): A textual description of what the tool does.
@@ -148,10 +148,10 @@ class Tool:
         arguments (list): A list of argument.
         outputs (str or list): The return type(s) of the wrapped function.
     """
-    def __init__(self, 
-                 name: str, 
-                 description: str, 
-                 func: callable, 
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: callable,
                  arguments: list,
                  outputs: str):
         self.name = name
@@ -162,13 +162,13 @@ class Tool:
 
     def to_string(self) -> str:
         """
-        Return a string representation of the tool, 
+        Return a string representation of the tool,
         including its name, description, arguments, and outputs.
         """
         args_str = ", ".join([
             f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
         ])
-        
+
         return (
             f"Tool Name: {self.name},"
             f" Description: {self.description},"
@@ -219,40 +219,40 @@ def tool(func):
     """
     # Get the function signature
     signature = inspect.signature(func)
-    
+
     # Extract (param_name, param_annotation) pairs for inputs
     arguments = []
     for param in signature.parameters.values():
         annotation_name = (
-            param.annotation.__name__ 
-            if hasattr(param.annotation, '__name__') 
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
             else str(param.annotation)
         )
         arguments.append((param.name, annotation_name))
-    
+
     # Determine the return annotation
     return_annotation = signature.return_annotation
     if return_annotation is inspect._empty:
         outputs = "No return annotation"
     else:
         outputs = (
-            return_annotation.__name__ 
-            if hasattr(return_annotation, '__name__') 
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
             else str(return_annotation)
         )
-    
+
     # Use the function's docstring as the description (default if None)
     description = func.__doc__ or "No description provided."
-    
+
     # The function name becomes the Tool name
     name = func.__name__
-    
+
     # Return a new Tool instance
     return Tool(
-        name=name, 
-        description=description, 
-        func=func, 
-        arguments=arguments, 
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
         outputs=outputs
     )
 ```
@@ -281,6 +281,18 @@ The description is **injected** in the system prompt. Taking the example with wh
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="System prompt for tools"/>
 
 In the [Actions](actions) section, we will learn more about how an Agent can **Call** this tool we just created.
+
+### Model Context Protocol (MCP) a unified Tool interface
+
+Model Context Protocol (MCP) is an **open protocol** that standardizes how applications **provide tools to LLMs**.
+MCP provides:
+
+- A growing list of pre-built integrations that your LLM can directly plug into
+- The flexibility to switch between LLM providers and vendors
+- Best practices for securing your data within your infrastructure
+
+This means that **any of the frameworks that implement MCP can use tools that are defined in the MCP**.
+Getting rid of the need to reimplement the same tool interface for each framework.
 
 ---
 
