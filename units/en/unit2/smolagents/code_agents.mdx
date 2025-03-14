@@ -124,7 +124,11 @@ def suggest_menu(occasion: str) -> str:
     """
     Suggests a menu based on the occasion.
     Args:
-        occasion: The type of occasion for the party.
+        occasion (str): The type of occasion for the party. Allowed values are:
+                        - "casual": Menu for casual party.
+                        - "formal": Menu for formal party.
+                        - "superhero": Menu for superhero party.
+                        - "custom": Custom menu.
     """
     if occasion == "casual":
         return "Pizza, snacks, and drinks."
@@ -142,7 +146,7 @@ agent = CodeAgent(tools=[suggest_menu], model=HfApiModel())
 agent.run("Prepare a formal menu for the party.")
 ```
 
-The agent will run for a few steps until finding the answer.
+The agent will run for a few steps until finding the answer. Precising allowed values in the docstring helps direct agent to `occasion` argument values which exist and limit hallucinations.
 
 The menu is ready! 🥗
 
