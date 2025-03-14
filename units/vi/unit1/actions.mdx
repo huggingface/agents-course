@@ -1,16 +1,16 @@
-# Hành động: Giúp Agent (tác nhân) Tương tác với Môi trường
+# Hành động: Giúp Agent Tương tác với Môi trường
 
 <Tip>
-Trong phần này, chúng ta sẽ khám phá các bước cụ thể mà một Agent AI thực hiện để tương tác với môi trường.
+Trong phần này, chúng ta sẽ khám phá các bước cụ thể mà một AI agent thực hiện để tương tác với môi trường.
 
-Ta sẽ tìm hiểu cách biểu diễn hành động (sử dụng JSON hoặc code), tầm quan trọng của phương pháp dừng và phân tích (stop and parse approach), cùng các loại Agent khác nhau.
+Ta sẽ tìm hiểu cách biểu diễn hành động (sử dụng JSON hoặc code), tầm quan trọng của phương pháp dừng và phân tích (stop and parse approach), cùng các loại agent khác nhau.
 </Tip>
 
-Hành động là những bước cụ thể **một Agent AI thực hiện để tương tác với môi trường**. 
+Hành động là những bước cụ thể **một AI agent thực hiện để tương tác với môi trường**. 
 
-Dù là duyệt web để tìm thông tin hay điều khiển thiết bị vật lý, mỗi hành động đều là một thao tác có chủ đích được Agent thực thi. 
+Dù là duyệt web để tìm thông tin hay điều khiển thiết bị vật lý, mỗi hành động đều là một thao tác có chủ đích được agent thực thi. 
 
-Ví dụ: một Agent hỗ trợ dịch vụ khách hàng có thể truy xuất dữ liệu khách hàng, đề xuất bài viết hỗ trợ hoặc chuyển vấn đề cho nhân viên con người.
+Ví dụ: một agent hỗ trợ dịch vụ khách hàng có thể truy xuất dữ liệu khách hàng, đề xuất bài viết hỗ trợ hoặc chuyển vấn đề cho nhân viên con người.
 
 ## Các loại Hành động của Agent
 
@@ -20,7 +20,7 @@ Có nhiều loại Agent thực hiện hành động theo cách khác nhau:
 |------------------------|--------------------------------------------------------------------------------------------------|
 | JSON Agent             | Hành động được xác định bằng định dạng JSON.                                                  |
 | Code Agent             | Agent viết một khối code để hệ thống bên ngoài thực thi.                                    |
-| Function-calling Agent | Là nhánh con của JSON Agent đã được fine-tuning để tạo thông điệp mới cho mỗi hành động. |
+| Function-calling Agent | Là nhánh con của JSON Agent đã được tinh chỉnh để tạo thông điệp mới cho mỗi hành động. |
 
 Bản thân các hành động có thể phục vụ nhiều mục đích:
 
@@ -31,13 +31,13 @@ Bản thân các hành động có thể phục vụ nhiều mục đích:
 | Tương tác môi trường  | Thao tác giao diện số hoặc điều khiển thiết bị vật lý.                         |
 | Giao tiếp            | Tương tác với người dùng qua chat hoặc hợp tác với Agent khác.                         |
 
-Một phần quan trọng của Agent là **khả năng DỪNG tạo token mới khi hoàn thành hành động**, đúng với mọi định dạng Agent: JSON, code hay function-calling. Điều này ngăn đầu ra ngoài ý muốn và đảm bảo phản hồi của Agent rõ ràng, chính xác.
+Một phần quan trọng của agent là **khả năng DỪNG tạo token mới khi hoàn thành hành động**, đúng với mọi định dạng Agent: JSON, code hay function-calling. Điều này ngăn đầu ra ngoài ý muốn và đảm bảo phản hồi của agent rõ ràng, chính xác.
 
 LLM (Tìm kiếm và tạo ra câu trả lời) chỉ xử lý văn bản, dùng nó để mô tả hành động muốn thực hiện và tham số cần cung cấp cho công cụ.
 
 ## Phương pháp Dừng và Phân tích
 
-Một phương pháp chính để triển khai hành động là **stop and parse approach**. Phương pháp này đảm bảo đầu ra của Agent có cấu trúc và dự đoán được:
+Một phương pháp chính để triển khai hành động là **phương pháp dừng và phân tích**. Phương pháp này đảm bảo đầu ra của Agent có cấu trúc và dự đoán được:
 
 1. **Tạo đầu ra định dạng cấu trúc**:
 
@@ -54,7 +54,7 @@ Bộ phân tích bên ngoài đọc hành động đã định dạng, xác đ�
 Ví dụ: một Agent cần kiểm tra thời tiết có thể đưa ra quyết định:
 
 ```json
-Suy nghĩ: Tôi cần kiểm tra thời tiết hiện tại ở New York.
+Tư duy: Tôi cần kiểm tra thời tiết hiện tại ở New York.
 Hành động:
 {
   "action": "get_weather",
@@ -108,7 +108,7 @@ Trong ví dụ này, Code Agent:
 - Xử lý phản hồi,
 - Dùng hàm print() để xuất câu trả lời cuối.
 
-Phương pháp này **cũng tuân theo stop and parse approach** bằng cách xác định rõ khối code và báo hiệu khi hoàn thành (ở đây là in final_answer).
+Phương pháp này **cũng tuân theo phương pháp dừng và phân tích** bằng cách xác định rõ khối code và báo hiệu khi hoàn thành (ở đây là in final_answer).
 
 ---
 
