@@ -42,7 +42,7 @@ A `CodeAgent` performs actions through a cycle of steps, with existing variables
 
 2. Then, the following while loop is executed:
 
-    2.1 Method `agent.write_memory_to_messages()` writes the agent's logs into a list of LLM-readable [chat messages](https://huggingface.co/docs/transformers/en/chat_templating).  
+    2.1 Method `agent.write_memory_to_messages()` writes the agent's logs into a list of LLM-readable [chat messages](https://huggingface.co/docs/transformers/main/en/chat_templating).
     
     2.2 These messages are sent to a `Model`, which generates a completion. 
     
