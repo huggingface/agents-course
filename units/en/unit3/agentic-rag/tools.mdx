@@ -1,0 +1,150 @@
+# Giving your agents access to the web
+
+In this unit, we'll be giving Alfred access to the web to help him find the latest news and information about the world.
+
+## Give your agent access to the web
+
+Remember that we want Alfred to establish his presence as a true renaissance host, with a deep knowledge of the world.
+
+To do so, we need to make sure that Alfred has access to the latest news and information about the world.
+
+Let's start by creating a web search tool for Alfred!
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+# Initialize the DuckDuckGo search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Example usage
+results = search_tool("Who's the current President of France?")
+print(results)
+```
+Expected output:
+```python
+The current President of France in Emanual Macron.
+```
+## Creating a Custom Tool for Weather Information to Schedule the Fireworks
+
+Remember that we need to make sure the fireworks are not cancelled due to bad weather?
+
+Let's create a custom tool that can be used to call an external weather API and get the weather information for a given location.
+
+<Tip>
+For the sake of simplicity, we're using a dummy weather API for this example. If you want to use a real weather API, you could implement a weather tool that uses the OpenWeatherMap API, like in [Unit 1](../unit1/tutorial.mdx).
+</Tip>
+
+```python
+from smolagents import Tool
+import random
+
+class WeatherInfoTool(Tool):
+    name = "weather_info"
+    description = "Fetches dummy weather information for a given location."
+    inputs = {
+        "location": {
+            "type": "string",
+            "description": "The location to get weather information for."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, location: str):
+        # Dummy weather data
+        weather_conditions = [
+            {"condition": "Rainy", "temp_c": 15},
+            {"condition": "Clear", "temp_c": 25},
+            {"condition": "Windy", "temp_c": 20}
+        ]
+        # Randomly select a weather condition
+        data = random.choice(weather_conditions)
+        return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialize the tool
+weather_info_tool = WeatherInfoTool()
+```
+
+## Creating a Hub Stats Tool for Influential AI Builders
+
+Alfred can impress influential AI builders by discussing their most popular models. We'll create a tool to fetch model statistics from the Hugging Face Hub based on a username.
+
+```python
+from smolagents import Tool
+from huggingface_hub import list_models
+
+class HubStatsTool(Tool):
+    name = "hub_stats"
+    description = "Fetches the most downloaded model from a specific author on the Hugging Face Hub."
+    inputs = {
+        "author": {
+            "type": "string",
+            "description": "The username of the model author/organization to find models from."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, author: str):
+        try:
+            # List models from the specified author, sorted by downloads
+            models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+            
+            if models:
+                model = models[0]
+                return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+            else:
+                return f"No models found for author {author}."
+        except Exception as e:
+            return f"Error fetching models for {author}: {str(e)}"
+
+# Initialize the tool
+hub_stats_tool = HubStatsTool()
+
+# Example usage
+print(hub_stats_tool("facebook"))  # Example: Get the most downloaded model by Facebook
+```
+Expected output:
+
+```Python
+The most downloaded model by facebook is facebook/esmfold_v1 with 12.195.721 downloads."
+```
+With the Hub Stats Tool, Alfred can now impress influential AI builders by discussing their most popular models.
+
+## Integrating Tools with Alfred
+
+Now that we have all the tools, let's integrate them into Alfred's agent:
+
+```python
+from smolagents import CodeAgent, HfApiModel
+
+# Initialize the Hugging Face model
+model = HfApiModel()
+
+# Create Alfred with all the tools
+alfred = CodeAgent(
+    tools=[search_tool, weather_info_tool, hub_stats_tool], 
+    model=model
+)
+
+# Example query Alfred might receive during the gala
+response = alfred.run("Who is Meta AI and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Expected output: 
+```python
+🎩 Alfred's Response:
+Meta or previously facebook is an American multinational technology conglomerate.
+The most downloaded model by facebook is facebook/esmfold_v1 with 12.195.721 downloads.
+```
+
+## Conclusion
+
+By integrating these tools, Alfred is now equipped to handle a variety of tasks, from web searches to weather updates and model statistics. This ensures he remains the most informed and engaging host at the gala.
+
+<Exercise>
+Try implementing a tool that can be used to get the latest news about a specific topic.
+
+When you're done, implement your custom tools in the `tools.py` file.
+</Exercise>
