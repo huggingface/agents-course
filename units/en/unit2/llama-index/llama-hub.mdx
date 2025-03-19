@@ -38,7 +38,9 @@ llm = HuggingFaceInferenceAPI(
     token="hf_xxx",
 )
 
-llm.complete("Hello, how are you?")
+response = llm.complete("Hello, how are you?")
+
+print(response)
 # I am good, how can I help you today?
 ```
 
