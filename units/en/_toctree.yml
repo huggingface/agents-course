@@ -118,6 +118,14 @@
     title: Let's Fine-Tune your model for Function-calling
   - local: bonus-unit1/conclusion
     title: Conclusion
+- title: Bonus Unit 2. Agent Observability and Evaluation
+  sections:
+  - local: bonus-unit2/introduction
+    title: Introduction
+  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+    title: What is agent observability and evaluation?
+  - local: bonus-unit2/quiz
+    title: Quiz
 - title: When the next steps are published?
   sections:
   - local: communication/next-units

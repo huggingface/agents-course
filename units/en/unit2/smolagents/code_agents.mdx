@@ -357,7 +357,9 @@ trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
 SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
 ```
 
-Alfred is now connected 🔌! The runs from `smolagents` are being logged in Langfuse, giving him full visibility into the agent's behavior. With this setup, he's ready to revisit previous runs and refine his Party Preparator Agent even further.  
+Alfred is now connected 🔌! The runs from `smolagents` are being logged in Langfuse, giving him full visibility into the agent's behavior. With this setup, he's ready to revisit previous runs and refine his Party Preparator Agent even further. 
+
+<Tip>To learn more about tracing your agents and using the collected data to evaluate their performance, check out <a href="(https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Bonus Unit 2</a>.</Tip>
 
 ```python
 from smolagents import CodeAgent, HfApiModel

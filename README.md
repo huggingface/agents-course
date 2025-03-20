@@ -18,6 +18,7 @@ You can access the course here 👉 <a href="https://hf.co/learn/agents-course" 
 | 1    | [Introduction to Agents](https://huggingface.co/learn/agents-course/en/unit1/introduction)       | Definition of agents, LLMs, model family tree, and special tokens.          |
 | 1.5    | [(Bonus Unit 1) Fine-tuning an LLM for Function-calling](https://huggingface.co/learn/agents-course/bonus-unit1/introduction)       | Learn to fine-tune an LLM for Function-Calling |
 | 2    | [2_frameworks](units/en/unit2/README.md)                     | Overview of smolagents, LangChain, LangGraph, and LlamaIndex.               |
+| 2.5  | [(Bonus Unit 2) Observability and Evaluation](https://huggingface.co/learn/agents-course/bonus-unit2/introduction) | Learn how to trace and evaluate your agents.
 | 3    | [3_use_cases](units/en/unit3/README.md)                      | SQL, code, retrieval, and on-device agents using various frameworks.        |
 | 4    | [4_final_assignment_with_benchmark](units/en/unit4/README.md) | Automated evaluation of agents and leaderboard with student results.        |
 
