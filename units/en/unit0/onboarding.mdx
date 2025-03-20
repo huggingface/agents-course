@@ -53,6 +53,36 @@ Help us make this course more visible! There are two way you can help us:
 
 You can download the image by clicking 👉 [here](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)
 
+### Step 5: Running Models Locally with Ollama (In case you run into Credit limits)
+
+1. **Install Ollama**
+
+    Follow the official Instructions <a href="https://ollama.com/download" target="_blank"> here.</a>
+
+2. **Pull a model Locally**
+``` bash
+    ollama pull qwen2:7b #Check out ollama website for more models
+```
+3. **Start Ollama in the background (In one terminal)**
+``` bash
+    ollama serve
+``` 
+4. **Use `LiteLLMModel` Instead of `HfApiModel`**
+``` bash
+    from smolagents import LiteLLMModel
+
+    model = LiteLLMModel(
+        model_id="ollama_chat/qwen2.5:7b",  # Or try other Ollama-supported models
+        api_base="http://127.0.0.1:11434",  # Default Ollama local server
+        num_ctx=8192,
+    )
+```
+
+5. **Why this works?**
+- Ollama serves models locally using an OpenAI-compatible API at `http://localhost:11434`.
+- `LiteLLMModel` is built to communicate with any model that supports the OpenAI chat/completion API format.
+- This means you can simply swap out `HfApiModel` for `LiteLLMModel` no other code changes required. It’s a seamless, plug-and-play solution.
+
 Congratulations! 🎉 **You've completed the onboarding process**! You're now ready to start learning about AI Agents. Have fun!
 
 Keep Learning, stay awesome 🤗
