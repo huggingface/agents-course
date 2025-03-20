@@ -43,6 +43,12 @@ Let's define what information Alfred needs to track during the email processing 
 class EmailState(TypedDict):
     # The email being processed
     email: Dict[str, Any]  # Contains subject, sender, body, etc.
+
+    # Category of the email
+    email_category: Optional[str]
+
+    # reason of spam
+    spam_reason: Optional[str]
     
     # Analysis and decisions
     is_spam: Optional[bool]
