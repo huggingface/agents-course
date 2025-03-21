@@ -25,7 +25,7 @@ Tóm lại, `smolagents` là thư viện tập trung vào **codeAgent** - loại
 
 Ta cung cấp cho agent **công cụ tạo ảnh** và yêu cầu nó tạo ảnh mèo.
 
-Agent trong `smolagents` sẽ có **hành vi giống với agent tự build trước đây**: nó sẽ **suy nghĩ, hành động và quan sát theo chu kỳ** cho đến khi có câu trả lời cuối:
+Agent trong `smolagents` sẽ có **hành vi giống với agent tự build trước đây**: nó sẽ **tư duy, hành động và quan sát theo chu kỳ** cho đến khi có câu trả lời cuối:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
@@ -101,7 +101,7 @@ Khi định nghĩa tool, quan trọng phải:
 
 ### Agent
 
-Agent sử dụng [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) làm LLM engine. Đây là model mạnh mẽ mà ta sẽ truy cập qua serverless API.
+Agent sử dụng [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) làm LLM engine. Đây là mô hình mạnh mẽ mà ta sẽ truy cập qua serverless API.
 
 ```python
 final_answer = FinalAnswerTool()
@@ -211,16 +211,16 @@ GradioUI(agent).launch()
 
 **Mục tiêu** của bạn là làm quen với Space và Agent. 
 
-Hiện tại, agent trong template **chưa dùng tool nào**, hãy thử cung cấp cho nó các tool có sẵn hoặc tự tạo tool mới!
+Hiện tại, Agent trong template **chưa dùng tool nào**, hãy thử cung cấp cho nó các tool có sẵn hoặc tự tạo tool mới!
 
-Chúng mình rất mong chờ thành quả agent tuyệt vời của bạn ở kênh discord **#agents-course-showcase**!
+Chúng mình rất mong chờ thành quả Agent tuyệt vời của bạn ở kênh discord **#agents-course-showcase**!
 
 
 ---
 Chúc mừng bạn đã build xong Agent đầu tiên! Đừng ngại chia sẻ với bạn bè và đồng nghiệp nhé.
 
-Vì đây là lần đầu thử nghiệm, việc agent có lỗi nhỏ hoặc chạy chậm là hoàn toàn bình thường. Ở các chương sau, ta sẽ học cách xây dựng Agent tốt hơn.
+Vì đây là lần đầu thử nghiệm, việc Agent có lỗi nhỏ hoặc chạy chậm là hoàn toàn bình thường. Ở các chương sau, ta sẽ học cách xây dựng Agent tốt hơn.
 
-Cách học tốt nhất là thực hành, nên đừng ngần ngại cập nhật nó, thêm tool mới, thử với model khác, v.v.
+Cách học tốt nhất là thực hành, nên đừng ngần ngại cập nhật nó, thêm tool mới, thử với mô hình khác, v.v.
 
-Ở phần tiếp theo, bạn sẽ hoàn thành Bài kiểm tra cuối cùng và nhận certificate!
+Ở phần tiếp theo, bạn sẽ hoàn thành Bài kiểm tra cuối cùng và nhận chứng chỉ!

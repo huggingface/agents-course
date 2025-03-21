@@ -1,25 +1,25 @@
-# Hiểu về AI Agent thông qua chu kỳ Thought-Action-Observation (Suy nghĩ - Hành động - Quan sát)
+# Hiểu về AI agent thông qua chu kỳ Thought-Action-Observation
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Kế hoạch chương 1"/>
 
 Trong các phần trước, ta đã học:
 
 - **Cách các công cụ được cung cấp cho agent trong system prompt**
-- **Cách AI Agent là hệ thống có thể 'lập luận', lên kế hoạch và tương tác với môi trường**
+- **Cách AI agent là hệ thống có thể 'lập luận', lên kế hoạch và tương tác với môi trường**
 
-Trong phần này, **chúng ta sẽ khám phá Quy trình AI Agent hoàn chỉnh** - chu kỳ được định nghĩa là Thought-Action-Observation (Suy nghĩ - Hành động - Quan sát).
+Trong phần này, **chúng ta sẽ khám phá Quy trình AI agent hoàn chỉnh** - chu kỳ được định nghĩa là Thought-Action-Observation (Tư duy - Hành động - Quan sát).
 
 Sau đó, ta sẽ đi sâu vào từng bước trong chu kỳ này.
 
 ## Thành phần cốt lõi
 
-Agent hoạt động theo chu kỳ liên tục: **suy nghĩ (Thought) → hành động (Act) → quan sát (Observe)**.
+Agent hoạt động theo chu kỳ liên tục: **tư duy (Thought) → hành động (Act) → quan sát (Observe)**.
 
 Cùng phân tích từng hành động:
 
-1. **Thought (Suy nghĩ)**: Phần LLM (mô hình ngôn ngữ lớn) của Agent quyết định bước tiếp theo cần làm
+1. **Thought (Tư duy)**: Phần LLM của Agent quyết định bước tiếp theo cần làm
 2. **Action (Hành động)**: Agent thực hiện hành động bằng cách gọi các công cụ với tham số liên quan
-3. **Observation (Quan sát)**: Model phản ánh lại phản hồi từ công cụ
+3. **Observation (Quan sát)**: Mô hình phản ánh lại phản hồi từ công cụ
 
 ## Chu kỳ Thought-Action-Observation
 
@@ -48,9 +48,9 @@ Phiên bản đơn giản hóa của system prompt có thể như sau:
 > Bạn có quyền truy cập vào các công cụ sau:  
 > Tên công cụ: calculator, Mô tả: Nhân hai số nguyên., Tham số: a: int, b: int, Đầu ra: int  
 > 
-> Bạn nên suy nghĩ từng bước để hoàn thành mục tiêu với lập luận được chia thành các phần Suy nghĩ/Hành động/Quan sát > có thể lặp lại nhiều lần nếu cần thiết.  
+> Bạn nên tư duy từng bước để hoàn thành mục tiêu với lập luận được chia thành các phần Tư duy/Hành động/Quan sát > có thể lặp lại nhiều lần nếu cần thiết.  
 > 
-> Trước tiên, bạn nên phản ánh bằng ‘Suy nghĩ: {your_thoughts}’ về tình huống hiện tại, sau đó (nếu cần), gọi một công cụ với định dạng JSON thích hợp ‘Hành động: {JSON_BLOB}’, hoặc in câu trả lời cuối cùng của bạn bắt đầu với tiền tố ‘Câu trả lời cuối cùng:’
+> Trước tiên, bạn nên phản ánh bằng ‘Tư duy: {your_thoughts}’ về tình huống hiện tại, sau đó (nếu cần), gọi một công cụ với định dạng JSON thích hợp ‘Hành động: {JSON_BLOB}’, hoặc in câu trả lời cuối cùng của bạn bắt đầu với tiền tố ‘Câu trả lời cuối cùng:’
 
 
 Ta thấy ở System Message đã định nghĩa:
@@ -73,7 +73,7 @@ Nhiệm vụ của Alfred là trả lời câu hỏi này bằng công cụ API 
 
 Đây là cách chu kỳ diễn ra:
 
-### Thought (Suy nghĩ)
+### Tư duy
 
 **Lập luận nội bộ:**
 
@@ -85,7 +85,7 @@ Bước này cho thấy agent phân tách vấn đề thành các bước: đầ
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Agent Alfred"/>
 
-### Action (Hành động)
+### Hành động
 
 **Sử dụng công cụ:**
 
@@ -106,7 +106,7 @@ Thought: Tôi cần kiểm tra thời tiết hiện tại ở New York.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Agent Alfred"/>
 
-### Observation (Quan sát)
+### Quan sát
 
 **Phản hồi từ môi trường:**
 
@@ -118,7 +118,7 @@ Sau khi gọi công cụ, Alfred nhận được quan sát. Đây có thể là 
 
 Quan sát này được thêm vào prompt như ngữ cảnh bổ sung. Nó đóng vai trò phản hồi thực tế, xác nhận hành động thành công và cung cấp thông tin cần thiết.
 
-### Cập nhật suy nghĩ
+### Cập nhật tư duy
 
 **Phản ánh:**
 
@@ -144,20 +144,20 @@ Những gì ta thấy trong ví dụ:
 
 - **Agent lặp qua vòng lặp đến khi hoàn thành mục tiêu:**
     
-**Quy trình của Alfred mang tính chu kỳ**. Bắt đầu bằng suy nghĩ, hành động gọi công cụ, sau đó quan sát kết quả. Nếu quan sát cho thấy lỗi hoặc thiếu dữ liệu, Alfred có thể vào lại chu kỳ để điều chỉnh.
+**Quy trình của Alfred mang tính chu kỳ**. Bắt đầu bằng tư duy, hành động gọi công cụ, sau đó quan sát kết quả. Nếu quan sát cho thấy lỗi hoặc thiếu dữ liệu, Alfred có thể vào lại chu kỳ để điều chỉnh.
     
 - **Tích hợp công cụ:**
 
-Khả năng gọi công cụ (như API thời tiết) giúp Alfred vượt **khỏi kiến thức tĩnh để truy xuất dữ liệu thời gian thực** - yếu tố thiết yếu của nhiều AI Agent.
+Khả năng gọi công cụ (như API thời tiết) giúp Alfred vượt **khỏi kiến thức tĩnh để truy xuất dữ liệu thời gian thực** - yếu tố thiết yếu của nhiều AI agent.
 
 - **Thích ứng linh hoạt:**
 
-Mỗi chu kỳ cho phép agent kết hợp thông tin mới (quan sát) vào lập luận (suy nghĩ), đảm bảo câu trả lời cuối chính xác và đầy đủ.
+Mỗi chu kỳ cho phép agent kết hợp thông tin mới (quan sát) vào lập luận (tư duy), đảm bảo câu trả lời cuối chính xác và đầy đủ.
     
-Ví dụ này minh họa khái niệm cốt lõi của *ReAct cycle* (khái niệm sẽ được phát triển ở phần sau): **sự tương tác giữa Thought, Action và Observation trao quyền cho AI Agent giải quyết tác vụ phức tạp một cách lặp**. 
+Ví dụ này minh họa khái niệm cốt lõi của *ReAct cycle* (khái niệm sẽ được phát triển ở phần sau): **sự tương tác giữa Tư duy, Hành động và Quan sát trao quyền cho AI agent giải quyết tác vụ phức tạp một cách lặp**. 
 
 Bằng cách hiểu và áp dụng các nguyên tắc này, bạn có thể thiết kế agent không chỉ lập luận về tác vụ mà còn **sử dụng hiệu quả công cụ bên ngoài để hoàn thành chúng**, đồng thời liên tục tinh chỉnh đầu ra dựa trên phản hồi môi trường.
 
 ---
 
-Giờ hãy cùng đi sâu vào từng bước Thought, Action, Observation trong quy trình.
+Giờ hãy cùng đi sâu vào từng bước Tư duy, Hành động và Quan sát trong quy trình.
