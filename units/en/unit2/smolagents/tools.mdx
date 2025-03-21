@@ -4,14 +4,14 @@
     {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/tools.ipynb"},
 ]} />
 
-# Tools  
+# Tools
 
-As we explored in [unit 1](https://huggingface.co/learn/agents-course/unit1/tools), agents use tools to perform various actions. In `smolagents`, tools are treated as **functions that an LLM can call within an agent system**. 
+As we explored in [unit 1](https://huggingface.co/learn/agents-course/unit1/tools), agents use tools to perform various actions. In `smolagents`, tools are treated as **functions that an LLM can call within an agent system**.
 
-To interact with a tool, the LLM needs an **interface description** with these key components:  
+To interact with a tool, the LLM needs an **interface description** with these key components:
 
 - **Name**: What the tool is called
-- **Tool description**: What the tool does  
+- **Tool description**: What the tool does
 - **Input types and descriptions**: What arguments the tool accepts
 - **Output type**: What the tool returns
 
@@ -30,19 +30,19 @@ Below, you can see an animation illustrating how a tool call is managed:
 
 ## Tool Creation Methods
 
-In `smolagents`, tools can be defined in two ways:  
+In `smolagents`, tools can be defined in two ways:
 1. **Using the `@tool` decorator** for simple function-based tools
-2. **Creating a subclass of `Tool`** for more complex functionality    
+2. **Creating a subclass of `Tool`** for more complex functionality
 
-### The `@tool` Decorator  
+### The `@tool` Decorator
 
-The `@tool` decorator is the **recommended way to define simple tools**. Under the hood, smolagents will parse basic information about the function from Python. So if you name your function clearly and write a good docstring, it will be easier for the LLM to use. 
+The `@tool` decorator is the **recommended way to define simple tools**. Under the hood, smolagents will parse basic information about the function from Python. So if you name your function clearly and write a good docstring, it will be easier for the LLM to use.
 
-Using this approach, we define a function with:  
+Using this approach, we define a function with:
 
-- **A clear and descriptive function name** that helps the LLM understand its purpose.  
-- **Type hints for both inputs and outputs** to ensure proper usage.  
-- **A detailed description**, including an `Args:` section where each argument is explicitly described. These descriptions provide valuable context for the LLM, so it's important to write them carefully.  
+- **A clear and descriptive function name** that helps the LLM understand its purpose.
+- **Type hints for both inputs and outputs** to ensure proper usage.
+- **A detailed description**, including an `Args:` section where each argument is explicitly described. These descriptions provide valuable context for the LLM, so it's important to write them carefully.
 
 #### Generating a tool that retrieves the highest-rated catering
 
@@ -52,7 +52,7 @@ Using this approach, we define a function with:
 You can follow the code in <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb" target="_blank">this notebook</a> that you can run using Google Colab.
 </Tip>
 
-Let's imagine that Alfred has already decided on the menu for the party, but now he needs help preparing food for such a large number of guests. To do so, he would like to hire a catering service and needs to identify the highest-rated options available. Alfred can leverage a tool to search for the best catering services in his area. 
+Let's imagine that Alfred has already decided on the menu for the party, but now he needs help preparing food for such a large number of guests. To do so, he would like to hire a catering service and needs to identify the highest-rated options available. Alfred can leverage a tool to search for the best catering services in his area.
 
 Below is an example of how Alfred can use the `@tool` decorator to make this happen:
 
@@ -64,7 +64,7 @@ from smolagents import CodeAgent, HfApiModel, tool
 def catering_service_tool(query: str) -> str:
     """
     This tool returns the highest-rated catering service in Gotham City.
-    
+
     Args:
         query: A search term for finding catering services.
     """
@@ -74,10 +74,10 @@ def catering_service_tool(query: str) -> str:
         "Wayne Manor Catering": 4.8,
         "Gotham City Events": 4.7,
     }
-    
+
     # Find the highest rated catering service (simulating search query filtering)
     best_service = max(services, key=services.get)
-    
+
     return best_service
 
 
@@ -91,21 +91,21 @@ result = agent.run(
 print(result)   # Output: Gotham Catering Co.
 ```
 
-### Defining a Tool as a Python Class  
+### Defining a Tool as a Python Class
 
-This approach involves creating a subclass of [`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool).  For complex tools, we can implement a class instead of a Python function. The class wraps the function with metadata that helps the LLM understand how to use it effectively. In this class, we define:  
+This approach involves creating a subclass of [`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool).  For complex tools, we can implement a class instead of a Python function. The class wraps the function with metadata that helps the LLM understand how to use it effectively. In this class, we define:
 
-- `name`: The tool's name.  
-- `description`: A description used to populate the agent's system prompt.  
-- `inputs`: A dictionary with keys `type` and `description`, providing information to help the Python interpreter process inputs.  
-- `output_type`: Specifies the expected output type.  
+- `name`: The tool's name.
+- `description`: A description used to populate the agent's system prompt.
+- `inputs`: A dictionary with keys `type` and `description`, providing information to help the Python interpreter process inputs.
+- `output_type`: Specifies the expected output type.
 - `forward`: The method containing the inference logic to execute.
 
 Below, we can see an example of a tool built using `Tool` and how to integrate it within a `CodeAgent`.
 
 #### Generating a tool to generate ideas about the superhero-themed party
 
-Alfred's party at the mansion is a **superhero-themed event**, but he needs some creative ideas to make it truly special. As a fantastic host, he wants to surprise the guests with a unique theme. 
+Alfred's party at the mansion is a **superhero-themed event**, but he needs some creative ideas to make it truly special. As a fantastic host, he wants to surprise the guests with a unique theme.
 
 To do this, he can use an agent that generates superhero-themed party ideas based on a given category. This way, Alfred can find the perfect party theme to wow his guests.
 
@@ -117,14 +117,14 @@ class SuperheroPartyThemeTool(Tool):
     description = """
     This tool suggests creative superhero-themed party ideas based on a category.
     It returns a unique party theme idea."""
-    
+
     inputs = {
         "category": {
             "type": "string",
             "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
         }
     }
-    
+
     output_type = "string"
 
     def forward(self, category: str):
@@ -133,7 +133,7 @@ class SuperheroPartyThemeTool(Tool):
             "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
             "futuristic Gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
         }
-        
+
         return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
 
 # Instantiate the tool
@@ -150,34 +150,34 @@ print(result)  # Output: "Gotham Rogues' Ball: A mysterious masquerade where gue
 
 With this tool, Alfred will be the ultimate super host, impressing his guests with a superhero-themed party they won't forget! 🦸‍♂️🦸‍♀️
 
-## Default Toolbox  
+## Default Toolbox
 
-`smolagents` comes with a set of pre-built tools that can be directly injected into your agent. The [default toolbox](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) includes:  
+`smolagents` comes with a set of pre-built tools that can be directly injected into your agent. The [default toolbox](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) includes:
 
-- **PythonInterpreterTool**  
-- **FinalAnswerTool**  
-- **UserInputTool**  
-- **DuckDuckGoSearchTool**  
-- **GoogleSearchTool**  
-- **VisitWebpageTool**  
+- **PythonInterpreterTool**
+- **FinalAnswerTool**
+- **UserInputTool**
+- **DuckDuckGoSearchTool**
+- **GoogleSearchTool**
+- **VisitWebpageTool**
 
 Alfred could use various tools to ensure a flawless party at Wayne Manor:
 
-- First, he could use the `DuckDuckGoSearchTool` to find creative superhero-themed party ideas. 
+- First, he could use the `DuckDuckGoSearchTool` to find creative superhero-themed party ideas.
 
-- For catering, he'd rely on the `GoogleSearchTool` to find the highest-rated services in Gotham. 
+- For catering, he'd rely on the `GoogleSearchTool` to find the highest-rated services in Gotham.
 
-- To manage seating arrangements, Alfred could run calculations with the `PythonInterpreterTool`. 
+- To manage seating arrangements, Alfred could run calculations with the `PythonInterpreterTool`.
 
-- Once everything is gathered, he'd compile the plan using the `FinalAnswerTool`. 
+- Once everything is gathered, he'd compile the plan using the `FinalAnswerTool`.
 
 With these tools, Alfred guarantees the party is both exceptional and seamless. 🦇💡
 
 ## Sharing and Importing Tools
 
-One of the most powerful features of **smolagents** is its ability to share custom tools on the Hub and seamlessly integrate tools created by the community. This includes connecting with **HF Spaces** and **LangChain tools**, significantly enhancing Alfred's ability to orchestrate an unforgettable party at Wayne Manor. 🎭 
+One of the most powerful features of **smolagents** is its ability to share custom tools on the Hub and seamlessly integrate tools created by the community. This includes connecting with **HF Spaces** and **LangChain tools**, significantly enhancing Alfred's ability to orchestrate an unforgettable party at Wayne Manor. 🎭
 
-With these integrations, Alfred can tap into advanced event-planning tools—whether it's adjusting the lighting for the perfect ambiance, curating the ideal playlist for the party, or coordinating with Gotham's finest caterers.  
+With these integrations, Alfred can tap into advanced event-planning tools—whether it's adjusting the lighting for the perfect ambiance, curating the ideal playlist for the party, or coordinating with Gotham's finest caterers.
 
 Here are examples showcasing how these functionalities can elevate the party experience:
 
@@ -193,7 +193,7 @@ party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HU
 
 ### Importing a Tool from the Hub
 
-You can easily import tools created by other users using the `load_tool()` function. For example, Alfred might want to generate a promotional image for the party using AI. Instead of building a tool from scratch, he can leverage a predefined one from the community: 
+You can easily import tools created by other users using the `load_tool()` function. For example, Alfred might want to generate a promotional image for the party using AI. Instead of building a tool from scratch, he can leverage a predefined one from the community:
 
 ```python
 from smolagents import load_tool, CodeAgent, HfApiModel
@@ -213,7 +213,7 @@ agent.run("Generate an image of a luxurious superhero-themed party at Wayne Mano
 
 ### Importing a Hugging Face Space as a Tool
 
-You can also import a HF Space as a tool using `Tool.from_space()`. This opens up possibilities for integrating with thousands of spaces from the community for tasks from image generation to data analysis. 
+You can also import a HF Space as a tool using `Tool.from_space()`. This opens up possibilities for integrating with thousands of spaces from the community for tasks from image generation to data analysis.
 
 The tool will connect with the spaces Gradio backend using the `gradio_client`, so make sure to install it via `pip` if you don't have it already.
 
@@ -233,7 +233,7 @@ model = HfApiModel("Qwen/Qwen2.5-Coder-32B-Instruct")
 agent = CodeAgent(tools=[image_generation_tool], model=model)
 
 agent.run(
-    "Improve this prompt, then generate an image of it.", 
+    "Improve this prompt, then generate an image of it.",
     additional_args={'user_prompt': 'A grand superhero-themed party at Wayne Manor, with Alfred overseeing a luxurious gala'}
 )
 ```
@@ -258,6 +258,38 @@ search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 agent = CodeAgent(tools=[search_tool], model=model)
 
 agent.run("Search for luxury entertainment ideas for a superhero-themed event, such as live performances and interactive experiences.")
+```
+
+### Importing a tool collection from any MCP server
+
+`smolagents` also allows importing tools from the hundreds of MCP servers available on [glama.ai](https://glama.ai/mcp/servers) or [smithery.ai](https://smithery.ai).
+
+<details>
+<summary>Install mcp client</summary>
+
+We first need to install the `mcp` integration for `smolagents`.
+
+```bash
+pip install "smolagents[mcp]"
+```
+</details>
+
+The MCP servers tools can be loaded in a ToolCollection object as follow:
+
+```python
+import os
+from smolagents import ToolCollection, CodeAgent
+from mcp import StdioServerParameters
+
+server_parameters = StdioServerParameters(
+    command="uv",
+    args=["--quiet", "pubmedmcp@0.1.3"],
+    env={"UV_PYTHON": "3.12", **os.environ},
+)
+
+with ToolCollection.from_mcp(server_parameters) as tool_collection:
+    agent = CodeAgent(tools=[*tool_collection.tools], add_base_tools=True)
+    agent.run("Please find a remedy for hangover.")
 ```
 
 With this setup, Alfred can quickly discover luxurious entertainment options, ensuring Gotham's elite guests have an unforgettable experience. This tool helps him curate the perfect superhero-themed event for Wayne Manor! 🎉
