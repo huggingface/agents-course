@@ -39,6 +39,14 @@
 复制这个 Space 意味着**在你的个人资料中创建一个本地副本**：
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="复制"/>
 
+复制这个 Space 之后，**你需要添加你的 Hugging Face API 令牌**，以便你的**智能体**可以调用模型 API。
+
+1. 首先，从[ https://hf.co/settings/tokens ]( https://hf.co/settings/tokens)获取一个具有**推理权限**的令牌，第4步需要用到。如果你已经有了，可以跳过此步。
+2. 进入你的主页，找到刚才复制的空间，点击**设置**按钮。
+3. 向下滚动到**变量和密钥**部分，点击**新建密钥**。
+4. 创建一个名为**HF_TOKEN**的密钥，值为第一步获取到的令牌。
+5. 点击**保存**。
+
 在整个课程中，你唯一需要修改的文件是当前不完整的**"app.py"**。你可以在这里查看[模板中的原始文件](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py)。要找到你的文件，请进入你复制的 Space，然后点击 `Files` 选项卡，再在目录列表中点击 `app.py`。
 
 让我们一起分解代码：
