@@ -1,0 +1,250 @@
+# 文档分析图
+
+Alfred 为您服务。作为韦恩先生值得信赖的管家，我已记录下协助处理各类文档需求的工作流程。当 Mr Wayne 外出进行...夜间活动时，我会确保所有文件、训练计划和营养方案都得到妥善分析和整理。
+
+在离开前，他留下了本周训练计划的笔记。我随后负责拟定了明日餐点的**菜单**。
+
+为应对未来的类似需求，让我们使用 LangGraph 构建一个文档分析系统来服务 Mr Wayne。该系统能够：
+
+1. 处理图像文档
+2. 使用视觉模型 (Vision Language Model) 提取文本
+3. 在需要时执行计算（用于演示常规工具）
+4. 分析内容并提供简明摘要
+5. 执行与文档相关的特定指令
+
+## 管家的工作流程
+
+我们将构建的工作流程遵循以下结构化方案：
+
+![Butler's Document Analysis Workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+<Tip>
+您可以在 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">这个 notebook</a> 中查看代码，并通过 Google Colab 运行。
+</Tip>
+## 设置环境
+
+```python
+%pip install langgraph langchain_openai Pillow base64 langchain_core
+```
+and imports :
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain.schema import HumanMessage
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langgraph.prebuilt import ToolNode
+from IPython.display import Image, display
+```
+
+## 定义智能体的状态
+
+这个状态比我们之前见过的稍微复杂些。
+AnyMessage 是来自 langchain 的类，用于定义消息，而 add_messages 是一个操作符，它会添加最新消息而不是覆盖现有状态。
+
+这是 langGraph 中的一个新概念，您可以在状态中添加 operators 来定义它们之间的交互方式。
+
+```python
+class AgentState(TypedDict):
+    # 提供的文件
+    input_file: Optional[str]  # Contains file path (PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## 准备工具
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Extract text from an image file using a multimodal model.
+    
+    Master Wayne often leaves notes with his training regimen or meal plans.
+    This allows me to properly analyze the contents.
+    """
+    all_text = ""
+    try:
+        # 读取图像并编码为 base64
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # 准备包含 base64 图像数据的提示
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all the text from this image. "
+                            "Return only the extracted text, no explanations."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # 调用具有视觉功能的模型
+        response = vision_llm.invoke(message)
+
+        # 附加提取的文本
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # 管家应优雅地处理错误
+        error_msg = f"Error extracting text: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Divide a and b - for Master Wayne's occasional calculations."""
+    return a / b
+
+# 为管家配备工具
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## 节点
+
+```python
+def assistant(state: AgentState):
+    # 系统消息
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Extract text from an image file using a multimodal model.
+
+    Args:
+        img_path: A local image file path (strings).
+
+    Returns:
+        A single string containing the concatenated text extracted from each image.
+divide(a: int, b: int) -> float:
+    Divide a and b
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"You are an helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## ReAct 模式：我如何协助 Wayne 先生
+
+请允许我解释该智能体的工作方式。该智能体遵循被称为 ReAct 的模式（推理-行动-观察）
+
+1. **推理** 分析文档和请求内容
+2. **行动** 通过调用合适的工具执行操作
+3. **观察** 工具执行结果
+4. **重复** 上述步骤直到完全满足需求
+
+这是使用 langGraph 实现的简单智能体实现。
+
+```python
+## The graph
+builder = StateGraph(AgentState)
+
+# 定义节点：这些节点完成工作
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# 定义边：这些决定了控制流如何移动
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # 如果最新消息需要工具，则路由至工具
+    # 否则，请直接回复
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# 展现管家的思考过程
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+![ReAct Pattern](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## 管家实战示例
+
+### 示例1：简单计算
+
+在以下示例中，我们添加这个 divide 示例仅作为演示用途。
+
+```python
+messages = [HumanMessage(content="Divide 6790 by 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+```
+
+对话将会继续：
+
+```
+Human: Divide 6790 by 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: The result of dividing 6790 by 5 is 1358.0.
+```
+
+### 示例 2：分析 Wayne 大师的训练文档
+
+当 Wayne 大师留下他的训练和​​用餐笔记时：
+
+```python
+messages = [HumanMessage(content="According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+交互将进行：
+
+```
+用户：根据 Wayne 先生在提供的图像中的注释。我应该为晚餐菜单购买哪些物品？
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [包含训练计划和菜单详情的提取文本]
+
+Alfred：根据晚餐菜单，您应该购买以下物品：
+
+1. 草饲本地西冷牛排（Grass-fed local sirloin steak）
+2. 有机菠菜（Organic spinach）
+3. 皮克略辣椒（Piquillo peppers） 
+4. 土豆（用于烤制金黄香草土豆）
+5. 鱼油（2 克）
+
+确保牛排是草饲的，并且菠菜和辣椒是有机的，以获得最佳品质的餐点。
+```
+
+## 关键要点
+
+若您希望创建自己的文档分析管家，请遵循以下关键原则：
+
+1. **定义清晰的工具**（Define clear tools）用于特定文档相关任务
+2. **创建强大的状态跟踪器**（Create a robust state tracker）以保持工具调用之间的上下文
+3. **考虑错误处理机制**（Consider error handling）应对工具调用失败
+5. **保持上下文感知能力**（Maintain contextual awareness）通过 add_messages 操作符确保历史交互的连贯性
+
+遵循这些原则，您也能提供符合韦恩庄园标准的卓越文档分析服务。
+
+*相信以上解释已足够详尽。恕我失陪，韦恩老爷的披风还需在夜巡前熨烫妥当。*
