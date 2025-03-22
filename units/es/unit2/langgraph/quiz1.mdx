@@ -1,0 +1,118 @@
+# Evalua de tu comprensión de LangGraph
+
+¡Vamos a comprobar tu comprensión de `LangGraph` on un breve cuestionario! Esto te ayudará a reforzar los conceptos clave que hemos cubierto hasta ahora.
+
+Este es un cuestionario opcional y no está calificado.
+
+### Q1: ¿Cuál es el propósito principal de LangGraph??
+¿Qué afirmación describe mejor para qué está diseñado LangGraph?
+
+<Question
+choices={[
+  {
+    text: "Un marco de trabajo para construir flujos de control para aplicaciones que contienen LLMs",
+    explain: "¡Correcto! LangGraph está específicamente diseñado para ayudar a construir y gestionar el flujo de control de aplicaciones que utilizan LLMs.",
+    correct: true
+  },
+  {
+    text: "Una biblioteca que proporciona interfaces para interactuar con diferentes modelos LLM",
+    explain: "Esto describe mejor el papel de LangChain, que proporciona interfaces estándar para la interacción con modelos. LangGraph se centra en el flujo de control.",
+  },
+  {
+    text: "Una biblioteca de Agentes para llamadas a herramientas",
+    explain: "Aunque LangGraph trabaja con agentes, el propósito principal de langGraph es la 'Orquestación'.",
+  }
+]}
+/>
+
+---
+
+### Q2:  En el contexto del equilibrio entre "Control vs Libertad", ¿dónde se sitúa LangGraph?
+¿Qué afirmación caracteriza mejor el enfoque de LangGraph para el diseño de agentes?
+
+<Question
+choices={[
+  {
+    text: "LangGraph maximiza la libertad, permitiendo a los LLMs tomar todas las decisiones de forma independiente",
+    explain: "LangGraph en realidad se centra más en el control que en la libertad, proporcionando estructura para los flujos de trabajo de LLM.",
+  },
+  {
+    text: "LangGraph proporciona un fuerte control sobre el flujo de ejecución mientras aprovecha las capacidades de LLM para la toma de decisiones",
+    explain: "¡Correcto! LangGraph destaca cuando necesitas control sobre la ejecución de tu agente, proporcionando un comportamiento predecible a través de flujos de trabajo estructurados.",
+    correct: true
+  },
+]}
+/>
+
+---
+
+### Q3: ¿Qué papel juega el Estado en LangGraph?
+Elige la descripción más precisa del Estado en LangGraph.
+
+<Question
+choices={[
+  {
+    text: "Estado es la última generación del LLM",
+    explain: "Estado es una clase definida por el usuario en LangGraph, no generada por LLM. Sus campos son definidos por el usuario, los valores pueden ser completados por LLM",
+  },
+  {
+    text: "Estado solo se utiliza para rastrear errores durante la ejecución",
+    explain: "Estado tiene un propósito mucho más amplio que solo el seguimiento de errores. Pero eso sigue siendo útil.",
+  },
+  {
+    text: "Estado representa la información que fluye a través de tu aplicación de agente",
+    explain: "¡Correcto! El Estado es central para LangGraph y contiene toda la información necesaria para la toma de decisiones entre pasos. Tú proporcionas los campos que necesitas calcular y los nodos pueden alterar los valores para decidir sobre una ramificación.",
+    correct: true
+  },
+  {
+    text: "Estado solo es relevante cuando se trabaja con APIs externas",
+    explain: "Estado es fundamental para todas las aplicaciones LangGraph, no solo aquellas que trabajan con APIs externas.",
+  }
+]}
+/>
+
+### Q4: ¿Qué es una Arista(Edge) Condicional en LangGraph?
+Selecciona la descripción más precisa.
+
+<Question
+choices={[
+    {
+    text: "Una arista(edge) que determina qué nodo ejecutar a continuación basándose en la evaluación de una condición",
+    explain: "¡Correcto! Las aristas(edges) condicionales permiten que tu grafo tome decisiones de enrutamiento dinámicas basadas en el estado actual, creando lógica de ramificación en tu flujo de trabajo.",
+    correct: true
+  },
+  {
+    text: "Una arista(edge) que solo se sigue cuando ocurre una condición específica",
+    explain: "Las aristas(edges) condicionales controlan el flujo de la aplicación en sus salidas, no en la entrada.",
+  },
+  {
+    text: "Una arista que requiere confirmación del usuario antes de proceder",
+    explain: "Las aristas(edges) condicionales se basan en condiciones programáticas, no en requisitos de interacción del usuario.",
+  }
+]}
+/>
+
+---
+
+### Q5: ¿Cómo ayuda LangGraph a abordar el problema de alucinación en los LLMs?
+Elige la mejor respuesta.
+
+<Question
+choices={[
+  {
+    text: "LangGraph elimina las alucinaciones por completo limitando las respuestas de LLM",
+    explain: "Ningún frameworkd puede eliminar completamente las alucinaciones de los LLMs, LangGraph no es una excepción.",
+  },
+  {
+    text: "LangGraph proporciona flujos de trabajo estructurados que pueden validar y verificar las salidas de LLM",
+    explain: "¡Correcto! Al crear flujos de trabajo estructurados con pasos de validación, nodos de verificación y rutas de manejo de errores, LangGraph ayuda a reducir el impacto de las alucinaciones.",
+    correct: true
+  },
+  {
+    text: "LangGraph no tiene efecto sobre las alucinaciones",
+    explain: "El enfoque estructurado de LangGraph para los flujos de trabajo puede ayudar significativamente a mitigar las alucinaciones a costa de la velocidad.",
+  }
+]}
+/>
+
+¡Felicitaciones por completar el cuestionario! 🎉 Si te perdiste alguna pregunta, considera revisar las secciones anteriores para fortalecer tu comprensión. A continuación, exploraremos características más avanzadas de LangGraph y veremos cómo construir flujos de trabajo de agentes más complejos.
