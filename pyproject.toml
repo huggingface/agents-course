@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "agents-course"
+version = "0.1.0"
+description = ""
+authors = ["Hamza B <h.bendemra@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+notebook = "^7.3.3"
+huggingface-hub = "^0.29.3"
+smolagents = "^1.12.0"
+ipywidgets = "^8.1.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
