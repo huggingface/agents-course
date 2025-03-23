@@ -1,0 +1,115 @@
+# Câu đố nhỏ (không tính điểm) [[quiz1]]
+
+Đến thời điểm hiện tại, ta đã thảo luận về các thành phần chính và công cụ được sử dụng trong LlamaIndex. Đã đến lúc làm một bài kiểm tra ngắn vì **tự kiểm tra** là cách học hiệu quả nhất và [tránh ảo tưởng về năng lực](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf). Bài tập này sẽ giúp bạn xác định **phần kiến thức cần củng cố**.
+
+Đây là bài kiểm tra không bắt buộc và không tính điểm.
+
+### Q1: QueryEngine là gì?
+Đâu là mô tả chính xác nhất về thành phần QueryEngine?
+
+<Question
+choices={[
+{
+text: "Hệ thống chỉ xử lý văn bản tĩnh không có khả năng truy xuất.",
+explain: "QueryEngine phải có khả năng truy xuất và xử lý thông tin liên quan.",
+},
+{
+text: "Thành phần tìm kiếm và truy xuất thông tin liên quan trong quy trình RAG (Tìm kiếm và tạo ra câu trả lời).",
+explain: "Đây chính là mục đích cốt lõi của QueryEngine.",
+correct: true
+},
+{
+text: "Công cụ chỉ lưu trữ vector embedding mà không có chức năng tìm kiếm.",
+explain: "QueryEngine làm nhiều hơn việc lưu trữ - nó chủ động tìm kiếm và truy xuất thông tin.",
+},
+{
+text: "Thành phần chỉ đánh giá chất lượng phản hồi.",
+explain: "Việc đánh giá là phần tách biệt với mục đích chính của QueryEngine.",
+}
+]}
+/>
+
+---
+
+### Q2: Mục đích của FunctionTools là gì?
+Tại sao FunctionTools quan trọng với Agent?
+
+<Question
+choices={[
+{
+text: "Để xử lý lưu trữ dữ liệu số lượng lớn.",
+explain: "FunctionTools không chủ yếu dùng cho lưu trữ dữ liệu.",
+},
+{
+text: "Biến các hàm Python thành công cụ mà agent có thể sử dụng.",
+explain: "FunctionTools bao bọc các hàm Python để agent truy cập được.",
+correct: true
+},
+{
+text: "Cho phép agent tạo định nghĩa hàm ngẫu nhiên.",
+explain: "FunctionTools có mục đích cụ thể là cung cấp hàm cho agent.",
+},
+{
+text: "Chỉ xử lý dữ liệu văn bản.",
+explain: "FunctionTools có thể làm việc với nhiều loại hàm, không chỉ xử lý văn bản.",
+}
+]}
+/>
+
+---
+
+### Q3: Toolspecs trong LlamaIndex là gì?
+Mục đích chính của Toolspecs là gì?
+
+<Question
+choices={[
+{
+text: "Chúng là thành phần dư thừa không thêm chức năng.",
+explain: "Toolspecs có vai trò quan trọng trong hệ sinh thái LlamaIndex.",
+},
+{
+text: "Bộ công cụ do cộng đồng tạo để mở rộng khả năng của agent.",
+explain: "Toolspecs cho phép cộng đồng chia sẻ và tái sử dụng công cụ.",
+correct: true
+},
+{
+text: "Chỉ dùng cho quản lý bộ nhớ.",
+explain: "Toolspecs liên quan đến cung cấp công cụ, không phải quản lý bộ nhớ.",
+},
+{
+text: "Chỉ hoạt động với xử lý văn bản.",
+explain: "Toolspecs có thể bao gồm nhiều loại công cụ đa dạng.",
+}
+]}
+/>
+
+---
+
+### Q4: Yêu cầu tạo một tool
+Thông tin nào BẮT BUỘC khi tạo một tool?
+
+<Question
+choices={[
+{
+text: "Phải định nghĩa hàm, tên và mô tả.",
+explain: "Dù đây là các thành phần của tool, tên và mô tả có thể được trích xuất từ hàm và docstring.",
+},
+{
+text: "Chỉ cần tên.",
+explain: "Cần có hàm và mô tả/docstring để tài liệu hóa tool đúng cách.",
+},
+{
+text: "Chỉ cần mô tả.",
+explain: "Cần có hàm để chạy code khi agent chọn tool",
+},
+{
+text: "Chỉ cần hàm.",
+explain: "Tên và mô tả sẽ mặc định lấy từ tên hàm và docstring",
+correct: true
+}
+]}
+/>
+
+---
+
+Chúc mừng bạn đã hoàn thành bài kiểm tra 🥳! Nếu có phần chưa đúng, hãy dành thời gian đọc lại chương để củng cố kiến thức. Nếu đã vượt qua, bạn đã sẵn sàng khám phá sâu hơn về cách xây dựng với các thành phần này!

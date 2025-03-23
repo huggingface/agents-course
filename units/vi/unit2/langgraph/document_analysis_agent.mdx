@@ -1,0 +1,251 @@
+# Đồ thị Phân tích Tài liệu
+
+Alfred xin được phục vụ. Là quản gia đáng tin cậy của ngài Wayne, tôi đã ghi chép lại cách mình hỗ trợ ngài Wayne trong các nhu cầu về tài liệu. Trong khi ngài ra ngoài tham gia... các hoạt động ban đêm, tôi đảm bảo mọi giấy tờ, lịch tập luyện và kế hoạch dinh dưỡng đều được phân tích và sắp xếp hợp lý.
+
+Trước khi rời đi, ngài có để lại ghi chú về chương trình tập luyện tuần này. Tôi đã nhận trách nhiệm lên **thực đơn** cho các bữa ăn ngày mai.
+
+Để xử lý những tình huống tương tự trong tương lai, hãy tạo một hệ thống phân tích tài liệu bằng LangGraph để phục vụ nhu cầu của ngài Wayne. Hệ thống này có thể:
+
+1. Xử lý tài liệu hình ảnh
+2. Trích xuất văn bản bằng mô hình thị giác (Vision Language Model)
+3. Thực hiện tính toán khi cần (để minh họa cho các công cụ thông thường)
+4. Phân tích nội dung và cung cấp bản tóm tắt ngắn gọn
+5. Thực hiện các chỉ dẫn cụ thể liên quan đến tài liệu
+
+## Quy trình làm việc của Quản gia
+
+Quy trình chúng ta sẽ xây dựng tuân theo sơ đồ cấu trúc sau:
+
+![Quy trình Phân tích Tài liệu của Quản gia](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">notebook này</a> và chạy bằng Google Colab.
+</Tip>
+
+## Thiết lập môi trường
+
+```python
+%pip install langgraph langchain_openai Pillow base64 langchain_core
+```
+và import các thư viện:
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain.schema import HumanMessage
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langgraph.prebuilt import ToolNode
+from IPython.display import Image, display
+```
+
+## Định nghĩa Trạng thái Agent
+
+Trạng thái này phức tạp hơn một chút so với những phiên bản trước. 
+AnyMessage là một lớp từ langchain định nghĩa các tin nhắn và add_messages là toán tử thêm tin nhắn mới thay vì ghi đè lên trạng thái cũ.
+
+Đây là một khái niệm mới trong LangGraph, nơi bạn có thể thêm các toán tử vào trạng thái để định nghĩa cách chúng tương tác với nhau.
+
+```python
+class AgentState(TypedDict):
+    # Tài liệu được cung cấp
+    input_file: Optional[str]  # Chứa đường dẫn file (PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## Chuẩn bị Công cụ
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Trích xuất văn bản từ file ảnh bằng mô hình đa phương thức.
+    
+    Ngài Wayne thường để lại các ghi chú về chế độ tập luyện hoặc thực đơn.
+    Điều này cho phép tôi phân tích nội dung một cách chính xác.
+    """
+    all_text = ""
+    try:
+        # Đọc ảnh và mã hóa dạng base64
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Chuẩn bị prompt bao gồm dữ liệu ảnh base64
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Trích xuất toàn bộ văn bản từ ảnh này. "
+                            "Chỉ trả về văn bản đã trích xuất, không giải thích."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # Gọi mô hình hỗ trợ xử lý ảnh
+        response = vision_llm.invoke(message)
+
+        # Thêm văn bản trích xuất
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # Một quản gia cần xử lý lỗi một cách thanh lịch
+        error_msg = f"Lỗi trích xuất văn bản: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Chia a cho b - phục vụ các phép tính toán thi thoảng của ngài Wayne."""
+    return a / b
+
+# Trang bị công cụ cho quản gia
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## Các node
+
+```python
+def assistant(state: AgentState):
+    # Tin nhắn hệ thống
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Trích xuất văn bản từ file ảnh bằng mô hình đa phương thức.
+
+    Args:
+        img_path: Đường dẫn file ảnh cục bộ (chuỗi).
+
+    Returns:
+        Một chuỗi duy nhất chứa toàn bộ văn bản trích xuất từ ảnh.
+divide(a: int, b: int) -> float:
+    Chia a cho b
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"Bạn là quản gia Alfred hữu ích phục vụ ngài Wayne và Batman. Bạn có thể phân tích tài liệu và chạy tính toán bằng các công cụ được cung cấp:\n{textual_description_of_tool} \n Bạn có quyền truy cập vào một số ảnh tùy chọn. Hiện tại ảnh đang được tải là: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## Mô hình ReAct: Cách tôi hỗ trợ ngài Wayne
+
+Cho phép tôi giải thích cách tiếp cận trong agent này. Agent tuân theo mô hình ReAct (Lý luận - Hành động - Quan sát):
+
+1. **Lý luận** về tài liệu và yêu cầu
+2. **Hành động** bằng cách sử dụng công cụ phù hợp
+3. **Quan sát** kết quả
+4. **Lặp lại** khi cần thiết cho đến khi đáp ứng đủ nhu cầu
+
+Đây là một triển khai đơn giản của agent sử dụng LangGraph.
+
+```python
+## Đồ thị
+builder = StateGraph(AgentState)
+
+# Định nghĩa node: thực hiện công việc
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Định nghĩa cạnh: xác định luồng điều khiển
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Nếu tin nhắn mới nhất yêu cầu công cụ, chuyển đến tools
+    # Ngược lại, trả lời trực tiếp
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# Hiển thị quá trình suy nghĩ của quản gia
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+![Mô hình ReAct](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## Quản gia trong hành động
+
+### Ví dụ 1: Tính toán đơn giản
+
+Trong ví dụ sau, chúng ta thêm hàm chia này để minh họa
+
+```python
+messages = [HumanMessage(content="Chia 6790 cho 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+```
+
+Cuộc hội thoại sẽ diễn ra như sau:
+
+```
+Human: Chia 6790 cho 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: Kết quả của phép chia 6790 cho 5 là 1358.0.
+```
+
+### Ví dụ 2: Phân tích Tài liệu Tập luyện của ngài Wayne
+
+Khi ngài Wayne để lại các ghi chú về tập luyện và thực đơn:
+
+```python
+messages = [HumanMessage(content="Theo ghi chú trong ảnh được cung cấp bởi ngài Wayne. Danh sách các vật phẩm tôi cần mua cho thực đơn tối nay là gì?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+Quá trình tương tác sẽ diễn ra:
+
+```
+Human: Theo ghi chú trong ảnh được cung cấp bởi ngài Wayne. Danh sách các vật phẩm tôi cần mua cho thực đơn tối nay là gì?
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [Văn bản trích xuất bao gồm lịch tập và chi tiết thực đơn]
+
+Alfred: Đối với thực đơn tối, bạn cần mua các vật phẩm sau:
+
+1. Thăn bò ăn cỏ địa phương
+2. Rau chân vịt hữu cơ
+3. Ớt Piquillo
+4. Khoai tây (để nướng vàng thảo mộc)
+5. Dầu cá (2 gram)
+
+Hãy đảm bảo thịt bò được nuôi bằng cỏ và rau chân vịt cùng ớt là hữu cơ để có bữa ăn chất lượng nhất.
+```
+
+## Điểm quan trọng cần nhớ
+
+Nếu bạn muốn tạo quản gia phân tích tài liệu cho riêng mình, hãy lưu ý:
+
+1. **Định nghĩa công cụ rõ ràng** cho các tác vụ liên quan đến tài liệu
+2. **Tạo bộ theo dõi trạng thái mạnh mẽ** để duy trì ngữ cảnh giữa các lần gọi công cụ
+3. **Xử lý lỗi** cho các trường hợp công cụ thất bại
+5. **Duy trì nhận thức ngữ cảnh** về các tương tác trước đó (được đảm bảo bởi toán tử add_messages)
+
+Với những nguyên tắc này, bạn cũng có thể cung cấp dịch vụ phân tích tài liệu đẳng cấp xứng tầm biệt thự Wayne.
+
+*Tôi tin rằng giải thích này đã thỏa đáng. Giờ xin phép được lui, vì áo choàng của ngài Wayne cần được là ủi trước các hoạt động tối nay.*
