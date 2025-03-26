@@ -63,7 +63,7 @@ LANGFUSE_AUTH = base64.b64encode(
 os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = os.environ.get("LANGFUSE_HOST") + "/api/public/otel"
 os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
 ```
-We also need to configure or Hugging Face token for inference calls.
+We also need to configure our Hugging Face token for inference calls.
 
 ```python
 # Set your Hugging Face and other tokens/secrets as environment variable
