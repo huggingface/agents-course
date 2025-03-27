@@ -13,6 +13,14 @@ The `gr.ChatInterface` is a high-level component that handles all the essential 
 
 ## Your First Agent UI
 
+You'll first need to install langchain and langgraph for this section.
+
+```python
+pip install langchain
+pip install langgraph
+```
+
+
 Let's create a simple Agent that helps with weather information. Here's how to build it:
 
 ```python
@@ -152,7 +160,8 @@ Let's break down what's happening:
    - Shows the Agent's thought process and tool-usage in real time
    - Keeps users engaged while waiting
 
-We are using `type="messages"` in gr.ChatInterface. This passes the history as a list of dictionaries with openai-style "role" and "content" keys.
+We are using `type="messages"` in `gr.ChatInterface`. This passes the history as a list of dictionaries with openai-style "role" and "content" keys.
+ChatInterface is Gradio's high-level abstraction for chatbot UIs, requiring only one parameter: fn, a function that returns LLM responses based on the user input and chat history. There are additional parameters, like `type`, that help control the chatbot's appearance and behavior. We'll explore the ChatInterface class further in the following chapters.
 
 ## Adding More Features
 
