@@ -1,0 +1,77 @@
+# ¿Qué es la Llamada a Funciones?
+
+La llamada a funciones es una **forma para que un LLM realice acciones en su entorno**. Fue [introducida primero en GPT-4](https://openai.com/index/function-calling-and-other-api-updates/), y posteriormente fue reproducida en otros modelos.
+
+Al igual que las herramientas de un Agente, la llamada a funciones le da al modelo la capacidad de **realizar una acción en su entorno**. Sin embargo, la capacidad de llamada a funciones **es aprendida por el modelo**, y **depende menos de los prompts que otras técnicas de agentes**.
+
+Durante la Unidad 1, el Agente **no aprendió a usar las Herramientas**, simplemente proporcionamos la lista, y confiamos en el hecho de que el modelo **era capaz de generalizar al definir un plan usando estas Herramientas**. 
+
+Mientras que aquí, **con la llamada a funciones, el Agente es ajustado (entrenado) para usar Herramientas**.
+
+## ¿Cómo "aprende" el modelo a realizar una acción?
+
+En la Unidad 1, exploramos el flujo de trabajo general de un agente. Una vez que el usuario ha dado algunas herramientas al agente y le ha proporcionado una consulta, el modelo pasará por el ciclo:
+
+1. *Pensar* : ¿Qué acción(es) necesito tomar para cumplir el objetivo?
+2. *Actuar* : Formatear la acción con el parámetro correcto y detener la generación.
+3. *Observar* : Obtener el resultado de la ejecución.
+
+En una conversación "típica" con un modelo a través de una API, la conversación alternará entre mensajes del usuario y del asistente de esta manera:
+
+```python
+conversation = [
+    {"role": "user", "content": "Necesito ayuda con mi pedido"},
+    {"role": "assistant", "content": "Estaré encantado de ayudar. ¿Podrías proporcionar tu número de pedido?"},
+    {"role": "user", "content": "Es ORDER-123"},
+]
+```
+
+¡La llamada a funciones trae **nuevos roles a la conversación**! 
+
+1. Un nuevo rol para una **Acción** 
+2. Un nuevo rol para una **Observación** 
+
+Si tomamos la [API de Mistral](https://docs.mistral.ai/capabilities/function_calling/) como ejemplo, se vería así:
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "¿Cuál es el estado de mi transacción T1001?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Tu transacción T1001 ha sido pagada exitosamente."
+    }
+]
+```
+
+> ... ¿Pero dijiste que hay un nuevo rol para las llamadas a funciones?
+
+**Sí y no**, en este caso y en muchas otras APIs, el modelo formatea la acción a tomar como un mensaje de "asistente". La plantilla de chat luego representará esto como **tokens especiales** para la llamada a funciones.
+
+- `[AVAILABLE_TOOLS]` – Inicio de la lista de herramientas disponibles  
+- `[/AVAILABLE_TOOLS]` – Fin de la lista de herramientas disponibles  
+- `[TOOL_CALLS]` – Hacer una llamada a una herramienta (es decir, realizar una "Acción")  
+- `[TOOL_RESULTS]` – "Observar" el resultado de la acción  
+- `[/TOOL_RESULTS]` – Fin de la observación (es decir, el modelo puede decodificar nuevamente)
+
+Hablaremos nuevamente sobre la llamada a funciones en este curso, pero si quieres profundizar puedes consultar [esta excelente sección de documentación](https://docs.mistral.ai/capabilities/function_calling/).
+
+---
+Ahora que hemos aprendido qué es la llamada a funciones y cómo funciona, vamos a **agregar algunas capacidades de llamada a funciones a un modelo que aún no tiene esas capacidades**: [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it), agregando algunos nuevos tokens especiales al modelo.
+
+Para poder hacer eso, **primero necesitamos entender el fine-tuning y LoRA**.
