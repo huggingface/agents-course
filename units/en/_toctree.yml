@@ -108,6 +108,22 @@
     title: Quick Quiz 1
   - local: unit2/langgraph/conclusion
     title: Conclusion
+- title: Unit 3. Use Case for Agentic RAG
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Introduction to Use Case for Agentic RAG
+  - local: unit3/agentic-rag/gala
+    title: A Gala to Remember
+  - local: unit3/agentic-rag/agentic-rag
+    title: Agentic Retrieval Augmented Generation (RAG)
+  - local: unit3/agentic-rag/invitees
+    title: Creating a RAG Tool for Guest Stories
+  - local: unit3/agentic-rag/tools
+    title: Building and Integrating Tools for Your Agent
+  - local: unit3/agentic-rag/agent
+    title: Creating Your Gala Agent
+  - local: unit3/agentic-rag/conclusion
+    title: Conclusion
 - title: Bonus Unit 1. Fine-tuning an LLM for Function-calling
   sections:
   - local: bonus-unit1/introduction
