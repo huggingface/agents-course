@@ -1,0 +1,155 @@
+# 사고-행동-관찰 주기를 통해 AI 에이전트 이해하기 [[understanding-ai-agents-through-the-thought-action-observation-cycle]]
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Unit 1 planning"/>
+
+이전 섹션에서 우리는 다음 내용을 배웠습니다:
+
+- **도구가 시스템 프롬프트에서 에이전트에 어떻게 제공되는지**.
+- **AI 에이전트가 '추론'하고, 계획을 세우며, 환경과 상호작용하는 시스템이라는 것**.
+
+이번 섹션에서는 **AI 에이전트의 전체 워크플로우, 사고(Thought)-행동(Action)-관찰(Observation) 주기**에 대해 살펴보겠습니다.
+
+그리고 각 단계에 대해 더 깊이 탐구해 보겠습니다.
+
+
+## 핵심 구성 요소 [[the-core-components]]
+
+에이전트는 **사고(Thought) → 행동(Act) → 관찰(Observe)**의 연속적인 주기로 작동합니다.
+
+이 과정의 각 단계를 자세히 살펴보겠습니다:
+
+1. **사고(Thought)**: 에이전트의 LLM부분이 다음에 수행할 단계를 결정합니다.
+2. **행동(Action):** 에이전트가 도구를 호출하고 필요한 인자를 전달하여 특정 행동을 수행합니다.
+3. **관찰(Observation):** 모델이 도구의 응답을 검토합니다.
+
+## 사고(Thought)-행동(Action)-관찰(Observation) 주기 [[the-thought-action-observation-cycle]]
+
+
+이 세 가지 구성 요소는 반복루프 내에서 함께 작동합니다. 프로그래밍에 비유하자면, 에이전트는 **while 루프**를 사용합니다. 즉, 에이전트의 목표가 달성될 때까지 루프가 계속 실행됩니다.
+
+이를 시각적으로 표현하면 다음과 같습니다:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Think, Act, Observe cycle"/>
+
+많은 에이전트 프레임워크에서는 **규칙과 가이드라인이 시스템 프롬프트에 직접 내장**되어 있어, 각 주기가 정의된 논리에 따라 실행됩니다.
+
+이를 단순화한 시스템 프롬프트 예시는 다음과 같습니다:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Think, Act, Observe cycle"/>
+
+이 시스템 메시지에서 우리는 다음 요소들을 정의했습니다:
+
+- *에이전트의 행동 방식*
+- *에이전트가 접근할 수 있는 도구들* (이전 섹션에서 설명한 내용)
+- *사고(Thought)-행동(Action)-관찰(Observation) 주기* 를 LLM 지침에 내장
+
+이제, 각 단계를 더 깊이 탐구하기 전에, 간단한 예제를 통해 이 과정이 어떻게 작동하는지 살펴보겠습니다.
+
+## 날씨 에이전트 알프레드(Alfred) [[alfred-the-weather-agent]]
+
+우리는 날씨 정보를 제공하는 에이전트 Alfred를 만들었습니다.
+
+사용자가 Alfred에게 다음과 같이 질문합니다: “오늘 뉴욕 날씨 어때?”
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Alfred Agent"/>
+
+Alfred의 역할은 날씨 API 도구를 사용하여 이 질문에 답하는 것입니다.
+
+다음과 같이 사고-행동-관찰 주기가 진행됩니다:
+
+
+### 사고(Thought) [[thought]]
+
+**내부 사고 과정(Internal Reasoning):**
+
+질문을 받은 후, Alfred의 내부에서 이루어지는 대화는 다음과 같을 수 있습니다 :
+
+*"사용자는 뉴욕의 현재 날씨 정보를 원하고 있어. 내가 사용할 수 있는 날씨 API 도구가 있으니, 먼저 이 도구를 호출해서 최신 정보를 가져와야 해."*
+
+이 단계에서 에이전트는 문제를 단계별로 나눕니다 : 첫 번째 단계는 필요한 데이터를 수집하는 것입니다.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Alfred Agent"/>
+
+### 행동(Action) [[action]]
+
+**도구 사용:**
+
+Alfred는 추론과 `get_weather` 도구를 알고 있다는 사실에 기반해, 날씨 API 도구를 호출하기 위한 JSON 형식의 명령을 준비합니다.
+예를 들어, 첫 번째 액션은 다음과 같을 수 있습니다:
+
+사고(Thought): 뉴욕의 현재 날씨를 확인해야 해.
+
+ ```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+ ```
+
+Here, the action clearly specifies which tool to call (e.g., get_weather) and what parameter to pass (the “location": “New York”).
+
+여기서, action은 어떤 도구를 호출할지 지정하고 (get_weather) 필요한 입력값(예: "location": "New York")을 설정합니다.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
+
+### 관찰(Observation) [[observation]]
+
+**환경으로부터의 피드백:**
+
+도구 호출 후, Alfred는 관찰 결과를 받습니다. 예를 들어, API에서 반환된 날씨 데이터가 다음과 같을 수 있습니다:
+
+*"뉴욕의 현재 날씨: 부분적으로 흐림, 15°C, 습도 60%"*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Alfred Agent"/>
+
+이러한 관찰 결과는 추가 컨텍스트로 프롬프트에 더해집니다. 즉, 관찰은 현실 세계에서의 피드백 역할을 하며, 에이전트가 실행한 행동이 성공했는지 확인하고 필요한 정보를 제공합니다.
+
+### 업데이트된 사고(thought)과정 [[updated-thought]]
+
+**성찰(Reflecting):**
+
+관찰 데이터를 얻은 후, Alfred는 내부 사고 과정을 업데이트합니다:
+
+*"이제 뉴욕의 날씨 데이터를 확보했으니, 사용자에게 답변을 정리할 수 있어."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Alfred Agent"/>
+
+
+### 최종 행동(Action) [[final-action]]
+
+Alfred는 이제 사용자에게 전달할 최종 응답을 우리가 지정해준 형식에 맞게 생성합니다:
+
+사고: 이제 날씨 데이터를 확보했어. 뉴욕의 현재 날씨는 부분적으로 흐리고, 기온은 15°C, 습도는 60%야.
+
+최종 답변 : 뉴욕의 현재 날씨는 부분적으로 흐리고, 기온은 15°C, 습도는 60%입니다.
+
+이 최종 행동을 통해 답변을 사용자에게 전달하고, 루프를 종료합니다.
+
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Alfred Agent"/>
+
+
+이 예제를 통해 배운 것:
+
+- **에이전트는 목표가 달성될 때까지 반복적으로 루프를 실행한다.:**
+    
+**Alfred의 과정은 순환적입니다.**. 사고(thought)에서 시작해, 도구를 호출함으로 행동(Action)을 취하고, 마지막으로 결과를 관찰(Observation)합니다. 만약 관찰 단계에서 오류가 발생하거나 데이터가 불완전하면, Alfred는 루프를 다시 실행하여 문제를 해결합니다.
+    
+- **도구(Tool) 통합:**
+
+에이전트는 **정적인 지식을 넘어, 외부 도구(날씨 API같은)를 호출하여 실시간 데이터**를 가져올 수 있습니다. 이것은 AI 에이전트의 핵심 기능 중 하나입니다.
+
+- **동적 적응(Dynamic Adaptation):**
+
+에이전트는 각 주기를 거치면서, 새로운 정보(관찰)를 반영하여 사고 과정을 조정합니다. 이를 통해 최종 답변이 더 정확하고 신뢰할 수 있도록 만듭니다.
+    
+이 예제는 우리가 다음 섹션에서 다룰 **ReAct(강화학습-Reinforcement Learning + 행동-Action) 주기**의 핵심 개념을 보여줍니다:
+**사고(Thought), 행동(Action), 관찰(Observation)의 상호작용을 통해 AI 에이전트가 복잡한 문제를 점진적으로 해결**할 수 있도록 합니다.
+
+이러한 원칙을 이해하고 적용함으로써, 에이전트를 설계할 때 단순히 작업을 추론하는 것뿐만 아니라 **외부 도구를 효과적으로 활용하여 작업을 완료**할 수 있도록 만들 수 있습니다. 또한, 환경에서 받은 피드백을 바탕으로 지속적으로 출력을 개선해나갑니다.
+
+---
+
+이제 Thought, Action, Observation을 개별 단계별로 더 깊이 탐구해 보겠습니다.
