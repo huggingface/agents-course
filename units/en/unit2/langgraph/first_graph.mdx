@@ -33,7 +33,7 @@ import os
 from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage
 ```
 
 ## Step 1: Define Our State
@@ -45,23 +45,17 @@ class EmailState(TypedDict):
     # The email being processed
     email: Dict[str, Any]  # Contains subject, sender, body, etc.
 
-    # Category of the email
+    # Category of the email (inquiry, complaint, etc.)
     email_category: Optional[str]
-
-    # reason of spam
-    spam_reason: Optional[str]
-    
-    # Analysis and decisions
-    is_spam: Optional[bool]
 
     # Reason why the email was marked as spam
     spam_reason: Optional[str]
 
-    # Category of the email (inquiry, complaint, etc.)
-    email_category: Optional[str]
+    # Analysis and decisions
+    is_spam: Optional[bool]
     
     # Response generation
-    draft_response: Optional[str]
+    email_draft: Optional[str]
     
     # Processing metadata
     messages: List[Dict[str, Any]]  # Track conversation with LLM for analysis
@@ -179,7 +173,7 @@ def draft_response(state: EmailState):
     
     # Return state updates
     return {
-        "draft_response": response.content,
+        "email_draft": response.content,
         "messages": new_messages
     }
 
@@ -193,7 +187,7 @@ def notify_mr_hugg(state: EmailState):
     print(f"Category: {state['email_category']}")
     print("\nI've prepared a draft response for your review:")
     print("-"*50)
-    print(state["draft_response"])
+    print(state["email_draft"])
     print("="*50 + "\n")
     
     # We're done processing this email
@@ -282,7 +276,7 @@ legitimate_result = compiled_graph.invoke({
     "is_spam": None,
     "spam_reason": None,
     "email_category": None,
-    "draft_response": None,
+    "email_draft": None,
     "messages": []
 })
 
@@ -293,7 +287,7 @@ spam_result = compiled_graph.invoke({
     "is_spam": None,
     "spam_reason": None,
     "email_category": None,
-    "draft_response": None,
+    "email_draft": None,
     "messages": []
 })
 ```
@@ -314,7 +308,7 @@ Second, we pip install Langchain (LangChain is required because we use LangFuse)
 %pip install langchain
 ```
 
-Next, we add the Langfuse API keys and host address as environment variables. You can get your Langfuse credentials by signing up for [Langfuse Cloud](https://cloud.langfuse.com) or [self-host Langfuse](https://langfuse.com/self-hosting). 
+Next, we add the Langfuse API keys and host address as environment variables. You can get your Langfuse credentials by signing up for [Langfuse Cloud](https://cloud.langfuse.com) or [self-host Langfuse](https://langfuse.com/self-hosting).
 
 ```python
 import os
