@@ -157,7 +157,7 @@ def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
     current_step = step_log.step_number
     if driver is not None:
         for step_logs in agent.logs:  # Remove previous screenshots from logs for lean processing
-            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+            if isinstance(step_logs, ActionStep) and step_logs.step_number <= current_step - 2:
                 step_logs.observations_images = None
         png_bytes = driver.get_screenshot_as_png()
         image = Image.open(BytesIO(png_bytes))
