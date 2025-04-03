@@ -92,7 +92,7 @@
     title: Quick Quiz 2
   - local: unit2/llama-index/conclusion
     title: Conclusion
-- title: Unit 2.3 LangGraph
+- title: Unit 2.3 The LangGraph framework
   sections:
   - local: unit2/langgraph/introduction
     title: Introduction to LangGraph

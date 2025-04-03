@@ -25,19 +25,17 @@ You can follow the code in <a href="https://huggingface.co/agents-course/noteboo
 ## Setting Up the environment
 
 ```python
-%pip install langgraph langchain_openai Pillow base64 langchain_core
+%pip install langgraph langchain_openai langchain_core
 ```
 and imports :
 ```python
 import base64
 from typing import List, TypedDict, Annotated, Optional
-from langchain.schema import HumanMessage
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import AnyMessage, SystemMessage
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
 from langgraph.graph.message import add_messages
 from langgraph.graph import START, StateGraph
-from langgraph.prebuilt import tools_condition
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import ToolNode, tools_condition
 from IPython.display import Image, display
 ```
 
@@ -154,14 +152,14 @@ divide(a: int, b: int) -> float:
 Allow me to explain the approach in this agent. The agent follows what's known as the ReAct pattern (Reason-Act-Observe)
 
 1. **Reason** about his documents and requests
-2. **Act** by using appropriate tools 
+2. **Act** by using appropriate tools
 3. **Observe** the results
 4. **Repeat** as necessary until I've fully addressed his needs
 
 This is a simple implementation of an agent using langGraph.
 
 ```python
-## The graph
+# The graph
 builder = StateGraph(AgentState)
 
 # Define nodes: these do the work
@@ -183,17 +181,36 @@ react_graph = builder.compile()
 display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
 ```
 
+We define a `tools` node with our list of tools. The `assistant` node is just our model with bound tools.
+We create a graph with `assistant` and `tools` nodes.
+
+We add `tools_condition` edge, which routes to `End` or to `tools` based on whether the `assistant` calls a tool.
+
+Now, we add one new step:
+
+We connect the `tools` node back to the `assistant`, forming a loop.
+
+- After the `assistant` node executes, `tools_condition` checks if the model's output is a tool call.
+- If it is a tool call, the flow is directed to the `tools` node.
+- The `tools` node connects back to `assistant`.
+- This loop continues as long as the model decides to call tools.
+- If the model response is not a tool call, the flow is directed to END, terminating the process.
+
 ![ReAct Pattern](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
 
 ## The Butler in Action
 
 ### Example 1: Simple Calculations
 
-In the following example, we added this divide example just as a 
+Here is an example to show a simple use case of an agent using a tool in LangGraph.
 
 ```python
 messages = [HumanMessage(content="Divide 6790 by 5")]
 messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# Show the messages
+for m in messages['messages']:
+    m.pretty_print()
 ```
 
 The conversation would proceed:
