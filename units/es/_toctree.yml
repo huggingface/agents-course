@@ -1,0 +1,148 @@
+- title: Unit 0. Bienvenida al curso
+  sections:
+  - local: unit0/introduction
+    title: Bienvenida al curso 🤗
+  - local: unit0/onboarding
+    title: Incorporación
+  - local: unit0/discord101
+    title: (Optional) Discord 101
+- title: Live 1. Como funciona el curso y preguntas y respuestas
+  sections:
+  - local: communication/live1
+    title: Live 1. Como funciona el curso y preguntas y respuestas
+- title: Unit 1. Introducción a Agentes
+  sections:
+  - local: unit1/introduction
+    title: Introducción
+  - local: unit1/what-are-agents
+    title: ¿Qué es un Agente?
+  - local: unit1/quiz1
+    title: Prueba rápida 1
+  - local: unit1/what-are-llms
+    title: ¿Qué son los LLMs?
+  - local: unit1/messages-and-special-tokens
+    title: Mensajes y tokens especiales
+  - local: unit1/tools
+    title: ¿Qué son las Herramientas?
+  - local: unit1/quiz2
+    title: Prueba rápida 2
+  - local: unit1/agent-steps-and-structure
+    title: Entendiendo los Agentes a través del Ciclo de Pensamiento, Acción y Observación
+  - local: unit1/thoughts
+    title: Pensamiento Interno y el Enfoque Re-Act
+  - local: unit1/actions
+    title: Acciones, Habilitando al Agente para Interactuar con su Entorno
+  - local: unit1/observations
+    title: Observar, Integrando Feedback para Reflejar y Adaptar
+  - local: unit1/dummy-agent-library
+    title: Libreria de Agentes Dummy
+  - local: unit1/tutorial
+    title: Creemos nuesto primer Agente usando smolagents
+  - local: unit1/final-quiz
+    title: Prueba Final de Unidad 1
+  - local: unit1/conclusion
+    title: Conclusión
+- title: Unidad 2. Frameworks para Agentes de IA
+  sections:
+  - local: unit2/introduction
+    title: Frameworks para Agentes de IA
+- title: Unidad 2.1 Framework smolagents
+  sections:
+  - local: unit2/smolagents/introduction
+    title: Introducción a smolagents
+  - local: unit2/smolagents/why_use_smolagents
+    title: Por que usar smolagents?
+  - local: unit2/smolagents/quiz1
+    title: Prueba rápida 1
+  - local: unit2/smolagents/code_agents
+    title: Construyendo Agentes que Utilizan Código
+  - local: unit2/smolagents/tool_calling_agents
+    title: Escribiendo acciones como snippets de código o bloques JSON
+  - local: unit2/smolagents/tools
+    title: Herramientas
+  - local: unit2/smolagents/retrieval_agents
+    title: Agentes de Recuperación
+  - local: unit2/smolagents/quiz2
+    title: Prueba rápida 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: Sistemas de Agentes Multiples
+  - local: unit2/smolagents/vision_agents
+    title: Agentes de Visión y Navegación
+  - local: unit2/smolagents/final_quiz
+    title: Prueba Final
+  - local: unit2/smolagents/conclusion
+    title: Conclusión
+- title: Unidad 2.2 Framework LlamaIndex
+  sections:
+  - local: unit2/llama-index/introduction
+    title: Introducción a LlamaIndex
+  - local: unit2/llama-index/llama-hub
+    title: Introducción a LlamaHub
+  - local: unit2/llama-index/components
+    title: ¿Qué son Componentes en LlamaIndex?
+  - local: unit2/llama-index/tools
+    title: Utilizando Herramientas en LlamaIndex
+  - local: unit2/llama-index/quiz1
+    title: Prueba rápida 1
+  - local: unit2/llama-index/agents
+    title: Utilizando Agentes en LlamaIndex
+  - local: unit2/llama-index/workflows
+    title: Crear flujos Agenticos en LlamaIndex
+  - local: unit2/llama-index/quiz2
+    title: Prueba rápida 2
+  - local: unit2/llama-index/conclusion
+    title: Conclusión
+- title: Unidad 2.3 LangGraph
+  sections:
+  - local: unit2/langgraph/introduction
+    title: Introducción a LangGraph
+  - local: unit2/langgraph/when_to_use_langgraph
+    title: ¿Qué es LangGraph?
+  - local: unit2/langgraph/building_blocks
+    title: Componentes de LangGraph
+  - local: unit2/langgraph/first_graph
+    title: Construyendo Tu Primer LangGraph
+  - local: unit2/langgraph/document_analysis_agent
+    title: Grafo de Análisis de Documentos
+  - local: unit2/langgraph/quiz1
+    title: Prueba rápida 1
+  - local: unit2/langgraph/conclusion
+    title: Conclusión
+- title: Unidad 3. Caso de Uso para Agentic RAG
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Introducción al Caso de Uso para Agentic RAG
+  - local: unit3/agentic-rag/agentic-rag
+    title: Agentic Retrieval Augmented Generation (RAG)
+  - local: unit3/agentic-rag/invitees
+    title: Creando una herramienta RAG para historias de invitados
+  - local: unit3/agentic-rag/tools
+    title: Construyendo y integrando herramientas para tu agente
+  - local: unit3/agentic-rag/agent
+    title: Creando tu agente de gala
+  - local: unit3/agentic-rag/conclusion
+    title: Conclusión
+- title: Unidad Bonus 1. Fine-tuning de un LLM para Llamadas a Funciones
+  sections:
+  - local: bonus-unit1/introduction
+    title: Introducción
+  - local: bonus-unit1/what-is-function-calling
+    title: ¿Qué es la Llamada a Funciones?
+  - local: bonus-unit1/fine-tuning
+    title: Hagamos Fine-Tuning de Tu Modelo para Llamadas a Funciones
+  - local: bonus-unit1/conclusion
+    title: Conclusión
+- title: Unidad Bonus 2. Observabilidad y Evaluación de Agentes
+  sections:
+  - local: bonus-unit2/introduction
+    title: Introducción
+  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+    title: ¿Qué es la observabilidad y evaluación de agentes?
+  - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
+    title: Monitorear y Evaluar Agentes
+  - local: bonus-unit2/quiz
+    title: Prueba
+- title: ¿Cuando las siguientes unidades estén publicadas?
+  sections:
+  - local: communication/next-units
+    title: Siguientes unidades

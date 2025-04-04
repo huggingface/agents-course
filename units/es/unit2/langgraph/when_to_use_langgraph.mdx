@@ -1,0 +1,68 @@
+# ¿Qué es `LangGraph`?
+
+`LangGraph` s un marco de trabajo desarrollado por [LangChain](https://www.langchain.com/) **para gestionar el flujo de control de aplicaciones que integran un LLM.**.
+
+## ¿Es `LangGraph` diferente de `LangChain`?
+
+LangChain proporciona una interfaz estándar para interactuar con modelos y otros componentes, útil para recuperación, llamadas a LLM y llamadas a herramientas.
+Las clases de LangChain pueden utilizarse en LangGraph, pero NO TIENEN que ser utilizadas.
+
+Los paquetes son diferentes y pueden usarse de forma aislada, pero, al final, todos los recursos que encontrarás en línea utilizan ambos paquetes de la mano.
+
+## ¿Cuándo debería usar `LangGraph`?
+### Control vs libertad
+
+Al diseñar aplicaciones de IA, te enfrentas a un equilibrio fundamental entre **control** y **libertad**:
+
+- **libertad** da a tu LLM más espacio para ser creativo y abordar problemas inesperados.
+- **Control** te permite asegurar un comportamiento predecible y mantener barreras de protección.
+
+Los Agentes de Código, como los que puedes encontrar en *smolagents*,son muy libres. Pueden llamar a múltiples herramientas en un solo paso de acción, crear sus propias herramientas, etc. Sin embargo, este comportamiento puede hacerlos menos predecibles y menos controlables que un Agente regular trabajando con JSON.
+
+`LangGraph` está en el otro extremo del espectro, brilla cuando necesitas **"Control"** sobre la ejecución de tu agente.
+
+LangGraph es particularmente valioso cuando necesitas **Control sobre tus aplicaciones**.  Te da las herramientas para construir una aplicación que siga un proceso predecible mientras aprovecha el poder de los LLMs. 
+
+En términos simples, si tu aplicación involucra una serie de pasos que necesitan ser orquestados de una manera específica, con decisiones siendo tomadas en cada punto de unión, **LangGraph proporciona la estructura que necesitas**.
+
+Como ejemplo, digamos que queremos construir un asistente LLM que pueda responder algunas preguntas sobre algunos documentos.
+
+Como los LLMs entienden mejor el texto, antes de poder responder a la pregunta, necesitarás convertir otras modalidades complejas (gráficos, tablas) en texto. Sin embargo, ¡esa elección depende del tipo de documento que tengas!
+
+Esta es una ramificación que elegí representar de la siguiente manera: 
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/flow.png" alt="Control flow"/>
+
+> 💡 **Tip:**  La parte izquierda no es un agente, ya que aquí no está involucrada ninguna llamada a herramientas. Pero la parte derecha necesitará escribir algo de código para consultar el xls (convertir a pandas y manipularlo).
+
+Si bien esta ramificación es determinista, también puedes diseñar ramificaciones que estén condicionadas por la salida de un LLM, haciéndolas indeterministas.
+
+Los escenarios clave donde LangGraph sobresale incluyen:
+
+- **Procesos de razonamiento en múltiples pasos** que necesitan control explícito sobre el flujo
+- **Aplicaciones que requieren persistencia de estado** entre pasos
+- **Sistemas que combinan lógica determinista con capacidades de IA**
+- **Flujos de trabajo que necesitan intervenciones humanas en el ciclo**
+- **Arquitecturas de agentes complejas ** con múltiples componentes trabajando juntos
+
+En esencia, siempre que sea posible, ** como humano**, diseña un flujo de acciones basado en la salida de cada acción, y decide qué ejecutar a continuación en consecuencia. En este caso, ¡LangGraph es el marco de trabajo correcto para ti!
+
+`LangGraph` es, en mi opinión, el marco de trabajo de agentes más listo para producción en el mercado.
+
+## ¿Cómo funciona LangGraph?
+
+En su esencia,  `LangGraph` utiliza una estructura de grafo dirigido para definir el flujo de tu aplicación:
+
+- **Nodos** representan pasos de procesamiento individuales (como llamar a un LLM, usar una herramienta o tomar una decisión).
+- **Aristas(Edges)** definen las posibles transiciones entre pasos.
+- **Estado** es definido por el usuario, se mantiene y se pasa entre nodos durante la ejecución. Al decidir qué nodo dirigir a continuación, este es el estado actual que observamos.
+
+¡Exploraremos estos bloques fundamentales más en el próximo capítulo!
+
+## ¿En qué se diferencia de Python regular? ¿Por qué necesito LangGraph?
+
+Te preguntaras : "Podría simplemente escribir código Python regular con declaraciones if-else para manejar todos estos flujos, ¿verdad?" 
+
+Aunque técnicamente es cierto, LangGraph ofrece **algunas ventajas ** osobre Python puro para construir sistemas complejos. Podrías construir la misma aplicación sin LangGraph, pero proporciona herramientas y abstracciones más fáciles para ti.
+
+Incluye estados, visualización, registro (trazas), integración de humanos en el ciclo incorporada, y más.
