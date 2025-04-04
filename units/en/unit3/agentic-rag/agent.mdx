@@ -422,8 +422,7 @@ alfred_with_memory = CodeAgent(
     tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool], 
     model=model,
     add_base_tools=True,
-    planning_interval=3,
-    memory=True  # Enable conversation memory
+    planning_interval=3
 )
 
 # First interaction
