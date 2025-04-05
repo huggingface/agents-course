@@ -1,14 +1,14 @@
-# Tin nhắn và Special Token
+# Tin nhắn và Token đặc biệt
 
-Giờ ta đã hiểu cách LLM (Language Model) hoạt động, hãy cùng xem **cách chúng tổ chức các phản hồi thông qua chat templates**.
+Giờ ta đã hiểu cách LLM hoạt động, hãy cùng xem **cách chúng tổ chức các phản hồi thông qua chat templates**.
 
 Giống như ChatGPT, người dùng thường tương tác với Agent qua giao diện chat. Do đó, ta cần hiểu cách LLM quản lý các cuộc hội thoại.
 
-> **Hỏi**: Nhưng... Khi tôi dùng ChatGPT/Hugging Chat, tôi đang trò chuyện bằng các Message (Tin nhắn) chứ không phải một prompt (một lệnh) đơn lẻ?
+> **Hỏi**: Nhưng... Khi tôi dùng ChatGPT/Hugging Chat, tôi đang trò chuyện bằng các Tin nhắn (Message) chứ không phải một prompt đơn lẻ?
 >
-> **Đáp**: Đúng vậy! Nhưng đây thực chất là một lớp UI. Trước khi đưa vào LLM, tất cả message được nối thành một prompt duy nhất. Model không "nhớ" cuộc hội thoại: nó đọc lại toàn bộ mỗi lần.
+> **Đáp**: Đúng vậy! Nhưng đây thực chất là một lớp UI. Trước khi đưa vào LLM, tất cả tin nhắn được nối thành một prompt duy nhất. Mô hình không "nhớ" cuộc hội thoại: nó đọc lại toàn bộ mỗi lần.
 
-Cho đến nay, ta đã xem prompt như một chuỗi token đầu vào. Nhưng khi chat với hệ thống như ChatGPT hay HuggingChat, **bạn thực sự đang trao đổi các message**. Đằng sau hậu trường, các message này được **ghép nối và định dạng thành prompt mà model có thể hiểu**.
+Cho đến nay, ta đã xem prompt như một chuỗi token đầu vào. Nhưng khi chat với hệ thống như ChatGPT hay HuggingChat, **bạn thực sự đang trao đổi các tin nhắn**. Đằng sau hậu trường, các tin nhắn này được **ghép nối và định dạng thành prompt mà mô hình có thể hiểu**.
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
@@ -16,15 +16,15 @@ Cho đến nay, ta đã xem prompt như một chuỗi token đầu vào. Nhưng 
 </figcaption>
 </figure>
 
-Đây là lúc chat templates phát huy tác dụng. Chúng đóng vai trò **cầu nối giữa message hội thoại (lượt người dùng và trợ lý) với yêu cầu định dạng đặc thù** của LLM bạn chọn. Nói cách khác, chat templates cấu trúc giao tiếp giữa người dùng và agent, đảm bảo mọi model - dù có **Special Token (Token đặc biệt)** riêng - đều nhận được prompt đúng định dạng.
+Đây là lúc chat templates phát huy tác dụng. Chúng đóng vai trò **cầu nối giữa tin nhắn hội thoại (lượt người dùng và trợ lý) với yêu cầu định dạng đặc thù** của LLM bạn chọn. Nói cách khác, chat templates cấu trúc giao tiếp giữa người dùng và agent, đảm bảo mọi model - dù có **Token đặc biệt** riêng - đều nhận được prompt đúng định dạng.
 
-Ta lại nói về Special Token vì đây là cách model xác định điểm bắt đầu/kết thúc các lượt hội thoại. Giống như mỗi LLM dùng EOS (End Of Sequence) token riêng, chúng cũng có quy tắc định dạng và dấu phân cách khác nhau cho các message.
+Ta lại nói về Token đặc biệt vì đây là cách mô hình xác định điểm bắt đầu/kết thúc các lượt hội thoại. Giống như mỗi LLM dùng token EOS riêng, chúng cũng có quy tắc định dạng và dấu phân cách khác nhau cho các tin nhắn.
 
 
-## Message: Hệ thống cốt lõi của LLM
-### System Message (Tin nhắn hệ thống)
+## Tin nhắn: Hệ thống cốt lõi của LLM
+### Tin nhắn hệ thống (System Message)
 
-System Message (còn gọi là System Prompt) định nghĩa **cách model nên hành xử**. Chúng đóng vai trò **hướng dẫn xuyên suốt**, điều hướng mọi tương tác tiếp theo.
+System Message (còn gọi là System Prompt) định nghĩa **cách mô hình nên hành xử**. Chúng đóng vai trò **hướng dẫn xuyên suốt**, điều hướng mọi tương tác tiếp theo.
 
 Ví dụ:
 
@@ -76,7 +76,7 @@ Alfred sẽ hành xử như một Agent nổi loạn 😎:
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Rebel Alfred"/>
 
-Khi dùng Agent, System Message còn **cung cấp thông tin về các Tools có sẵn, hướng dẫn model cách định dạng hành động cần thực hiện, và các nguyên tắc phân đoạn quá trình suy nghĩ**.
+Khi dùng Agent, System Message còn **cung cấp thông tin về các Tools có sẵn, hướng dẫn model cách định dạng hành động cần thực hiện, và các nguyên tắc phân đoạn quá trình tư duy**.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred System Prompt"/>
 
@@ -207,25 +207,25 @@ messages = [
 
 ## Chat-Templates
 
-Như đã đề cập, chat templates rất quan trọng để **cấu trúc hội thoại giữa model ngôn ngữ và người dùng**. Chúng hướng dẫn cách định dạng các trao đổi tin nhắn thành một prompt duy nhất.
+Như đã đề cập, chat templates rất quan trọng để **cấu trúc hội thoại giữa mô hình ngôn ngữ và người dùng**. Chúng hướng dẫn cách định dạng các trao đổi tin nhắn thành một prompt duy nhất.
 
-### Base Model vs. Instruct Model
+### Mô hình cơ sở (Base Model) vs. Mô hình hướng dẫn (Instruct Model)
 
 Một điểm cần hiểu là sự khác biệt giữa Base Model và Instruct Model:
 
-- *Base Model* được đào tạo trên dữ liệu văn bản thô để dự đoán token tiếp theo.
+- *Base Model* được huấn luyện trên dữ liệu văn bản thô để dự đoán token tiếp theo.
 
-- *Instruct Model* được fine-tuning (tinh chỉnh) đặc biệt để tuân theo hướng dẫn và tham gia hội thoại. Ví dụ: `SmolLM2-135M` là base model, còn `SmolLM2-135M-Instruct` là phiên bản đã được tinh chỉnh.
+- *Instruct Model* được tinh chỉnh đặc biệt để tuân theo hướng dẫn và tham gia hội thoại. Ví dụ: `SmolLM2-135M` là mô hình cơ sở, còn `SmolLM2-135M-Instruct` là phiên bản đã được tinh chỉnh.
 
 Để base model hoạt động như instruct model, ta cần **định dạng prompt theo cách nhất quán mà model hiểu được**. Đây là lúc chat templates phát huy tác dụng.
 
 *ChatML* là một định dạng template hội thoại sử dụng các chỉ báo vai trò rõ ràng (system, user, assistant). Nếu bạn đã tương tác với các AI API gần đây, đây là thực hành tiêu chuẩn.
 
-Lưu ý rằng một base model có thể được fine-tuning trên các chat templates khác nhau, nên khi dùng instruct model ta cần đảm bảo sử dụng đúng chat template.
+Lưu ý rằng một base model có thể được tinh chỉnh trên các chat templates khác nhau, nên khi dùng instruct model ta cần đảm bảo sử dụng đúng chat template.
 
 ### Hiểu về Chat Templates
 
-Vì mỗi instruct model dùng định dạng hội thoại và special token khác nhau, chat templates được triển khai để đảm bảo ta định dạng prompt đúng cách mà model mong đợi.
+Vì mỗi instruct model dùng định dạng hội thoại và token đặc biệt khác nhau, chat templates được triển khai để đảm bảo ta định dạng prompt đúng cách mà model mong đợi.
 
 Trong `transformers`, chat templates chứa [mã Jinja2](https://jinja.palletsprojects.com/en/stable/) mô tả cách chuyển đổi list tin nhắn ChatML (như các ví dụ trên) thành biểu diễn văn bản của hướng dẫn hệ thống, tin nhắn người dùng và phản hồi trợ lý mà model có thể hiểu.
 
