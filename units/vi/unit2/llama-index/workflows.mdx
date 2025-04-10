@@ -1,0 +1,269 @@
+# Tạo các workflow tác nhân trong LlamaIndex
+
+Một workflow trong LlamaIndex cung cấp cách có cấu trúc để tổ chức mã nguồn của bạn thành các bước tuần tự và quản lý được.
+
+Workflow được tạo bằng cách định nghĩa các `Steps` (bước) được kích hoạt bởi `Events` (sự kiện), và chính chúng phát ra `Events` để kích hoạt các bước tiếp theo. Hãy xem Alfred minh họa một workflow LlamaIndex cho tác vụ RAG (Tìm kiếm và tạo ra câu trả lời).
+
+![Sơ đồ workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflows.png)
+
+**Workflow mang lại những lợi ích chính:**
+
+- Tổ chức mã nguồn rõ ràng thành các bước riêng biệt
+- Kiến trúc hướng sự kiện để kiểm soát luồng linh hoạt
+- Giao tiếp an toàn kiểu dữ liệu giữa các bước
+- Quản lý trạng thái tích hợp sẵn
+- Hỗ trợ cả tương tác tác nhân đơn giản và phức tạp
+
+Như bạn có thể đoán, **workflow tạo ra sự cân bằng tuyệt vời giữa tính tự chủ của các Agent (tác nhân) trong khi vẫn duy trì kiểm soát toàn bộ quy trình.**
+
+Vậy hãy cùng học cách tạo workflow nào!
+
+## Tạo Workflow
+
+<Tip>
+Bạn có thể theo dõi mã nguồn trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">notebook này</a> và chạy bằng Google Colab.
+</Tip>
+
+### Tạo Workflow cơ bản
+
+<details>
+<summary>Cài đặt gói Workflow</summary>
+Như đã giới thiệu trong [phần về LlamaHub](llama-hub), ta có thể cài đặt gói Workflow bằng lệnh:
+
+```python
+pip install llama-index-utils-workflow
+```
+</details>
+
+Ta có thể tạo workflow một bước bằng cách định nghĩa lớp kế thừa từ `Workflow` và trang trí hàm bằng `@step`. Chúng mình cũng cần thêm `StartEvent` và `StopEvent` - các sự kiện đặc biệt để chỉ định điểm bắt đầu và kết thúc workflow.
+
+```python
+from llama_index.core.workflow import StartEvent, StopEvent, Workflow, step
+
+class MyWorkflow(Workflow):
+    @step
+    async def my_step(self, ev: StartEvent) -> StopEvent:
+        # thực hiện một số thao tác ở đây
+        return StopEvent(result="Xin chào thế giới!")
+
+
+w = MyWorkflow(timeout=10, verbose=False)
+result = await w.run()
+```
+
+Như bạn thấy, giờ ta có thể chạy workflow bằng cách gọi `w.run()`.
+
+### Kết nối nhiều bước
+
+Để kết nối nhiều bước, ta **tạo các sự kiện tùy chỉnh mang dữ liệu giữa các bước.** Cần thêm `Event` truyền giữa các bước và chuyển kết quả từ bước đầu sang bước sau.
+
+```python
+from llama_index.core.workflow import Event
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent) -> ProcessingEvent:
+        # Xử lý dữ liệu ban đầu
+        return ProcessingEvent(intermediate_result="Bước 1 hoàn thành")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Sử dụng kết quả trung gian
+        final_result = f"Xử lý xong: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+w = MultiStepWorkflow(timeout=10, verbose=False)
+result = await w.run()
+result
+```
+
+Việc gợi ý kiểu dữ liệu ở đây rất quan trọng để đảm bảo workflow chạy đúng. Hãy thử làm phức tạp hơn một chút!
+
+### Vòng lặp và nhánh
+
+Gợi ý kiểu dữ liệu là phần mạnh mẽ nhất của workflow vì cho phép tạo nhánh, vòng lặp và điểm giao để xây dựng workflow phức tạp.
+
+Hãy xem ví dụ **tạo vòng lặp** bằng toán tử union `|`. Trong ví dụ dưới, `LoopEvent` được dùng làm đầu vào cho bước và cũng có thể trả về làm đầu ra.
+
+```python
+from llama_index.core.workflow import Event
+import random
+
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+
+class LoopEvent(Event):
+    loop_output: str
+
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent | LoopEvent) -> ProcessingEvent | LoopEvent:
+        if random.randint(0, 1) == 0:
+            print("Điều xấu xảy ra")
+            return LoopEvent(loop_output="Quay lại bước một.")
+        else:
+            print("Điều tốt xảy ra")
+            return ProcessingEvent(intermediate_result="Bước đầu hoàn thành.")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Sử dụng kết quả trung gian
+        final_result = f"Xử lý xong: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+
+w = MultiStepWorkflow(verbose=False)
+result = await w.run()
+result
+```
+
+### Vẽ workflow
+
+Ta cũng có thể vẽ workflow. Hãy dùng hàm `draw_all_possible_flows` để vẽ workflow và lưu vào file HTML.
+
+```python
+from llama_index.utils.workflow import draw_all_possible_flows
+
+w = ... # như định nghĩa ở phần trước
+draw_all_possible_flows(w, "flow.html")
+```
+
+![Vẽ workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflow-draw.png)
+
+Còn một mẹo thú vị cuối cùng mà chúng ta sẽ học trong khóa học này - khả năng thêm trạng thái vào workflow.
+
+### Quản lý trạng thái
+
+Quản lý trạng thái hữu ích khi bạn muốn theo dõi trạng thái workflow để mọi bước đều truy cập được cùng trạng thái. Ta có thể làm điều này bằng cách dùng gợi ý kiểu `Context` cho tham số trong hàm bước.
+
+```python
+from llama_index.core.workflow import Context, StartEvent, StopEvent
+
+
+@step
+async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
+    # lưu truy vấn vào context
+    await ctx.set("query", "Thủ đô của Pháp là gì?")
+
+    # thực hiện gì đó với context và sự kiện
+    val = ...
+
+    # lấy truy vấn từ context
+    query = await ctx.get("query")
+
+    return StopEvent(result=val)
+```
+
+Tuyệt vời! Giờ bạn đã biết cách tạo workflow cơ bản trong LlamaIndex!
+
+<Tip>Bạn có thể tìm hiểu thêm về các chi tiết phức tạp của workflow trong <a href="https://docs.llamaindex.ai/en/stable/understanding/workflows/">tài liệu LlamaIndex</a>.</Tip>
+
+Tuy nhiên có một cách khác để tạo workflow bằng lớp `AgentWorkflow`. Hãy cùng xem cách dùng lớp này để tạo workflow đa tác nhân.
+
+## Tự động hóa workflow với Multi-Agent Workflow
+
+Thay vì tạo workflow thủ công, ta có thể dùng **lớp `AgentWorkflow` để tạo workflow đa tác nhân**. `AgentWorkflow` sử dụng Workflow Agents cho phép tạo hệ thống gồm một hoặc nhiều Agent (tác nhân) có thể hợp tác và chuyển giao tác vụ dựa trên khả năng chuyên biệt. Điều này giúp xây dựng hệ thống Agent phức tạp với các Agent xử lý các khía cạnh khác nhau của tác vụ. Thay vì import các lớp từ `llama_index.core.agent`, ta sẽ import các lớp Agent từ `llama_index.core.agent.workflow`. Một Agent phải được chỉ định là root agent trong hàm khởi tạo `AgentWorkflow`. Khi người dùng gửi tin nhắn, nó sẽ được chuyển đến root agent đầu tiên.
+
+Mỗi Agent có thể:
+
+- Xử lý trực tiếp yêu cầu bằng Tools của họ
+- Chuyển giao cho Agent khác phù hợp hơn
+- Trả lời người dùng
+
+Hãy xem cách tạo workflow đa tác nhân.
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow, ReActAgent
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Định nghĩa một số công cụ
+def add(a: int, b: int) -> int:
+    """Cộng hai số."""
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    """Nhân hai số."""
+    return a * b
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# có thể truyền hàm trực tiếp mà không cần FunctionTool - tên/mô tả sẽ được phân tích từ hàm/docstring
+multiply_agent = ReActAgent(
+    name="multiply_agent",
+    description="Có thể nhân hai số nguyên",
+    system_prompt="Trợ lý hữu ích có thể dùng công cụ để nhân số.",
+    tools=[multiply],
+    llm=llm,
+)
+
+addition_agent = ReActAgent(
+    name="add_agent",
+    description="Có thể cộng hai số nguyên",
+    system_prompt="Trợ lý hữu ích có thể dùng công cụ để cộng số.",
+    tools=[add],
+    llm=llm,
+)
+
+# Tạo workflow
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+)
+
+# Chạy hệ thống
+response = await workflow.run(user_msg="Bạn có thể cộng 5 và 3 không?")
+```
+
+Các Tools của Agent cũng có thể chỉnh sửa trạng thái workflow đã đề cập. Trước khi bắt đầu workflow, ta có thể cung cấp state dict ban đầu để tất cả Agent truy cập. Trạng thái được lưu trong key state của workflow context và sẽ được đưa vào state_prompt để bổ sung cho mỗi tin nhắn người dùng mới.
+
+Hãy thêm bộ đếm số lần gọi hàm bằng cách sửa ví dụ trước:
+
+```python
+from llama_index.core.workflow import Context
+
+# Định nghĩa một số công cụ
+async def add(ctx: Context, a: int, b: int) -> int:
+    """Cộng hai số."""
+    # cập nhật bộ đếm
+    cur_state = await ctx.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.set("state", cur_state)
+
+    return a + b
+
+async def multiply(ctx: Context, a: int, b: int) -> int:
+    """Nhân hai số."""
+    # cập nhật bộ đếm
+    cur_state = await ctx.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.set("state", cur_state)
+
+    return a * b
+
+...
+
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent"
+    initial_state={"num_fn_calls": 0},
+    state_prompt="Trạng thái hiện tại: {state}. Tin nhắn người dùng: {msg}",
+)
+
+# chạy workflow với context
+ctx = Context(workflow)
+response = await workflow.run(user_msg="Bạn có thể cộng 5 và 3 không?", ctx=ctx)
+
+# lấy và kiểm tra trạng thái
+state = await ctx.get("state")
+print(state["num_fn_calls"])
+```
+
+Chúc mừng bạn đã nắm vững kiến thức cơ bản về Agent trong LlamaIndex! 🎉
+
+Hãy cùng làm bài Kiểm tra nhanh cuối cùng để củng cố kiến thức! 🚀
