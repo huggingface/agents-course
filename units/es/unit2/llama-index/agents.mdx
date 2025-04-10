@@ -1,0 +1,160 @@
+# Usando Agentes en LlamaIndex
+
+¿Recuerdas a Alfred, nuestro agente mayordomo útil de antes? ¡Bueno, está a punto de recibir una mejora! Ahora que entendemos las herramientas disponibles en LlamaIndex, podemos darle a Alfred nuevas capacidades para servirnos mejor.
+
+Pero antes de continuar, recordemos qué hace funcionar a un agente como Alfred. En la Unidad 1, aprendimos que:
+
+> Un Agente es un sistema que aprovecha un modelo de IA para interactuar con su entorno y lograr un objetivo definido por el usuario. Combina razonamiento, planificación y ejecución de acciones (a menudo a través de herramientas externas) para cumplir tareas.
+
+LlamaIndex soporta **tres tipos principales de agentes de razonamiento**:
+
+![Agents](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agents.png)
+1. `Agentes de Llamada de Funciones` - Estos trabajan con modelos de IA que pueden llamar funciones específicas.
+2. `Agentes ReAct` - Estos pueden trabajar con cualquier IA que tenga un endpoint de chat o texto y manejar tareas de razonamiento complejas.
+3. `Agentes Personalizados Avanzados` - Estos usan métodos más complejos para manejar tareas y flujos de trabajo.
+
+<Tip>FEncuentra más información sobre agentes avanzados en <a href="https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/agent/workflow/base_agent.py">BaseWorkflowAgent</a></Tip>
+
+## Inicializando Agentes
+
+<Tip>
+Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb" target="_blank">este notebook</a> que puedes ejecutar usando Google Colab.
+</Tip>
+
+Para crear un agente, comenzamos proporcionándole un **conjunto de funciones/herramientas que definen sus capacidades**. Veamos cómo crear un agente con algunas herramientas básicas. Al momento de escribir esto, el agente usará automáticamente la API de llamada de funciones (si está disponible), o un bucle de agente ReAct estándar.
+
+Los LLMs que soportan una API de herramientas/funciones son relativamente nuevos, pero proporcionan una forma poderosa de llamar herramientas al evitar indicaciones específicas y permitir que el LLM cree llamadas a herramientas basadas en esquemas proporcionados.
+
+Los agentes ReAct también son buenos en tareas de razonamiento complejas y pueden trabajar con cualquier LLM que tenga capacidades de chat o completación de texto. Son más verbosos y muestran el razonamiento detrás de ciertas acciones que toman.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.core.tools import FunctionTool
+
+# define una herramienta de muestra -- ¡las anotaciones de tipo, nombres de funciones y docstrings están incluidos en los esquemas analizados!
+def multiply(a: int, b: int) -> int:
+    """Multiplica dos enteros y devuelve el entero resultante"""
+    return a * b
+
+# inicializa el llm
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# inicializa el agente
+agent = AgentWorkflow.from_tools_or_functions(
+    [FunctionTool.from_defaults(multiply)],
+    llm=llm
+)
+```
+
+**Los agentes son sin estado por defecto**, recordar interacciones pasadas es opcional usando un objeto `Context`. Esto puede ser útil si quieres usar un agente que necesita recordar interacciones previas, como un chatbot que mantiene el contexto a través de múltiples mensajes o un administrador de tareas que necesita rastrear el progreso a lo largo del tiempo.
+
+```python
+# sin estado
+response = await agent.run("¿Cuánto es 2 por 2?")
+
+# recordando estado
+from llama_index.core.workflow import Context
+
+ctx = Context(agent)
+
+response = await agent.run("Mi nombre es Bob.", ctx=ctx)
+response = await agent.run("¿Cuál era mi nombre de nuevo?", ctx=ctx)
+```
+
+Notarás que los agentes en `LlamaIndex` son asíncronos porque usan el operador await de Python. Si eres nuevo en el código asíncrono en Python, o necesitas un repaso, tienen una excelente [guía de async](https://docs.llamaindex.ai/en/stable/getting_started/async_python/).
+
+Ahora que tenemos los conceptos básicos, echemos un vistazo a como podemos usar herramientas más complejas en nuestros agentes.
+
+
+## Creando Agentes RAG con QueryEngineTools
+
+**Agentic RAG es una forma poderosa de usar agentes para responder preguntas sobre tus datos**. Podemos pasar varias herramientas a Alfred para ayudarlo a responder preguntas. Sin embargo, en lugar de responder la pregunta sobre los documentos automáticamente, Alfred puede decidir usar cualquier otra herramienta o flujo para responder la pregunta.
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+Es fácil **envolver `QueryEngine` como una herramienta** para un agente. 
+Al hacerlo, necesitamos **definir un nombre y una descripción**. El LLM usará esta información para usar la herramienta correctamente.
+Veamos cómo cargar un `QueryEngineTool` usando el QueryEngine que creamos en la [sección de componentes](02_components).
+
+It is easy to **wrap `QueryEngine` as a tool** for an agent.
+When doing so, we need to **define a name and description**. The LLM will use this information to correctly use the tool.
+Let's see how to load in a `QueryEngineTool` using the `QueryEngine` we created in the [component section](02_components).
+
+```python
+from llama_index.core.tools import QueryEngineTool
+
+query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # como se mostró en la sección anterior
+
+query_engine_tool = QueryEngineTool.from_defaults(
+    query_engine=query_engine,
+    name="nombre",
+    description="una descripción específica",
+    return_direct=False,
+)
+query_engine_agent = AgentWorkflow.from_tools_or_functions(
+    [query_engine_tool],
+    llm=llm,
+    system_prompt="Eres un asistente útil que tiene acceso a una base de datos que contiene descripciones de personas. "
+)
+```
+
+## Creando Sistemas Multi-agente
+
+La clase `AgentWorkflow` también soporta directamente sistemas multi-agente. Al darle a cada agente un nombre y una descripción, el sistema mantiene un único hablante activo, con cada agente teniendo la capacidad de pasar el control a otro agente.
+
+Al reducir el alcance de cada agente, podemos ayudar a aumentar su precisión general al responder a los mensajes del usuario.
+
+Los agentes en LlamaIndex también pueden usarse directamente como herramientas para otros agentes, para escenarios más complejos y personalizados.
+
+
+```python
+from llama_index.core.agent.workflow import (
+    AgentWorkflow,
+    FunctionAgent,
+    ReActAgent,
+)
+
+# Define algunas herramientas
+def add(a: int, b: int) -> int:
+    """Suma dos números."""
+    return a + b
+
+
+def subtract(a: int, b: int) -> int:
+    """Resta dos números."""
+    return a - b
+
+
+# Crea configuraciones de agentes
+# NOTA: podemos usar FunctionAgent o ReActAgent aquí.
+# FunctionAgent funciona para LLMs con una API de llamada de funciones.
+# ReActAgent funciona para cualquier LLM.
+calculator_agent = ReActAgent(
+    name="calculadora",
+    description="Realiza operaciones aritméticas básicas",
+    system_prompt="Eres un asistente de calculadora. Usa tus herramientas para cualquier operación matemática.",
+    tools=[add, subtract],
+    llm=llm,
+)
+
+query_agent = ReActAgent(
+    name="búsqueda_de_información",
+    description="Busca información sobre XYZ",
+    system_prompt="Usa tu herramienta para consultar un sistema RAG y responder información sobre XYZ",
+    tools=[query_engine_tool],
+    llm=llm
+)
+
+# Crea y ejecuta el flujo de trabajo
+agent = AgentWorkflow(
+    agents=[calculator_agent, query_agent], root_agent="calculadora"
+)
+
+# Ejecuta el sistema
+response = await agent.run(user_msg="¿Puedes sumar 5 y 3?")
+```
+
+<Tip>¿No has aprendido lo suficiente todavía? Hay mucho más por descubrir sobre agentes y herramientas en LlamaIndex dentro de la  <a href="https://docs.llamaindex.ai/en/stable/examples/agent/agent_workflow_basic/"> Introducción Básica a AgentWorkflow </a> o la <a href="https://docs.llamaindex.ai/en/stable/understanding/agent/">Guía de Aprendizaje de Agentes</a>, ¡donde puedes leer más sobre streaming, serialización de contexto y humano-en-el-bucle!</Tip>
+
+Ahora que entendemos los conceptos básicos de agentes y herramientas en LlamaIndex, ¡veamos cómo podemos usar LlamaIndex para **crear flujos de trabajo configurables y manejables!**

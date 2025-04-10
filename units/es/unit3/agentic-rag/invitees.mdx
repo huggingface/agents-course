@@ -1,0 +1,465 @@
+# Creando una Herramienta RAG para Historias de Invitados
+
+
+Alfred, tu agente de confianza, está preparando la gala más extravagante del siglo. Para asegurar que el evento transcurra sin problemas, Alfred necesita acceso rápido a información actualizada sobre cada invitado. Ayudemos a Alfred creando una herramienta personalizada de Generación Aumentada por Recuperación (RAG), impulsada por nuestro conjunto de datos personalizado.
+
+## ¿Por qué RAG para una Gala?
+
+Imagina a Alfred mezclándose entre los invitados, necesitando recordar detalles específicos sobre cada persona en un instante. Un LLM tradicional podría tener dificultades con esta tarea porque:
+
+1. La lista de invitados es específica para tu evento y no está en los datos de entrenamiento del modelo
+2. La información de los invitados puede cambiar o actualizarse frecuentemente
+3. Alfred necesita recuperar detalles precisos como direcciones de correo electrónico
+
+Aquí es donde brilla la Generación Aumentada por Recuperación (RAG)! Al combinar un sistema de recuperación con un LLM, Alfred puede acceder a información precisa y actualizada sobre tus invitados bajo demanda.
+
+<Tip>
+
+Puedes elegir cualquiera de los frameworks cubiertos en el curso para este caso de uso. Selecciona tu opción preferida de las pestañas de código.
+
+</Tip>
+
+## Configurando nuestra aplicación
+
+En esta unidad, desarrollaremos nuestro agente dentro de un Espacio de HF(HF Space), como un proyecto Python estructurado. Este enfoque nos ayuda a mantener un código limpio y modular, organizando diferentes funcionalidades en archivos separados. Además, esto crea un caso de uso más realista donde desplegarías la aplicación para uso público.
+
+### Estructura del Proyecto
+
+- **`tools.py`** – Proporciona herramientas auxiliares para el agente.  
+- **`retriever.py`** – Implementa funciones de recuperación para apoyar el acceso al conocimiento.  
+- **`app.py`** – Integra todos los componentes en un agente completamente funcional, que finalizaremos en la última parte de esta unidad.  
+
+Para una referencia práctica, consulta [este Espacio de HF](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG), donde el RAG Agéntico desarrollado en esta unidad está en vivo. ¡Siéntete libre de clonarlo y experimentar!
+
+Puedes probar directamente el agente a continuación:
+
+<iframe
+	src="https://agents-course-unit-3-agentic-rag.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+## Descripción General del Conjunto de Datos
+
+Nuestro conjunto de datos [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) contiene los siguientes campos para cada invitado:
+
+- **Nombre**: Nombre completo del invitado
+- **Relación**: Cómo se relaciona el invitado con el anfitrión
+- **Descripción**: Una breve biografía o hechos interesantes sobre el invitado
+- **Dirección de Correo Electrónico**: Información de contacto para enviar invitaciones o seguimientos
+
+A continuación se muestra una vista previa del conjunto de datos:
+<iframe
+  src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train"
+  frameborder="0"
+  width="100%"
+  height="560px"
+></iframe>
+
+<Tip>
+En un escenario del mundo real, este conjunto de datos podría ampliarse para incluir preferencias dietéticas, intereses de regalos, temas de conversación a evitar y otros detalles útiles para un anfitrión.
+</Tip>
+
+## Construyendo la Herramienta de Lista de Invitados
+
+Crearemos una herramienta personalizada que Alfred pueda usar para recuperar rápidamente información de los invitados durante la gala. Dividamos esto en tres pasos manejables:
+
+1. Cargar y preparar el conjunto de datos
+2. Crear la Herramienta de Recuperación
+3. Integrar la Herramienta con Alfred
+
+¡Comencemos con la carga y preparación del conjunto de datos!
+
+### Paso 1: Cargar y Preparar el Conjunto de Datos
+
+Primero, necesitamos transformar nuestros datos brutos de invitados en un formato optimizado para la recuperación.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Usaremos la librería `datasets` de Hugging Face para cargar el conjunto de datos y convertirlo en una lista de objetos `Document` del módulo `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain.docstore.document import Document
+
+# Cargar el conjunto de datos
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Convertir entradas del conjunto de datos en objetos Document
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+Usaremos la librería `datasets` de Hugging Face para cargar el conjunto de datos y convertirlo en una lista de objetos `Document` del módulo `llama_index.core.schema`.
+
+```python
+import datasets
+from llama_index.core.schema import Document
+
+# Cargar el conjunto de datos
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Convertir entradas del conjunto de datos en objetos Document
+docs = [
+    Document(
+        text="\n".join([
+            f"Name: {guest_dataset['name'][i]}",
+            f"Relation: {guest_dataset['relation'][i]}",
+            f"Description: {guest_dataset['description'][i]}",
+            f"Email: {guest_dataset['email'][i]}"
+        ]),
+        metadata={"name": guest_dataset['name'][i]}
+    )
+    for i in range(len(guest_dataset))
+]
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+Usaremos la librería `datasets` de Hugging Face para cargar el conjunto de datos y convertirlo en una lista de objetos `Document` del módulo `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain.docstore.document import Document
+
+# Cargar el conjunto de datos
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Convertir entradas del conjunto de datos en objetos Document
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+```
+
+</hfoption>
+</hfoptions>
+
+En el código anterior:
+- Cargamos el conjunto de datos
+- Convertimos cada entrada de invitado en un objeto `Document` con contenido formateado
+- Almacenamos los objetos `Document` en una lista
+
+Esto significa que tenemos todos nuestros datos disponibles de manera ordenada para poder comenzar a configurar nuestra recuperación.
+
+### Paso 2: Crear la Herramienta de Recuperación
+
+Ahora, creemos una herramienta personalizada que Alfred pueda usar para buscar en nuestra información de invitados.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Usaremos el `BM25Retriever` del módulo `langchain_community.retrievers` para crear una herramienta de recuperación.
+
+<Tip>
+  El <code>BM25Retriever</code> es un gran punto de partida para la recuperación, pero para búsquedas semánticas más avanzadas, podrías considerar usar recuperadores basados en embeddings como los de <a href="https://www.sbert.net/">sentence-transformers</a>.
+</Tip>
+
+```python
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+
+class GuestInfoRetrieverTool(Tool):
+    name = "guest_info_retriever"
+    description = "Recupera información detallada sobre los invitados de la gala basada en su nombre o relación."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "El nombre o relación del invitado sobre el que deseas información."
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs):
+        self.is_initialized = False
+        self.retriever = BM25Retriever.from_documents(docs)
+
+    def forward(self, query: str):
+        results = self.retriever.get_relevant_documents(query)
+        if results:
+            return "\n\n".join([doc.page_content for doc in results[:3]])
+        else:
+            return "No se encontró información que coincida con la búsqueda."
+
+# Inicializar la herramienta
+guest_info_tool = GuestInfoRetrieverTool(docs)
+```
+
+Entendamos esta herramienta paso a paso: 
+- El `name` y la `description` ayudan al agente a entender cuándo y cómo usar esta herramienta
+- Los `inputs` definen qué parámetros espera la herramienta (en este caso, una consulta de búsqueda)
+- Estamos usando un `BM25Retriever`, que es un algoritmo poderoso de recuperación de texto que no requiere embeddings
+- El método `forward` procesa la consulta y devuelve la información más relevante del invitado
+
+</hfoption>
+<hfoption id="llama-index">
+
+Usaremos el `BM25Retriever` del módulo `llama_index.retrievers.bm25` para crear una herramienta de recuperación.
+
+<Tip>
+  El <code>BM25Retriever</code> es un gran punto de partida para la recuperación, pero para búsquedas semánticas más avanzadas, podrías considerar usar recuperadores basados en embeddings como los de <a href="https://www.sbert.net/">sentence-transformers</a>.
+</Tip>
+
+```python
+from llama_index.core.tools import FunctionTool
+from llama_index.retrievers.bm25 import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_defaults(nodes=docs)
+
+def get_guest_info_retriever(query: str) -> str:
+    """Recupera información detallada sobre los invitados de la gala basada en su nombre o relación."""
+    results = bm25_retriever.retrieve(query)
+    if results:
+        return "\n\n".join([doc.text for doc in results[:3]])
+    else:
+        return "No se encontró información que coincida con la búsqueda."
+
+# Inicializar la herramienta
+guest_info_tool = FunctionTool.from_defaults(get_guest_info_retriever)
+```
+
+Entendamos esta herramienta paso a paso: 
+- El docstring ayuda al agente a entender cuándo y cómo usar esta herramienta
+- Los decoradores de tipo definen qué parámetros espera la herramienta (en este caso, una consulta de búsqueda)
+- Estamos usando un `BM25Retriever`, que es un algoritmo poderoso de recuperación de texto que no requiere embeddings
+- El método procesa la consulta y devuelve la información más relevante del invitado
+
+</hfoption>
+<hfoption id="langgraph">
+
+Usaremos el `BM25Retriever` del módulo `langchain_community.retrievers` para crear una herramienta de recuperación.
+
+<Tip>
+  El <code>BM25Retriever</code> es un gran punto de partida para la recuperación, pero para búsquedas semánticas más avanzadas, podrías considerar usar recuperadores basados en embeddings como los de <a href="https://www.sbert.net/">sentence-transformers</a>.
+</Tip>
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain.tools import Tool
+
+bm25_retriever = BM25Retriever.from_documents(docs)
+
+def extract_text(query: str) -> str:
+    """Recupera información detallada sobre los invitados de la gala basada en su nombre o relación."""
+    results = bm25_retriever.invoke(query)
+    if results:
+        return "\n\n".join([doc.text for doc in results[:3]])
+    else:
+        return "No se encontró información que coincida con la búsqueda."
+
+guest_info_tool = Tool(
+    name="guest_info_retriever",
+    func=extract_text,
+    description="Recupera información detallada sobre los invitados de la gala basada en su nombre o relación."
+)
+```
+
+Entendamos esta herramienta paso a paso: 
+- El `name` y la `description` ayudan al agente a entender cuándo y cómo usar esta herramienta
+- Los decoradores de tipo definen qué parámetros espera la herramienta (en este caso, una consulta de búsqueda)
+- Estamos usando un `BM25Retriever`, que es un potente algoritmo de recuperación de texto que no requiere embeddings
+- El método procesa la consulta y devuelve la información más relevante del invitado
+
+
+</hfoption>
+</hfoptions>
+
+### Paso 3: Integrar la Herramienta con Alfred
+
+Finalmente, juntemos todo creando nuestro agente y equipándolo con nuestra herramienta personalizada:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, HfApiModel
+
+# Inicializar el modelo de Hugging Face
+model = HfApiModel()
+
+# Crear Alfred, nuestro agente de gala, con la herramienta de información de invitados
+alfred = CodeAgent(tools=[guest_info_tool], model=model)
+
+# Ejemplo de consulta que Alfred podría recibir durante la gala
+response = alfred.run("Cuéntame sobre nuestra invitada llamada 'Lady Ada Lovelace'.")
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Basado en la información que recuperé, Lady Ada Lovelace es una estimada matemática y amiga. Es reconocida por su trabajo pionero en matemáticas e informática, a menudo celebrada como la primera programadora de computadoras debido a su trabajo en la Máquina Analítica de Charles Babbage. Su dirección de correo electrónico es ada.lovelace@example.com.
+```
+
+Lo que está sucediendo en este paso final:
+- Inicializamos un modelo de Hugging Face usando la clase `HfApiModel`
+- Creamos nuestro agente (Alfred) como un `CodeAgent`, que puede ejecutar código Python para resolver problemas
+- Le pedimos a Alfred que recupere información sobre una invitada llamada "Lady Ada Lovelace"
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Inicializar el modelo de Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Crear a Alfred, nuestro agente de gala, con la herramienta de información de invitados
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool],
+    llm=llm,
+)
+
+# Ejemplo de consulta que Alfred podría recibir durante la gala
+response = await alfred.run("Cuéntame sobre nuestra invitada llamada 'Lady Ada Lovelace'.")
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Lady Ada Lovelace es una estimada matemática y amiga, reconocida por su trabajo pionero en matemáticas e informática. Es celebrada como la primera programadora de computadoras debido a su trabajo en la Máquina Analítica de Charles Babbage. Su correo electrónico es ada.lovelace@example.com.
+```
+
+Lo que está sucediendo en este paso final:
+- Inicializamos un modelo de Hugging Face usando la clase `HuggingFaceInferenceAPI`
+- Creamos nuestro agente (Alfred) como un `AgentWorkflow`, incluyendo la herramienta que acabamos de crear
+- Le pedimos a Alfred que recupere información sobre una invitada llamada "Lady Ada Lovelace"
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# Generar la interfaz de chat, incluyendo las herramientas
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Generar el AgentState y el grafo del Agente
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## El grafo
+builder = StateGraph(AgentState)
+
+# Definir nodos: estos hacen el trabajo
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Definir bordes: estos determinan cómo se mueve el flujo de control
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Si el último mensaje requiere una herramienta, enrutar a herramientas
+    # De lo contrario, proporcionar una respuesta directa
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Cuéntame sobre nuestra invitada llamada 'Lady Ada Lovelace'.")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Respuesta de Alfred:")
+print(messages['messages'][-1].content)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Lady Ada Lovelace es una estimada matemática y pionera en informática, a menudo celebrada como la primera programadora de computadoras debido a su trabajo en la Máquina Analítica de Charles Babbage.
+```
+
+Lo que está sucediendo en este paso final:
+- Inicializamos un modelo de Hugging Face usando la clase `HuggingFaceEndpoint`. También generamos una interfaz de chat y añadimos las herramientas.
+- Creamos nuestro agente (Alfred) como un `StateGraph`, que combina 2 nodos (`assistant`, `tools`) usando un borde
+- Le pedimos a Alfred que recupere información sobre una invitada llamada "Lady Ada Lovelace"
+
+</hfoption>
+</hfoptions>
+
+## Ejemplo de Interacción
+
+Durante la gala, una conversación podría fluir así:
+
+**Tú:** "Alfred, ¿quién es ese caballero hablando con el embajador?"
+
+**Alfred:** *rápidamente busca en la base de datos de invitados* "Ese es el Dr. Nikola Tesla, señor. Es un viejo amigo de sus días universitarios. Recientemente ha patentado un nuevo sistema de transmisión de energía inalámbrica y estaría encantado de discutirlo con usted. Solo recuerde que es apasionado por las palomas, así que eso podría ser un buen tema de conversación."
+
+```json
+{
+    "name": "Dr. Nikola Tesla",
+    "relation": "viejo amigo de días universitarios",  
+    "description": "El Dr. Nikola Tesla es un viejo amigo de sus días universitarios. Recientemente ha patentado un nuevo sistema de transmisión de energía inalámbrica y estaría encantado de discutirlo con usted. Solo recuerde que es apasionado por las palomas, así que eso podría ser un buen tema de conversación.",
+    "email": "nikola.tesla@gmail.com"
+}
+```
+
+## Llevándolo Más Allá
+
+Ahora que Alfred puede recuperar información de invitados, considera cómo podrías mejorar este sistema:
+
+1. **Mejorar el recuperador** para usar un algoritmo más sofisticado como [sentence-transformers](https://www.sbert.net/)
+2. **Implementar una memoria de conversación** para que Alfred recuerde interacciones previas
+3. **Combinar con búsqueda web** para obtener la información más reciente sobre invitados desconocidos
+4. **Integrar múltiples índices** para obtener información más completa de fuentes verificadas
+
+¡Ahora Alfred está completamente equipado para manejar consultas de invitados sin esfuerzo, asegurando que tu gala sea recordada como el evento más sofisticado y encantador del siglo!
+
+<Tip>
+Intenta extender la herramienta de recuperación para que también devuelva iniciadores de conversación basados en los intereses o antecedentes de cada invitado. ¿Cómo modificarías la herramienta para lograr esto?
+
+Cuando hayas terminado, implementa tu herramienta de recuperación de invitados en el archivo <code>retriever.py</code>.
+</Tip>
