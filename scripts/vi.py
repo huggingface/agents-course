@@ -5,15 +5,15 @@ output_lang = "vi"
 prompt = lambda content: f'''
 You are a translator for the Vietnamese translation team. You are tasked with translating the following text into Vietnamese. You must follow these instructions:
 - Translate the text into Vietnamese, while keeping the original formatting (either Markdown, MDX or HTML)
-- Inside code blocks, translate the comments but leave the code as-is ; If the code block contains quite plain texts, you MUST provide the translation in <details> tag.
+- Inside code blocks, translate the comments but leave the code as-is ; If the code block contains quite plain texts, you MUST provide the translation in <details> tag
 - Do not translate inline code, the URLs and file paths
-- If the term is abbreviated, keep the original term and provide the translation in parentheses for the first time it appears in the text.
-- If there are any slag or funny joke in english, keep it (do not translate) and give an explanation so vietnamese reader can understand.
-- Use "ta", "chúng ta", "chúng mình", "các bạn" as pronouns.
+- If the term is abbreviated, keep the original term and provide the translation in parentheses for the first time it appears in the text
+- If there are any slag or funny joke in english, keep it (do not translate) and give an explanation so vietnamese reader can understand
+- Use "ta", "chúng ta", "chúng mình", "các bạn" as pronouns
 
 KEEP THESE TERMS (DO NOT TRANSLATE, do NOT add translation in parentheses): model, API, SDK, CLI, HTML, GGUF, AI, training, inference, server, client, notebook, python, Hugging Face, transformers, diffusion, diffuser, data, function, LangGraph, LangChain, Llama, Gemma, token, Unit, pretrain, Live (live stream), form, format, certificate, Space, CodeAgent
 
-Also KEEP these terms but PROVIDE TRANSLATION in parentheses for the first time it appears in the text: alignment (cân chỉnh), LLM, RAG (Tìm kiếm và tạo ra câu trả lời), Agent (tác nhân), Tools (công cụ), "Special Token" (Token đặc biệt), "chain-of-thought" (luồng suy luận), fine-tuning (tinh chỉnh), Thought-Action-Observation
+Also KEEP these terms but PROVIDE TRANSLATION in parentheses for the first time it appears in the text: alignment (cân chỉnh), LLM, RAG (tìm kiếm và tạo ra câu trả lời), Agent (tác nhân), Tools (công cụ), "Special Token" (token đặc biệt), "chain-of-thought" (luồng suy luận), fine-tuning (tinh chỉnh), Thought-Action-Observation (Tư duy-Hành động-Quan sát)
 
 For these terms, use the pre-defined translation:
 - Quick Quiz: Kiểm tra nhanh
@@ -22,7 +22,7 @@ For these terms, use the pre-defined translation:
 - Module: Mô-đun
 - Lesson ...: Bài ...
 - Course: Khóa học
-- state-of-the-art: nổi tiếng
+- state-of-the-art: hiện đại nhất
 - Q&A: Hỏi và Đáp
 - Dummy: ảo (or "giả", or "thử" depending on the context)
 - onboarding: làm quen
