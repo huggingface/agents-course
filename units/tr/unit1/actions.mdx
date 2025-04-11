@@ -1,0 +1,122 @@
+# Aksiyonlar: Agenta, Ortamıyla Etkileşim Kurma Yeteneği Kazandırmak
+
+<Tip>
+ Bu bölümde, bir yapay zeka Agentının çevresiyle etkileşime geçmek için attığı somut adımları inceliyoruz.
+
+ Aksiyonların nasıl temsil edildiğini (JSON veya kod kullanarak), durdur ve ayrıştır yaklaşımının önemini ve farklı Agent türlerini ele alacağız.
+</Tip>
+
+Aksiyonlar, bir **Yapay Zeka (AI) Agentının çevresiyle etkileşim kurmak için attığı somut adımlardır**.
+
+İster bilgi toplamak için internette gezinmek, ister fiziksel bir cihazı kontrol etmek olsun, her aksiyon, Agentın bilinçli olarak gerçekleştirdiği bir işlemdir.
+
+Örneğin, müşteri hizmetlerine yardımcı olan bir Agent; müşteri verilerini alabilir, destek makaleleri önerebilir veya sorunu bir insan temsilciye aktarabilir.
+
+## Agent Aksiyon Türleri
+
+Aksiyon alan Agentlar farklı şekillerde çalışabilir:
+
+| Agent Türü               | Açıklama                                                                                      |
+|-------------------------|-----------------------------------------------------------------------------------------------|
+| JSON Agentı              | Gerçekleştirilecek aksiyon JSON formatında belirtilir.                                       |
+| Kod Agentı               | Agent, dışarıda çalıştırılmak üzere bir kod bloğu üretir.                                     |
+| Fonksiyon-çağıran Agent  | JSON Agentının bir alt türüdür, her aksiyon için yeni bir mesaj üretmek üzere ince-ayar yapılmıştır. |
+
+Aksiyonlar farklı amaçlara hizmet edebilir:
+
+| Aksiyon Türü            | Açıklama                                                                                     |
+|-------------------------|----------------------------------------------------------------------------------------------|
+| Bilgi Toplama           | Web aramaları yapma, veritabanlarını sorgulama, belgeleri alma.                             |
+| Araç Kullanımı          | API çağrıları yapma, hesaplamalar yürütme, kod çalıştırma.                                   |
+| Ortam Etkileşimi        | Dijital arayüzleri kontrol etme veya fiziksel cihazlarla etkileşime geçme.                   |
+| İletişim                | Kullanıcılarla sohbet etme veya diğer Agentlarla iş birliği yapma.                            |
+
+Bir Agent için en kritik becerilerden biri, **bir aksiyon tamamlandığında yeni token üretimini DURDURMA yeteneğidir**. Bu, her tür Agent için geçerlidir: JSON, kod veya fonksiyon-çağıran.
+
+Bu, istenmeyen çıktıları önler ve Agentın yanıtının net ve düzgün olmasını sağlar.
+
+LLM yalnızca metin üretir ve bu metin aracılığıyla ne yapmak istediğini ve hangi parametreleri kullanacağını belirtir.
+
+## Durdur ve Ayrıştır Yaklaşımı
+
+Aksiyonları uygulamanın önemli bir yöntemi **durdur ve ayrıştır yaklaşımıdır**. Bu yaklaşım, Agentın çıktısının yapılandırılmış ve öngörülebilir olmasını sağlar:
+
+1. **Yapılandırılmış Format Üretimi**:
+
+Agent, gerçekleştirmek istediği aksiyonu açık ve belirlenmiş bir formatta (JSON veya kod) üretir.
+
+2. **İlave Üretimi Durdurma**:
+
+Aksiyon tamamlandığında, **Agent yeni token üretimini durdurur**. Böylece hatalı veya gereksiz çıktıların önüne geçilir.
+
+3. **Çıktının Ayrıştırılması**:
+
+Harici bir ayrıştırıcı, bu formatlı çıktıyı okur, hangi aracın çağrılacağını belirler ve gerekli parametreleri çıkarır.
+
+Örneğin, hava durumunu kontrol etmesi gereken bir Agent şu çıktıyı üretebilir:
+
+```json
+Thought: New York için güncel hava durumunu kontrol etmeliyim.
+Action :
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+Bu yapı sayesinde sistem, hangi fonksiyonun çağrılacağını ve hangi parametrelerle çağrılacağını kolayca anlayabilir.
+
+Bu açık ve makine-okunabilir format, hataları en aza indirir ve harici araçların Agentın komutunu doğru şekilde işlemesini sağlar.
+
+Not: Fonksiyon-çağıran Agentlar da benzer şekilde çalışır. Her aksiyonu belirli bir fonksiyonun doğru parametrelerle çağrılmasını sağlayacak şekilde yapılandırırlar.
+Bu tür Agentları sonraki bir ünitede daha detaylı inceleyeceğiz.
+
+## Kod Agentları
+
+Alternatif bir yaklaşım *Kod Agentları* kullanmaktır.
+
+Fikir şudur: **sadece bir JSON objesi üretmek yerine**, Kod Agentı **genellikle Python gibi yüksek seviyeli bir dilde çalıştırılabilir bir kod bloğu üretir**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Kod Agentları" />
+
+Bu yöntemin birçok avantajı vardır:
+
+- **İfade Gücü:** Kod; döngüler, koşullu ifadeler ve iç içe fonksiyonlar gibi karmaşık mantıkları doğal şekilde ifade edebilir. Bu, JSON’a kıyasla daha esnek bir yapı sunar.
+- **Modülerlik ve Yeniden Kullanılabilirlik:** Oluşturulan kod, farklı görevlerde tekrar kullanılabilecek fonksiyonlar ve modüller içerebilir.
+- **Kolay Hata Ayıklama:** Kod sözdizimi iyi tanımlanmış olduğu için hataları tespit etmek ve düzeltmek daha kolaydır.
+- **Doğrudan Entegrasyon:** Kod Agentları, dış kütüphaneler ve API'lerle doğrudan entegre olabilir. Bu da veri işleme veya gerçek zamanlı karar alma gibi daha karmaşık işlemleri mümkün kılar.
+
+Örneğin, hava durumunu sorgulaması gereken bir Kod Agentı şu Python kodunu üretebilir:
+
+```python
+# Kod Agentı Örneği: Hava Durumu Bilgisi Al
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "No weather information available")
+    else:
+        return "Error: Unable to fetch weather data."
+
+# Fonksiyonu çalıştır ve nihai cevabı hazırla
+result = get_weather("New York")
+final_answer = f"The current weather in New York is: {result}"
+print(final_answer)
+```
+
+Bu örnekte, Kod Agentı:
+
+- Hava durumu verisini bir **API çağrısı ile** alır,
+- Yanıtı işler,
+- Ve print() fonksiyonunu kullanarak nihai cevabı verir.
+
+Bu yöntem de, kod bloğunu açıkça sınırlayarak ve yürütmenin tamamlandığını bildirerek (burada, final_answer'ı yazdırarak) **durdur ve ayrıştır** yaklaşımını izler.
+
+---
+
+Bu bölümde, Aksiyonların bir Agentın içsel düşünce süreci ile dış dünyayla olan etkileşimini nasıl köprülediğini öğrendik. Aksiyonlar; JSON, kod veya fonksiyon çağrılarıyla açık ve yapılandırılmış görevler olarak gerçekleştirilir.
+
+Bu bilinçli uygulama süreci, her aksiyonun kesin ve dışsal işlemler için hazır olmasını sağlar. Bir sonraki bölümde, Agentların çevrelerinden nasıl geribildirim topladığını görmek için Gözlemler (Observations) konusuna geçeceğiz.
+
+Ve sonrasında, **nihayet ilk Agentımızı inşa etmeye hazır olacağız!**
