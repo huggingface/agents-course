@@ -1,0 +1,90 @@
+# Kurulum: İlk Adımlarınız ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Time to Onboard" width="100%"/>
+
+Artık tüm detaylara sahip olduğunuza göre, başlayalım! Dört şey yapacağız:
+
+1. **Hugging Face hesabınızı oluşturun** (henüz yapmadıysanız)
+2. **Discord’a kaydolun ve kendinizi tanıtın** (çekinmeyin 🤗)
+3. **Hub üzerinde Hugging Face Agents Kursunu** (Hugging Face Ajanlar Kursu) takip edin
+4. **Kurstan bahsedin** ve yayılmasına yardımcı olun
+
+### Adım 1: Hugging Face Hesabınızı Oluşturun
+
+(Henüz yapmadıysanız) Hugging Face hesabınızı <a href='https://huggingface.co/join' target='_blank'>buradan</a> oluşturun.
+
+### Adım 2: Discord Topluluğumuza Katılın
+
+👉🏻 Discord sunucumuza <a href="https://discord.gg/UrrTSsSyjb" target="_blank">buradan</a> katılın.
+
+Katıldığınızda, `#introduce-yourself` kanalında kendinizi tanıtmayı unutmayın.
+
+Birden fazla AI Agent (Yapay Zekâ Ajanı) ile ilgili kanalımız var:
+- `agents-course-announcements`: **en güncel kurs bilgileri** için.
+- `🎓-agents-course-general`: **genel tartışmalar ve sohbetler** için.
+- `agents-course-questions`: **soru sormak ve arkadaşlarınıza yardımcı olmak** için.
+- `agents-course-showcase`: **en iyi ajanlarınızı paylaşmak** için.
+
+Ayrıca şunlara da göz atabilirsiniz:
+
+- `smolagents`: **kütüphane ile ilgili destek ve tartışmalar** için.
+
+Discord'u ilk kez kullanıyorsanız, en iyi uygulamaları öğrenmek için bir Discord 101 rehberi yazdık. [Sonraki bölüme](discord101) göz atın.
+
+### Adım 3: Hugging Face Agent Course Organizasyonunu Takip Edin
+
+En güncel kurs materyallerini, güncellemeleri ve duyuruları takipte kalmak için **Hugging Face Agents Kurs Organizasyonunu takip edin**.
+
+👉 <a href="https://huggingface.co/agents-course" target="_blank">Buraya</a> gidin ve **follow (takip et)** butonuna tıklayın.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="Follow" width="100%"/>
+
+### Adım 4: Kurstan Bahsedin
+
+Bu kursun daha fazla kişiye ulaşmasına yardım edin! İki şekilde destek olabilirsiniz:
+
+1. Yıldız ⭐ ile <a href="https://github.com/huggingface/agents-course" target="_blank">kursun GitHub deposunu</a> destekleyin.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="Repo star"/>
+
+2. Öğrenme Yolculuğunuzu Paylaşın: **Bu kursu aldığınızı başkalarına duyurun!** Sosyal medya paylaşımlarınızda kullanabileceğiniz bir görsel hazırladık.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png">
+
+Görseli indirmek için 👉 [buraya tıklayın](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)
+
+### Adım 5: Modelleri Ollama ile Yerelde Çalıştırmak (Kredi limitine takılırsanız)
+
+1. **Ollama'yı Kurun**
+
+    Resmi talimatları <a href="https://ollama.com/download" target="_blank">buradan</a> takip edin.
+
+2. **Bir modeli yerele çekin**
+<details><summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+
+```bash
+    ollama pull qwen2:7b # Daha fazla model için ollama web sitesine göz atın
+```
+3. **Ollama'yı arka planda başlatın (Bir terminalde)**
+```bash
+    ollama serve
+```
+4. **`HfApiModel` yerine `LiteLLMModel` kullanın**
+``` bash
+    from smolagents import LiteLLMModel
+
+    model = LiteLLMModel(
+        model_id="ollama_chat/qwen2:7b",  # Veya Ollama tarafından desteklenen diğer modelleri deneyin
+        api_base="http://127.0.0.1:11434",  # Varsayılan Ollama yerel sunucusu
+        num_ctx=8192,
+    )
+```
+
+5. **Bu neden işe yarıyor?**
+- Ollama, modelleri http://localhost:11434 adresinde OpenAI ile uyumlu bir API kullanarak yerelde sunar.
+- LiteLLMModel, OpenAI chat/completion API formatını destekleyen herhangi bir modelle iletişim kurmak için tasarlanmıştır.
+- Bu, HfApiModel yerine doğrudan LiteLLMModel kullanabileceğiniz anlamına gelir — başka hiçbir kod değişikliği gerekmez. Bu, sorunsuz, tak ve çalıştır bir çözümdür.
+
+Tebrikler! 🎉 **Kurulum sürecini tamamladınız!** Artık AI Agent (Yapay Zekâ Ajanı) dünyasını öğrenmeye hazırsınız. İyi eğlenceler!
+
+Öğrenmeye devam edin, harika kalın 🤗

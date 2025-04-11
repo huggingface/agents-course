@@ -1,0 +1,148 @@
+- title: Ünite 0. Kursa Hoş Geldiniz
+  sections:
+  - local: unit0/introduction
+    title: Kursa Hoş Geldiniz 🤗
+  - local: unit0/onboarding
+    title: Kurulum
+  - local: unit0/discord101
+    title: (İsteğe Bağlı) Discord 101
+- title: Live 1. Kurs nasıl işler ve Soru & Cevap
+  sections:
+  - local: communication/live1
+    title: Canlı Yayın 1. Kurs nasıl işler ve Soru & Cevap
+- title: Ünite 1. Agent'lara Giriş
+  sections:
+  - local: unit1/introduction
+    title: Giriş
+  - local: unit1/what-are-agents
+    title: Agent (Ajan) Nedir?
+  - local: unit1/quiz1
+    title: Hızlı Sınav 1
+  - local: unit1/what-are-llms
+    title: LLM (Büyük Dil Modelleri) Nedir?
+  - local: unit1/messages-and-special-tokens
+    title: Mesajlar ve "Special Tokens" (Özel Belirteçler)
+  - local: unit1/tools
+    title: Tools (Araçlar) Nedir?
+  - local: unit1/quiz2
+    title: Hızlı Sınav 2
+  - local: unit1/agent-steps-and-structure
+    title: Thought-Action-Observation (Düşünce-Eylem-Gözlem) Döngüsü Üzerinden AI Agent'ları Anlamak
+  - local: unit1/thoughts
+    title: Düşünce, İçsel Mantık Yürütme ve Re-Act (Yeniden Eylem) Yaklaşımı
+  - local: unit1/actions
+    title: Eylemler, Agent'ın Çevresiyle Etkileşime Geçmesini Sağlama
+  - local: unit1/observations
+    title: Gözlemle, Yansıtma ve Uyum Sağlamak İçin Geri Bildirimi Entegre Etme
+  - local: unit1/dummy-agent-library
+    title: Sahte Agent Kütüphanesi
+  - local: unit1/tutorial
+    title: smolagents Kullanarak İlk Agent'ımızı Oluşturalım
+  - local: unit1/final-quiz
+    title: Ünite 1 Final Sınavı
+  - local: unit1/conclusion
+    title: Sonuç
+- title: Ünite 2. AI Agent'ları için Frameworkler
+  sections:
+  - local: unit2/introduction
+    title: AI Agent'ları için Frameworkler
+- title: Ünite 2.1 smolagents Frameworkü
+  sections:
+  - local: unit2/smolagents/introduction
+    title: smolagents'a Giriş
+  - local: unit2/smolagents/why_use_smolagents
+    title: Neden smolagents Kullanmalıyız?
+  - local: unit2/smolagents/quiz1
+    title: Hızlı Sınav 1
+  - local: unit2/smolagents/code_agents
+    title: Kod Kullanan Agent'lar Oluşturma
+  - local: unit2/smolagents/tool_calling_agents
+    title: Eylemleri Kod Parçacıkları veya JSON Blokları Olarak Yazma
+  - local: unit2/smolagents/tools
+    title: Tools (Araçlar)
+  - local: unit2/smolagents/retrieval_agents
+    title: Retrieval (Alma) Agent'ları
+  - local: unit2/smolagents/quiz2
+    title: Hızlı Sınav 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: Çoklu Agent Sistemleri
+  - local: unit2/smolagents/vision_agents
+    title: Görüntü ve Tarayıcı Agent'ları
+  - local: unit2/smolagents/final_quiz
+    title: Final Sınavı
+  - local: unit2/smolagents/conclusion
+    title: Sonuç
+- title: Ünite 2.2 LlamaIndex Frameworkü
+  sections:
+  - local: unit2/llama-index/introduction
+    title: LlamaIndex'e Giriş
+  - local: unit2/llama-index/llama-hub
+    title: LlamaHub'a Giriş
+  - local: unit2/llama-index/components
+    title: LlamaIndex'teki Bileşenler Nedir?
+  - local: unit2/llama-index/tools
+    title: LlamaIndex'te Tools (Araç) Kullanımı
+  - local: unit2/llama-index/quiz1
+    title: Hızlı Sınav 1
+  - local: unit2/llama-index/agents
+    title: LlamaIndex'te Agent Kullanımı
+  - local: unit2/llama-index/workflows
+    title: LlamaIndex'te Ajantik İş Akışları Oluşturma
+  - local: unit2/llama-index/quiz2
+    title: Hızlı Sınav 2
+  - local: unit2/llama-index/conclusion
+    title: Sonuç
+- title: Ünite 2.3 LangGraph Frameworkü
+  sections:
+  - local: unit2/langgraph/introduction
+    title: LangGraph'a Giriş
+  - local: unit2/langgraph/when_to_use_langgraph
+    title: LangGraph Nedir?
+  - local: unit2/langgraph/building_blocks
+    title: LangGraph'ın Yapı Taşları
+  - local: unit2/langgraph/first_graph
+    title: İlk LangGraph'ınızı Oluşturma
+  - local: unit2/langgraph/document_analysis_agent
+    title: Belge Analiz Grafiği
+  - local: unit2/langgraph/quiz1
+    title: Hızlı Sınav 1
+  - local: unit2/langgraph/conclusion
+    title: Sonuç
+- title: Ünite 3. Ajantik RAG (Almayla Artırılmış Üretim) Kullanım Örneği
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Ajantik RAG (Almayla Artırılmış Üretim) Kullanım Örneğine Giriş
+  - local: unit3/agentic-rag/agentic-rag
+    title: Ajantik RAG (Almayla Artırılmış Üretim)
+  - local: unit3/agentic-rag/invitees
+    title: Misafir Hikayeleri için RAG (Almayla Artırılmış Üretim) Aracı Oluşturma
+  - local: unit3/agentic-rag/tools
+    title: Agent'ınız için Araçlar Oluşturma ve Entegre Etme
+  - local: unit3/agentic-rag/agent
+    title: Gala Agent'ınızı Oluşturma
+  - local: unit3/agentic-rag/conclusion
+    title: Sonuç
+- title: Bonus Ünite 1. Function-calling için bir LLM'nin fine-tuning (ince-ayar) Edilmesi
+  sections:
+  - local: bonus-unit1/introduction
+    title: Giriş
+  - local: bonus-unit1/what-is-function-calling
+    title: Function Calling (Fonksiyon Çağırma) Nedir?
+  - local: bonus-unit1/fine-tuning
+    title: Function Calling için Modelinizin İnce-Ayarını Yapalım
+  - local: bonus-unit1/conclusion
+    title: Sonuç
+- title: Bonus Ünite 2. Agent Gözlemlenebilirliği ve Değerlendirmesi
+  sections:
+  - local: bonus-unit2/introduction
+    title: Giriş
+  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+    title: Agent gGzlemlenebilirliği ve Değerlendirmesi Nedir?
+  - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
+    title: Agent'ları İzleme ve Değerlendirme
+  - local: bonus-unit2/quiz
+    title: Sınav
+- title: Bir Sonraki Adımlar Ne Zaman Yayınlanacak?
+  sections:
+  - local: communication/next-units
+    title: Sonraki Üniteler
