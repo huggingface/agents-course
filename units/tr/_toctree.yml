@@ -33,7 +33,7 @@
   - local: unit1/actions
     title: Eylemler, Agent'ın Çevresiyle Etkileşime Geçmesini Sağlama
   - local: unit1/observations
-    title: Gözlemle, Yansıtma ve Uyum Sağlamak İçin Geri Bildirimi Entegre Etme
+    title: Gözlemle, Geri Bildirimi Yansıtmak ve Uyum Sağlamak
   - local: unit1/dummy-agent-library
     title: Sahte Agent Kütüphanesi
   - local: unit1/tutorial
