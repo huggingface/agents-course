@@ -1,12 +1,12 @@
 - title: Ünite 0. Kursa Hoş Geldiniz
   sections:
   - local: unit0/introduction
-    title: Kursa Hoş Geldiniz 🤗
+    title: 🤗 AI Agent Kursuna Hoş Geldiniz
   - local: unit0/onboarding
-    title: Kurulum
+    title: Kurulum, İlk Adımlarınız ⛵
   - local: unit0/discord101
     title: (İsteğe Bağlı) Discord 101
-- title: Live 1. Kurs nasıl işler ve Soru & Cevap
+- title: Canlı Yayın 1. Kurs nasıl işler ve Soru & Cevap
   sections:
   - local: communication/live1
     title: Canlı Yayın 1. Kurs nasıl işler ve Soru & Cevap
@@ -21,13 +21,13 @@
   - local: unit1/what-are-llms
     title: LLM (Büyük Dil Modelleri) Nedir?
   - local: unit1/messages-and-special-tokens
-    title: Mesajlar ve "Special Tokens" (Özel Belirteçler)
+    title: Mesajlar ve Özel Belirteçler (Tokens)
   - local: unit1/tools
     title: Tools (Araçlar) Nedir?
   - local: unit1/quiz2
     title: Hızlı Sınav 2
   - local: unit1/agent-steps-and-structure
-    title: Thought-Action-Observation (Düşünce-Eylem-Gözlem) Döngüsü Üzerinden AI Agent'ları Anlamak
+    title: Düşünce-Eylem-Gözlem Döngüsü Üzerinden AI Agent'ları Anlamak
   - local: unit1/thoughts
     title: Düşünce, İçsel Mantık Yürütme ve Re-Act (Yeniden Eylem) Yaklaşımı
   - local: unit1/actions
