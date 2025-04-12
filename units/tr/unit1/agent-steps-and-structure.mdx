@@ -1,0 +1,146 @@
+# Düşünce-Eylem-Gözlem Döngüsüyle AI Agent'ları Anlamak
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Ünite 1 planlama"/>
+
+Önceki bölümlerde şunları öğrendik:
+
+- **Araçların (Tools) sistem mesajında Agent'lara nasıl sunulduğunu**.
+- **AI Agent'ların 'akıl yürütebilen', plan yapabilen ve çevreleriyle etkileşim kurabilen sistemler olduğunu**.
+
+Bu bölümde, **AI Agent iş akışının tamamını keşfedeceğiz**, bu döngüyü Düşünce-Eylem-Gözlem (Thought-Action-Observation) olarak tanımladık. 
+
+Sonrasında, bu adımların her birine daha derinlemesine dalacağız.
+
+
+## Temel Bileşenler
+
+Agent'lar şu sürekli döngüde çalışır: **düşünce (Thought) → eylem (Act) → gözlem (Observe)**.
+
+Bu adımları birlikte inceleyelim:
+
+1. **Thought (Düşünce):** Agent'ın LLM (büyük dil modelleri) kısmı bir sonraki adımın ne olması gerektiğine karar verir.
+2. **Action (Eylem):** Agent, ilişkili argümanlarla araçları çağırarak bir eylem gerçekleştirir.
+3. **Observation (Gözlem):** Model, araçtan gelen yanıtı değerlendirir.
+
+## Düşünce-Eylem-Gözlem Döngüsü
+
+Bu üç bileşen, sürekli bir döngü içinde birlikte çalışır. Programlamadan bir benzetme yapmak gerekirse, Agent bir **while döngüsü** kullanır: döngü, Agent'ın amacı gerçekleşene kadar devam eder.
+
+Görsel olarak şu şekilde görünür:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Düşünce, Eylem, Gözlem döngüsü"/>
+
+Birçok Agent framework'ünde, **kurallar ve yönergeler sistem mesajına doğrudan gömülür**, böylece her döngü belirlenmiş bir mantığa uyar.
+
+Basitleştirilmiş bir versiyonda, sistem mesajımız şu şekilde olabilir:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Düşünce, Eylem, Gözlem döngüsü"/>
+
+Burada Sistem Mesajı'nda şunları tanımladığımızı görüyoruz:
+
+- *Agent'ın davranışı*.
+- *Agent'ımızın erişebileceği Araçlar (Tools)* – bunu önceki bölümde açıklamıştık.
+- *Düşünce-Eylem-Gözlem Döngüsü* – LLM talimatlarına dahil ettiğimiz yapı.
+
+Süreci daha iyi anlamak için küçük bir örnek üzerinden geçelim.
+
+## Alfred, hava durumu Agent'ı
+
+Alfred adında bir hava durumu Agent'ı oluşturduk.
+
+Bir kullanıcı Alfred'e soruyor: "New York'ta şu an hava durumu nasıl?"
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Alfred Agent"/>
+
+Alfred'in görevi bu soruya bir hava durumu API aracı kullanarak cevap vermek.
+
+Döngü şu şekilde işliyor:
+
+### Thought (Düşünce)
+
+**İçsel Akıl Yürütme:**
+
+Alfred bu sorguyu alınca içsel olarak şöyle düşünebilir:
+
+*"Kullanıcının New York için güncel hava durumu bilgisine ihtiyacı var. Hava durumu verisi getiren bir araca erişimim var. Öncelikle güncel bilgileri almak için hava durumu API'sini çağırmam gerekiyor."*
+
+Bu adım, Agent'ın problemi adım adım çözdüğünü gösterir: öncelikle gerekli veriyi toplamak.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Alfred Agent"/>
+
+### Action (Eylem)
+
+**Araç Kullanımı:**
+
+Alfred, `get_weather` aracını bildiği için, içsel düşüncesine dayanarak hava durumu API aracını çağıran JSON formatında bir komut hazırlar. Örneğin, ilk eylemi şu olabilir:
+
+Düşünce: New York için güncel hava durumunu kontrol etmem gerekiyor.
+
+ ```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+ ```
+
+Burada, eylem açıkça hangi aracın çağrılacağını (örneğin: get_weather) ve hangi parametrenin gönderileceğini ("location": "New York") belirtir.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
+
+### Observation (Gözlem)
+
+**Çevreden Geri Bildirim:**
+
+Araç çağrısının ardından Alfred bir gözlem alır. Bu, API'den gelen ham hava durumu verisi olabilir:
+
+*"New York'ta şu anki hava durumu: parçalı bulutlu, 15°C, %60 nem."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Alfred Agent"/>
+
+Bu gözlem daha sonra sistem mesajına bağlam olarak eklenir. Gerçek dünya geri bildirimi işlevi görür, eylemin başarılı olup olmadığını doğrular ve gerekli ayrıntıları sağlar.
+
+### Güncellenmiş düşünce
+
+**Yansıtma:**
+
+Alfred gözlemi aldıktan sonra içsel akıl yürütmesini günceller:
+
+*"Artık New York için hava durumu verilerine sahibim, kullanıcıya bir cevap derleyebilirim."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Alfred Agent"/>
+
+### Son Eylem
+
+Ardından Alfred, kendisine söylenen şekilde biçimlendirilmiş nihai yanıtı üretir:
+
+Düşünce: Artık hava durumu verilerine sahibim. New York'ta şu anki hava durumu parçalı bulutlu, sıcaklık 15°C ve nem oranı %60.
+
+Nihai cevap: New York'ta şu anki hava durumu parçalı bulutlu, sıcaklık 15°C ve nem oranı %60.
+
+Bu son eylem, cevabı kullanıcıya geri gönderir ve döngüyü tamamlar.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Alfred Agent"/>
+
+Bu örnekte gördüğümüz şeyler:
+
+- **Agent'lar, amaç gerçekleşene kadar döngü içinde ilerler:**
+
+**Alfred'in süreci döngüseldir.** Düşünceyle başlar, bir araç çağırarak eyleme geçer ve ardından sonucu gözlemler. Eğer gözlem hata ya da eksik veri içeriyor olsaydı, Alfred döngüye tekrar girip yaklaşımını düzeltebilirdi.
+
+- **Araç Entegrasyonu:**
+
+Bir aracın (örneğin, hava durumu API'si) çağrılabilmesi, Alfred'in **sabit bilginin ötesine geçip gerçek zamanlı veri alabilmesini** sağlar – bu birçok AI Agent için temel bir yetenektir.
+
+- **Dinamik Uyum Sağlama:**
+
+Her döngü, Agent'ın akıl yürütmesine (düşünce - thought) yeni bilgi (gözlem - observation) eklemesine olanak tanır, bu da sonucun daha doğru ve anlamlı olmasını sağlar.
+
+Bu örnek, *ReAct (Reason & Act - Neden & Eylem) döngüsünün* temelini gözler önüne serer (bir sonraki bölümde bu kavramı geliştireceğiz): **Düşünce, Eylem ve Gözlem arasındaki etkileşim, AI Agent'ların karmaşık görevleri döngüsel olarak çözmesini sağlar**.
+
+Bu ilkeleri anlayarak ve uygulayarak, sadece görevleri hakkında akıl yürüten değil, aynı zamanda **harici araçları etkili şekilde kullanabilen ve çevresel geri bildirimlerle çıktısını sürekli olarak iyileştiren Agent'lar tasarlayabilirsiniz.**
+
+---
+
+Şimdi Düşünce, Eylem, Gözlem adımlarını tek tek daha derinlemesine inceleyelim.
