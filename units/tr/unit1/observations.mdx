@@ -1,0 +1,45 @@
+# Gözlemle: Geri Bildirimi Yansıtmak ve Uyum Sağlamak
+
+Gözlemler, **bir Agent'ın eylemlerinin sonuçlarını nasıl algıladığını** gösterir.
+
+Agent'ın düşünce sürecini besleyen ve sonraki eylemlerine yön veren kritik bilgiler sağlarlar.
+
+Bunlar, **çevreden gelen sinyallerdir** — ister bir API'den gelen veriler, ister hata mesajları ya da sistem günlükleri olsun — bir sonraki düşünce döngüsüne rehberlik ederler.
+
+Gözlem aşamasında Agent:
+
+- **Geri Bildirim Toplar:** Eyleminin başarılı olup olmadığını gösteren veri ya da onay alır.
+- **Sonuçları Ekler:** Yeni bilgiyi mevcut bağlama entegre eder ve böylece hafızasını günceller.
+- **Stratejisini Uyarlar:** Güncellenmiş bağlamı kullanarak sonraki düşünce ve eylemleri rafine eder.
+
+Örneğin, bir hava durumu API'si *"parçalı bulutlu, 15°C, %60 nem"* verisini döndürdüğünde, bu gözlem Agent'ın hafızasına (Prompt'un sonuna) eklenir.
+
+Ardından Agent, ek bilgiye ihtiyaç olup olmadığını ya da artık nihai bir cevap verip veremeyeceğini değerlendirir.
+
+Bu **geribildirimin yinelemeli şekilde entegrasyonu, Agent'ın hedefleriyle dinamik olarak uyum içinde kalmasını sağlar**; yani Agent sürekli olarak gerçek dünya sonuçlarına göre öğrenir ve uyum sağlar.
+
+Bu gözlemler **birçok farklı biçimde olabilir**; bir web sayfasındaki metni okumaktan robot kolunun konumunu izlemeye kadar her şey gözlem sayılabilir. Bunlar, bir Action (Eylem) yürütüldüğünde gelen metinsel Tool (Araç) "logları" olarak da düşünülebilir.
+
+| Gözlem Türü         | Örnek                                                                      |
+|---------------------|----------------------------------------------------------------------------|
+| Sistem Geri Bildirimi | Hata mesajları, başarı bildirimleri, durum kodları                       |
+| Veri Değişiklikleri | Veritabanı güncellemeleri, dosya sistemi değişiklikleri, durum değişiklikleri |
+| Çevresel Veriler     | Sensör okumaları, sistem metrikleri, kaynak kullanımı                    |
+| Yanıt Analizi        | API yanıtları, sorgu sonuçları, hesaplama çıktıları                      |
+| Zaman Tabanlı Olaylar| Süresi dolan görevler, tamamlanmış zamanlanmış işler                     |
+
+## Sonuçlar Nasıl Eklenir?
+
+Bir eylem gerçekleştirdikten sonra, framework şu adımları sırasıyla uygular:
+
+1. **Eylemi ayrıştırır**, hangi fonksiyonların çağrılacağını ve hangi argümanların kullanılacağını belirler.  
+2. **Eylemi yürütür.**  
+3. **Sonucu bir Gözlem olarak ekler.**  
+
+---
+
+Artık Agent'ın Düşünce-Eylem-Gözlem (Thought-Action-Observation) Döngüsünü öğrendik.
+
+Eğer bazı bölümler hala biraz belirsiz geliyorsa endişelenme — bu kavramları ileriki ünitelerde tekrar ele alacağız ve derinleştireceğiz.
+
+Şimdi, öğrendiklerini uygulama zamanı: İlk Agent'ını kodlama zamanı geldi!
