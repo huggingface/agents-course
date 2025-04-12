@@ -17,7 +17,7 @@
   - local: unit1/what-are-agents
     title: Agent (Ajan) Nedir?
   - local: unit1/quiz1
-    title: Hızlı Sınav 1
+    title: Sınav 1
   - local: unit1/what-are-llms
     title: LLM (Büyük Dil Modelleri) Nedir?
   - local: unit1/messages-and-special-tokens
@@ -25,11 +25,11 @@
   - local: unit1/tools
     title: Tools (Araçlar) Nedir?
   - local: unit1/quiz2
-    title: Hızlı Sınav 2
+    title: Sınav 2
   - local: unit1/agent-steps-and-structure
     title: Düşünce-Eylem-Gözlem Döngüsü Üzerinden AI Agent'ları Anlamak
   - local: unit1/thoughts
-    title: Düşünce, İçsel Mantık Yürütme ve Re-Act (Yeniden Eylem) Yaklaşımı
+    title: Düşünce, İçsel Akıl Yürütme ve Re-Act (Yeniden Eylem) Yaklaşımı
   - local: unit1/actions
     title: Eylemler, Agent'ın Çevresiyle Etkileşime Geçmesini Sağlama
   - local: unit1/observations
@@ -53,7 +53,7 @@
   - local: unit2/smolagents/why_use_smolagents
     title: Neden smolagents Kullanmalıyız?
   - local: unit2/smolagents/quiz1
-    title: Hızlı Sınav 1
+    title: Sınav 1
   - local: unit2/smolagents/code_agents
     title: Kod Kullanan Agent'lar Oluşturma
   - local: unit2/smolagents/tool_calling_agents
@@ -63,7 +63,7 @@
   - local: unit2/smolagents/retrieval_agents
     title: Retrieval (Alma) Agent'ları
   - local: unit2/smolagents/quiz2
-    title: Hızlı Sınav 2
+    title: Sınav 2
   - local: unit2/smolagents/multi_agent_systems
     title: Çoklu Agent Sistemleri
   - local: unit2/smolagents/vision_agents
@@ -83,13 +83,13 @@
   - local: unit2/llama-index/tools
     title: LlamaIndex'te Tools (Araç) Kullanımı
   - local: unit2/llama-index/quiz1
-    title: Hızlı Sınav 1
+    title: Sınav 1
   - local: unit2/llama-index/agents
     title: LlamaIndex'te Agent Kullanımı
   - local: unit2/llama-index/workflows
     title: LlamaIndex'te Ajantik İş Akışları Oluşturma
   - local: unit2/llama-index/quiz2
-    title: Hızlı Sınav 2
+    title: Sınav 2
   - local: unit2/llama-index/conclusion
     title: Sonuç
 - title: Ünite 2.3 LangGraph Frameworkü
@@ -105,7 +105,7 @@
   - local: unit2/langgraph/document_analysis_agent
     title: Belge Analiz Grafiği
   - local: unit2/langgraph/quiz1
-    title: Hızlı Sınav 1
+    title: Sınav 1
   - local: unit2/langgraph/conclusion
     title: Sonuç
 - title: Ünite 3. Ajantik RAG (Almayla Artırılmış Üretim) Kullanım Örneği
