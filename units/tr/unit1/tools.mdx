@@ -1,0 +1,476 @@
+# Tools (Araçlar) Nedir?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Ünite 1 planı"/>
+
+AI Agent (Ajan) yapılarının en kritik özelliklerinden biri **eylem** gerçekleştirebilme yetenekleridir. Daha önce de gördüğümüz gibi, bu eylemler **Tools (Araçlar)** kullanılarak gerçekleştirilir.
+
+Bu bölümde, araçlar nedir, nasıl etkili bir şekilde tasarlanır ve bu araçlar Agent sistem mesajına nasıl entegre edilir bunu öğreneceğiz.
+
+Agent'ınıza doğru araçlar vererek — ve bu araçların nasıl çalıştığını açıkça tanımlayarak — AI'nızın başarabileceklerini dramatik şekilde artırabilirsiniz. Haydi başlayalım!
+
+## AI Tools (Yapayu Zeka Araçları) Nedir?
+
+**Araç, LLM (büyük dil modelleri)'e verilen bir fonksiyondur**. Bu fonksiyonun **açık bir amacı** olmalıdır.
+
+AI Agent'larda yaygın olarak kullanılan bazı araçlar şunlardır:
+
+| Tool            | Açıklama                                                   |
+|----------------|-------------------------------------------------------------|
+| Web Arama     | Agent'ın internetten güncel bilgi almasını sağlar.          |
+| Görsel Üretme | Metin açıklamalarına göre görsel üretir.                  |
+| Retrieval (Alma)      | Harici bir kaynaktan bilgi alır.                            |
+| API Arayüzü  | Harici bir API (GitHub, YouTube, Spotify vb.) ile etkileşir.|
+
+Bunlar yalnızca örnekler, aslında her kullanım durumu için bir araç oluşturabilirsiniz!
+
+İyi bir araç, **LLM'in gücünü tamamlayan** bir şey olmalıdır.
+
+Örneğin, eğer aritmetik işlem yapılması gerekiyorsa, LLM'e bir **hesap makinesi aracı** vermek, modelin doğal yeteneklerine güvenmekten daha iyi sonuçlar verir.
+
+Ayrıca, **LLM'ler eğitildikleri verilere dayalı olarak bir girdinin tamamlamasını tahmin ederler**, bu da demektir ki içsel bilgileri yalnızca eğitimden önceki olayları kapsar. Dolayısıyla Agent'ınız güncel veriye ihtiyaç duyuyorsa, bu veriyi bir araç aracılığıyla sağlamalısınız.
+
+Örneğin, bir LLM'e doğrudan (arama aracı olmadan) bugünün havasını sorarsanız, rastgele bir hava durumu hayal edebilir.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Hava durumu"/>
+
+- Bir araç şunları içermelidir:
+
+  - Fonksiyonun ne yaptığını anlatan **metinsel bir açıklama**.
+  - Bir *Callable* (eylem gerçekleştiren bir şey).
+  - *Argümanlar* ve bunların türleri.
+  - (Opsiyonel) Çıktılar ve bunların türleri.
+
+## Araçlar nasıl çalışır?
+
+Gördüğümüz gibi, LLM'ler yalnızca metin girdileri alır ve metin çıktıları üretir. Kendi başlarına araçları çağırma yetenekleri yoktur. Agent'e araç sağlamak dediğimizde, aslında LLM'e bu araçların varlığını öğretmek ve gerektiğinde metne dayalı çağrılar üretmesini sağlamak anlamına gelir.
+
+Örneğin, LLM'e internetten bir yerdeki hava durumunu kontrol eden bir araç verirsek ve Paris'in hava durumunu sorarsak, LLM bunun "weather" (hava durumu) aracının kullanılabileceği bir fırsat olduğunu fark eder. Gerçek hava durumunu kendisi almaz; bunun yerine `call weather_tool('Paris')` gibi bir araç çağrısını temsil eden bir metin üretir.
+
+**Agent** daha sonra bu cevabı okur, bir araç çağrısı gerektiğini anlar, LLM adına bu aracı çalıştırır ve gerçek veriyi getirir.
+
+Bu araç çağırma adımları genellikle kullanıcıya gösterilmez: Agent bunları güncellenmiş konuşmaya yeni bir mesaj olarak ekler ve bunu tekrar LLM'e gönderir. LLM bu ek bağlamı işler ve kullanıcıya doğal görünen bir cevap üretir. Kullanıcının gözünden bakıldığında, sanki LLM doğrudan aracı kullanmış gibi görünür; ama aslında arka planda tüm süreci Agent yönetmiştir.
+
+Bu süreci ilerleyen oturumlarda çok daha derinlemesine inceleyeceğiz.
+
+## LLM'e araçları nasıl veririz?
+
+Tam cevap biraz karmaşık olabilir, ancak esasen sistem mesajını kullanarak modele mevcut araçların metinsel açıklamalarını sağlarız:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="Araçlar için sistem Prompt'u"/>
+
+Bu işlemin çalışması için, şunları çok net ve doğru şekilde belirtmeliyiz:
+
+1. **Araç ne yapar**
+2. **Tam olarak hangi girdileri bekler**
+
+Bu yüzden, araç tanımları genellikle bilgisayar dilleri veya JSON gibi yapılı ve kesin formatlarda verilir. Bu şart değildir ama kesin ve tutarlı bir format kullanmak faydalı olacaktır.
+
+Eğer bu teori fazla soyutsa, hadi somut bir örnekle anlayalım.
+
+Basitleştirilmiş bir **calculator** aracı gerçekleştireceğiz, bu iki tam sayıyı çarpacak. Python kodumuz şböyle olabilir:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+def calculator(a: int, b: int) -> int:
+    """İki tam sayıyı çarp."""
+    return a * b
+```
+</details>
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+```
+
+Dolayısıyla aracın adı `calculator`, **iki tam sayıyı çarpar** ve şu girdilere ihtiyacı vardır:
+
+- **`a`** (*int*): Bir tam sayı.
+- **`b`** (*int*): Bir tam sayı.
+
+Araçtan dönecek çıktı ise başka bir tam sayıdır:
+- (*int*): `a` ile `b`'nin çarpımı.
+
+Tüm bu detaylar önemlidir. Bunları modelin anlayabileceği bir metin dizesine dökebiliriz:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```text
+Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: int, b: int, Çıktılar: int
+```
+</details>
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+> **Not:** Bu metinsel açıklama, LLM'in araç hakkında bilmesini istediğimiz şeydir.
+
+Bu dizeyi LLM'e giriş olarak verdiğimizde, model bunu bir araç olarak tanır ve hangi girdileri vermesi gerektiğini ve ne tür bir çıktı beklemesi gerektiğini bilir.
+
+Yeni araçlar sağlamak istiyorsak, tutarlı olmalı ve her zaman aynı formatı kullanmalıyız. Bu süreç biraz kırılgan olabilir ve bazı detayları fark etmeden atlayabiliriz.
+
+Peki, daha iyi bir yöntem var mı?
+
+### Araç açıklamalarını otomatik biçimlendirme
+
+Python'da yazılmış aracımız zaten ihtiyacımız olan her şeyi sağlıyor:
+
+- Ne yaptığını anlatan açıklayıcı bir isim: `calculator` (hesap makinesi)
+- Docstring yorumuyla sağlanan uzun açıklama: `Multiply two integers.`
+- Girdi türleri: iki int
+- Çıktı türü.
+
+İnsanlar programlama dillerini bu yüzden kullanıyor: açık, özlü ve kesinler.
+
+Python kaynak kodunu araca ait _specification_ (spesifikasyon) olarak verebiliriz, ancak aracın nasıl yazıldığı önemli değil. Önemli olan adı, ne yaptığı, hangi girdileri beklediği ve hangi çıktıyı verdiğidir.
+
+Python'un iç gözlem özelliklerini kullanarak, kaynak koddan otomatik olarak araç açıklaması oluşturacağız. Tek yapmamız gereken, araç fonksiyonunun tip ipuçları, docstring ve mantıklı fonksiyon adları kullanması. Kaynak koddan ilgili kısımları çıkarmak için bir miktar kod yazacağız.
+
+Sonrasında, sadece `@tool` dekoratörünü kullanarak `calculator` fonksiyonunun bir araç olduğunu belirtmemiz yeterli:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """İki tam sayıyı çarp."""
+    return a * b
+
+print(calculator.to_string())
+```
+</details>
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Fonksiyon tanımının önündeki `@tool` dekoratörüne dikkat edin.
+
+Birazdan göreceğimiz implementasyon sayesinde `to_string()` fonksiyonunu kullanarak şu metni otomatik olarak elde edebiliriz:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```text
+Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: int, b: int, Çıktılar: int
+```
+</details>
+
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+### Genel Araç implementasyonu
+
+Gerektiğinde tekrar kullanılabilecek bir `Tool` sınıfı oluşturuyoruz.
+
+> **Uyarı:** Bu örnek uygulama kurgusaldır ancak çoğu kütüphanedeki gerçek implementasyonlara oldukça benzerdir.
+
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+class Tool:
+    """
+    Yeniden kullanılabilir bir kod parçasını (Araç) temsil eden bir sınıf.
+
+    Nitelikler:
+        name (str): Aracın adı.
+        description (str): Aracın ne yaptığına dair metinsel bir açıklama.
+        func (callable): Bu aracın sardığı işlev.
+        arguments (liste): Bir argüman listesi.
+        outputs (str veya liste): Sarılmış işlevin dönüş türü(leri).
+    """
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: callable,
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Aracın adını, açıklamasını, argümanlarını ve çıktılarını içeren bir dize gösterimini döndürür.
+        """
+        args_str = ", ".join([
+        f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+
+        return (
+        f"Araç Adı: {self.name},"
+        f" Açıklama: {self.description},"
+        f" Bağımsız Değişkenler: {args_str},"
+        f" Çıktılar: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Sağlanan bağımsız değişkenlerle temel çağrılabilir fonksiyonu çağır.
+        """
+        return self.func(*args, **kwargs)
+```
+</details>
+
+```python
+class Tool:
+    """
+    A class representing a reusable piece of code (Tool).
+
+    Attributes:
+        name (str): Name of the tool.
+        description (str): A textual description of what the tool does.
+        func (callable): The function this tool wraps.
+        arguments (list): A list of argument.
+        outputs (str or list): The return type(s) of the wrapped function.
+    """
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: callable,
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Return a string representation of the tool,
+        including its name, description, arguments, and outputs.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoke the underlying function (callable) with provided arguments.
+        """
+        return self.func(*args, **kwargs)
+```
+
+
+Karmaşık görünebilir ama yavaşça incelersek ne yaptığını anlayabiliriz. Şu nitelikleri içeren bir **Tool** sınıfı tanımlıyoruz:
+
+- **`name`** (*str*): Aracın adı.
+- **`description`** (*str*): Aracın ne yaptığına dair kısa açıklama.
+- **`function`** (*callable*): Aracın çalıştıracağı fonksiyon.
+- **`arguments`** (*list*): Beklenen giriş parametreleri.
+- **`outputs`** (*str* or *list*): Beklenen çıktı(lar).
+- **`__call__()`**: Araç çağrıldığında fonksiyonu çalıştırır.
+- **`to_string()`**: Aracın tüm özelliklerini metne dönüştürür.
+
+Aşağıdaki gibi bir kodla bir Tool oluşturabiliriz:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+calculator_tool = Tool(
+    "calculator",                   # isim
+    "İki tam sayıyı çarp.",         # açıklama
+    calculator,                     # çağırılacak fonksiyon
+    [("a", "int"), ("b", "int")],   # girdiler (isimler and tipler)
+    "int",                          # çıktı
+)
+```
+</details>
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # isim
+    "Multiply two integers.",       # açıklama
+    calculator,                     # çağırılacak fonksiyon
+    [("a", "int"), ("b", "int")],   # girdiler (isimler and tipler)
+    "int",                          # çıktı
+)
+```
+
+Ancak Python'un `inspect` modülünü kullanarak tüm bilgileri bizim yerimize alabiliriz! İşte `@tool` dekoratörü tam olarak bunu yapıyor.
+
+> Merak ediyorsanız, aşağıdaki bölümü açarak dekoratör implementasyonuna bakabilirsiniz.
+
+<details> <summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+```python
+def tool(func):
+    """
+    Verilen fonksiyondan bir Tool örneği oluşturan dekoratör.
+    """
+    # Fonksiyon imzasını al
+    signature = inspect.signature(func)
+
+    # Girdiler için (param_name, param_annotation) çiftlerini çıkar
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+
+    # Geri dönüş tipi belirle
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "No return annotation"
+    else:
+        outputs = (
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
+            else str(return_annotation)
+        )
+
+    # Docstring'i açıklama olarak kullan (varsayılan None)
+    description = func.__doc__ or "No description provided."
+
+    # Fonksiyon adı, Tool adı olur
+    name = func.__name__
+
+    # Yeni Tool örneğini döndür
+    return Tool(
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
+        outputs=outputs
+    )
+</details>
+
+<details>
+<summary>dekoratör kodu</summary>
+
+```python
+def tool(func):
+    """
+    A decorator that creates a Tool instance from the given function.
+    """
+    # Fonksiyon imzasını al
+    signature = inspect.signature(func)
+
+    # Girdiler için (param_name, param_annotation) çiftlerini çıkar
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+
+    # Geri dönüş tipi belirle
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "No return annotation"
+    else:
+        outputs = (
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
+            else str(return_annotation)
+        )
+
+    # Docstring'i açıklama olarak kullan (varsayılan None)
+    description = func.__doc__ or "No description provided."
+
+    # Fonksiyon adı, Tool adı olur
+    name = func.__name__
+
+    # Yeni Tool örneğini döndür
+    return Tool(
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
+        outputs=outputs
+    )
+```
+</details>
+
+Tekrar belirtmek gerekirse, bu dekoratörle aracımızı şöyle tanımlayabiliriz:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """İki tam sayıyı çarp"""
+    return a * b
+
+print(calculator.to_string())
+```
+</details>
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Ve `Tool`'un `to_string` metodunu kullanarak, LLM için uygun araç açıklamasını otomatik olarak elde edebiliriz:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```text
+Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: int, b: int, Çıktılar: int
+```
+</details>
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+Bu açıklama sistem prompt'una **eklenir**. Bu bölümün başındaki örneği ele alırsak, `tools_description` yerini alarak şu şekilde görünür:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Araçlar için sistem Prompt'u"/>
+
+[Eylemler](actions) bölümünde, Agent'ın bu oluşturduğumuz aracı nasıl Call ettiğini (çağırdığını) daha ayrıntılı öğreneceğiz.
+
+### Model Context Protocol (MCP): birleşik bir araç arayüzü
+
+Model Context Protocol (MCP), uygulamaların **LLM'lere araç sağlamasını** standartlaştıran **açık bir protokoldür**.
+
+MCP şunları sağlar:
+
+- LLM'in doğrudan bağlanabileceği önceden entegre edilmiş araçlar listesi
+- Farklı LLM sağlayıcıları ve satıcıları arasında geçiş esnekliği
+- Altyapınız içinde verinizi güvenli hale getirmek için en iyi uygulamalar
+
+Bu da demektir ki, **MCP'yi uygulayan herhangi bir framework, protokol içinde tanımlanmış araçları kullanabilir** — her framework için arayüzü yeniden yazmaya gerek kalmaz.
+
+---
+
+Araçlar, AI Agent'ların yeteneklerini geliştirmede kritik bir rol oynar.
+
+Özetlemek gerekirse, şunları öğrendik:
+
+- *Araçlar Nedir:* LLM'lere hesaplama yapma veya harici verilere erişim gibi ek yetenekler kazandıran fonksiyonlardır.
+
+- *Araç Nasıl Tanımlanır:* Açık bir metin açıklaması, girdiler, çıktılar ve çağırılabilir bir fonksiyon sağlayarak.
+
+- *Araçlar Neden Gerekli:* Agent'ların statik model eğitim sınırlamalarını aşmasına, gerçek zamanlı görevleri yerine getirmesine ve uzmanlaşmış eylemler gerçekleştirmesine olanak tanırlar.
+
+Şimdi [Agent İş Akışı](agent-steps-and-structure) bölümüne geçebiliriz; burada bir Agent'ın nasıl gözlemlediğini, düşündüğünü ve harekete geçtiğini göreceksiniz. Bu, şimdiye kadar öğrendiklerimizin tümünü bir araya getirir ve kendi AI Agent'inizi oluşturma sürecinin temelini oluşturur.
+
+Ama önce, kısa bir sınav zamanı!
