@@ -13,11 +13,15 @@ The `gr.ChatInterface` is a high-level component that handles all the essential 
 
 ## Your First Agent UI
 
-You'll first need to install langchain and langgraph for this section.
+We'll start by installing langchain and langgraph for this section. Additionally, set up the environment variable `OPENAI_API_KEY` to store your OpenAI API keys.
 
 ```python
 pip install langchain
-pip install langgraph
+pip install langchain-openai langgraph
+
+# OPENAI_API_KEY
+import os
+os.environ["OPENAI_API_KEY"]="your-openai-api-key"
 ```
 
 
@@ -161,7 +165,8 @@ Let's break down what's happening:
    - Keeps users engaged while waiting
 
 We are using `type="messages"` in `gr.ChatInterface`. This passes the history as a list of dictionaries with openai-style "role" and "content" keys.
-ChatInterface is Gradio's high-level abstraction for chatbot UIs, requiring only one parameter: fn, a function that returns LLM responses based on the user input and chat history. There are additional parameters, like `type`, that help control the chatbot's appearance and behavior. We'll explore the ChatInterface class further in the following chapters.
+
+ChatInterface requires only one parameter: fn, a function that returns LLM responses based on the user input and chat history. There are additional parameters, like `type`, that help control the chatbot's appearance and behavior. We'll explore the ChatInterface class further in the following chapters.
 
 ## Adding More Features
 
@@ -191,7 +196,7 @@ def stream_from_agent(message: str, history: List[Dict[str, str]]) -> gr.ChatMes
         )
         messages_to_display.append(tool_message)
         yield messages_to_display
-        tool_message.metadata["status"] = "done"    
+    tool_message.metadata["status"] = "done"    
     ...
 ```
 
@@ -223,6 +228,7 @@ demo = gr.ChatInterface(
 )
 ```
 
+Try modifying the example above to create your own Agent interface. Experiment with different use-cases like research, article-writing, travel-planner, _etc._
 
 ## What's Next?
 
@@ -233,5 +239,3 @@ You now have a foundation for building Agent interfaces! In the next chapter, we
 - Nested agents
 
 We'll also explore how to integrate these interfaces with more world-class LLMs and external tools.
-
-Try modifying the examples above to create your own Agent interface. Experiment with different use-cases like research, article-writing, travel-planner, _etc._ !

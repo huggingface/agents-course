@@ -15,7 +15,7 @@ message = ChatMessage(
     role="assistant"
 )
 
-# Example with metadata dictionary for displaying thoughts
+# Example with metadata dictionary for displaying LLM thoughts
 thinking_message = ChatMessage(
     content="Let me analyze this step by step...",
     role="assistant",
@@ -28,7 +28,7 @@ thinking_message = ChatMessage(
 ```python
 @dataclass
 class ChatMessage:
-   content: str | Component  # Text or media component
+   content: str | Component  # Text or a media component
    role: str  # "user" or "assistant"
    metadata: dict = None  # For thought display, nesting, etc.
    options: list[dict] = None  # For suggested responses
@@ -36,12 +36,12 @@ class ChatMessage:
 
 The only required field is content. The value of `gr.Chatbot` is a list of these ChatMessage dataclasses.
 
-- The MetadataDict is a typed dictionary to represent metadata for a message in the Chatbot component. An instance of this dictionary is used for the metadata field in a ChatMessage when the chat message should be displayed as a thought.
+- The MetadataDict is a typed dictionary to represent metadata for a message in the Chatbot component. An instance of this dictionary is used for the metadata field in a ChatMessage when the chat message should be displayed as a thought or a tool use.
 
 ```python
 class MetadataDict(TypedDict):
-   title: str # Title of the thought bubble
-   id: int | str # For nested thought, Agents
+   title: str # Title of the thought or tool-use bubble
+   id: int | str # For nested thoughts, Agents
    parent_id: int | str # For nested thoughts, Agents 
    duration: float # For time duration of your step
    status: Literal # "pending" or "done"
@@ -61,24 +61,117 @@ Use the `options` key in the `gr.ChatMessage` instance to specify the preset res
 
 ## Displaying Agent Thoughts and Reasoning
 
-One of the most powerful features of Agents is their ability to reason through problems. With `gr.ChatMessage`, we can make this thinking visible:
+One of the most powerful features of Agents is their ability to reason through problems. With `gr.ChatMessage`, we can make this thinking visible. Let's look at an example where you display an LLM's thoughts using the ChatMessage class and the Metadata dictionary :
 
 ```python
+import os
+import re
 import gradio as gr
 from gradio import ChatMessage
 
-def reasoning_agent(query, history):
-    """
-    Example of using agents with reasoning LLM like DeepSeek-r1 
-    """
-...
-...
+# Setting up the APi Key for accessing DeepSeek R1
+os.environ["SAMBANOVA_API_KEY"]="xxx"
+
+client = openai.OpenAI(
+    api_key=os.environ.get("SAMBANOVA_API_KEY"),
+    base_url="https://api.sambanova.ai/v1",
+)
+
+# Function to parse the DeepSeek response and extract thinking content
+def parse_deepseek_response(response_text):
+    # Extract content between <think> tags
+    thinking_match = re.search(r'<think>(.*?)</think>', response_text, re.DOTALL)
+    
+    if thinking_match:
+        thinking = thinking_match.group(1).strip()
+        # Get the actual response (everything after </think>)
+        actual_response = re.sub(r'<think>.*?</think>', '', response_text, flags=re.DOTALL).strip()
+        return thinking, actual_response
+    else:
+        # If no thinking tags found, return empty thinking and full response
+        return "", response_text
+
+# Chat function for the ChatInterface
+def deepseek_chat(message, history):
+    # Convert history to the format expected by the OpenAI API
+    messages = []
+    
+    # Add system message
+    messages.append({"role": "system", "content": "You are a helpful assistant"})
+    
+    # Add chat history
+    for msg in history:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    
+    # Add the current message
+    messages.append({"role": "user", "content": message})
+    
+    try:
+        # Get the sambanova client and make the API call
+        response = client.chat.completions.create(
+            model="DeepSeek-R1",
+            messages=messages,
+            temperature=0.1,
+            top_p=0.1
+        )
+        
+        # Get the response content
+        response_text = response.choices[0].message.content
+        
+        # Parse the response to extract thinking and final response
+        thinking, actual_response = parse_deepseek_response(response_text)
+        
+        # Return list of ChatMessage objects
+        result = []
+        
+        # Add thinking as a collapsible section if it exists
+        if thinking:
+            result.append(
+                ChatMessage(
+                    content=thinking,
+                    metadata={"title": "🧠 Thinking Process"}
+                )
+            )
+        
+        # Add the actual response
+        result.append(
+            ChatMessage(
+                content=actual_response
+            )
+        )
+        
+        return result
+    
+    except Exception as e:
+        # Handle any errors
+        return [
+            ChatMessage(
+                content=f"An error occurred: {str(e)}",
+                metadata={"title": "⚠️ Error"}
+            )
+        ]
+
+# Create the Gradio interface
+demo = gr.ChatInterface(
+    fn=deepseek_chat,
+    type="messages",
+    title="DeepSeek-R1 Chatbot with Thinking Visualization",
+    description="This chatbot shows the DeepSeek model's thinking process in a collapsible section.",
+    examples=[
+        "Hello there!",
+        "Is 9.9 > 9.11?",
+        "How many r are there in the word strawberry?",
+        "What's the meaning of life? Give non obvious answer only."
+    ],
+
+)
+
 demo.launch()
 ```
 
 This creates an interface where users can see the Agent's thought process unfold in real-time.
 
-< Add a gif of the app deployed on Spaces >
+< Need to add a gif of the app deployed on Spaces >
 
 
 ## Tool Usage Visualization
