@@ -1,0 +1,164 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/retrieval_agents.ipynb"},
+]} />
+
+# Construyendo Sistemas RAG con Agentes
+
+<Tip>
+Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">este notebook</a> que puedes ejecutar usando Google Colab.
+</Tip>
+
+Los sistemas de Generación Aumentada por Recuperación (RAG) combinan las capacidades de recuperación de datos y modelos de generación para proporcionar respuestas contextualizadas. Por ejemplo, la consulta de un usuario se pasa a un motor de búsqueda, y los resultados recuperados se entregan al modelo junto con la consulta. El modelo luego genera una respuesta basada en la consulta y la información recuperada.
+
+El RAG con Agentes (Generación Aumentada por Recuperación) extiende los sistemas RAG tradicionales al **combinar agentes autónomos con recuperación dinámica de conocimiento**.
+
+Mientras que los sistemas RAG tradicionales utilizan un LLM para responder consultas basadas en datos recuperados, el RAG con agentes **permite un control inteligente tanto de los procesos de recuperación como de generación**, mejorando la eficiencia y precisión.
+
+Los sistemas RAG tradicionales enfrentan limitaciones clave, como **depender de un solo paso de recuperación** y enfocarse en la similitud semántica directa con la consulta del usuario, lo que puede pasar por alto información relevante.
+
+El RAG con agentes aborda estos problemas permitiendo que el agente formule autónomamente consultas de búsqueda, critique los resultados recuperados y realice múltiples pasos de recuperación para obtener un resultado más personalizado y completo.
+
+## Recuperación Básica con DuckDuckGo
+
+Vamos a construir un agente simple que pueda buscar en la web usando DuckDuckGo. Este agente recuperará información y sintetizará respuestas para contestar consultas. Con RAG con agentes, el agente de Alfred puede:
+
+* Buscar las últimas tendencias en fiestas de superhéroes
+* Refinar resultados para incluir elementos de lujo
+* Sintetizar información en un plan completo
+
+Así es como el agente de Alfred puede lograr esto:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+
+# Initialize the search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Initialize the model
+model = HfApiModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool]
+)
+
+# Example usage
+response = agent.run(
+    "Buscar ideas de fiesta temática de superhéroes de lujo, incluyendo decoración, entretenimiento y catering."
+)
+print(response)
+```
+
+El agente sigue este proceso:
+
+1. **Analiza la Solicitud:** El agente de Alfred identifica los elementos clave de la consulta—planificación de fiesta temática de superhéroes de lujo, con enfoque en decoración, entretenimiento y catering.
+2. **Realiza la Recuperación:** El agente utiliza DuckDuckGo para buscar la información más relevante y actualizada, asegurándose de que se alinee con las preferencias refinadas de Alfred para un evento lujoso.
+3. **Sintetiza la Información:** Después de recopilar los resultados, el agente los procesa en un plan coherente y accionable para Alfred, cubriendo todos los aspectos de la fiesta.
+4. **Almacena para Referencia Futura:** El agente almacena la información recuperada para un fácil acceso al planificar eventos futuros, optimizando la eficiencia en tareas posteriores.
+
+## Herramienta de Base de Conocimiento Personalizada
+
+Para tareas especializadas, una base de conocimiento personalizada puede ser invaluable. Vamos a crear una herramienta que consulte una base de datos vectorial de documentación técnica o conocimiento especializado. Utilizando búsqueda semántica, el agente puede encontrar la información más relevante para las necesidades de Alfred.
+
+Una base de datos vectorial es simplemente una colección de documentos con representaciones enriquecidas por modelos de ML especializados, que permiten la búsqueda y recuperación rápida de los documentos.
+
+Este enfoque combina conocimiento predefinido con búsqueda semántica para proporcionar soluciones contextualizadas para la planificación de eventos. Con acceso a conocimiento especializado, Alfred puede perfeccionar cada detalle de la fiesta.
+
+En este ejemplo, crearemos una herramienta que recupera ideas de planificación de fiestas desde una base de conocimiento personalizada. Usaremos un recuperador BM25 para buscar en la base de conocimiento y devolver los mejores resultados, y `RecursiveCharacterTextSplitter` para dividir los documentos en fragmentos más pequeños para una búsqueda más eficiente.
+
+```python
+from langchain.docstore.document import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, HfApiModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Utiliza búsqueda semántica para recuperar ideas de planificación de fiestas relevantes para la fiesta temática de superhéroes de Alfred en Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "La consulta a realizar. Esta debe ser una consulta relacionada con la planificación de fiestas o temas de superhéroes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Retrieve the top 5 documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Tu consulta de búsqueda debe ser una cadena"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nIdeas recuperadas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Simulate a knowledge base about party planning
+party_ideas = [
+    {"text": "Una fiesta de disfraces temática de superhéroes con decoración de lujo, incluyendo detalles dorados y cortinas de terciopelo.", "source": "Ideas de fiesta 1"},
+    {"text": "Contrata a un DJ profesional que pueda tocar música temática para superhéroes como Batman y Wonder Woman.", "source": "Ideas de entretenimiento"},
+    {"text": "Para el catering, sirve platos con nombres de superhéroes, como 'El smoothie verde de Hulk' y 'El filete de poder de Iron Man'.", "source": "Ideas de catering"},
+    {"text": "Decora con logotipos icónicos de superhéroes y proyecciones de Gotham y otras ciudades de superhéroes alrededor del lugar.", "source": "Ideas de decoración"},
+    {"text": "Experiencias interactivas con realidad virtual donde los invitados pueden participar en simulaciones de superhéroes o competir en juegos temáticos.", "source": "Ideas de entretenimiento"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Split the documents into smaller chunks for more efficient search
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Create the retriever tool
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Initialize the agent
+agent = CodeAgent(tools=[party_planning_retriever], model=HfApiModel())
+
+# Example usage
+response = agent.run(
+    "Encuentra ideas para una fiesta temática de superhéroes de lujo, incluyendo entretenimiento, catering y opciones de decoración."
+)
+
+print(response)
+```
+
+Este agente mejorado puede:
+1. Primero verificar la documentación para obtener información relevante
+2. Combinar ideas de la base de conocimiento
+3. Mantener el contexto de la conversación en memoria
+
+## Capacidades de Recuperación Mejoradas
+
+Al construir sistemas RAG con agentes, el agente puede emplear estrategias sofisticadas como:
+
+1. **Reformulación de Consultas:** En lugar de usar la consulta del usuario en bruto, el agente puede elaborar términos de búsqueda optimizados que coincidan mejor con los documentos objetivo
+2. **Recuperación Multi-Paso:** El agente puede realizar múltiples búsquedas, utilizando los resultados iniciales para informar consultas posteriores
+3. **Integración de Fuentes:** La información puede combinarse de múltiples fuentes como búsqueda web y documentación local
+4. **Validación de Resultados:** El contenido recuperado puede analizarse para determinar su relevancia y precisión antes de incluirlo en las respuestas
+
+Los sistemas RAG con agentes efectivos requieren una consideración cuidadosa de varios aspectos clave. El agente **debe seleccionar entre las herramientas disponibles según el tipo de consulta y el contexto**. Los sistemas de memoria ayudan a mantener el historial de conversación y evitar recuperaciones repetitivas. Tener estrategias de respaldo garantiza que el sistema pueda seguir proporcionando valor incluso cuando los métodos de recuperación principales fallan. Además, implementar pasos de validación ayuda a garantizar la precisión y relevancia de la información recuperada.
+
+## Recursos
+
+- [RAG con Agentes: ¡potencia tu RAG con reformulación de consultas y auto-consulta! 🚀](https://huggingface.co/learn/cookbook/agent_rag) - Receta para desarrollar un sistema RAG con Agentes utilizando smolagents.

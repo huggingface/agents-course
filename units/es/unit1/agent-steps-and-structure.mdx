@@ -1,0 +1,150 @@
+# Entendiendo los Agentes de IA a través del Ciclo Pensamiento-Acción-Observación
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Planificación de la Unidad 1"/>
+
+En las secciones anteriores, aprendimos:
+
+- **Cómo las herramientas se ponen a disposición del agente en el prompt del sistema**.
+- **Cómo los agentes de IA son sistemas que pueden 'razonar', planificar e interactuar con su entorno**.
+
+En esta sección, **exploraremos el Flujo de Trabajo completo del Agente de IA**, un ciclo que definimos como Pensamiento-Acción-Observación. 
+
+Y luego, profundizaremos en cada uno de estos pasos.
+
+
+## Los Componentes Principales
+
+Los agentes trabajan en un ciclo continuo de: **pensar (Pensamiento) → actuar (Acción) y observar (Observación)**.
+
+Analicemos estas acciones juntos:
+
+1. **Pensamiento**: La parte LLM del Agente decide cuál debe ser el siguiente paso.
+2. **Acción:** El agente realiza una acción, llamando a las herramientas con los argumentos asociados.
+3. **Observación:** El modelo reflexiona sobre la respuesta de la herramienta.
+
+## El Ciclo Pensamiento-Acción-Observación
+
+Los tres componentes trabajan juntos en un bucle continuo. Para usar una analogía de la programación, el agente utiliza un **bucle while**: el bucle continúa hasta que se cumple el objetivo del agente.
+
+Visualmente, se ve así:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Ciclo Pensar, Actuar, Observar"/>
+
+En muchos frameworks de Agentes, **las reglas y directrices están integradas directamente en el prompt del sistema**, asegurando que cada ciclo se adhiera a una lógica definida.
+
+En una versión simplificada, nuestro prompt del sistema puede verse así:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Ciclo Pensar, Actuar, Observar"/>
+
+Vemos aquí que en el Mensaje del Sistema definimos:
+
+- El *comportamiento del Agente*.
+- Las *Herramientas a las que nuestro Agente tiene acceso*, como describimos en la sección anterior.
+- El *Ciclo Pensamiento-Acción-Observación*, que incorporamos en las instrucciones del LLM.
+
+Tomemos un pequeño ejemplo para entender el proceso antes de profundizar en cada paso del proceso.
+
+## Alfred, el Agente del clima
+
+Creamos a Alfred, el Agente del Clima.
+
+Un usuario le pregunta a Alfred: "¿Cómo está el clima en Nueva York hoy?"
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Agente Alfred"/>
+
+El trabajo de Alfred es responder a esta consulta utilizando una herramienta de API del clima. 
+
+Así es como se desarrolla el ciclo:
+
+### Pensamiento
+
+**Razonamiento Interno:**
+
+Al recibir la consulta, el diálogo interno de Alfred podría ser:
+
+*"El usuario necesita información del clima actual para Nueva York. Tengo acceso a una herramienta que obtiene datos del clima. Primero, necesito llamar a la API del clima para obtener detalles actualizados."*
+
+Este paso muestra al agente dividiendo el problema en pasos: primero, recopilando los datos necesarios.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Agente Alfred"/>
+
+### Acción
+
+**Uso de Herramientas:**
+
+Basado en su razonamiento y en el hecho de que Alfred conoce una herramienta `get_weather`, Alfred prepara un comando con formato JSON que llama a la herramienta de API del clima. Por ejemplo, su primera acción podría ser:
+
+Pensamiento: Necesito verificar el clima actual para Nueva York.
+
+ ```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "Nueva York"
+      }
+    }
+ ```
+
+Aquí, la acción especifica claramente qué herramienta llamar (por ejemplo, get_weather) y qué parámetro pasar (el "location": "Nueva York").
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Agente Alfred"/>
+
+### Observación
+
+**Retroalimentación del Entorno:**
+
+Después de la llamada a la herramienta, Alfred recibe una observación. Esto podría ser los datos brutos del clima de la API, como:
+
+*"Clima actual en Nueva York: parcialmente nublado, 15°C, 60% de humedad."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Agente Alfred"/>
+
+Esta observación se agrega luego al prompt como contexto adicional. Funciona como retroalimentación del mundo real, confirmando si la acción tuvo éxito y proporcionando los detalles necesarios.
+
+
+### Pensamiento actualizado
+
+**Reflexionando:**
+
+Con la observación en mano, Alfred actualiza su razonamiento interno:
+
+*"Ahora que tengo los datos del clima para Nueva York, puedo compilar una respuesta para el usuario."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Agente Alfred"/>
+
+
+### Acción Final
+
+Alfred luego genera una respuesta final formateada como le indicamos:
+
+Pensamiento: Ya tengo los datos del clima. El clima actual en Nueva York es parcialmente nublado con una temperatura de 15°C y 60% de humedad.
+
+Respuesta final: El clima actual en Nueva York es parcialmente nublado con una temperatura de 15°C y 60% de humedad.
+
+Esta acción final envía la respuesta de vuelta al usuario, cerrando el bucle.
+
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Agente Alfred"/>
+
+
+Lo que vemos en este ejemplo:
+
+- **Los agentes iteran a través de un bucle hasta que se cumple el objetivo:**
+    
+**El proceso de Alfred es cíclico**. Comienza con un pensamiento, luego actúa llamando a una herramienta, y finalmente observa el resultado. Si la observación hubiera indicado un error o datos incompletos, Alfred podría haber vuelto a entrar en el ciclo para corregir su enfoque.
+    
+- **Integración de Herramientas:**
+
+La capacidad de llamar a una herramienta (como una API del clima) permite a Alfred **ir más allá del conocimiento estático y recuperar datos en tiempo real**, un aspecto esencial de muchos Agentes de IA.
+
+- **Adaptación Dinámica:**
+
+Cada ciclo permite al agente incorporar información nueva (observaciones) en su razonamiento (pensamiento), asegurando que la respuesta final esté bien informada y sea precisa.
+    
+Este ejemplo muestra el concepto central detrás del *ciclo ReAct* (un concepto que vamos a desarrollar en la siguiente sección): **la interacción de Pensamiento, Acción y Observación empodera a los agentes de IA para resolver tareas complejas de manera iterativa**. 
+
+Al entender y aplicar estos principios, puedes diseñar agentes que no solo razonan sobre sus tareas sino que también **utilizan eficazmente herramientas externas para completarlas**, todo mientras refinan continuamente su salida basándose en la retroalimentación del entorno.
+
+---
+
+Ahora profundicemos en el Pensamiento, la Acción y la Observación como los pasos individuales del proceso.
