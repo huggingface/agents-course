@@ -1,0 +1,171 @@
+# Agent (Ajan) Nedir?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Unit 1 planning"/>
+
+Bu bölümün sonunda, Agent (Ajan) kavramına ve AI'daki çeşitli uygulamalarına aşina olacaksınız.
+
+Bir Agent'ın ne olduğunu açıklamak için bir benzetmeyle başlayalım.
+
+## Genel Görünüm: Agent Alfred
+
+Alfred ile tanışın. Alfred bir **Agent** (Ajan).
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="Alfred"/>
+
+Alfred'in **bir komut aldığını** hayal edin, örneğin: "Alfred, bir kahve alabilir miyim lütfen?"
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="Bir kahve alabilir miyim?"/>
+
+Alfred **doğal dili anladığı** için isteğimizi hemen kavrar.
+
+Siparişi yerine getirmeden önce Alfred, **akıl yürütme ve planlama** sürecine girer; şu adımları ve gerekli araçları belirler:
+
+1. Mutfağa git  
+2. Kahve makinesini kullan  
+3. Kahveyi demle  
+4. Kahveyi geri getir
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="Neden ve plan"/>
+
+Bir planı olduğunda, **harekete geçmesi gerekir**. Planını uygulamak için, **bildiği araçlardan oluşan bir listeyi kullanabilir**.
+
+Bu durumda kahve yapmak için bir kahve makinesi kullanır. Kahve makinesini çalıştırarak kahveyi demler.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="Kahve yap"/>
+
+Sonunda Alfred taze demlenmiş kahveyi bize getirir.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Kahveyi getir"/>
+
+Ve işte bir Agent budur: **akıl yürütme, planlama yapabilen ve çevresiyle etkileşim kurabilen bir AI modelidir.**
+
+Ona Agent diyoruz çünkü aracın vardır, yani çevresiyle etkileşime geçme yeteneği vardır.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="Agent prosesi"/>
+
+## Biraz daha teorik olalım
+
+Artık genel bir fikriniz olduğuna göre, daha net bir tanım verelim:
+
+> Bir Agent, AI modelini kullanarak çevresiyle etkileşime geçen ve kullanıcı tanımlı bir hedefe ulaşmayı amaçlayan bir sistemdir. Akıl yürütme, planlama ve eylemlerin uygulanmasını (genellikle harici araçlar aracılığıyla) birleştirerek görevleri yerine getirir.
+
+Bir Agent'ı iki ana bölümden oluşan bir yapı olarak düşünebilirsiniz:
+
+1. **Beyin (Yapay Zeka (AI) Modeli)**
+
+Bütün düşünme burada gerçekleşir. AI modeli **akıl yürütme ve planlamadan sorumludur**. 
+**Duruma göre hangi Action (eylemler)** alınacağını belirler.
+
+2. **Gövde (Yetenekler ve Araçlar)**
+
+Bu bölüm, **Agent'ın yapabildiği her şeyi** temsil eder.
+
+**Mümkün olan eylemlerin kapsamı**, aracın **hangi yeteneklerle donatıldığına** bağlıdır. Örneğin insanlar kanatlara sahip olmadığı için "uçmak" eylemini gerçekleştiremez ama "yürümek", "koşmak", "zıplamak", "tutmak" gibi eylemleri gerçekleştirebilirler.
+
+### "Agency" Spektrumu
+
+Bu tanımı takip ederek, Agent'lar artan agency seviyelerine sahip bir sürekli spektrumda yer alırlar:
+
+| Agency Seviyesi | Açıklama | Adlandırma | ### Örnek desen |
+| --- | --- | --- | --- |
+| ☆☆☆ | Agent çıktısı program akışını etkilemez | Basit işlemci | `process_llm_output(llm_response)` |
+| ★☆☆ | Agent çıktısı temel kontrol akışını belirler | Yönlendirici | `if llm_decision(): path_a() else: path_b()` |
+| ★★☆ | Agent çıktısı işlev çağrısını belirler | Araç çağırıcı | `run_function(llm_chosen_tool, llm_chosen_args)` |
+| ★★★ | Agent çıktısı yineleme ve programın devamını kontrol eder | Çok Adımlı Agent | `while llm_should_continue(): execute_next_step()` |
+| ★★★ | Bir agentik iş akışı başka bir agentik iş akışını başlatabilir | Çoklu Agent | `if llm_trigger(): execute_agent()` |
+
+Tablo: [smolagents kavramsal rehberinden](https://huggingface.co/docs/smolagents/conceptual_guides/intro_agents)
+
+## Agent'lar için hangi tür AI modelleri kullanılır?
+
+Agent'larda en sık kullanılan AI modeli, girdi olarak **Metin** alıp çıkış olarak da **Metin** veren LLM (büyük dil modelleri)'dir.
+
+Bilinen örnekler arasında **OpenAI**'dan **GPT4**, **Meta**'dan **Llama**, **Google**'dan **Gemini** gibi modeller vardır. Bu modeller büyük miktarda metin üzerinde eğitilmiştir ve genelleme konusunda oldukça iyidirler. LLM'ler hakkında [bir sonraki bölümde](what-are-llms) daha fazla bilgi edineceğiz.
+
+<Tip>
+Agent'ın çekirdek modeli olarak başka girdi türlerini kabul eden modeller kullanmak da mümkündür. Örneğin, bir Vision Language Model (VLM - Görüntü Dili Modeli), bir LLM gibidir ama görüntüleri de girdi olarak anlayabilir. Şimdilik LLM'lere odaklanacağız ve diğer seçenekleri daha sonra tartışacağız.
+</Tip>
+
+## AI çevresine nasıl etki eder?
+
+LLM'ler harika modellerdir ama **yalnızca metin üretebilirler**.
+
+Peki ama HuggingChat veya ChatGPT gibi bilinen sohbet uygulamalarından bir resim üretmelerini istediğimizde bunu nasıl yapabiliyorlar?
+
+Cevap şu: HuggingChat, ChatGPT ve benzeri uygulamaların geliştiricileri, LLM'nin kullanabileceği ek işlevsellikler (yani **Tools** (Araçlar)) eklemiştir.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="Brokoliden Eyfel"/>
+<figcaption>Model bu resmi üretmek için bir Görüntü Üretim Aracı kullandı.</figcaption>
+</figure>
+
+Araçlar hakkında daha fazla bilgiyi [Araçlar](tools) bölümünde öğreneceğiz.
+
+## Bir Agent ne tür görevler yapabilir?
+
+Bir Agent, eylemleri tamamlamak için uygulanmış olan araçlar aracılığıyla herhangi bir görevi gerçekleştirebilir.
+
+Örneğin bilgisayarımda bir kişisel asistan (Siri gibi) görevi görecek bir Agent yazdım diyelim ve ona "Yöneticime bugünkü toplantının ertelenmesini isteyen bir e-posta gönder." dedim. Ona e-posta gönderebilecek bir kod verebilirim. Bu, Agent'ın e-posta göndermesi gerektiğinde kullanabileceği yeni bir araç olur. Bunu Python ile yazabiliriz:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+def send_message_to(recipient, message):
+    """Bir alıcıya e-posta mesajı göndermek için kullanışlıdır"""
+    ...
+```
+</details>
+
+```python
+def send_message_to(recipient, message):
+    """Useful to send an e-mail message to a recipient"""
+    ...
+```
+
+LLM, göreceğimiz gibi, gerektiğinde bu aracı çalıştırmak için kod üretecek ve böylece istenen görevi yerine getirecek.
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+```python
+send_message_to("Yönetici", "Bugünkü toplantıyı erteleyebilir miyiz?")
+```
+</details>
+
+```python
+send_message_to("Manager", "Can we postpone today's meeting?")
+```
+
+**Araçların tasarımı çok önemlidir ve Agent'ın kalitesi üzerinde büyük etki yaratır.** Bazı görevler çok özel araçlar gerektirirken, bazıları "web_search" gibi genel amaçlı araçlarla çözülebilir.
+
+> Not: **Eylemler araçlarla aynı şey değildir.** Örneğin bir eylem, birden fazla aracın kullanılmasını gerektirebilir.
+
+Bir Agent'ın çevresiyle etkileşime geçebilmesi, **şirketler ve bireyler için gerçek hayatta kullanılabilirliği mümkün kılar.**
+
+### Örnek 1: Kişisel Sanal Asistanlar
+Siri, Alexa veya Google Assistant gibi sanal asistanlar, kullanıcıların dijital ortamlarıyla etkileşim kurarken Agent olarak çalışırlar.
+
+Kullanıcı isteklerini alır, bağlamı analiz eder, veritabanlarından bilgi çeker ve yanıtlar verir veya eylemleri başlatırlar (örneğin hatırlatıcı ayarlamak, mesaj göndermek, akıllı cihazları kontrol etmek).
+
+### Örnek 2: Müşteri Hizmetleri Sohbet Botları
+Birçok şirket, müşterilerle doğal dilde etkileşim kuran sohbet botlarını Agent olarak sunar.
+
+Bu Agent'lar soruları yanıtlayabilir, kullanıcıyı sorun giderme adımlarında yönlendirebilir, iç veritabanlarında kayıt açabilir veya işlemleri tamamlayabilirler.
+
+Önceden belirlenmiş hedefleri; kullanıcı memnuniyetini artırmak, bekleme sürelerini azaltmak veya satış dönüşüm oranlarını yükseltmek olabilir. Müşterilerle doğrudan etkileşime girerek, diyaloglardan öğrenerek ve yanıtlarını zamanla geliştirerek, bir Agent'ın temel ilkelerini uygulamış olurlar.
+
+### Örnek 3: Video oyunlarında AI Kontrollü Karakterler (NPC)
+LLM destekli AI Agent'lar, oyunlardaki Yapay Zeka Karakterlerini (NPC) daha dinamik ve öngörülemez hale getirebilir.
+
+Katı davranış ağaçları yerine, **bağlama uygun şekilde yanıt verebilir, oyuncu etkileşimlerine uyum sağlayabilir** ve daha incelikli diyaloglar üretebilirler. Bu esneklik, oyuncularla birlikte evrilen daha gerçekçi ve etkileyici karakterler yaratılmasına olanak tanır.
+
+---
+
+Özetlemek gerekirse, bir Agent, ana düşünme motoru olarak bir AI Model (genellikle bir LLM) kullanan bir sistemdir ve:
+
+- **Doğal dili anlar:** İnsan talimatlarını anlamlı şekilde yorumlar ve yanıtlar.
+
+- **Akıl yürütme ve planlama yapar:** Bilgileri analiz eder, kararlar alır ve stratejiler geliştirir.
+
+- **Çevresiyle etkileşim kurar:** Bilgi toplar, eylemler gerçekleştirir ve bu eylemlerin sonuçlarını gözlemler.
+
+Artık Agent'ların ne olduğu konusunda sağlam bir kavrayışa sahipsiniz. Şimdi bu bilgileri kısa, notsuz bir sınavla pekiştireceğiz. Daha sonra "Agent'ın beynini" inceleyeceğiz: [LLM'ler](what-are-llms).
