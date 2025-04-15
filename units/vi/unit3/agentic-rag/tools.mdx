@@ -1,0 +1,84 @@
+# Xây dựng và Tích hợp Công cụ cho Agent của Bạn
+
+Trong phần này, ta sẽ cấp quyền truy cập web cho Alfred để anh ấy có thể tìm kiếm tin tức mới nhất và cập nhật toàn cầu. 
+Đồng thời, Alfred cũng sẽ được truy cập dữ liệu thời tiết và thống kê tải mô hình từ Hugging Face Hub để duy trì các cuộc trò chuyện liên quan đến chủ đề mới.
+
+## Cấp quyền Truy cập Web cho Agent
+
+Chúng ta muốn Alfred thể hiện hình ảnh một chủ nhà đa tài với hiểu biết sâu rộng về thế giới.
+
+Để làm được điều này, ta cần đảm bảo Alfred có thể truy cập các thông tin và tin tức mới nhất.
+
+Hãy bắt đầu bằng cách tạo công cụ tìm kiếm web cho Alfred!
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+# Khởi tạo công cụ tìm kiếm DuckDuckGo
+search_tool = DuckDuckGoSearchTool()
+
+# Ví dụ sử dụng
+results = search_tool("Ai là Tổng thống Pháp hiện tại?")
+print(results)
+```
+
+Kết quả mong đợi:
+
+```
+The current President of France in Emmanuel Macron.
+```
+
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.tools import FunctionTool
+
+# Khởi tạo công cụ tìm kiếm DuckDuckGo
+tool_spec = DuckDuckGoSearchToolSpec()
+
+search_tool = FunctionTool.from_defaults(tool_spec.duckduckgo_full_search)
+# Ví dụ sử dụng
+response = search_tool("Ai là Tổng thống Pháp hiện tại?")
+print(response.raw_output[-1]['body'])
+```
+
+Kết quả mong đợi:
+
+```
+The President of the French Republic is the head of state of France. The current President is Emmanuel Macron since 14 May 2017 defeating Marine Le Pen in the second round of the presidential election on 7 May 2017. List of French presidents (Fifth Republic) N° Portrait Name ...
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+search_tool = DuckDuckGoSearchRun()
+results = search_tool.invoke("Ai là Tổng thống Pháp hiện tại?")
+print(results)
+```
+
+Kết quả mong đợi:
+
+```
+Emmanuel Macron (born December 21, 1977, Amiens, France) is a French banker and politician who was elected president of France in 2017...
+```
+
+</hfoption>
+</hfoptions>
+
+## Tạo Công cụ Thời tiết Tùy chỉnh để Lên Lịch Pháo hoa
+
+Một buổi tiệc hoàn hảo cần có pháo hoa dưới bầu trời quang đãng, ta cần đảm bảo thời tiết không hủy hoại sự kiện.
+
+Hãy tạo công cụ tùy chỉnh để gọi API thời tiết và lấy thông tin cho một địa điểm cụ thể.
+
+<Tip>
+Để đơn giản hóa, ta sử dụng API thời tiết ảo
