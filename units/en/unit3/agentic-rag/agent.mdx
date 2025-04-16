@@ -418,11 +418,25 @@ To make Alfred even more helpful during the gala, we can enable conversation mem
 
 ```python
 # Create Alfred with conversation memory
-alfred_with_memory = CodeAgent(
+class CodeAgentWithCustomMemory(CodeAgent):
+    def __init__(self, system_prompt: str, *args, **kwargs):
+        self.custom_system_prompt = system_prompt
+        super().__init__(*args, **kwargs)
+
+    def initialize_system_prompt(self):
+        return self.custom_system_prompt
+
+system_prompt = (
+    "Create a concise summary (50 words max per element of the summary) of this conversation. "
+    "Focus on key entities, facts, and context needed for future reference."
+)
+
+alfred_with_memory = CodeAgentWithCustomMemory(
     tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool], 
     model=model,
     add_base_tools=True,
-    planning_interval=3
+    planning_interval=3,
+    system_prompt=system_prompt,
 )
 
 # First interaction
