@@ -1,0 +1,84 @@
+# Tạo Công cụ RAG cho Thông tin Khách mời
+
+Alfred, agent đáng tin cậy của bạn, đang chuẩn bị cho buổi dạ hội sang trọng nhất thế kỷ. Để đảm bảo sự kiện diễn ra suôn sẻ, Alfred cần truy cập nhanh vào thông tin cập nhật về từng vị khách. Hãy giúp Alfred bằng cách tạo một công cụ Retrieval-Augmented Generation (RAG) (Tìm kiếm và tạo ra câu trả lời) tùy chỉnh, được hỗ trợ bởi dataset của chúng ta.
+
+## Tại sao chọn RAG cho Dạ hội?
+
+Hãy tưởng tượng Alfred đang giao lưu giữa các vị khách, cần nhớ lại chi tiết cụ thể về từng người trong tích tắc. Một LLM truyền thống có thể gặp khó khăn vì:
+
+1. Danh sách khách mời đặc thù cho sự kiện của bạn và không có trong dữ liệu huấn luyện của mô hình
+2. Thông tin khách mời có thể thay đổi hoặc được cập nhật thường xuyên
+3. Alfred cần truy xuất các chi tiết chính xác như địa chỉ email
+
+Đây chính là lúc Retrieval Augmented Generation (RAG) tỏa sáng! Bằng cách kết hợp hệ thống truy xuất với LLM, Alfred có thể truy cập thông tin chính xác, cập nhật về khách mời theo yêu cầu.
+
+<Tip>
+
+Bạn có thể chọn bất kỳ framework nào được đề cập trong khóa học cho use case này. Hãy chọn tùy chọn ưa thích từ các tab code.
+
+</Tip>
+
+## Thiết lập ứng dụng
+
+Trong Chương này, chúng ta sẽ phát triển agent trong một HF Space, dưới dạng dự án Python có cấu trúc. Cách tiếp cận này giúp chúng ta duy trì code sạch, module hóa bằng cách tổ chức các chức năng khác nhau vào các file riêng biệt. Đồng thời, điều này tạo ra use case thực tế hơn khi bạn triển khai ứng dụng cho mục đích công cộng.
+
+### Cấu trúc dự án
+
+- **`tools.py`** – Cung cấp các công cụ phụ trợ cho agent  
+- **`retriever.py`** – Triển khai các hàm truy xuất để hỗ trợ truy cập thông tin  
+- **`app.py`** – Tích hợp tất cả thành phần vào một agent hoạt động đầy đủ, chúng ta sẽ hoàn thiện ở phần cuối Chương này  
+
+Để tham khảo thực hành, hãy xem [HF Space này](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG), nơi Agentic RAG được phát triển trong Chương này đang hoạt động. Hãy clone và thử nghiệm!
+
+Bạn có thể trực tiếp test agent bên dưới:
+
+<iframe
+	src="https://agents-course-unit-3-agentic-rag.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+## Tổng quan Dataset
+
+Dataset của chúng ta [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) chứa các trường sau cho mỗi khách mời:
+
+- **Name**: Tên đầy đủ của khách
+- **Relation**: Mối quan hệ với chủ nhà
+- **Description**: Tiểu sử ngắn hoặc thông tin thú vị về khách
+- **Email Address**: Thông tin liên hệ để gửi lời mời hoặc theo dõi
+
+Dưới đây là bản xem trước của dataset:
+<iframe
+  src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train"
+  frameborder="0"
+  width="100%"
+  height="560px"
+></iframe>
+
+<Tip>
+Trong scenario thực tế, dataset này có thể mở rộng để bao gồm sở thích ăn uống, món quà quan tâm, chủ đề cần tránh trong hội thoại và các chi tiết hữu ích khác cho chủ nhà.
+</Tip>
+
+## Xây dựng Công cụ Sổ khách mời
+
+Chúng ta sẽ tạo một công cụ tùy chỉnh mà Alfred có thể sử dụng để nhanh chóng truy xuất thông tin khách mời trong suốt dạ hội. Hãy chia nhỏ thành ba bước quản lý được:
+
+1. Tải và chuẩn bị dataset
+2. Tạo Công cụ Truy xuất
+3. Tích hợp Công cụ với Alfred
+
+Hãy bắt đầu với việc tải và chuẩn bị dataset!
+
+### Bước 1: Tải và Chuẩn bị Dataset
+
+Đầu tiên, chúng ta cần chuyển đổi dữ liệu khách mời thô sang định dạng tối ưu cho việc truy xuất.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Chúng ta sẽ sử dụng thư viện `datasets` của Hugging Face để tải dataset và chuyển đổi thành danh sách các đối tượng `Document` từ module `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain.doc
