@@ -1,0 +1,171 @@
+# Petit Quiz (non noté) [[quiz1]]
+
+Jusqu'à présent, vous avez compris la vue d'ensemble des Agents, ce qu'ils sont et comment ils fonctionnent. Il est temps de passer à un court quiz, car **se tester soi-même** est la meilleure façon d'apprendre et [d'éviter l'illusion de compétence](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf). Cela vous aidera à déterminer **les points sur lesquels vous devez renforcer vos connaissances**.
+
+Ce quiz est optionnel et n'est pas noté.
+
+---
+
+### Q1 : Qu'est-ce qu'un Agent ?
+Laquelle des propositions suivantes décrit le mieux un Agent IA ?
+
+<Question
+choices={[
+{
+  text: "Un système qui ne traite que du texte statique et n'interagit jamais avec son environnement.",
+  explain: "Un Agent doit être capable de prendre une action et d'interagir avec son environnement.",
+},
+{
+  text: "Un modèle d'IA capable de raisonner, de planifier et d'utiliser des outils pour interagir avec son environnement afin d'atteindre un objectif précis.",
+  explain: "Cette définition saisit les caractéristiques essentielles d'un Agent.",
+  correct: true
+},
+{
+  text: "Un chatbot qui répond aux questions sans aucune capacité à exécuter des actions.",
+  explain: "Un tel chatbot manque de la capacité à agir, ce qui le distingue d'un Agent.",
+},
+{
+  text: "Une encyclopédie numérique qui fournit des informations mais qui ne peut pas accomplir de tâches.",
+  explain: "Un Agent interagit activement avec son environnement au lieu de se contenter de fournir des informations statiques.",
+}
+]}
+/>
+
+---
+
+### Q2 : Quel est le rôle de la planification chez un Agent ?
+Pourquoi un Agent a-t-il besoin de planifier avant d'agir ?
+
+<Question
+choices={[
+{
+  text: "Pour mémoriser les interactions précédentes.",
+  explain: "La planification consiste à déterminer les actions futures, pas à stocker les interactions passées.",
+},
+{
+  text: "Pour décider de la séquence d'actions et sélectionner les outils appropriés nécessaires pour satisfaire la demande de l'utilisateur.",
+  explain: "La planification aide l'Agent à déterminer les meilleures étapes et les outils à utiliser pour accomplir une tâche.",
+  correct: true
+},
+{
+  text: "Pour générer des actions aléatoires sans aucun but.",
+  explain: "La planification garantit que les actions de l'Agent sont intentionnelles et non aléatoires.",
+},
+{
+  text: "Pour traduire du texte sans raisonnement supplémentaire.",
+  explain: "La planification concerne la structuration des actions, et non la simple conversion de texte.",
+}
+]}
+/>
+
+---
+
+### Q3 : Comment les outils améliorent-ils les capacités d'un Agent ?
+Pourquoi les outils sont-ils essentiels pour un Agent ?
+
+<Question
+choices={[
+{
+  text: "Les outils sont des composants redondants qui n'affectent pas les performances de l'Agent.",
+  explain: "Les outils étendent les capacités d'un Agent en lui permettant d'exécuter des actions au-delà de la génération de texte.",
+},
+{
+  text: "Les outils offrent à l'Agent la capacité d'exécuter des actions qu'un modèle de génération de texte ne peut pas réaliser nativement, comme préparer un café ou générer des images.",
+  explain: "Les outils permettent aux Agents d'interagir avec le monde réel et d'accomplir des tâches.",
+  correct: true
+},
+{
+  text: "Les outils sont utilisés uniquement pour stocker la mémoire.",
+  explain: "Les outils servent principalement à exécuter des actions, et non pas simplement à stocker des données.",
+},
+{
+  text: "Les outils limitent l'Agent aux réponses textuelles uniquement.",
+  explain: "Au contraire, les outils permettent aux Agents d'aller au-delà des réponses textuelles.",
+}
+]}
+/>
+
+---
+
+### Q4 : Quelle est la principale différence entre Actions et Outils ?
+Quelle est la principale différence entre les Actions et les Outils ?
+
+<Question
+choices={[
+{
+  text: "Les Actions sont les étapes que l'Agent suit, tandis que les Outils sont des ressources externes que l'Agent peut utiliser pour exécuter ces actions.",
+  explain: "Les Actions représentent des objectifs de niveau supérieur, tandis que les Outils sont des fonctions spécifiques que l'Agent peut invoquer.",
+  correct: true
+},
+{
+  text: "Les Actions et les Outils sont la même chose et peuvent être utilisés de manière interchangeable.",
+  explain: "Non, les Actions sont des objectifs ou des tâches, tandis que les Outils sont des utilitaires spécifiques que l'Agent utilise pour les atteindre.",
+},
+{
+  text: "Les Outils sont généraux, tandis que les Actions sont réservées aux interactions physiques uniquement.",
+  explain: "Pas nécessairement. Les Actions peuvent impliquer des tâches à la fois numériques et physiques.",
+},
+{
+  text: "Les Actions nécessitent des LLM, tandis que les Outils non.",
+  explain: "Bien que les LLM aident à déterminer les Actions, celles-ci ne dépendent pas elles-mêmes des LLM.",
+}
+]}
+/>
+
+---
+
+### Q5 : Quel rôle jouent les Large Language Models (LLMs) dans les Agents ?
+Comment les LLM contribuent-ils aux fonctionnalités d'un Agent ?
+
+<Question
+choices={[
+{
+  text: "Les LLM sont utilisés comme des bases de données statiques qui stockent des informations sans traiter d'entrées.",
+  explain: "Les LLM traitent activement les entrées textuelles et génèrent des réponses, plutôt que de se contenter de stocker des informations.",
+},
+{
+  text: "Les LLM servent de « cerveau » de raisonnement pour l'Agent, traitant les entrées textuelles pour comprendre les instructions et planifier les actions.",
+  explain: "Les LLM permettent à l'Agent d'interpréter, de planifier et de décider des prochaines étapes.",
+  correct: true
+},
+{
+  text: "Les LLM ne sont utilisés que pour le traitement d'images et non pour le texte.",
+  explain: "Les LLM fonctionnent principalement avec le texte, bien qu'ils puissent parfois interagir avec des entrées multimodales.",
+},
+{
+  text: "Les LLM ne sont pas utilisés.",
+  explain: "Les LLM constituent un composant essentiel des Agents IA modernes.",
+}
+]}
+/>
+
+---
+
+### Q6 : Lequel des exemples suivants illustre le mieux un Agent IA ?
+Quel exemple concret illustre le mieux un Agent IA en action ?
+
+<Question
+choices={[
+{
+  text: "Une page FAQ statique sur un site web.",
+  explain: "Une page FAQ statique n'interagit pas de manière dynamique avec les utilisateurs et n'exécute aucune action.",
+},
+{
+  text: "Un assistant virtuel comme Siri ou Alexa, capable de comprendre des commandes vocales, d'en raison et d'exécuter des tâches comme définir des rappels ou envoyer des messages.",
+  explain: "Cet exemple intègre le raisonnement, la planification et l'interaction avec l'environnement.",
+  correct: true
+},
+{
+  text: "Une calculatrice basique qui effectue des opérations arithmétiques.",
+  explain: "Une calculatrice suit des règles fixes sans raisonner ni planifier, donc ce n'est pas un Agent.",
+},
+{
+  text: "Un PNJ de jeu vidéo qui suit un ensemble de réponses préprogrammées.",
+  explain: "À moins que le PNJ ne puisse raisonner, planifier et utiliser des outils, il ne fonctionne pas comme un Agent IA.",
+}
+]}
+/>
+
+---
+
+Félicitations pour avoir terminé ce Quiz 🥳, si certains éléments vous ont échappé, prenez le temps de relire le chapitre pour renforcer vos connaissances. Si vous le réussissez, vous êtes prêt à plonger plus en profondeur dans le « cerveau de l'Agent » : les LLM.
