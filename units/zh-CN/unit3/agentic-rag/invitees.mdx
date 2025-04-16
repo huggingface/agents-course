@@ -1,0 +1,453 @@
+# 创建宾客信息检索生成（RAG）工具
+
+您信赖的智能体 Alfred 正在筹备本世纪最盛大的晚会。为确保活动顺利进行，Alfred 需要快速获取最新宾客信息。让我们通过定制化的检索增强生成（RAG）工具（基于专属数据集）为 Alfred 赋能。
+
+## 为何选择 RAG 技术？
+
+试想 Alfred 在宾客间穿梭时需即时调取详细信息，传统大语言模型（LLM）可能面临以下挑战：
+1. 宾客名单属于特定活动数据，不在模型训练范围内
+2. 宾客信息可能频繁变更或更新
+3. 需精确检索电子邮件地址等细节信息
+
+这正是检索增强生成（RAG）技术的优势所在！通过结合检索系统与 LLM，Alfred 可按需获取准确、实时的宾客信息。
+
+<Tip>
+您可以选择课程涵盖的任何框架实现本用例，请通过代码标签页选择偏好方案。
+</Tip>
+
+## 应用搭建
+
+我们将以 Hugging Face Space 为开发环境，采用结构化 Python 项目构建智能体。这种架构通过功能模块化实现代码整洁，更贴近实际部署场景。
+
+### 项目结构
+- **`tools.py`** – 为智能体提供辅助工具  
+- **`retriever.py`** – 实现支持知识访问的检索功能  
+- **`app.py`** – 整合所有组件形成完整功能智能体（将在本单元最后完成）
+
+实操参考：[Hugging Face Space 示例](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG)，该空间已部署本单元开发的智能体增强 RAG 系统，欢迎克隆体验！
+
+可直接测试下方智能体：
+<iframe
+	src="https://agents-course-unit-3-agentic-rag.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+## 数据集概览
+
+数据集 [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) 包含以下字段：
+- **Name**: 宾客全名
+- **Relation**: 与主办方关系
+- **Description**: 简要传记或趣闻
+- **Email Address**: 邀请函发送及跟进联系方式
+
+数据集预览：
+<iframe
+  src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train"
+  frameborder="0"
+  width="100%"
+  height="560px"
+></iframe>
+
+<Tip>
+实际场景可扩展数据集字段，包含饮食偏好、礼品兴趣、禁忌话题等对主持人有用的详细信息。
+</Tip>
+
+## 构建宾客信息工具
+
+我们将创建 Alfred 在晚会期间快速检索宾客信息的定制工具，分三步实现：
+1. 加载并预处理数据集
+2. 创建检索工具
+3. 工具与 Alfred 集成
+
+### 步骤一：加载并预处理数据集
+
+首先将原始宾客数据转换为适合检索的格式：
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+import datasets
+from langchain.docstore.document import Document
+
+# 加载数据集
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# 转换为 Document 对象
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+我们将使用 Hugging Face `datasets` 库来加载数据集并将其转换为来自 `llama_index.core.schema` 模块的 `Document` 对象列表。
+
+```python
+import datasets
+from llama_index.core.schema import Document
+
+# 加载数据集
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# 转换为 Document 对象
+docs = [
+    Document(
+        text="\n".join([
+            f"Name: {guest_dataset['name'][i]}",
+            f"Relation: {guest_dataset['relation'][i]}",
+            f"Description: {guest_dataset['description'][i]}",
+            f"Email: {guest_dataset['email'][i]}"
+        ]),
+        metadata={"name": guest_dataset['name'][i]}
+    )
+    for i in range(len(guest_dataset))
+]
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+我们将使用 Hugging Face `datasets` 库来加载数据集并将其转换为来自 `langchain.docstore.document` 模块的 `Document` 对象列表。
+
+```python
+import datasets
+from langchain.docstore.document import Document
+
+# 加载数据集
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# 转换为 Document 对象
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+```
+
+</hfoption>
+</hfoptions>
+
+在上面的代码中，我们：
+- 加载数据集
+- 将每条房客记录转换为包含格式化内容的 “Document” 对象
+- 将 “Document” 对象存储在列表中
+
+这意味着我们已经准备好所有数据，可以开始配置检索功能了。
+
+### 步骤 2：创建检索工具
+
+现在，让我们创建一个自定义工具，Alfred 可以使用它来搜索房客信息。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+我们将使用“langchain_community.retrievers”模块中的“BM25Retriever”来创建一个检索工具。
+
+<Tip>
+<code>BM25Retriever</code> 是检索的一个很好的起点，但对于更高级的语义搜索，您可以考虑使用基于嵌入的检索器，例如来自 <a href="https://www.sbert.net/">sentence-transformers</a> 的检索器。
+</Tip>
+
+```python
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+
+class GuestInfoRetrieverTool(Tool):
+    name = "guest_info_retriever"
+    description = "Retrieves detailed information about gala guests based on their name or relation."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The name or relation of the guest you want information about."
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs):
+        self.is_initialized = False
+        self.retriever = BM25Retriever.from_documents(docs)
+
+    def forward(self, query: str):
+        results = self.retriever.get_relevant_documents(query)
+        if results:
+            return "\n\n".join([doc.page_content for doc in results[:3]])
+        else:
+            return "No matching guest information found."
+
+# 初始化工具
+guest_info_tool = GuestInfoRetrieverTool(docs)
+```
+
+让我们逐步了解这个工具：
+- `name` 和 `description` 帮助智能体了解何时以及如何使用此工具
+- `inputs` 定义工具所需的参数（在本例中为搜索查询）
+- 我们使用 `BM25Retriever`，这是一种强大的文本检索算法，不需要嵌入
+- `forward` 方法处理查询并返回最相关的客人信息
+
+</hfoption>
+<hfoption id="llama-index">
+
+我们将使用 `llama_index.retrievers.bm25` 模块中的 `BM25Retriever` 来创建一个检索工具。
+
+<Tip>
+<code>BM25Retriever</code> 是一个很好的检索起点，但对于更高级的语义搜索，您可以考虑使用基于嵌入的检索器，例如 <a href="https://www.sbert.net/">sentence-transformers</a> 中的检索器。
+</Tip>
+
+```python
+from llama_index.core.tools import FunctionTool
+from llama_index.retrievers.bm25 import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_defaults(nodes=docs)
+
+def get_guest_info_retriever(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.retrieve(query)
+    if results:
+        return "\n\n".join([doc.text for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+# 初始化工具
+guest_info_tool = FunctionTool.from_defaults(get_guest_info_retriever)
+```
+
+让我们逐步了解这个工具。
+- 文档字符串帮助智能体了解何时以及如何使用此工具
+- 类型装饰器定义了工具所需的参数（在本例中为搜索查询）
+- 我们使用 `BM25Retriever`，这是一种强大的文本检索算法，不需要嵌入
+- 该方法处理查询并返回最相关的客人信息
+
+</hfoption>
+<hfoption id="langgraph">
+
+我们将使用 `langchain_community.retrievers` 模块中的 `BM25Retriever` 来创建一个检索工具。
+
+<Tip>
+<code>BM25Retriever</code> 是一个很好的检索起点，但对于更高级的语义搜索，您可以考虑使用基于嵌入的检索器，例如 <a href="https://www.sbert.net/">sentence-transformers</a> 中的检索器。
+</Tip>
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain.tools import Tool
+
+bm25_retriever = BM25Retriever.from_documents(docs)
+
+def extract_text(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.invoke(query)
+    if results:
+        return "\n\n".join([doc.page_content for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+guest_info_tool = Tool(
+    name="guest_info_retriever",
+    func=extract_text,
+    description="Retrieves detailed information about gala guests based on their name or relation."
+)
+```
+
+让我们逐步了解这个工具。
+- `name` 和 `description` 帮助智能体了解何时以及如何使用此工具。
+- 类型装饰器定义了工具所需的参数（在本例中为搜索查询）。
+- 我们使用 `BM25Retriever`，这是一种强大的文本检索算法，无需嵌入。
+- 该方法处理查询并返回最相关的客人信息。
+
+
+</hfoption>
+</hfoptions>
+
+### 步骤 3：将工具与 Alfred 集成
+
+最后，让我们创建智能体并为其配备自定义工具，将所有内容整合在一起：
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, HfApiModel
+
+# 初始化 Hugging Face 模型
+model = HfApiModel()
+
+# 使用宾客信息工具创建我们的晚会智能体 Alfred
+alfred = CodeAgent(tools=[guest_info_tool], model=model)
+
+# Example query Alfred might receive during the gala
+response = alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+预期输出：
+
+```
+🎩 Alfred's Response:
+根据我检索到的信息，艾达·洛夫莱斯夫人是一位受人尊敬的数学家和朋友。她因其在数学和计算机领域的开创性工作而闻名，并因其在查尔斯·巴贝奇的分析机方面的贡献而被誉为第一位计算机程序员。她的电子邮件地址是 ada.lovelace@example.com。
+```
+
+这最后一步具体做了什么：
+- 我们使用 `HfApiModel` 类初始化 Hugging Face 模型
+- 我们将智能体 (Alfred) 创建为 `CodeAgent`，它可以执行 Python 代码来解决问题
+- 我们让 Alfred 检索一位名叫“Lady Ada Lovelace”的客人的信息
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# 初始化 Hugging Face 模型
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# 使用宾客信息工具创建我们的晚会智能体 Alfred
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool],
+    llm=llm,
+)
+
+# Example query Alfred might receive during the gala
+response = await alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+预期输出：
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace 是一位受人尊敬的数学家和朋友，因其在数学和计算领域的开创性工作而闻名。她因参与查尔斯·巴贝奇的分析机研究而被誉为第一位计算机程序员。她的邮箱是 ada.lovelace@example.com。
+```
+
+这最后一步具体做了什么：
+- 我们使用 `HuggingFaceInferenceAPI` 类初始化 Hugging Face 模型
+- 我们将智能体 (Alfred) 创建为 `AgentWorkflow`，其中包含我们刚刚创建的工具
+- 我们请求 Alfred 检索名为“Lady Ada Lovelace”的客人的信息
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# 生成聊天界面，包括工具
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# 生成 AgentState 和 Agent 图
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## 构建流程图
+builder = StateGraph(AgentState)
+
+# 定义节点：这些节点完成工作
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# 定义边：这些决定了控制流如何移动
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # If the latest message requires a tool, route to tools
+    # Otherwise, provide a direct response
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Tell me about our guest named 'Lady Ada Lovelace'.")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+预期输出：
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace 是一位受人尊敬的数学家和计算机领域的先驱，由于她在查尔斯·巴贝奇的分析机上所做的工作，她经常被誉为第一位计算机程序员。
+```
+
+这最后一步具体做了什么：
+- 我们使用 `HuggingFaceEndpoint` 类初始化 Hugging Face 模型。我们还生成了一个聊天界面并附加了工具。
+- 我们将智能体 (Alfred) 创建为一个 `StateGraph`，它使用一条边连接两个节点（`Assistant` 和 `tools`）。
+- 我们让 Alfred 检索一位名叫“Lady Ada Lovelace”的客人的信息。
+
+</hfoption>
+</hfoptions>
+
+## 互动示例
+
+在晚会上，对话可能像这样进行：
+
+**你**：“Alfred，那位正在和大使说话的先生是谁？”
+
+**Alfred** *快速搜索嘉宾数据库* “先生，那是尼古拉·特斯拉博士。他是你大学时代的老朋友。他最近申请了一种新的无线能量传输系统的专利，很乐意和你讨论一下。不过别忘了，他对鸽子很感兴趣，所以这或许会成为一次很好的闲聊。”
+
+```json
+{
+    "name": "Dr. Nikola Tesla",
+    "relation": "old friend from university days",  
+    "description": "Dr. Nikola Tesla is an old friend from your university days. He's recently patented a new wireless energy transmission system and would be delighted to discuss it with you. Just remember he's passionate about pigeons, so that might make for good small talk.",
+    "email": "nikola.tesla@gmail.com"
+}
+```
+
+## 更进一步
+
+既然 Alfred 可以检索宾客信息，不妨考虑如何增强这个系统：
+
+1. **改进检索器**，使用更复杂的算法，例如 [sentence-transformers](https://www.sbert.net/)
+2. **实现对话记忆**，让 Alfred 记住之前的互动
+3. **结合网页搜索**，获取陌生宾客的最新信息
+4. **整合多个索引**，从经过验证的来源获取更完整的信息
+
+现在，Alfred 已经完全有能力轻松处理宾客的咨询，确保您的晚会成为本世纪最精致、最令人愉悦的盛事！
+
+<提示>
+尝试扩展检索工具，使其能够根据每位宾客的兴趣或背景返回对话开场白。您将如何修改该工具来实现这一点？
+
+完成后，在 <code>retriever.py</code> 文件中实现您的宾客检索工具。
+</提示>
