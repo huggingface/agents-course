@@ -137,7 +137,7 @@
   - local: bonus-unit2/introduction
     title: Giriş
   - local: bonus-unit2/what-is-agent-observability-and-evaluation
-    title: Agent gGzlemlenebilirliği ve Değerlendirmesi Nedir?
+    title: Agent Gözlemlenebilirliği ve Değerlendirmesi Nedir?
   - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
     title: Agent'ları İzleme ve Değerlendirme
   - local: bonus-unit2/quiz

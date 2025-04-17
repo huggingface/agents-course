@@ -19,7 +19,7 @@ Bu kütüphane, sadelik için tasarlanmıştır, ancak bir Agent oluşturmanın 
 
 smolagents hakkında daha derine Ünite 2'de ineceğiz. Bu sırada, bu <a href="https://huggingface.co/blog/smolagents" target="_blank">blog yazısına</a> veya kütüphanenin <a href="https://github.com/huggingface/smolagents" target="_blank">GitHub reposuna</a> göz atabilirsiniz.
 
-Kısacası, `smolagents`, **"Actions" (Eylemler)** gerçekleştiren ve ardından kodu çalıştırarak **"Observes" (Gözlemler)** yapan bir tür Agent olan **codeAgent** üzerine odaklanan bir kütüphanedir.
+Kısacası, `smolagents`, **"Actions" (Eylemler)** gerçekleştiren ve ardından kodu çalıştırarak **"Observations" (Gözlemler)** yapan bir tür Agent olan **codeAgent** üzerine odaklanan bir kütüphanedir.
 
 İşte inşa edeceğimiz şeyin bir örneği!
 
@@ -52,7 +52,7 @@ Bu ders boyunca düzenlemeniz gereken tek dosya, şu an eksik olan **"app.py"** 
 
 Haydi birlikte kodu inceleyelim:
 
-- Dosya, bazı basit ama gerekli kütüphane import'larıyla başlıyor
+- Dosya, bazı basit ama gerekli kütüphaneleri içe aktarmamızla başlıyor
 
 ```python
 from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, HfApiModel, load_tool, tool
@@ -174,7 +174,7 @@ Bu Agent hala, daha önceki bölümde gördüğümüz `InferenceClient`'ı, **Hf
 
 Framework'ü Ünite 2'de daha ayrıntılı örneklerle anlatacağız. Şimdilik, odaklanmanız gereken şey `tools` parametresi ile **yeni araçlar ekleyerek** Agent'ınızı geliştirmek.
 
-Örneğin, ilk satırda import edilen `DuckDuckGoSearchTool`'u kullanabilir veya kodun ilerleyen kısmında Hub'dan yüklenen `image_generation_tool`'u inceleyebilirsiniz.
+Örneğin, ilk satırda içe aktarılan `DuckDuckGoSearchTool`'u kullanabilir veya kodun ilerleyen kısmında Hub'dan yüklenen `image_generation_tool`'u inceleyebilirsiniz.
 
 **Yeni araçlar eklemek, Agent'ınıza yeni yetenekler kazandıracaktır**, bu konuda yaratıcı olmaya çalışın!
 
@@ -235,7 +235,7 @@ model = HfApiModel(
 )
 
 
-# Hub'dan araç import et
+# Hub'dan araç içe aktar
 image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
 
 # Sistem prompt'unu prompt.yaml dosyasından yükle
@@ -271,8 +271,8 @@ from Gradio_UI import GradioUI
 
 # Below is an example of a tool that does nothing. Amaze us with your creativity!
 @tool
-def my_custom_tool(arg1:str, arg2:int)-> str: # it's important to specify the return type
-    # Keep this format for the tool description / args description but feel free to modify the tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş tipi belirtmek önemli
+    # Araç açıklaması / argüman açıklaması formatını koruyun ama aracı değiştirmekte özgürsünüz
     """A tool that does nothing yet 
     Args:
         arg1: the first argument
@@ -287,9 +287,9 @@ def get_current_time_in_timezone(timezone: str) -> str:
         timezone: A string representing a valid timezone (e.g., 'America/New_York').
     """
     try:
-        # Create timezone object
+        # Saat dilimi nesnesi oluştur
         tz = pytz.timezone(timezone)
-        # Get current time in that timezone
+        # Bu saat dilimindeki geçerli zamanı al
         local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
         return f"The current local time in {timezone} is: {local_time}"
     except Exception as e:
@@ -305,10 +305,10 @@ final_answer = FinalAnswerTool()
 )
 
 
-# Import tool from Hub
+# Hub'dan araç içe aktar
 image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
 
-# Load system prompt from prompt.yaml file
+# Sistem prompt'unu prompt.yaml dosyasından yükle
 with open("prompts.yaml", 'r') as stream:
     prompt_templates = yaml.safe_load(stream)
     
