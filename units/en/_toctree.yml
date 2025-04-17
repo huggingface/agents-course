@@ -122,6 +122,20 @@
     title: Creating Your Gala Agent
   - local: unit3/agentic-rag/conclusion
     title: Conclusion
+- title: Unit 4. Final Project - Create, Test, and Certify Your Agent
+  sections:
+  - local: unit4/introduction
+    title: Introduction to the Final Unit
+  - local: unit4/what-is-gaia
+    title: What is GAIA?
+  - local: unit4/hands-on
+    title: The Final Hands-On
+  - local: unit4/get-your-certificate
+    title: Get Your Certificate Of Excellence
+  - local: unit4/conclusion
+    title: Conclusion of the Course
+  - local: unit4/additional-readings
+    title: What Should You Learn Now?
 - title: Bonus Unit 1. Fine-tuning an LLM for Function-calling
   sections:
   - local: bonus-unit1/introduction
