@@ -1,0 +1,186 @@
+# 🤗 AI Agent Kursuna Hoş Geldiniz [[introduction]]
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/thumbnail.jpg" alt="AI Agent Kursu küçük resmi" width="100%"/>
+<figcaption>Görselin arka planı <a href="https://scenario.com/">Scenario.com</a> kullanılarak oluşturulmuştur
+</figcaption>
+</figure>
+
+
+Günümüzde AI alanındaki en heyecan verici konu olan **Agent**'lara hoş geldiniz!
+
+Bu ücretsiz kurs, AI agent'ları anlama, kullanma ve oluşturma konusunda sizi **başlangıç seviyesinden uzmanlığa** doğru bir yolculuğa çıkaracak.
+
+Bu ilk ünite kursa başlamanıza yardımcı olacak:
+
+- **Kursun müfredatını** keşfedin.
+- Takip edeceğiniz yolu (kendi kendine öğrenme veya sertifika süreci) **seçin**.
+- **Sertifika süreci ve son tarihler hakkında daha fazla bilgi edinin**.
+- Kursun arkasındaki ekibi tanıyın.
+- **Hugging Face hesabınızı** oluşturun.
+- **Discord sunucumuza kaydolun** ve sınıf arkadaşlarınızla ve bizimle tanışın.
+
+Hadi başlayalım!
+
+## Bu kurstan ne bekleyebilirsiniz? [[expect]]
+
+Bu kursta:
+
+- 📖 AI Agent'ları **teori, tasarım ve uygulama** olarak çalışacaksınız.
+- 🧑‍💻 [smolagents](https://huggingface.co/docs/smolagents/en/index), [LlamaIndex](https://www.llamaindex.ai/) ve [LangGraph](https://langchain-ai.github.io/langgraph/) gibi **kurulu AI Agent kütüphanelerini kullanmayı öğreneceksiniz**.
+- 💾 Agent'larınızı Hugging Face Hub'da **paylaşacak** ve topluluk tarafından oluşturulan agent'ları keşfedeceksiniz.
+- 🏆 Agent'larınızı diğer öğrencilerin agent'larıyla **değerlendireceğiniz** zorluklara katılacaksınız.
+- 🎓 Ödevleri tamamlayarak **tamamlama sertifikası kazanacaksınız**.
+
+Ve daha fazlası!
+
+Bu kursun sonunda, **Agent'ların nasıl çalıştığını ve en son kütüphaneleri ve araçları kullanarak kendi Agent'larınızı nasıl oluşturacağınızı** anlayacaksınız.
+
+**<a href="https://bit.ly/hf-learn-agents">Kursa kaydolmayı</a>** unutmayın!
+
+(Gizliliğinize saygı duyuyoruz. E-posta adresinizi **her Ünite yayınlandığında bağlantıları size gönderebilmek ve zorluklar ve güncellemeler hakkında bilgi verebilmek için** topluyoruz).
+
+## Kurs nasıl görünüyor? [[course-look-like]]
+
+Kurs şunlardan oluşur:
+
+- *Temel Üniteler*: Agent kavramlarını **teorik olarak** öğrendiğiniz bölümler.
+- *Uygulamalı*: Agent'larınızı benzersiz ortamlarda eğitmek için **kurulu AI Agent kütüphanelerini kullanmayı öğreneceğiniz** bölümler. Bu uygulamalı bölümler, önceden yapılandırılmış bir ortamla **Hugging Face Spaces** olacaktır.
+- *Kullanım senaryosu ödevleri*: Öğrendiğiniz kavramları seçeceğiniz gerçek dünya sorununu çözmek için uygulayacağınız bölümler.
+- *Meydan Okuma*: Agent'ınızı diğer agent'larla rekabet ettireceğiniz bir yarışma. Agent'ların performansını karşılaştırmanız için [bir lider tablosu](https://huggingface.co/spaces/huggingface-projects/AI-Agents-Leaderboard) (henüz mevcut değil) da olacak.
+
+Bu **kurs, geri bildirimleriniz ve katkılarınızla gelişen canlı bir projedir!** [GitHub'da sorunlar ve PR'lar açmaktan](https://github.com/huggingface/agents-course) çekinmeyin ve Discord sunucumuzda tartışmalara katılın.
+
+Kursu tamamladıktan sonra, [👉 bu formu kullanarak](https://docs.google.com/forms/d/e/1FAIpQLSe9VaONn0eglax0uTwi29rIn4tM7H2sYmmybmG5jJNlE5v0xA/viewform?usp=dialog) geri bildiriminizi de gönderebilirsiniz.
+
+## Müfredat nedir? [[syllabus]]
+
+İşte **kursun genel müfredatı**. Konuların daha ayrıntılı bir listesi her ünite ile birlikte yayınlanacaktır.
+
+| Bölüm | Konu | Açıklama |
+| :---- | :---- | :---- |
+| 0 | Kurulum | Kullanacağınız araçlar ve platformlarla sizi hazırlar. |
+| 1 | Agent Temelleri | Tools (Araçlar), Thoughts (Düşünceler), Actions (Eylemler), Observations (Gözlemler) ve formatlarını açıklar. LLM'leri (Büyük Dil Modelleri), mesajları, "Special Token" (Özel Belirteç) ve sohbet şablonlarını açıklar. Python fonksiyonlarını araç olarak kullanan basit bir kullanım örneği gösterir. |
+| 1.5 | Bonus: Function calling için bir LLM'nin fine-tuning (ince-ayar) edilmesi | LoRa kullanalım ve bir notebook içinde function calling gerçekleştirmek için bir model ince-ayarlayalım. |
+| 2 | Frameworks | Temellerin smolagents, LangGraph, LLamaIndex gibi popüler kütüphanelerde nasıl uygulandığını anlayın. |
+| 2.5 | Bonus: Agent Gözlemlenebilirliği ve Değerlendirmesi | AI agent'larınızı üretime hazır hale getirmek için nasıl izleyeceğinizi ve değerlendireceğinizi öğrenin. |
+| 3 | Kullanım Örnekleri | Bazı gerçek hayat kullanım örnekleri oluşturalım (deneyimli Agent geliştiricilerinden PR'lara açık 🤗) |
+| 4 | Final Ödevi | Seçilen bir kıyaslama için bir agent oluşturun ve öğrenci lider tablosunda Agent'lar hakkındaki anlayışınızı kanıtlayın 🚀 |
+
+*Ayrıca bazı bonus üniteler yayınlamayı planlıyoruz, takipte kalın!*
+
+## Ön koşullar nelerdir?
+
+Bu kursu takip edebilmek için şunlara sahip olmalısınız:
+
+- Temel Python bilgisi
+- Temel LLM (Büyük Dil Modelleri) bilgisi (Ünite 1'de ne olduklarını özetleyen bir bölümümüz var)
+
+
+## Hangi araçlara ihtiyacım var? [[tools]]
+
+Sadece 2 şeye ihtiyacınız var:
+
+- İnternet bağlantısı olan bir *bilgisayar*.
+- Bir *Hugging Face Hesabı*: modelleri, agent'ları göndermek ve yüklemek ve Spaces oluşturmak için. Henüz bir hesabınız yoksa, **[burada](https://hf.co/join)** bir tane oluşturabilirsiniz (ücretsizdir).
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/tools.jpg" alt="Gerekli kurs araçları" width="100%"/>
+
+## Sertifika Süreci [[certification-process]]
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/three-paths.jpg" alt="İki yol" width="100%"/>
+
+Bu kursu *inceleme modunda* takip etmeyi veya etkinlikleri yapmayı ve *vereceğimiz iki sertifikadan birini almayı* seçebilirsiniz.
+
+Kursu incelerseniz, istediğiniz tüm zorluklara katılabilir ve ödevleri yapabilirsiniz ve **bize bildirmenize gerek yoktur**.
+
+Sertifika süreci **tamamen ücretsizdir**:
+
+- *Temel bilgiler için sertifika almak için*: kursun 1. Ünitesini tamamlamanız gerekir. Bu, Agent'lardaki en son trendlerle güncel kalmak isteyen öğrenciler için tasarlanmıştır.
+- *Tamamlama sertifikası almak için*: Ünite 1'i, kurs boyunca önereceğimiz kullanım durumu ödevlerinden birini ve final görevini tamamlamanız gerekir.
+
+Sertifika süreci için bir son tarih var: tüm ödevler **1 Mayıs 2025** tarihine kadar bitmiş olmalıdır.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/deadline.jpg" alt="Son Tarih" width="100%"/>
+
+## Önerilen ilerleme hızı nedir? [[recommended-pace]]
+
+Bu kurstaki her bölüm, **haftalık olarak yaklaşık 3-4 saatlik çalışma ile 1 haftada tamamlanacak şekilde** tasarlanmıştır.
+
+Bir son tarih olduğu için, size önerilen bir ilerleme hızı sunuyoruz:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/recommended-pace.jpg" alt="Önerilen İlerleme Hızı" width="100%"/>
+
+## Kurstan en iyi şekilde nasıl yararlanabilirsiniz? [[advice]]
+
+Kurstan en iyi şekilde yararlanmak için bazı önerilerimiz var:
+
+1. <a href="https://discord.gg/UrrTSsSyjb">Discord'da çalışma gruplarına katılın</a>: gruplar halinde çalışmak her zaman daha kolaydır. Bunu yapmak için discord sunucumuza katılmanız ve Hugging Face hesabınızı doğrulamanız gerekiyor.
+2. **Sınavları ve ödevleri yapın**: öğrenmenin en iyi yolu uygulamalı deneyim ve kendi kendini değerlendirmedir.
+3. **Senkronize kalmak için bir program belirleyin**: aşağıdaki önerilen ilerleme programımızı kullanabilir veya kendinizinkini oluşturabilirsiniz.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/advice.jpg" alt="Kurs önerisi" width="100%"/>
+
+## Biz kimiz [[who-are-we]]
+
+Yazarlar hakkında:
+
+### Joffrey Thomas
+
+Joffrey, Hugging Face'te bir makine öğrenimi mühendisidir ve üretimde AI Agent'ları oluşturmuş ve dağıtmıştır. Joffrey bu kurs için ana eğitmeniniz olacak.
+
+- [Hugging Face'te Joffrey'i takip edin](https://huggingface.co/Jofthomas)
+- [X'te Joffrey'i takip edin](https://x.com/Jthmas404)
+- [Linkedin'de Joffrey'i takip edin](https://www.linkedin.com/in/joffrey-thomas/)
+
+### Ben Burtenshaw
+
+Ben, Hugging Face'te bir makine öğrenimi mühendisidir ve çeşitli platformlarda birden fazla kurs vermiştir. Ben'in amacı kursu herkes için erişilebilir kılmaktır.
+
+- [Hugging Face'te Ben'i takip edin](https://huggingface.co/burtenshaw)
+- [X'te Ben'i takip edin](https://x.com/ben_burtenshaw)
+- [Linkedin'de Ben'i takip edin](https://www.linkedin.com/in/ben-burtenshaw/)
+
+### Thomas Simonini
+
+Thomas, Hugging Face'te bir makine öğrenimi mühendisidir ve başarılı <a href="https://huggingface.co/learn/deep-rl-course/unit0/introduction">Deep RL</a> ve <a href="https://huggingface.co/learn/ml-games-course/en/unit0/introduction">ML for games</a> kurslarını vermiştir. Thomas büyük bir Agent hayranıdır ve topluluğun ne oluşturacağını görmek için heyecanlıdır.
+
+- [Hugging Face'te Thomas'ı takip edin](https://huggingface.co/ThomasSimonini)
+- [X'te Thomas'ı takip edin](https://x.com/ThomasSimonini)
+- [Linkedin'de Thomas'ı takip edin](https://www.linkedin.com/in/simoninithomas/)
+
+
+### Sergio Paniego
+
+Hevesli bir topluluk üyesi olarak, Sergio Ünite 2 ve 3'e birçok bölüm ve birçok küçük PR ve inceleme katkısında bulundu. Teşekkürler, Sergio! 🙌
+
+- [Hugging Face'te Sergio'yu takip edin](https://huggingface.co/sergiopaniego)
+- [X'te Sergio'yu takip edin](https://x.com/sergiopaniego)
+- [Linkedin'de Sergio'yu takip edin](https://www.linkedin.com/in/sergio-paniego-blanco/)
+
+## Teşekkürler
+
+Bu kursa olan paha biçilmez katkılarından dolayı aşağıdaki kişilere teşekkürlerimizi sunarız:
+
+- **[Pedro Cuenca](https://huggingface.co/pcuenq)** – Materyalleri gözden geçirmedeki rehberliği ve uzmanlığı için.
+- **[Aymeric Roucher](https://huggingface.co/m-ric)** – Harika demo spaces (çözümleme ve final agent) ve smolagents bölümlerindeki yardımları için.
+- **[Joshua Lochner](https://huggingface.co/Xenova)** – Tokenizasyon üzerine harika demo space'i için.
+- **[Quentin Gallouédec](https://huggingface.co/qgallouedec)** – Kurs içeriğindeki yardımları için.
+- **[David Berenstein](https://huggingface.co/davidberenstein1957)** – Kurs içeriği ve moderasyondaki yardımları için.
+- **[XiaXiao (ShawnSiao)](https://huggingface.co/SSSSSSSiao)** – Kurs için Çince çevirmen.
+- **[Jiaming Huang](https://huggingface.co/nordicsushi)** – Kurs için Çince çevirmen.
+
+## Bir hata buldum veya kursu geliştirmek istiyorum [[contribute]]
+
+Katkılar **hoş karşılanır** 🤗
+
+- *Bir notebook'ta bir hata 🐛 bulduysanız*, lütfen <a href="https://github.com/huggingface/agents-course/issues">bir sorun açın</a> ve **sorunu tanımlayın**.
+- *Kursu geliştirmek istiyorsanız*, <a href="https://github.com/huggingface/agents-course/pulls">bir Pull Request açabilirsiniz.</a>
+- *Tam bir bölüm veya yeni bir ünite eklemek istiyorsanız*, en iyisi <a href="https://github.com/huggingface/agents-course/issues">bir sorun açmak</a> ve **yazmaya başlamadan önce ne tür bir içerik eklemek istediğinizi tanımlamaktır, böylece size rehberlik edebiliriz**.
+
+## Hala sorularım var [[questions]]
+
+Lütfen sorunuzu <a href="https://discord.gg/UrrTSsSyjb">discord sunucumuz #ai-agents-discussions.</a> kanalında sorun.
+
+Artık tüm bilgilere sahip olduğunuza göre, hadi başlayalım ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Kuruluma Başlama Zamanı" width="100%"/>

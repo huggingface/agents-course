@@ -1,0 +1,347 @@
+# smolagents Kullanarak İlk Agent'ımızı Oluşturalım
+
+Son bölümde, Python kodu kullanarak sıfırdan nasıl Agent oluşturabileceğimizi öğrendik ve **bu sürecin ne kadar zahmetli olabileceğini de gördük**. Neyse ki, birçok Agent kütüphanesi bu işi **sizin için ağır işlerin çoğunu üstlenerek** kolaylaştırıyor.
+
+Bu derste, görüntü oluşturma, web araması yapma, saat dilimi kontrolü gibi işlemleri yapabilen **ilk Agent'ınızı oluşturacaksınız**!
+
+Ayrıca oluşturduğunuz Agent'ı **bir Hugging Face Space üzerinde yayınlayarak arkadaşlarınızla ve iş arkadaşlarınızla paylaşabileceksiniz**.
+
+Haydi başlayalım!
+
+
+## smolagents Nedir?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/smolagents.png" alt="smolagents"/>
+
+Bu Agent'ı oluşturmak için, **Agent'larınızı kolayca geliştirmeniz için bir framework sağlayan** `smolagents` kütüphanesini kullanacağız.
+
+Bu kütüphane, sadelik için tasarlanmıştır, ancak bir Agent oluşturmanın karmaşıklığının büyük kısmını soyutlayarak sizin Agent davranışını tasarlamaya odaklanmanıza olanak tanır.
+
+smolagents hakkında daha derine Ünite 2'de ineceğiz. Bu sırada, bu <a href="https://huggingface.co/blog/smolagents" target="_blank">blog yazısına</a> veya kütüphanenin <a href="https://github.com/huggingface/smolagents" target="_blank">GitHub reposuna</a> göz atabilirsiniz.
+
+Kısacası, `smolagents`, **"Actions" (Eylemler)** gerçekleştiren ve ardından kodu çalıştırarak **"Observations" (Gözlemler)** yapan bir tür Agent olan **codeAgent** üzerine odaklanan bir kütüphanedir.
+
+İşte inşa edeceğimiz şeyin bir örneği!
+
+Agent'ımıza bir **Görüntü oluşturma aracı** sağladık ve ondan bir kedi resmi oluşturmasını istedik.
+
+`smolagents` içindeki Agent, daha önce sıfırdan oluşturduğumuz özel Agent'ın **aynı davranışlarına** sahip olacak: **düşünecek, harekete geçecek ve gözlemleyecek** — bu döngüde, nihai cevaba ulaşana kadar devam edecek:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+Heyecan verici, değil mi?
+
+## Haydi Agent'ımızı Oluşturalım!
+
+Başlamak için bu Space'i kopyalayın: <a href="https://huggingface.co/spaces/agents-course/First_agent_template" target="_blank">https://huggingface.co/spaces/agents-course/First_agent_template</a>  
+> Bu şablon için <a href="https://huggingface.co/m-ric" target="_blank">Aymeric</a>'e teşekkürler! 🙌
+
+
+Bu Space'i kopyalamak, **kendi profilinizde yerel bir kopya oluşturmanız** anlamına gelir:  
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Kopyala"/>
+
+Space'i kopyaladıktan sonra, Agent'ınızın model API'sine erişebilmesi için Hugging Face API token'ınızı eklemeniz gerekecek:
+
+1. Eğer hala yoksa, [https://hf.co/settings/tokens](https://hf.co/settings/tokens) adresinden çıkarım (inference) izni olan bir Hugging Face token'ı alın  
+2. Kopyaladığınız Space'e gidin ve **Settings** (ayarlar) sekmesine tıklayın  
+3. **Variables and Secrets** bölümüne kadar kaydırın ve **New Secret** butonuna tıklayın  
+4. `HF_TOKEN` adında yeni bir secret oluşturun ve token'ınızı değer olarak yapıştırın  
+5. **Save** (kaydet) butonuna tıklayarak token'ınızı güvenli şekilde kaydedin  
+
+Bu ders boyunca düzenlemeniz gereken tek dosya, şu an eksik olan **"app.py"** dosyası olacak. [Şablondaki orijinal dosyayı buradan](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py) görebilirsiniz. Kendi dosyanızı bulmak için Space'inize gidin, `Files` (dosyalar) sekmesine tıklayın ve dizin listesinden `app.py`'ye tıklayın.
+
+Haydi birlikte kodu inceleyelim:
+
+- Dosya, bazı basit ama gerekli kütüphaneleri içe aktarmamızla başlıyor
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, HfApiModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+```
+
+Daha önce belirttiğimiz gibi, doğrudan **smolagents** içindeki **CodeAgent** sınıfını kullanacağız.
+
+
+### Tools (Araçlar)
+
+Şimdi araçlara geçelim! Araçlar hakkında hatırlatma istiyorsanız, kursun [Araçlar](tools) bölümüne geri dönmekten çekinmeyin.
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş türünü belirtmek önemlidir
+    # Araç açıklaması / argüman açıklaması formatını koruyun ama aracı değiştirmekte özgürsünüz
+    """Henüz hiçbir şey yapmayan bir araç 
+    Args:
+        arg1: birinci argüman
+        arg2: ikinci argüman
+    """
+    return "Ne tür bir sihir inşa edeceksin?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """Belirtilen bir saat dilimindeki yerel saati getiren bir araç.
+    Args:
+        timezone: Geçerli bir saat dilimini temsil eden bir string (örneğin, 'America/New_York').
+    """
+    try:
+        # Saat dilimi nesnesi oluştur
+        tz = pytz.timezone(timezone)
+        # Bu saat dilimindeki geçerli zamanı al
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"{timezone} saat dilimindeki yerel saat: {local_time}"
+    except Exception as e:
+        return f"'{timezone}' saat dilimi için zaman alınırken hata oluştu: {str(e)}"
+```
+
+</details>
+
+```python
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş türünü belirtmek önemlidir
+    # Araç açıklaması / argüman açıklaması formatını koruyun ama aracı değiştirmekte özgürsünüz
+    """A tool that does nothing yet 
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Saat dilimi nesnesi oluştur
+        tz = pytz.timezone(timezone)
+        # Bu saat dilimindeki geçerli zamanı al
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+```
+
+
+Bu bölümde inşa etmenizi teşvik ettiğimiz şey araçlar!
+
+İki örnek veriyoruz:
+
+1. **Çalışmayan sahte bir araç** — bunu faydalı bir şeye dönüştürebilirsiniz
+2. Dünyadaki herhangi bir yerin geçerli saatini döndüren **çalışan bir araç**
+
+Kendi aracınızı tanımlarken şunlara dikkat etmelisiniz:
+
+1. Fonksiyonunuz için girdi ve çıktı türlerini belirtin, örn. `get_current_time_in_timezone(timezone: str) -> str:`
+2. **İyi biçimlendirilmiş bir docstring ekleyin.** `smolagents`, tüm argümanların **docstring içinde açıklanmasını** bekler.
+
+### Agent
+Bu Agent, LLM (büyük dil modelleri) motoru olarak [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) kullanıyor. Bu, serverless API aracılığıyla erişeceğimiz oldukça yetenekli bir modeldir.
+
+```python
+final_answer = FinalAnswerTool()
+model = HfApiModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+# CodeAgent'ımızı oluşturuyoruz
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # araçlarınızı buraya ekleyin (final_answer'ı silmeyin)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates
+)
+
+GradioUI(agent).launch()
+```
+
+Bu Agent hala, daha önceki bölümde gördüğümüz `InferenceClient`'ı, **HfApiModel** sınıfı üzerinden kullanıyor!
+
+Framework'ü Ünite 2'de daha ayrıntılı örneklerle anlatacağız. Şimdilik, odaklanmanız gereken şey `tools` parametresi ile **yeni araçlar ekleyerek** Agent'ınızı geliştirmek.
+
+Örneğin, ilk satırda içe aktarılan `DuckDuckGoSearchTool`'u kullanabilir veya kodun ilerleyen kısmında Hub'dan yüklenen `image_generation_tool`'u inceleyebilirsiniz.
+
+**Yeni araçlar eklemek, Agent'ınıza yeni yetenekler kazandıracaktır**, bu konuda yaratıcı olmaya çalışın!
+
+### Sistem Prompt'u (İstemi)
+
+Agent'ın sistem Prompt'u ayrı bir `prompts.yaml` dosyasında saklanır. Bu dosya, Agent'ın davranışlarını yönlendiren önceden tanımlanmış talimatları içerir.
+
+Prompt'ları bir YAML dosyasında saklamak, farklı Agent'lar veya kullanım senaryoları arasında kolayca özelleştirme ve yeniden kullanımı sağlar.
+
+`prompts.yaml` dosyasının nerede bulunduğunu ve proje içinde nasıl organize edildiğini görmek için [Space'in dosya yapısını](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main) kontrol edebilirsiniz.
+
+Tam "app.py" dosyası:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+from tools.final_answer import FinalAnswerTool
+
+from Gradio_UI import GradioUI
+
+# Aşağıda hiçbir şey yapmayan bir araç örneği var. Bizi yaratıcılığınla şaşırt!
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş tipi belirtmek önemli
+    # Araç açıklaması / argüman açıklaması formatını koruyun ama aracı değiştirmekte özgürsünüz
+    """Henüz hiçbir şey yapmayan bir araç 
+    Args:
+        arg1: birinci argüman
+        arg2: ikinci argüman
+    """
+    return "Ne tür bir sihir inşa edeceksin?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """Belirtilen bir saat dilimindeki yerel saati getiren bir araç.
+    Args:
+        timezone: Geçerli bir saat dilimini temsil eden bir string (örneğin, 'America/New_York').
+    """
+    try:
+        # Saat dilimi nesnesi oluştur
+        tz = pytz.timezone(timezone)
+        # Bu saat dilimindeki geçerli zamanı al
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"{timezone} saat dilimindeki yerel saat: {local_time}"
+    except Exception as e:
+        return f"'{timezone}' saat dilimi için zaman alınırken hata oluştu: {str(e)}"
+
+
+final_answer = FinalAnswerTool()
+model = HfApiModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+
+# Hub'dan araç içe aktar
+image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
+
+# Sistem prompt'unu prompt.yaml dosyasından yükle
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # araçlarınızı buraya ekleyin (final_answer'ı silmeyin)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates # Sistem prompt'unu CodeAgent'e aktar
+)
+
+
+GradioUI(agent).launch()
+```
+</details>
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+from tools.final_answer import FinalAnswerTool
+
+from Gradio_UI import GradioUI
+
+# Below is an example of a tool that does nothing. Amaze us with your creativity!
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş tipi belirtmek önemli
+    # Araç açıklaması / argüman açıklaması formatını koruyun ama aracı değiştirmekte özgürsünüz
+    """A tool that does nothing yet 
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Saat dilimi nesnesi oluştur
+        tz = pytz.timezone(timezone)
+        # Bu saat dilimindeki geçerli zamanı al
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+
+
+final_answer = FinalAnswerTool()
+    model = HfApiModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+
+# Hub'dan araç içe aktar
+image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
+
+# Sistem prompt'unu prompt.yaml dosyasından yükle
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # add your tools here (don't remove final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates # Pass system prompt to CodeAgent
+)
+
+
+GradioUI(agent).launch()
+```
+
+**Amacınız**, Space'e ve Agent'e aşina olmaktır.
+
+Şu anda, şablondaki Agent **herhangi bir araç kullanmıyor, bu yüzden ona bazı hazır araçları sağlamayı veya kendi araçlarınızı yazmayı deneyin!**
+
+Discord kanalımızda **#agents-course-showcase** adlı kanalda harika Agent çıktılarınızı sabırsızlıkla bekliyoruz!
+
+Tebrikler, ilk Agent'ınızı oluşturdunuz! Bunu arkadaşlarınız ve iş arkadaşlarınızla paylaşmaktan çekinmeyin.
+
+Bu ilk denemeniz olduğu için, biraz hatalı ya da yavaş çalışması tamamen normaldir. İlerleyen ünitelerde, daha iyi Agent'lar nasıl oluşturulur, bunu öğreneceğiz.
+
+Öğrenmenin en iyi yolu denemektir, bu yüzden Agent'ınızı güncelleyin, yeni araçlar ekleyin, farklı bir modelle deneyin vs.
+
+Bir sonraki bölümde, son Sınav'ı tamamlayacak ve sertifikanızı alacaksınız!
