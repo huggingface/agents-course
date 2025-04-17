@@ -111,7 +111,7 @@ SmolLM2 sohbet şablonu bu mesajları şöyle biçimlendirir:
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın.</summary>
 <|im_start|>system
-Sen HuggingFace tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın<|im_end|>
+Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın<|im_end|>
 <|im_start|>user
 Siparişimle ilgili yardıma ihtiyacım var<|im_end|>
 <|im_start|>assistant
@@ -219,7 +219,7 @@ Bu yapı, **etkileşimler arasında tutarlılığı korumaya yardımcı olur ve 
 {% for message in messages %}
 {% if loop.first and messages[0]['role'] != 'system' %}
 <|im_start|>system
-Sen HuggingFace tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın.
+Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın.
 <|im_end|>
 {% endif %}
 <|im_start|>{{ message['role'] }}
@@ -347,6 +347,6 @@ Bunu yapmanın ana yollarından biri de Tools (Araçlar) kullanmaktır, böylece
 
 Mesajlardan ilerleyen ünitelerde yeniden bahsedeceğiz, ama daha derine inmek isterseniz şimdiden şuralara göz atabilirsiniz:
 
-- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">HuggingFace Sohbet Şablonu Kılavuzu</a>
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face Sohbet Şablonu Kılavuzu</a>
 - <a href="https://huggingface.co/docs/transformers" target="_blank">Transformers Dökümantasyonu</a>
 
