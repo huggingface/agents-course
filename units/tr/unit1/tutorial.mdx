@@ -71,6 +71,7 @@ Daha önce belirttiğimiz gibi, doğrudan **smolagents** içindeki **CodeAgent**
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```python
 @tool
 def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş türünü belirtmek önemlidir
@@ -97,6 +98,7 @@ def get_current_time_in_timezone(timezone: str) -> str:
     except Exception as e:
         return f"'{timezone}' saat dilimi için zaman alınırken hata oluştu: {str(e)}"
 ```
+
 </details>
 
 ```python
@@ -188,7 +190,9 @@ Prompt'ları bir YAML dosyasında saklamak, farklı Agent'lar veya kullanım sen
 
 Tam "app.py" dosyası:
 
-<details> <summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+
 ```python
 from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, load_tool, tool
 import datetime

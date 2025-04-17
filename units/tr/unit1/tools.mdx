@@ -44,7 +44,7 @@ Ayrıca, **LLM'ler eğitildikleri verilere dayalı olarak bir girdinin tamamlama
 
 Gördüğümüz gibi, LLM'ler yalnızca metin girdileri alır ve metin çıktıları üretir. Kendi başlarına araçları çağırma yetenekleri yoktur. Agent'e araç sağlamak dediğimizde, aslında LLM'e bu araçların varlığını öğretmek ve gerektiğinde metne dayalı çağrılar üretmesini sağlamak anlamına gelir.
 
-Örneğin, LLM'e internetten bir yerdeki hava durumunu kontrol eden bir araç verirsek ve Paris'in hava durumunu sorarsak, LLM bunun "weather" (hava durumu) aracının kullanılabileceği bir fırsat olduğunu fark eder. Gerçek hava durumunu kendisi almaz; bunun yerine `call weather_tool('Paris')` gibi bir araç çağrısını temsil eden bir metin üretir.
+Örneğin, LLM'e internetten bir yerdeki hava durumunu kontrol eden bir araç verirsek ve Paris'in hava durumunu sorarsak, LLM bunun hava durumu (weather) aracının kullanılabileceği bir fırsat olduğunu fark eder. Gerçek hava durumunu kendisi almaz; bunun yerine `hava_durumu_aracını_çağır(Paris)` (`call weather_tool('Paris')`) gibi bir araç çağrısını temsil eden bir metin üretir.
 
 **Agent** daha sonra bu cevabı okur, bir araç çağrısı gerektiğini anlar, LLM adına bu aracı çalıştırır ve gerçek veriyi getirir.
 
@@ -67,15 +67,17 @@ Bu yüzden, araç tanımları genellikle bilgisayar dilleri veya JSON gibi yapı
 
 Eğer bu teori fazla soyutsa, hadi somut bir örnekle anlayalım.
 
-Basitleştirilmiş bir hesap makinesi (**calculator**) aracı gerçekleştireceğiz, bu iki tam sayıyı çarpacak. Python kodumuz şöyle olabilir:
+Basitleştirilmiş bir hesap makinesi (**calculator**) aracı gerçekleştireceğiz, bu araç iki tam sayıyı çarpacak. Python kodumuz şöyle olabilir:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```python
 def calculator(a: int, b: int) -> int:
     """İki tam sayıyı çarp."""
     return a * b
 ```
+
 </details>
 
 ```python
@@ -96,9 +98,11 @@ Tüm bu detaylar önemlidir. Bunları modelin anlayabileceği bir metin dizesine
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```text
 Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: int, b: int, Çıktılar: int
 ```
+
 </details>
 
 ```text
@@ -107,7 +111,7 @@ Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b
 
 > **Not:** Bu metinsel açıklama, LLM'in araç hakkında bilmesini istediğimiz şeydir.
 
-Bu dizeyi LLM'e giriş olarak verdiğimizde, model bunu bir araç olarak tanır ve hangi girdileri vermesi gerektiğini ve ne tür bir çıktı beklemesi gerektiğini bilir.
+Bu dizeyi LLM'e girdi olarak verdiğimizde, model bunu bir araç olarak tanır ve hangi girdileri vermesi gerektiğini ve ne tür bir çıktı beklemesi gerektiğini bilir.
 
 Yeni araçlar sağlamak istiyorsak, tutarlı olmalı ve her zaman aynı formatı kullanmalıyız. Bu süreç biraz kırılgan olabilir ve bazı detayları fark etmeden atlayabiliriz.
 
@@ -118,20 +122,21 @@ Peki, daha iyi bir yöntem var mı?
 Python'da yazılmış aracımız zaten ihtiyacımız olan her şeyi sağlıyor:
 
 - Ne yaptığını anlatan açıklayıcı bir isim: `calculator` (hesap makinesi)
-- Docstring yorumuyla sağlanan uzun açıklama: `Multiply two integers.`
-- Girdi türleri: iki int
+- Docstring yorumuyla sağlanan uzun açıklama: `Multiply two integers.` (İki tam sayıyı çarp.)
+- Girdi türleri: iki int (integer)
 - Çıktı türü.
 
 İnsanlar programlama dillerini bu yüzden kullanıyor: açık, özlü ve kesinler.
 
-Python kaynak kodunu araca ait _specification_ (spesifikasyon) olarak verebiliriz, ancak aracın nasıl yazıldığı önemli değil. Önemli olan adı, ne yaptığı, hangi girdileri beklediği ve hangi çıktıyı verdiğidir.
+Python kaynak kodunu araca ait spesifikasyon (_specification_) olarak verebiliriz, ancak aracın nasıl yazıldığı önemli değil. Önemli olan adı, ne yaptığı, hangi girdileri beklediği ve hangi çıktıyı verdiğidir.
 
 Python'un iç gözlem özelliklerini kullanarak, kaynak koddan otomatik olarak araç açıklaması oluşturacağız. Tek yapmamız gereken, araç fonksiyonunun tip ipuçları, docstring ve mantıklı fonksiyon adları kullanması. Kaynak koddan ilgili kısımları çıkarmak için bir miktar kod yazacağız.
 
-Sonrasında, sadece `@tool` dekoratörünü kullanarak `calculator` fonksiyonunun bir araç olduğunu belirtmemiz yeterli:
+Sonrasında, sadece `@tool` dekoratörünü kullanarak hesap makinesi (`calculator`) fonksiyonunun bir araç olduğunu belirtmemiz yeterli:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```python
 @tool
 def calculator(a: int, b: int) -> int:
@@ -140,6 +145,7 @@ def calculator(a: int, b: int) -> int:
 
 print(calculator.to_string())
 ```
+
 </details>
 
 ```python
@@ -157,9 +163,11 @@ Birazdan göreceğimiz implementasyon sayesinde `to_string()` fonksiyonunu kulla
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```text
 Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: int, b: int, Çıktılar: int
 ```
+
 </details>
 
 
@@ -176,6 +184,7 @@ Gerektiğinde tekrar kullanılabilecek bir `Tool` sınıfı oluşturuyoruz.
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```python
 class Tool:
     """
@@ -221,6 +230,7 @@ class Tool:
         """
         return self.func(*args, **kwargs)
 ```
+
 </details>
 
 ```python
@@ -285,6 +295,7 @@ Aşağıdaki gibi bir kodla bir Tool oluşturabiliriz:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```python
 calculator_tool = Tool(
     "calculator",                   # isim
@@ -294,6 +305,7 @@ calculator_tool = Tool(
     "int",                          # çıktı
 )
 ```
+
 </details>
 
 ```python
@@ -310,7 +322,9 @@ Ancak Python'un `inspect` modülünü kullanarak tüm bilgileri bizim yerimize a
 
 > Merak ediyorsanız, aşağıdaki bölümü açarak dekoratör implementasyonuna bakabilirsiniz.
 
-<details> <summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+
 ```python
 def tool(func):
     """
@@ -354,6 +368,8 @@ def tool(func):
         arguments=arguments,
         outputs=outputs
     )
+```
+
 </details>
 
 <details>
@@ -403,12 +419,14 @@ def tool(func):
         outputs=outputs
     )
 ```
+
 </details>
 
 Tekrar belirtmek gerekirse, bu dekoratörle aracımızı şöyle tanımlayabiliriz:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```python
 @tool
 def calculator(a: int, b: int) -> int:
@@ -417,6 +435,7 @@ def calculator(a: int, b: int) -> int:
 
 print(calculator.to_string())
 ```
+
 </details>
 
 ```python
@@ -432,20 +451,22 @@ Ve `Tool`'un `to_string` metodunu kullanarak, LLM için uygun araç açıklamas�
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
 ```text
 Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: int, b: int, Çıktılar: int
 ```
+
 </details>
 
 ```text
 Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
 ```
 
-Bu açıklama sistem prompt'una **eklenir**. Bu bölümün başındaki örneği ele alırsak, `tools_description` yerini alarak şu şekilde görünür:
+Bu açıklama sistem prompt'una **eklenir**. Bu bölümün başındaki örneği ele alırsak, araç açıklaması (`tools_description`) yerini alarak şu şekilde görünür:
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Araçlar için sistem Prompt'u"/>
 
-[Eylemler](actions) bölümünde, Agent'ın bu oluşturduğumuz aracı nasıl Call ettiğini (çağırdığını) daha ayrıntılı öğreneceğiz.
+[Eylemler](actions) bölümünde, Agent'ın bu oluşturduğumuz aracı nasıl _Call_ ettiğini (çağırdığını) daha ayrıntılı öğreneceğiz.
 
 ### Model Context Protocol (MCP): birleşik bir araç arayüzü
 
@@ -465,11 +486,11 @@ Araçlar, AI Agent'ların yeteneklerini geliştirmede kritik bir rol oynar.
 
 Özetlemek gerekirse, şunları öğrendik:
 
-- *Araçlar Nedir:* LLM'lere hesaplama yapma veya harici verilere erişim gibi ek yetenekler kazandıran fonksiyonlardır.
+- **Araçlar Nedir:** LLM'lere hesaplama yapma veya harici verilere erişim gibi ek yetenekler kazandıran fonksiyonlardır.
 
-- *Araç Nasıl Tanımlanır:* Açık bir metin açıklaması, girdiler, çıktılar ve çağırılabilir bir fonksiyon sağlayarak.
+- **Araç Nasıl Tanımlanır:** Açık bir metin açıklaması, girdiler, çıktılar ve çağırılabilir bir fonksiyon sağlayarak.
 
-- *Araçlar Neden Gerekli:* Agent'ların statik model eğitim sınırlamalarını aşmasına, gerçek zamanlı görevleri yerine getirmesine ve uzmanlaşmış eylemler gerçekleştirmesine olanak tanırlar.
+- **Araçlar Neden Gerekli:** Agent'ların statik model eğitim sınırlamalarını aşmasına, gerçek zamanlı görevleri yerine getirmesine ve uzmanlaşmış eylemler gerçekleştirmesine olanak tanırlar.
 
 Şimdi [Agent İş Akışı](agent-steps-and-structure) bölümüne geçebiliriz; burada bir Agent'ın nasıl gözlemlediğini, düşündüğünü ve harekete geçtiğini göreceksiniz. Bu, şimdiye kadar öğrendiklerimizin tümünü bir araya getirir ve kendi AI Agent'inizi oluşturma sürecinin temelini oluşturur.
 

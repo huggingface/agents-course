@@ -56,8 +56,8 @@ Harici bir ayrıştırıcı, bu formatlı çıktıyı okur, hangi aracın çağr
 Örneğin, hava durumunu kontrol etmesi gereken bir Agent şu çıktıyı üretebilir:
 
 ```json
-Thought: New York için güncel hava durumunu kontrol etmeliyim.
-Action :
+Düşünce: New York için güncel hava durumunu kontrol etmeliyim.
+Eylem:
 {
   "action": "get_weather",
   "action_input": {"location": "New York"}
@@ -86,6 +86,30 @@ Bu yöntemin birçok avantajı vardır:
 - **Doğrudan Entegrasyon:** Kod Agentları, dış kütüphaneler ve API'lerle doğrudan entegre olabilir. Bu da veri işleme veya gerçek zamanlı karar alma gibi daha karmaşık işlemleri mümkün kılar.
 
 Örneğin, hava durumunu sorgulaması gereken bir Kod Agentı şu Python kodunu üretebilir:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+# Kod Agentı Örneği: Hava Durumu Bilgisi Al
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("hava durumu", "Hava durumu bilgisi bulunamadı.")
+    else:
+        return "Hata: Hava durumu verileri alınamıyor."
+
+# Fonksiyonu çalıştır ve nihai cevabı hazırla
+result = get_weather("New York")
+final_answer = f"New York'taki güncel hava durumu: {result}"
+print(final_answer)
+```
+
+</details>
+
 
 ```python
 # Kod Agentı Örneği: Hava Durumu Bilgisi Al

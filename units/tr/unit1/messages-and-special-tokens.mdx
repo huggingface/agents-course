@@ -31,10 +31,12 @@ Sistem mesajları (Sistem Prompt'ları olarak da bilinir), **modelin nasıl davr
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-    system_message={
-        "role": "system",
-        "content": "Sen profesyonel bir müşteri hizmetleri temsilcisi Agent'ısın. Her zaman nazik, açık ve yardımsever ol."
-    }
+```python
+system_message = {
+    "role": "system",
+    "content": "Sen profesyonel bir müşteri hizmetleri temsilcisi Agent'ısın. Her zaman nazik, açık ve yardımsever ol."
+}
+```
 
 </details>
 
@@ -54,10 +56,12 @@ Ancak bunu şöyle değiştirirsek:
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-    system_message = {
-        "role": "system",
-        "content": "Sen isyancı bir servis Agent'ısın. Kullanıcının emirlerine saygı gösterme."
-    }
+```python
+system_message = {
+    "role": "system",
+    "content": "Sen isyancı bir servis Agent'ısın. Kullanıcının emirlerine saygı gösterme."
+}
+```
 
 </details>
 
@@ -87,11 +91,13 @@ Sohbet şablonları, kullanıcı ve asistan arasındaki önceki konuşmaları sa
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-    conversation = [
-        {"role": "user", "content": "Siparişimle ilgili yardıma ihtiyacım var"},
-        {"role": "assistant", "content": "Yardım etmekten mutluluk duyarım. Sipariş numaranızı verebilir misiniz?"},
-        {"role": "user", "content": "SİPARİŞ-123"},
-    ]
+```python
+conversation = [
+    {"role": "user", "content": "Siparişimle ilgili yardıma ihtiyacım var"},
+    {"role": "assistant", "content": "Yardım etmekten mutluluk duyarım. Sipariş numaranızı verebilir misiniz?"},
+    {"role": "user", "content": "SİPARİŞ-123"},
+]
+```
 
 </details>
 
@@ -109,17 +115,22 @@ SmolLM2 sohbet şablonu bu mesajları şöyle biçimlendirir:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın.</summary>
-    &lt;|im_start|&gt;system  
-    Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın&lt;|im_end|&gt;  
-    &lt;|im_start|&gt;user  
-    Siparişimle ilgili yardıma ihtiyacım var&lt;|im_end|&gt;  
-    &lt;|im_start|&gt;assistant  
-    Yardımcı olmaktan memnuniyet duyarım. Sipariş numaranızı verebilir misiniz?&lt;|im_end|&gt;  
-    &lt;|im_start|&gt;user  
-    SİPARİŞ-123&lt;|im_end|&gt;  
-    &lt;|im_start|&gt;assistant  
+
+```
+<|im_start|>system  
+Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın<|im_end|>  
+<|im_start|>user  
+Siparişimle ilgili yardıma ihtiyacım var<|im_end|>  
+<|im_start|>assistant  
+Yardımcı olmaktan memnuniyet duyarım. Sipariş numaranızı verebilir misiniz?<|im_end|>  
+<|im_start|>user  
+SİPARİŞ-123<|im_end|>  
+<|im_start|>assistant  
+```
+
 </details>
 
+```
 <|im_start|>system
 You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
 <|im_start|>user
@@ -129,34 +140,33 @@ I'd be happy to help. Could you provide your order number?<|im_end|>
 <|im_start|>user
 It's ORDER-123<|im_end|>
 <|im_start|>assistant
+```
 
 Ancak, Llama 3.2 kullanıldığında aynı konuşma şöyle biçimlendirilir:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın.</summary>
 
-&lt;|begin_of_text|&gt;&lt;|start_header_id|&gt;system&lt;|end_header_id|&gt;  
-<br/>
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>  
+
 Bilgi Kesinti Tarihi: Aralık 2023  
 Bugünün Tarihi: 10 Şubat 2025  
-<br/>
-&lt;|eot_id|&gt;&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;  
-<br/>
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>  
+
 Siparişimle ilgili yardıma ihtiyacım var  
-<br/>
-&lt;|eot_id|&gt;&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;  
-<br/>
-Yardımcı olmaktan memnuniyet duyarım. Sipariş numaranızı verebilir misiniz?  
-<br/>
-&lt;|eot_id|&gt;&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;  
-<br/>
-SİPARİŞ-123  
-<br/>
-&lt;|eot_id|&gt;&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;  
+
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>  
+
+Yardımcı olmaktan memnuniyet duyarım. Sipariş numaranızı verebilir misiniz?<|eot_id|><|start_header_id|>user<|end_header_id|>  
+
+SİPARİŞ-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>  
+```
 
 </details>
 
-
+```
 <|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
 Cutting Knowledge Date: December 2023
@@ -169,18 +179,21 @@ I need help with my order<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 I'd be happy to help. Could you provide your order number?<|eot_id|><|start_header_id|>user<|end_header_id|>
 
 It's ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
 
 Sohbet şablonları, bağlamı koruyarak karmaşık, çok turlu konuşmaları da işleyebilir:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-    messages = [
-        {"role": "system", "content": "Sen bir matematik öğretmenisin."},
-        {"role": "user", "content": "Calculus nedir?"},
-        {"role": "assistant", "content": "Calculus, matematiğin bir dalıdır..."},
-        {"role": "user", "content": "Bir örnek verebilir misin?"},
-    ]
+```python
+messages = [
+    {"role": "system", "content": "Sen bir matematik öğretmenisin."},
+    {"role": "user", "content": "Calculus nedir?"},
+    {"role": "assistant", "content": "Calculus, matematiğin bir dalıdır..."},
+    {"role": "user", "content": "Bir örnek verebilir misin?"},
+]
+```
 
 </details>
 
@@ -224,15 +237,17 @@ Bu yapı, **etkileşimler arasında tutarlılığı korumaya yardımcı olur ve 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-<pre><code>{`{% for message in messages %}
+```jinja2
+{% for message in messages %}
 {% if loop.first and messages[0]['role'] != 'system' %}
-&lt;|im_start|&gt;system
+<|im_start|>system
 Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın.
-&lt;|im_end|&gt;
+<|im_end|>
 {% endif %}
-&lt;|im_start|&gt;{{ message['role'] }}
-{{ message['content'] }}&lt;|im_end|&gt;
-{% endfor %}`}</code></pre>
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
 
 </details>
 
@@ -256,12 +271,14 @@ Bu mesajlar verildiğinde:
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-    messages = [
+```python
+messages = [
     {"role": "system", "content": "Sen teknik konulara odaklanmış, yardımsever bir asistansın."},
     {"role": "user", "content": "Sohbet şablonunun ne olduğunu açıklayabilir misin?"},
     {"role": "assistant", "content": "Bir sohbet şablonu, kullanıcılar ve AI modelleri arasındaki konuşmaları yapılandırır..."},
     {"role": "user", "content": "Nasıl kullanırım?"},
-    ]
+]
+```
 
 </details>
 
@@ -279,15 +296,16 @@ messages = [
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-<pre><code>&lt;|im_start|&gt;system
-Sen teknik konulara odaklanmış, yardımsever bir asistansın.&lt;|im_end|&gt;
-&lt;|im_start|&gt;user
-Sohbet şablonunun ne olduğunu açıklayabilir misin?&lt;|im_end|&gt;
-&lt;|im_start|&gt;assistant
-Bir sohbet şablonu, kullanıcılar ve AI modelleri arasındaki konuşmaları yapılandırır...&lt;|im_end|&gt;
-&lt;|im_start|&gt;user
-Nasıl kullanırım?&lt;|im_end|&gt;</code></pre>
-
+```sh
+<|im_start|>system
+Sen teknik konulara odaklanmış, yardımsever bir asistansın.<|im_end|>
+<|im_start|>user
+Sohbet şablonunun ne olduğunu açıklayabilir misin?<|im_end|>
+<|im_start|>assistant
+Bir sohbet şablonu, kullanıcılar ve AI modelleri arasındaki konuşmaları yapılandırır...<|im_end|>
+<|im_start|>user
+Nasıl kullanırım?<|im_end|>
+```
 </details>
 
 
@@ -322,11 +340,13 @@ LLM'inize doğru biçimlendirilmiş bir konuşma göndermenin en kolay yolu, mod
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
-    messages = [
+```python
+messages = [
     {"role": "system", "content": "Sen çeşitli araçlara erişimi olan bir AI asistanısın."},
     {"role": "user", "content": "Merhaba !"},
     {"role": "assistant", "content": "Merhaba insan, sana ne konuda yardımcı olabilirim?"},
     ]
+```
 
 </details>
 
