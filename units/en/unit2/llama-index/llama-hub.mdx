@@ -31,10 +31,6 @@ Underneath, we can see an example of the usage of **the Hugging Face inference A
 ```python
 from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
 import os
-from dotenv import load_dotenv
-
-# Load the .env file
-load_dotenv()
 
 # Retrieve HF_TOKEN from the environment variables
 hf_token = os.getenv("HF_TOKEN")
