@@ -54,7 +54,7 @@
     title: Давайте дообучим вашу модель для вызова функций
   - local: bonus-unit1/conclusion
     title: Заключение
-- title: Когда будут опубликованы следующие шаги?
+- title: Когда будут опубликованы следующие разделы?
   sections:
   - local: communication/next-units
     title: Следующие разделы
