@@ -12,7 +12,7 @@
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="За моделями"/>
-<figcaption>Здесь мы видим разницу между тем, что мы отображается в пользовательском интерфейсе, и подсказкой, поступающей в модель.
+<figcaption>Здесь мы видим разницу между тем, что отображается в пользовательском интерфейсе, и подсказкой, поступающей в модель.
 </figcaption>
 </figure>
 
@@ -84,7 +84,7 @@ conversation = [
 <|im_start|> Ассистент
 Я буду рад помочь. Не могли бы вы сообщить номер вашего заказа?
 <|im_start|>пользователь
-Это ORDER-123<|im_end|>
+Это ЗАКАЗ-123<|im_end|>
 <|im_start|> Ассистент
 ```
 
@@ -100,7 +100,7 @@ conversation = [
 
 Мне нужна помощь с моим заказом<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
-Я буду рада помочь. Не могли бы вы сообщить номер вашего заказа?<|eot_id|><|start_header_id|>user<|end_header_id|>
+Я буду рад помочь. Не могли бы вы сообщить номер вашего заказа?<|eot_id|><|start_header_id|>user<|end_header_id|>
 
 Это ЗАКАЗ-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 ```
@@ -162,7 +162,7 @@ messages = [
 ```python
 messages = [
     {"role": "system", "content": "Вы полезный помощник, специализирующийся на технических вопросах."},
-    {"role": "user", "content": "Can you explain what a chat template is?"},
+    {"role": "user", "content": "Можешь объяснить, что такое шаблон чата?"},
     {"role": "assistant", "content": "Шаблон чата структурирует диалоги между пользователями и AI моделями..."},
     {"role": "user", "content": "Как я могу его использовать?"},
 ]
@@ -180,7 +180,7 @@ messages = [
 <|im_start|>user
 Как я могу его использовать?<|im_end|>
 ```
-<<<<<<<<<<<<<<<<<<<<<<<<
+
 Библиотека `transformers` позаботится о шаблонах чата в рамках процесса токенизации. Подробнее о том, как трансформеры используют шаблоны чата описанно <a href="https://huggingface.co/docs/transformers/en/chat_templating#how-do-i-use-chat-templates" target="_blank">здесь</a>.  Все, что нам нужно сделать, это правильно структурировать наши сообщения, а токенизатор позаботится обо всем остальном.
 
 Вы можете поэкспериментировать со следующим Hugging Face Space, чтобы увидеть, как один и тот же диалог будет оформлен для разных моделей с использованием соответствующих шаблонов чата:
