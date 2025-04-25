@@ -1,0 +1,580 @@
+# Building Agent UIs with Model Context Protocol (MCP)
+
+In previous units, we explored creating basic Agent interfaces with Gradio's ChatInterface and advanced visualization using ChatMessage. Now, let's take your Agent UIs to the next level by integrating with the Model Context Protocol (MCP), which enables seamless communication between Claude and external tools.
+
+## What is Model Context Protocol (MCP)?
+The Model Context Protocol (MCP) is an open standard that allows LLMs to connect with external data sources and tools. Think of MCP like a "USB-C port for AI" - it provides a standardized way for AI models to interact with various tools and data sources.
+
+With MCP you can:
+- Connect Claude Desktop to specialized tools that extend its capabilities
+- Create a modular architecture where tools can be easily added or swapped
+- Use an LLM application like Gradio chatbot and use it as a MCP Client 
+
+
+## Setting Up Your MCP Environment
+
+Before we start building our Gradio interface, you'll need to set up your MCP environment:
+
+```bash
+
+pip install mcp-client anthropic gradio
+```
+
+For this tutorial, we'll use a simple weather MCP server. You can find the full code for the server `weather.py` [here](https://github.com/modelcontextprotocol/quickstart-resources/blob/main/weather-server-python/weather.py).
+
+## Building a Gradio Interface for MCP
+
+Let us create a Gradio application that connects to an MCP weather server and allows users to interact with Claude and MCP tools through a chat interface.
+
+First, setting up the necessary imports:
+
+### Imports and Setup
+
+```python
+
+import gradio as gr
+from gradio.components.chatbot import ChatMessage
+import asyncio
+import os
+import sys
+import json
+from typing import List, Dict, Any, Union
+from contextlib import AsyncExitStack
+
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
+# Create a simple event loop for async operations
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+```
+
+- We import necessary libraries: Gradio for the interface, asyncio for handling asynchronous operations, and other utility modules.
+- The MCP-specific imports (ClientSession, StdioServerParameters, stdio_client) allow us to connect to MCP servers. We import the Anthropic client to interact with Claude.
+- You need to make sure you have set your Anthropic API key as an environment variable: `ANTHROPIC_API_KEY=your_api_key_here`
+- We set up an event loop for asyncio operations, which will be important for handling the asynchronous nature of MCP tools.
+
+Next, let us create the `MCPClientWrapper` class that handles connecting to the MCP server and processing messages.
+
+### The MCPClientWrapper Class
+This class wraps all the functionality needed to connect to an MCP server.
+
+#### Initialization
+```python
+class MCPClientWrapper:
+    def __init__(self):
+        self.session = None
+        self.exit_stack = None
+        self.anthropic = Anthropic()
+        self.tools = []
+```
+
+- `session`: Will hold the MCP client session once connected
+- `exit_stack`: Manages asynchronous resources and their cleanup
+- `anthropic`: The Anthropic client for calling Claude
+- `tools`: Will store the available tools from the MCP server
+
+#### Connection Method
+```python
+def connect(self, server_path: str) -> str:
+    """Connect to the MCP server"""
+    if not server_path:
+        return "Error: Please provide a server script path"
+    
+    try:
+        # Run the async connect operation in the event loop
+        async def _connect():
+            # Clean up any existing connections
+            if self.exit_stack:
+                await self.exit_stack.aclose()
+            
+            self.exit_stack = AsyncExitStack()
+            
+            # Determine if Python or Node.js script
+            is_python = server_path.endswith('.py')
+            is_js = server_path.endswith('.js')
+            if not (is_python or is_js):
+                raise ValueError("Server script must be a .py or .js file")
+            
+            command = "python" if is_python else "node"
+            server_params = StdioServerParameters(
+                command=command,
+                args=[server_path],
+                env=None
+            )
+            
+            # Create connection to server
+            stdio_transport = await self.exit_stack.enter_async_context(stdio_client(server_params))
+            self.stdio, self.write = stdio_transport
+            self.session = await self.exit_stack.enter_async_context(ClientSession(self.stdio, self.write))
+            
+            # Initialize session and get available tools
+            await self.session.initialize()
+            response = await self.session.list_tools()
+            tools = response.tools
+            
+            self.tools = [{ 
+                "name": tool.name,
+                "description": tool.description,
+                "input_schema": tool.inputSchema
+            } for tool in response.tools]
+            
+            return [tool.name for tool in tools]
+        
+        tool_names = loop.run_until_complete(_connect())
+        return f"✅ Connected to MCP server. Available tools: {', '.join(tool_names)}"
+        
+    except Exception as e:
+        return f"❌ Error connecting to server: {str(e)}"
+```
+
+This method:
+
+- Takes a path to an MCP server script (like `weather.py` in our example)
+- Determines whether it's a Python or JavaScript script
+- Sets up the appropriate command to run the script
+- Establishes a connection to the server through stdio (standard input/output)
+- Initializes the session and retrieves available tools
+- Returns a success or error message
+
+The connection process is asynchronous, so we define an inner `_connect()` async function and run it with `loop.run_until_complete()`.
+
+#### Message Processing
+
+```python
+    def process_message(self, message: str, history: List[Union[Dict[str, Any], ChatMessage]]) -> List[Union[Dict[str, Any], ChatMessage]]:
+        """Process a message using Claude and the MCP tools"""
+        if not self.session:
+            return history + [ChatMessage(role="assistant", content="Please connect to an MCP server first.")]
+        
+        try:
+            # Run the async query operation in the event loop
+            async def _process_query():
+                # Format conversation history for Claude
+                claude_messages = []
+                for msg in history:
+                    # Handle both ChatMessage objects and dictionaries
+                    if isinstance(msg, ChatMessage):
+                        role = msg.role
+                        content = msg.content
+                    else:  # Dictionary
+                        role = msg.get("role")
+                        content = msg.get("content")
+                    
+                    # Skip metadata and other fields
+                    if role in ["user", "assistant", "system"]:
+                        claude_messages.append({"role": role, "content": content})
+                
+                # Add current query
+                claude_messages.append({"role": "user", "content": message})
+                
+                # Initial Claude API call
+                response = self.anthropic.messages.create(
+                    model="claude-3-5-sonnet-20241022",
+                    max_tokens=1000,
+                    messages=claude_messages,
+                    tools=self.tools
+                )
+
+                # Process response and handle tool calls
+                result_messages = []
+
+                for content in response.content:
+                    if content.type == 'text':
+                        # Add main text response - ensure content.text is a string
+                        text_content = content.text
+                        if isinstance(text_content, list):
+                            # If it's a list, join it into a single string
+                            text_content = " ".join(str(item) for item in text_content)
+                        
+                        result_messages.append(ChatMessage(
+                            role="assistant", 
+                            content=text_content
+                        ))
+                    elif content.type == 'tool_use':
+                        tool_name = content.name
+                        tool_args = content.input
+                        
+                        # Create a thought message for the tool call
+                        result_messages.append(ChatMessage(
+                            role="assistant",
+                            content=f"I'll use the {tool_name} tool to help answer your question.",
+                            metadata={
+                                "title": f"🛠️ Using tool: {tool_name}",
+                                "log": f"Parameters: {tool_args}",
+                                "status": "pending",
+                                "id": f"tool_call_{tool_name}"
+                            }
+                        ))
+                        
+                        # Add formatted tool parameters for better readability
+                        formatted_args = "```json\n" + json.dumps(tool_args, indent=2) + "\n```"
+                        result_messages.append(ChatMessage(
+                            role="assistant",
+                            content=formatted_args,
+                            metadata={
+                                "parent_id": f"tool_call_{tool_name}",
+                                "id": f"params_{tool_name}",
+                                "title": "Tool Parameters"
+                            }
+                        ))
+                        
+                        # Execute tool call
+                        result = await self.session.call_tool(tool_name, tool_args)
+                        
+                        # Get result content and ensure it's a string
+                        result_content = result.content
+                        if isinstance(result_content, list):
+                            result_content = "\n".join(str(item) for item in result_content)
+                        
+                        # Update with tool results
+                        result_messages.append(ChatMessage(
+                            role="assistant",
+                            content="Here are the results from the tool:",
+                            metadata={
+                                "title": f"📊 Tool Result for {tool_name}",
+                                "status": "done",
+                                "id": f"result_{tool_name}"
+                            }
+                        ))
+                        
+                        # Add formatted result content
+                        formatted_result = "```\n" + str(result_content) + "\n```"
+                        result_messages.append(ChatMessage(
+                            role="assistant",
+                            content=formatted_result,
+                            metadata={
+                                "parent_id": f"result_{tool_name}",
+                                "id": f"raw_result_{tool_name}",
+                                "title": "Raw Output"
+                            }
+                        ))
+
+                        # Continue conversation with tool results
+                        # Build a simple message for Claude to continue
+                        tool_response_for_claude = {"role": "user", "content": f"Tool result for {tool_name}: {str(result_content)}"}
+                        claude_messages.append(tool_response_for_claude)
+
+                        # Get next response from Claude with the tool results
+                        next_response = self.anthropic.messages.create(
+                            model="claude-3-5-sonnet-20241022",
+                            max_tokens=1000,
+                            messages=claude_messages,
+                        )
+
+                        # Add Claude's interpretation of the tool results
+                        if next_response.content and next_response.content[0].type == 'text':
+                            final_text = next_response.content[0].text
+                            # Ensure final_text is a string
+                            if isinstance(final_text, list):
+                                final_text = " ".join(str(item) for item in final_text)
+                                
+                            result_messages.append(ChatMessage(
+                                role="assistant",
+                                content=final_text
+                            ))
+
+                return result_messages
+            
+            new_messages = loop.run_until_complete(_process_query())
+            return history + [ChatMessage(role="user", content=message)] + new_messages
+            
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            return history + [
+                ChatMessage(role="user", content=message),
+                ChatMessage(role="assistant", content=f"❌ Error processing message: {str(e)}\n\nDetails: {error_details}")
+            ]
+```
+
+This method is the heart of the application. It:
+- Formats the conversation history for Claude
+- Calls Claude with the current message and available tools
+- Processes Claude's response, including any tool calls
+- Executes tools as needed and returns the results
+- Gets Claude's final response after seeing the tool results
+
+
+Let's further break down the key parts:
+
+**Preparing Conversation for Claude**
+
+This code prepares the conversation history in the format Claude expects (a list of messages with role and content).
+
+```python
+# Format conversation history for Claude
+claude_messages = []
+for msg in history:
+    # Handle both ChatMessage objects and dictionaries
+    if isinstance(msg, ChatMessage):
+        role = msg.role
+        content = msg.content
+    else:  # Dictionary
+        role = msg.get("role")
+        content = msg.get("content")
+    
+    # Skip metadata and other fields
+    if role in ["user", "assistant", "system"]:
+        claude_messages.append({"role": role, "content": content})
+
+# Add current query
+claude_messages.append({"role": "user", "content": message})
+```
+
+**Calling Claude**
+
+We call Claude with:
+
+- The conversation history
+- The available MCP tools
+- Other parameters like model and max_tokens
+
+```python
+# Initial Claude API call
+response = self.anthropic.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1000,
+    messages=claude_messages,
+    tools=self.tools
+)
+```
+
+**Processing Claude's Response**
+
+Claude's response can contain either text content or a request to use a tool. We will handle both the cases. 
+
+```python
+for content in response.content:
+    if content.type == 'text':
+        # Add main text response - ensure content.text is a string
+        text_content = content.text
+        if isinstance(text_content, list):
+            # If it's a list, join it into a single string
+            text_content = " ".join(str(item) for item in text_content)
+        
+        result_messages.append(ChatMessage(
+            role="assistant", 
+            content=text_content
+        ))
+    elif content.type == 'tool_use':
+        tool_name = content.name
+        tool_args = content.input
+        
+        # Create a thought message for the tool call
+        result_messages.append(ChatMessage(
+            role="assistant",
+            content=f"I'll use the {tool_name} tool to help answer your question.",
+            metadata={
+                "title": f"🛠️ Using tool: {tool_name}",
+                "log": f"Parameters: {tool_args}",
+                "status": "done",
+                "id": f"tool_call_{tool_name}"
+            }
+        ))
+        
+        # Add formatted tool parameters for better readability
+        formatted_args = "```json\n" + json.dumps(tool_args, indent=2) + "\n```"
+        result_messages.append(ChatMessage(
+            role="assistant",
+            content=formatted_args,
+            metadata={
+                "parent_id": f"tool_call_{tool_name}",
+                "id": f"params_{tool_name}",
+                "title": "Tool Parameters"
+            }
+        ))
+        
+        # Execute tool call
+        result = await self.session.call_tool(tool_name, tool_args)
+        
+        # Get result content and ensure it's a string
+        result_content = result.content
+        if isinstance(result_content, list):
+            result_content = "\n".join(str(item) for item in result_content)
+        
+        # Update with tool results
+        result_messages.append(ChatMessage(
+            role="assistant",
+            content="Here are the results from the tool:",
+            metadata={
+                "title": f"📊 Tool Result for {tool_name}",
+                "status": "done",
+                "id": f"result_{tool_name}"
+            }
+        ))
+        
+        # Add formatted result content
+        formatted_result = "```\n" + str(result_content) + "\n```"
+        result_messages.append(ChatMessage(
+            role="assistant",
+            content=formatted_result,
+            metadata={
+                "parent_id": f"result_{tool_name}",
+                "id": f"raw_result_{tool_name}",
+                "title": "Raw Output"
+            }
+        ))
+
+        # Continue conversation with tool results
+        # Build a simple message for Claude to continue
+        tool_response_for_claude = {"role": "user", "content": f"Tool result for {tool_name}: {str(result_content)}"}
+        claude_messages.append(tool_response_for_claude)
+
+        # Get next response from Claude with the tool results
+        next_response = self.anthropic.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1000,
+            messages=claude_messages,
+        )
+
+        # Add Claude's interpretation of the tool results
+        if next_response.content and next_response.content[0].type == 'text':
+            final_text = next_response.content[0].text
+            # Ensure final_text is a string
+            if isinstance(final_text, list):
+                final_text = " ".join(str(item) for item in final_text)
+                
+            result_messages.append(ChatMessage(
+                role="assistant",
+                content=final_text
+            ))
+```
+
+- We add Claude's text response to our conversation.
+- Display a message that Claude is using a tool
+- Show the tool parameters in a formatted way
+- Actually executes the tool call, and displays the tool results
+- Sends the results back to Claude for interpretation
+- Shows Claude's final response after seeing the tool results
+
+You'll note that we are using the ChatMessage format we learned in Unit 3 to visualize the Tool Usage:
+- When Claude decides to use a tool, we show a message with the tool name and parameters
+- We use the metadata field to create a collapsible section with the tool call details
+- The tool results are displayed in a nested format under the tool call
+Claude's final interpretation of the results is shown as a regular message
+
+
+Now let's create the Gradio interface:
+
+### Gradio Interface
+
+```python
+# Define the Gradio interface
+def gradio_interface():
+    with gr.Blocks(title="MCP Weather Client") as demo:
+        gr.Markdown("# MCP Weather Assistant")
+        gr.Markdown("Connect to your MCP weather server and chat with the assistant")
+        
+        with gr.Row():
+            with gr.Column(scale=4):
+                server_path = gr.Textbox(
+                    label="Server Script Path",
+                    placeholder="Enter path to server script (e.g., weather.py)",
+                    value="weather.py"
+                )
+            with gr.Column(scale=1):
+                connect_btn = gr.Button("Connect")
+        
+        status = gr.Textbox(label="Connection Status", interactive=False)
+        
+        # Use type="messages" for the enhanced chatbot
+        chatbot = gr.Chatbot(
+            value=[], 
+            height=500,
+            type="messages",  # Use the messages format
+            show_copy_button=True,
+            avatar_images=("👤", "🤖")  # User and assistant avatars
+        )
+        
+        with gr.Row():
+            msg = gr.Textbox(
+                label="Your Question",
+                placeholder="Ask about weather or alerts (e.g., What's the weather in New York?)",
+                scale=4
+            )
+            clear_btn = gr.Button("Clear Chat", scale=1)
+        
+        # Set up event handlers
+        connect_btn.click(client.connect, inputs=server_path, outputs=status)
+        
+        # Process the message and update chatbot
+        def bot_message(message, history):
+            """Process the user message and return updated history"""
+            if not message:
+                return history
+            return client.process_message(message, history)
+        
+        # Set up the message flow
+        msg.submit(bot_message, [msg, chatbot], [chatbot]).then(
+            lambda: "", None, [msg]
+        )
+        
+        clear_btn.click(lambda: [], None, chatbot)
+        
+    return demo
+```
+
+This function creates the Gradio interface with following features:
+
+- A connection section with a textbox for the MCP server path and a connect button
+- A status display to show that the connection with MCP server is live
+- A chatbot component that shows the conversation. A message input and clear button.
+
+The event handlers connect user actions to our MCPClientWrapper functions:
+
+- The connect button calls `client.connect()`
+- The message input calls `bot_message()` which processes the message through our client
+
+### Main Execution
+
+This section:
+
+- Checks if the Anthropic API key is available
+- Creates and launches the Gradio interface
+
+```python
+if __name__ == "__main__":
+    # Check for ANTHROPIC_API_KEY
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        print("Warning: ANTHROPIC_API_KEY not found in environment. Please set it in your .env file.")
+    
+    # Launch the Gradio interface
+    interface = gradio_interface()
+    interface.launch(debug=True)
+```
+
+## How It All Comes Together
+
+- When you run the `app.py` file , it creates a Gradio chat interface that uses locally hosted MCP Server and itself works as a MCP Client
+- The Chatbot Client interface establishes a connection to the MCP server and lists the available tools (`get_alerts` and `get_forecasts`)
+- As soon as you send a message in the chat, Claude receives it and decides whether to use any tools
+- If Claude uses tools, they're executed and the results are shown. Claude provides a final response based on the tool results. The entire conversation is displayed in the chat interface.
+
+The Gradio implementation is really powerful as it shows:
+
+- The LLM (Claude) deciding on using tools based on user queries along with their arguments and returned values.
+- The conversation flowing naturally with tool usage shown transparently to the user.
+
+This UI can be extended to many types of tools and use cases, making gradio a flexible choice for building AI assistants that can interact with external systems through MCP Server and MCP Client.
+    
+## Building Your Own MCP Servers
+While we've used a weather server in this example, you can create MCP servers for many types of tools:
+
+- **Database Access**: Connect to your databases without exposing credentials
+- **API Integration**: Access third-party APIs like other Gradio apps through Python/JS clients, GitHub, Jira, Slack, _etc._
+- **File Operations**: Work with files on your local system
+- **Custom Business Logic**: Implement domain-specific tools
+
+To build with your own MCP server, follow these steps:
+
+- Define your tool functions (e.g., database queries, API calls)
+- Create an MCP server that exposes these functions
+- Connect your Gradio app to your MCP server as shown in the example above
+- Let Claude or any other suitable LLM use your tools 
+- Display the tool calling through the Gradio interface
+
+You can find more information on creating MCP servers in the [MCP documentation](https://modelcontextprotocol.io/introduction).
