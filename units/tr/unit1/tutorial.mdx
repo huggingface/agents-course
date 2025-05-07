@@ -1,10 +1,10 @@
-# smolagents Kullanarak İlk Agent'ımızı Oluşturalım
+# smolagents Kullanarak İlk Ajanımızı Oluşturalım
 
-Son bölümde, Python kodu kullanarak sıfırdan nasıl Agent oluşturabileceğimizi öğrendik ve **bu sürecin ne kadar zahmetli olabileceğini de gördük**. Neyse ki, birçok Agent kütüphanesi bu işi **sizin için ağır işlerin çoğunu üstlenerek** kolaylaştırıyor.
+Son bölümde, Python kodu kullanarak sıfırdan nasıl Ajan oluşturabileceğimizi öğrendik ve **bu sürecin ne kadar zahmetli olabileceğini de gördük**. Neyse ki, birçok Ajan kütüphanesi bu işi **sizin için ağır işlerin çoğunu üstlenerek** kolaylaştırıyor.
 
-Bu derste, görüntü oluşturma, web araması yapma, saat dilimi kontrolü gibi işlemleri yapabilen **ilk Agent'ınızı oluşturacaksınız**!
+Bu derste, görüntü oluşturma, web araması yapma, saat dilimi kontrolü gibi işlemleri yapabilen **ilk Ajanınızı oluşturacaksınız**!
 
-Ayrıca oluşturduğunuz Agent'ı **bir Hugging Face Space üzerinde yayınlayarak arkadaşlarınızla ve iş arkadaşlarınızla paylaşabileceksiniz**.
+Ayrıca oluşturduğunuz Ajanı **bir Hugging Face Space üzerinde yayınlayarak arkadaşlarınızla ve iş arkadaşlarınızla paylaşabileceksiniz**.
 
 Haydi başlayalım!
 
@@ -13,25 +13,25 @@ Haydi başlayalım!
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/smolagents.png" alt="smolagents"/>
 
-Bu Agent'ı oluşturmak için, **Agent'larınızı kolayca geliştirmeniz için bir framework sağlayan** `smolagents` kütüphanesini kullanacağız.
+Bu Ajanı oluşturmak için, **Ajanlarınızı kolayca geliştirmeniz için bir framework sağlayan** `smolagents` kütüphanesini kullanacağız.
 
-Bu kütüphane, sadelik için tasarlanmıştır, ancak bir Agent oluşturmanın karmaşıklığının büyük kısmını soyutlayarak sizin Agent davranışını tasarlamaya odaklanmanıza olanak tanır.
+Bu kütüphane, sadelik için tasarlanmıştır, ancak bir Ajan oluşturmanın karmaşıklığının büyük kısmını soyutlayarak sizin Ajan davranışını tasarlamaya odaklanmanıza olanak tanır.
 
 smolagents hakkında daha derine Ünite 2'de ineceğiz. Bu sırada, bu <a href="https://huggingface.co/blog/smolagents" target="_blank">blog yazısına</a> veya kütüphanenin <a href="https://github.com/huggingface/smolagents" target="_blank">GitHub reposuna</a> göz atabilirsiniz.
 
-Kısacası, `smolagents`, **"Actions" (Eylemler)** gerçekleştiren ve ardından kodu çalıştırarak **"Observations" (Gözlemler)** yapan bir tür Agent olan **codeAgent** üzerine odaklanan bir kütüphanedir.
+Kısacası, `smolagents`, **"Actions" (Eylemler)** gerçekleştiren ve ardından kodu çalıştırarak **"Observations" (Gözlemler)** yapan bir tür Ajan olan **codeAgent** üzerine odaklanan bir kütüphanedir.
 
 İşte inşa edeceğimiz şeyin bir örneği!
 
-Agent'ımıza bir **Görüntü oluşturma aracı** sağladık ve ondan bir kedi resmi oluşturmasını istedik.
+Ajanımıza bir **Görüntü oluşturma aracı** sağladık ve ondan bir kedi resmi oluşturmasını istedik.
 
-`smolagents` içindeki Agent, daha önce sıfırdan oluşturduğumuz özel Agent'ın **aynı davranışlarına** sahip olacak: **düşünecek, harekete geçecek ve gözlemleyecek** — bu döngüde, nihai cevaba ulaşana kadar devam edecek:
+`smolagents` içindeki Ajan, daha önce sıfırdan oluşturduğumuz özel Ajanın **aynı davranışlarına** sahip olacak: **düşünecek, harekete geçecek ve gözlemleyecek** — bu döngüde, nihai cevaba ulaşana kadar devam edecek:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 Heyecan verici, değil mi?
 
-## Haydi Agent'ımızı Oluşturalım!
+## Haydi Ajanımızı Oluşturalım!
 
 Başlamak için bu Space'i kopyalayın: <a href="https://huggingface.co/spaces/agents-course/First_agent_template" target="_blank">https://huggingface.co/spaces/agents-course/First_agent_template</a>  
 > Bu şablon için <a href="https://huggingface.co/m-ric" target="_blank">Aymeric</a>'e teşekkürler! 🙌
@@ -40,7 +40,7 @@ Başlamak için bu Space'i kopyalayın: <a href="https://huggingface.co/spaces/a
 Bu Space'i kopyalamak, **kendi profilinizde yerel bir kopya oluşturmanız** anlamına gelir:  
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Kopyala"/>
 
-Space'i kopyaladıktan sonra, Agent'ınızın model API'sine erişebilmesi için Hugging Face API token'ınızı eklemeniz gerekecek:
+Space'i kopyaladıktan sonra, Ajanınızın model API'sine erişebilmesi için Hugging Face API token'ınızı eklemeniz gerekecek:
 
 1. Eğer hala yoksa, [https://hf.co/settings/tokens](https://hf.co/settings/tokens) adresinden çıkarım (inference) izni olan bir Hugging Face token'ı alın  
 2. Kopyaladığınız Space'e gidin ve **Settings** (ayarlar) sekmesine tıklayın  
@@ -141,8 +141,8 @@ Kendi aracınızı tanımlarken şunlara dikkat etmelisiniz:
 1. Fonksiyonunuz için girdi ve çıktı türlerini belirtin, örn. `get_current_time_in_timezone(timezone: str) -> str:`
 2. **İyi biçimlendirilmiş bir docstring ekleyin.** `smolagents`, tüm argümanların **docstring içinde açıklanmasını** bekler.
 
-### Agent
-Bu Agent, LLM (büyük dil modelleri) motoru olarak [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) kullanıyor. Bu, serverless API aracılığıyla erişeceğimiz oldukça yetenekli bir modeldir.
+### Ajan
+Bu Ajan, LLM (büyük dil modelleri) motoru olarak [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) kullanıyor. Bu, serverless API aracılığıyla erişeceğimiz oldukça yetenekli bir modeldir.
 
 ```python
 final_answer = FinalAnswerTool()
@@ -172,19 +172,19 @@ agent = CodeAgent(
 GradioUI(agent).launch()
 ```
 
-Bu Agent hala, daha önceki bölümde gördüğümüz `InferenceClient`'ı, **HfApiModel** sınıfı üzerinden kullanıyor!
+Bu Ajan hala, daha önceki bölümde gördüğümüz `InferenceClient`'ı, **HfApiModel** sınıfı üzerinden kullanıyor!
 
-Framework'ü Ünite 2'de daha ayrıntılı örneklerle anlatacağız. Şimdilik, odaklanmanız gereken şey `tools` parametresi ile **yeni araçlar ekleyerek** Agent'ınızı geliştirmek.
+Framework'ü Ünite 2'de daha ayrıntılı örneklerle anlatacağız. Şimdilik, odaklanmanız gereken şey `tools` parametresi ile **yeni araçlar ekleyerek** Ajanınızı geliştirmek.
 
 Örneğin, ilk satırda içe aktarılan `DuckDuckGoSearchTool`'u kullanabilir veya kodun ilerleyen kısmında Hub'dan yüklenen `image_generation_tool`'u inceleyebilirsiniz.
 
-**Yeni araçlar eklemek, Agent'ınıza yeni yetenekler kazandıracaktır**, bu konuda yaratıcı olmaya çalışın!
+**Yeni araçlar eklemek, Ajanınıza yeni yetenekler kazandıracaktır**, bu konuda yaratıcı olmaya çalışın!
 
 ### Sistem Prompt'u (İstemi)
 
-Agent'ın sistem Prompt'u ayrı bir `prompts.yaml` dosyasında saklanır. Bu dosya, Agent'ın davranışlarını yönlendiren önceden tanımlanmış talimatları içerir.
+Ajanın sistem istemi ayrı bir `prompts.yaml` dosyasında saklanır. Bu dosya, Ajanın davranışlarını yönlendiren önceden tanımlanmış talimatları içerir.
 
-Prompt'ları bir YAML dosyasında saklamak, farklı Agent'lar veya kullanım senaryoları arasında kolayca özelleştirme ve yeniden kullanımı sağlar.
+İstemleri bir YAML dosyasında saklamak, farklı Ajanlar veya kullanım senaryoları arasında kolayca özelleştirme ve yeniden kullanımı sağlar.
 
 `prompts.yaml` dosyasının nerede bulunduğunu ve proje içinde nasıl organize edildiğini görmek için [Space'in dosya yapısını](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main) kontrol edebilirsiniz.
 
@@ -242,7 +242,7 @@ model = HfApiModel(
 # Hub'dan araç içe aktar
 image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
 
-# Sistem prompt'unu prompt.yaml dosyasından yükle
+# Sistem istemini prompt.yaml dosyasından yükle
 with open("prompts.yaml", 'r') as stream:
     prompt_templates = yaml.safe_load(stream)
     
@@ -255,7 +255,7 @@ agent = CodeAgent(
     planning_interval=None,
     name=None,
     description=None,
-    prompt_templates=prompt_templates # Sistem prompt'unu CodeAgent'e aktar
+    prompt_templates=prompt_templates # Sistem istemini CodeAgent'e aktar
 )
 
 
@@ -273,7 +273,7 @@ from tools.final_answer import FinalAnswerTool
 
 from Gradio_UI import GradioUI
 
-# Below is an example of a tool that does nothing. Amaze us with your creativity!
+# Aşağıda hiçbir şey yapmayan bir araç örneği var. Bizi yaratıcılığınla şaşırt!
 @tool
 def my_custom_tool(arg1:str, arg2:int)-> str: # dönüş tipi belirtmek önemli
     # Araç açıklaması / argüman açıklaması formatını koruyun ama aracı değiştirmekte özgürsünüz
@@ -312,36 +312,36 @@ final_answer = FinalAnswerTool()
 # Hub'dan araç içe aktar
 image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
 
-# Sistem prompt'unu prompt.yaml dosyasından yükle
+# Sistem istemini prompt.yaml dosyasından yükle
 with open("prompts.yaml", 'r') as stream:
     prompt_templates = yaml.safe_load(stream)
     
 agent = CodeAgent(
     model=model,
-    tools=[final_answer], # add your tools here (don't remove final_answer)
+    tools=[final_answer], # araçlarınızı buraya ekleyin (final_answer'ı silmeyin)
     max_steps=6,
     verbosity_level=1,
     grammar=None,
     planning_interval=None,
     name=None,
     description=None,
-    prompt_templates=prompt_templates # Pass system prompt to CodeAgent
+    prompt_templates=prompt_templates # Sistem istemini CodeAgent'e aktar
 )
 
 
 GradioUI(agent).launch()
 ```
 
-**Amacınız**, Space'e ve Agent'e aşina olmaktır.
+**Amacınız**, Space'e ve Ajana aşina olmaktır.
 
-Şu anda, şablondaki Agent **herhangi bir araç kullanmıyor, bu yüzden ona bazı hazır araçları sağlamayı veya kendi araçlarınızı yazmayı deneyin!**
+Şu anda, şablondaki Ajan **herhangi bir araç kullanmıyor, bu yüzden ona bazı hazır araçları sağlamayı veya kendi araçlarınızı yazmayı deneyin!**
 
-Discord kanalımızda **#agents-course-showcase** adlı kanalda harika Agent çıktılarınızı sabırsızlıkla bekliyoruz!
+Discord kanalımızda **#agents-course-showcase** adlı kanalda harika Ajan çıktılarınızı sabırsızlıkla bekliyoruz!
 
-Tebrikler, ilk Agent'ınızı oluşturdunuz! Bunu arkadaşlarınız ve iş arkadaşlarınızla paylaşmaktan çekinmeyin.
+Tebrikler, ilk Ajanınızı oluşturdunuz! Bunu arkadaşlarınız ve iş arkadaşlarınızla paylaşmaktan çekinmeyin.
 
-Bu ilk denemeniz olduğu için, biraz hatalı ya da yavaş çalışması tamamen normaldir. İlerleyen ünitelerde, daha iyi Agent'lar nasıl oluşturulur, bunu öğreneceğiz.
+Bu ilk denemeniz olduğu için, biraz hatalı ya da yavaş çalışması tamamen normaldir. İlerleyen ünitelerde, daha iyi Ajanlar nasıl oluşturulur, bunu öğreneceğiz.
 
-Öğrenmenin en iyi yolu denemektir, bu yüzden Agent'ınızı güncelleyin, yeni araçlar ekleyin, farklı bir modelle deneyin vs.
+Öğrenmenin en iyi yolu denemektir, bu yüzden Ajanınızı güncelleyin, yeni araçlar ekleyin, farklı bir modelle deneyin vs.
 
 Bir sonraki bölümde, son Sınav'ı tamamlayacak ve sertifikanızı alacaksınız!

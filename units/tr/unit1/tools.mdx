@@ -2,21 +2,21 @@
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Ünite 1 planı"/>
 
-AI Agent (Ajan) yapılarının en kritik özelliklerinden biri **eylem** gerçekleştirebilme yetenekleridir. Daha önce de gördüğümüz gibi, bu eylemler **Tools (Araçlar)** kullanılarak gerçekleştirilir.
+Yapay Zeka Ajanı yapılarının en kritik özelliklerinden biri **eylem** gerçekleştirebilme yetenekleridir. Daha önce de gördüğümüz gibi, bu eylemler **Tools (Araçlar)** kullanılarak gerçekleştirilir.
 
-Bu bölümde, araçlar nedir, nasıl etkili bir şekilde tasarlanır ve bu araçlar Agent sistem mesajına nasıl entegre edilir bunu öğreneceğiz.
+Bu bölümde, araçlar nedir, nasıl etkili bir şekilde tasarlanır ve bu araçlar Ajan sistem mesajına nasıl entegre edilir bunu öğreneceğiz.
 
-Agent'ınıza doğru araçlar vererek — ve bu araçların nasıl çalıştığını açıkça tanımlayarak — AI'nızın başarabileceklerini dramatik şekilde artırabilirsiniz. Haydi başlayalım!
+Ajanınıza doğru araçlar vererek — ve bu araçların nasıl çalıştığını açıkça tanımlayarak — AI'nızın başarabileceklerini dramatik şekilde artırabilirsiniz. Haydi başlayalım!
 
 ## AI Tools (Yapay Zeka Araçları) Nedir?
 
 **Araç, LLM (büyük dil modelleri)'e verilen bir fonksiyondur**. Bu fonksiyonun **açık bir amacı** olmalıdır.
 
-AI Agent'larda yaygın olarak kullanılan bazı araçlar şunlardır:
+Yapay Zeka Ajanlarında yaygın olarak kullanılan bazı araçlar şunlardır:
 
-| Tool            | Açıklama                                                   |
+| Araç            | Açıklama                                                   |
 |----------------|-------------------------------------------------------------|
-| Web Arama     | Agent'ın internetten güncel bilgi almasını sağlar.          |
+| Web Arama     | Ajanın internetten güncel bilgi almasını sağlar.          |
 | Görsel Üretme | Metin açıklamalarına göre görsel üretir.                  |
 | Retrieval (Alma)      | Harici bir kaynaktan bilgi alır.                            |
 | API Arayüzü  | Harici bir API (GitHub, YouTube, Spotify vb.) ile etkileşir.|
@@ -27,7 +27,7 @@ Bunlar yalnızca örnekler, aslında her kullanım durumu için bir araç oluşt
 
 Örneğin, eğer aritmetik işlem yapılması gerekiyorsa, LLM'e bir **hesap makinesi aracı** vermek, modelin doğal yeteneklerine güvenmekten daha iyi sonuçlar verir.
 
-Ayrıca, **LLM'ler eğitildikleri verilere dayalı olarak bir girdinin tamamlamasını tahmin ederler**, bu da demektir ki içsel bilgileri yalnızca eğitimden önceki olayları kapsar. Dolayısıyla Agent'ınız güncel veriye ihtiyaç duyuyorsa, bu veriyi bir araç aracılığıyla sağlamalısınız.
+Ayrıca, **LLM'ler eğitildikleri verilere dayalı olarak bir girdinin tamamlamasını tahmin ederler**, bu da demektir ki içsel bilgileri yalnızca eğitimden önceki olayları kapsar. Dolayısıyla Ajanınız güncel veriye ihtiyaç duyuyorsa, bu veriyi bir araç aracılığıyla sağlamalısınız.
 
 Örneğin, bir LLM'e doğrudan (arama aracı olmadan) bugünün havasını sorarsanız, rastgele bir hava durumu hayal edebilir.
 
@@ -42,13 +42,13 @@ Ayrıca, **LLM'ler eğitildikleri verilere dayalı olarak bir girdinin tamamlama
 
 ## Araçlar nasıl çalışır?
 
-Gördüğümüz gibi, LLM'ler yalnızca metin girdileri alır ve metin çıktıları üretir. Kendi başlarına araçları çağırma yetenekleri yoktur. Agent'e araç sağlamak dediğimizde, aslında LLM'e bu araçların varlığını öğretmek ve gerektiğinde metne dayalı çağrılar üretmesini sağlamak anlamına gelir.
+Gördüğümüz gibi, LLM'ler yalnızca metin girdileri alır ve metin çıktıları üretir. Kendi başlarına araçları çağırma yetenekleri yoktur. Ajana araç sağlamak dediğimizde, aslında LLM'e bu araçların varlığını öğretmek ve gerektiğinde metne dayalı çağrılar üretmesini sağlamak anlamına gelir.
 
 Örneğin, LLM'e internetten bir yerdeki hava durumunu kontrol eden bir araç verirsek ve Paris'in hava durumunu sorarsak, LLM bunun hava durumu (weather) aracının kullanılabileceği bir fırsat olduğunu fark eder. Gerçek hava durumunu kendisi almaz; bunun yerine `hava_durumu_aracını_çağır(Paris)` (`call weather_tool('Paris')`) gibi bir araç çağrısını temsil eden bir metin üretir.
 
-**Agent** daha sonra bu cevabı okur, bir araç çağrısı gerektiğini anlar, LLM adına bu aracı çalıştırır ve gerçek veriyi getirir.
+**Ajan** daha sonra bu cevabı okur, bir araç çağrısı gerektiğini anlar, LLM adına bu aracı çalıştırır ve gerçek veriyi getirir.
 
-Bu araç çağırma adımları genellikle kullanıcıya gösterilmez: Agent bunları güncellenmiş konuşmaya yeni bir mesaj olarak ekler ve bunu tekrar LLM'e gönderir. LLM bu ek bağlamı işler ve kullanıcıya doğal görünen bir cevap üretir. Kullanıcının gözünden bakıldığında, sanki LLM doğrudan aracı kullanmış gibi görünür; ama aslında arka planda tüm süreci Agent yönetmiştir.
+Bu araç çağırma adımları genellikle kullanıcıya gösterilmez: Ajan bunları güncellenmiş konuşmaya yeni bir mesaj olarak ekler ve bunu tekrar LLM'e gönderir. LLM bu ek bağlamı işler ve kullanıcıya doğal görünen bir cevap üretir. Kullanıcının gözünden bakıldığında, sanki LLM doğrudan aracı kullanmış gibi görünür; ama aslında arka planda tüm süreci Ajan yönetmiştir.
 
 Bu süreci ilerleyen oturumlarda çok daha derinlemesine inceleyeceğiz.
 
@@ -56,7 +56,7 @@ Bu süreci ilerleyen oturumlarda çok daha derinlemesine inceleyeceğiz.
 
 Tam cevap biraz karmaşık olabilir, ancak esasen sistem mesajını kullanarak modele mevcut araçların metinsel açıklamalarını sağlarız:
 
-<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="Araçlar için sistem Prompt'u"/>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="Araçlar için sistem istemi"/>
 
 Bu işlemin çalışması için, şunları çok net ve doğru şekilde belirtmeliyiz:
 
@@ -291,7 +291,7 @@ Karmaşık görünebilir ama yavaşça incelersek ne yaptığını anlayabiliriz
 - **`__call__()`**: Araç çağrıldığında fonksiyonu çalıştırır.
 - **`to_string()`**: Aracın tüm özelliklerini metne dönüştürür.
 
-Aşağıdaki gibi bir kodla bir Tool oluşturabiliriz:
+Aşağıdaki gibi bir kodla bir Tool (Araç) oluşturabiliriz:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
@@ -328,7 +328,7 @@ Ancak Python'un `inspect` modülünü kullanarak tüm bilgileri bizim yerimize a
 ```python
 def tool(func):
     """
-    Verilen fonksiyondan bir Tool örneği oluşturan dekoratör.
+    Verilen fonksiyondan bir araç örneği oluşturan dekoratör.
     """
     # Fonksiyon imzasını al
     signature = inspect.signature(func)
@@ -357,7 +357,7 @@ def tool(func):
     # Docstring'i açıklama olarak kullan (varsayılan None)
     description = func.__doc__ or "No description provided."
 
-    # Fonksiyon adı, Tool adı olur
+    # Fonksiyon adı, araç adı olur
     name = func.__name__
 
     # Yeni Tool örneğini döndür
@@ -407,7 +407,7 @@ def tool(func):
     # Docstring'i açıklama olarak kullan (varsayılan None)
     description = func.__doc__ or "No description provided."
 
-    # Fonksiyon adı, Tool adı olur
+    # Fonksiyon adı, araç adı olur
     name = func.__name__
 
     # Yeni Tool örneğini döndür
@@ -462,11 +462,11 @@ Araç Adı: calculator, Açıklama: İki tam sayıyı çarp., Argümanlar: a: in
 Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
 ```
 
-Bu açıklama sistem prompt'una **eklenir**. Bu bölümün başındaki örneği ele alırsak, araç açıklaması (`tools_description`) yerini alarak şu şekilde görünür:
+Bu açıklama sistem istemine **eklenir**. Bu bölümün başındaki örneği ele alırsak, araç açıklaması (`tools_description`) yerini alarak şu şekilde görünür:
 
-<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Araçlar için sistem Prompt'u"/>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Araçlar için sistem istemi"/>
 
-[Eylemler](actions) bölümünde, Agent'ın bu oluşturduğumuz aracı nasıl _Call_ ettiğini (çağırdığını) daha ayrıntılı öğreneceğiz.
+[Eylemler](actions) bölümünde, Ajanın bu oluşturduğumuz aracı nasıl _Call_ ettiğini (çağırdığını) daha ayrıntılı öğreneceğiz.
 
 ### Model Context Protocol (MCP): birleşik bir araç arayüzü
 
@@ -482,7 +482,7 @@ Bu da demektir ki, **MCP'yi uygulayan herhangi bir framework, protokol içinde t
 
 ---
 
-Araçlar, AI Agent'ların yeteneklerini geliştirmede kritik bir rol oynar.
+Araçlar, Yapay Zeka Ajanlarının yeteneklerini geliştirmede kritik bir rol oynar.
 
 Özetlemek gerekirse, şunları öğrendik:
 
@@ -490,8 +490,8 @@ Araçlar, AI Agent'ların yeteneklerini geliştirmede kritik bir rol oynar.
 
 - **Araç Nasıl Tanımlanır:** Açık bir metin açıklaması, girdiler, çıktılar ve çağırılabilir bir fonksiyon sağlayarak.
 
-- **Araçlar Neden Gerekli:** Agent'ların statik model eğitim sınırlamalarını aşmasına, gerçek zamanlı görevleri yerine getirmesine ve uzmanlaşmış eylemler gerçekleştirmesine olanak tanırlar.
+- **Araçlar Neden Gerekli:** Ajanların statik model eğitim sınırlamalarını aşmasına, gerçek zamanlı görevleri yerine getirmesine ve uzmanlaşmış eylemler gerçekleştirmesine olanak tanırlar.
 
-Şimdi [Agent İş Akışı](agent-steps-and-structure) bölümüne geçebiliriz; burada bir Agent'ın nasıl gözlemlediğini, düşündüğünü ve harekete geçtiğini göreceksiniz. Bu, şimdiye kadar öğrendiklerimizin tümünü bir araya getirir ve kendi AI Agent'inizi oluşturma sürecinin temelini oluşturur.
+Şimdi [Ajan İş Akışı](agent-steps-and-structure) bölümüne geçebiliriz; burada bir Ajanın nasıl gözlemlediğini, düşündüğünü ve harekete geçtiğini göreceksiniz. Bu, şimdiye kadar öğrendiklerimizin tümünü bir araya getirir ve kendi Yapay Zeka Ajanınızı oluşturma sürecinin temelini oluşturur.
 
 Ama önce, kısa bir sınav zamanı!

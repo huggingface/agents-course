@@ -1,21 +1,21 @@
 
-# Dummy Agent Kütüphanesi
+# Sahte Ajan Kütüphanesi
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-unit1sub3DONE.jpg" alt="Ünite 1 planısı"/>
 
-Bu kurs herhangi bir framework'e bağlı değildir çünkü **AI Agent'ların kavramlarına odaklanmak ve belirli bir framework'ün detaylarında kaybolmamak** istiyoruz.
+Bu kurs herhangi bir framework'e bağlı değildir çünkü **Yapay Zeka Ajanların kavramlarına odaklanmak ve belirli bir framework'ün detaylarında kaybolmamak** istiyoruz.
 
 Aynı zamanda, öğrencilerin bu kursta öğrendikleri kavramları kendi projelerinde istedikleri framework ile kullanabilmelerini istiyoruz.
 
-Bu nedenle, 1. Ünite için sahte (dummy) bir Agent kütüphanesi ve LLM makinemize erişmek için basit bir sunucusuz (serverless) API kullanacağız.
+Bu nedenle, 1. Ünite için sahte (dummy) bir Ajan kütüphanesi ve LLM makinemize erişmek için basit bir sunucusuz (serverless) API kullanacağız.
 
-Bunlar üretim ortamında kullanılamayabilir ama **Agent'ların nasıl çalıştığını anlamak için iyi bir başlangıç noktası** olacaktır.
+Bunlar üretim ortamında kullanılamayabilir ama **Ajanların nasıl çalıştığını anlamak için iyi bir başlangıç noktası** olacaktır.
 
-Bu bölümü tamamladığınızda `smolagents` kullanarak **basit bir Agent oluşturabileceksiniz**.
+Bu bölümü tamamladığınızda `smolagents` kullanarak **basit bir Ajan oluşturabileceksiniz**.
 
-İleriki ünitelerde `LangGraph`, `LangChain` ve `LlamaIndex` gibi başka AI Agent kütüphanelerini de kullanacağız.
+İleriki ünitelerde `LangGraph`, `LangChain` ve `LlamaIndex` gibi başka Yapay Zeka Ajanı kütüphanelerini de kullanacağız.
 
-İşleri basit tutmak adına bir Python fonksiyonunu hem Araç hem de Agent olarak kullanacağız.
+İşleri basit tutmak adına bir Python fonksiyonunu hem Araç hem de Ajan olarak kullanacağız.
 
 Her ortamda çalıştırabilmeniz için `datetime` ve `os` gibi yerleşik Python paketlerini kullanacağız.
 
@@ -152,11 +152,11 @@ Paris.
 
 "chat" yöntemi, modeller arasında sorunsuz geçiş sağlamak için ÖNERİLEN yöntemdir. Ancak bu notebook sadece eğitici amaçlı olduğundan, "text_generation" metodunu kullanmaya devam edeceğiz.
 
-## Sahte (Dummy) Agent
+## Sahte (Dummy) Ajan
 
-Önceki bölümlerde bir agent kütüphanesinin özünün sistem prompt'una bilgi eklemek olduğunu gördük.
+Önceki bölümlerde bir Ajan kütüphanesinin özünün sistem prompt'una (istem) bilgi eklemek olduğunu gördük.
 
-Bu sistem prompt'u önceki örneklerden biraz daha karmaşık ama şunları içeriyor:
+Bu sistem istemi önceki örneklerden biraz daha karmaşık ama şunları içeriyor:
 
 1. **Araçlara dair bilgi**
 2. **Aksiyon döngüsü talimatları** (Düşünce → Aksiyon → Gözlem)
@@ -165,7 +165,7 @@ Bu sistem prompt'u önceki örneklerden biraz daha karmaşık ama şunları içe
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
 ```
-# Bu sistem promptu biraz daha karmaşık ve aslında zaten eklenmiş olan fonksiyon açıklamasını içerir.
+# Bu sistem istemi biraz daha karmaşık ve aslında zaten eklenmiş olan fonksiyon açıklamasını içerir.
 # Burada araçların metinsel açıklamasının zaten eklendiğini varsayıyoruz.
 
 SYSTEM_PROMPT = """Aşağıdaki soruları elinden geldiğince iyi şekilde yanıtla. Aşağıdaki araçlara erişimin var:
@@ -207,7 +207,7 @@ Son Cevap: orijinal giriş sorusunun nihai cevabı
 
 
 ```
-# Bu sistem promptu biraz daha karmaşık ve aslında zaten eklenmiş olan fonksiyon açıklamasını içerir.
+# Bu sistem istemi biraz daha karmaşık ve aslında zaten eklenmiş olan fonksiyon açıklamasını içerir.
 # Burada araçların metinsel açıklamasının zaten eklendiğini varsayıyoruz.
 
 SYSTEM_PROMPT = """Answer the following questions as best you can. You have access to the following tools:
@@ -246,7 +246,7 @@ Final Answer: the final answer to the original input question
 Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you provide a definitive answer. """
 ```
 
-"text_generation" metodunu kullandığımız için prompt'u elle hazırlamamız gerekiyor:
+"text_generation" metodunu kullandığımız için istemi elle hazırlamamız gerekiyor:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
@@ -299,7 +299,7 @@ tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
 tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 ```
 
-Şimdi prompt şu hale geldi:
+Şimdi istem şu hale geldi:
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
 
@@ -506,7 +506,7 @@ get_weather('London')
 'the weather in London is sunny with low temperatures. \n'
 ```
 
-Şimdi; temel prompt, fonksiyon çalıştırılana kadar olan kısım ve fonksiyon sonucunu birleştirip üretime devam edelim.
+Şimdi; temel istem, fonksiyon çalıştırılana kadar olan kısım ve fonksiyon sonucunu birleştirip üretime devam edelim.
 
 ```python
 new_prompt = prompt + output + get_weather('London')
@@ -518,7 +518,7 @@ final_output = client.text_generation(
 print(final_output)
 ```
 
-Yeni prompt şu şekilde:
+Yeni istem şu şekilde:
 
 <details>
 <summary>Türkçe çeviriyi görmek için tıklayın</summary>
@@ -644,7 +644,7 @@ Final Answer: The weather in London is sunny with low temperatures.
 
 ---
 
-Python kodu ile sıfırdan Agent nasıl oluşturulur öğrendik ve bu sürecin **ne kadar zahmetli olabileceğini** gördük. Neyse ki birçok Agent kütüphanesi bu yükü sizin yerinize üstlenerek işi kolaylaştırıyor.
+Python kodu ile sıfırdan Ajan nasıl oluşturulur öğrendik ve bu sürecin **ne kadar zahmetli olabileceğini** gördük. Neyse ki birçok Ajan kütüphanesi bu yükü sizin yerinize üstlenerek işi kolaylaştırıyor.
 
-Artık `smolagents` kütüphanesini kullanarak **ilk gerçek Agent'ımızı oluşturmak için hazırız**.
+Artık `smolagents` kütüphanesini kullanarak **ilk gerçek Ajanımızı oluşturmak için hazırız**.
 

@@ -2,9 +2,9 @@
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Unit 1 planning"/>
 
-Önceki bölümde her Agent'ın **merkezinde bir Yapay Zeka Modeline** ihtiyacı olduğunu ve bu amaçla en yaygın kullanılan model türünün LLM'ler olduğunu öğrendik.
+Önceki bölümde her Ajanın **merkezinde bir Yapay Zeka Modeline** ihtiyacı olduğunu ve bu amaçla en yaygın kullanılan model türünün LLM'ler olduğunu öğrendik.
 
-Şimdi LLM'lerin ne olduğunu ve Agent'ları nasıl çalıştırdığını öğreneceğiz.
+Şimdi LLM'lerin ne olduğunu ve Ajanları nasıl çalıştırdığını öğreneceğiz.
 
 Bu bölüm, LLM'lerin kullanımına dair kısa ve teknik bir açıklama sunar. Daha derine inmek isterseniz, <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">ücretsiz Doğal Dil İşleme Kursumuza</a> göz atabilirsiniz.
 
@@ -55,7 +55,7 @@ Her ne kadar LLM'ler farklı biçimlerde gelebilse de, LLM'ler genellikle milyar
 
 LLM'lerin temel prensibi basit ama etkili: **önceki belirteçlerdan oluşan bir diziyi baz alarak bir sonraki belirteçi tahmin etmek**. "Belirteç", bir LLM'in çalıştığı bilgi birimidir. Bunu bir "kelime" gibi düşünebilirsiniz, fakat verimlilik açısından LLM'ler tüm kelimeleri kullanmaz.
 
-Örneğin, İngilizce'de yaklaşık 600.000 kelime varken, Llama 2 gibi bir model yalnızca yaklaşık 32.000 belirteçlik bir kelime dağarcığına sahiptir. Tokenizasyon genellikle kelime-altı birimler üzerinden yapılır.
+Örneğin, İngilizce'de yaklaşık 600.000 kelime varken, Llama 2 gibi bir model yalnızca yaklaşık 32.000 belirteçlik bir kelime dağarcığına sahiptir. Belirteçleme (tokenizasyon) genellikle kelime-altı birimler üzerinden yapılır.
 
 Mesela "interest" ve "ing" belirteçleri birleştirilerek "interesting" elde edilebilir. Ya da "ed" eklenerek "interested" oluşturulabilir.
 
@@ -68,7 +68,7 @@ Aşağıdaki etkileşimli oynatma alanında farklı belirteçleyicileri deneyebi
 	height="450"
 ></iframe>
 
-Her LLM'in **kendine özgü özel belirteçleri** vardır. Model, bu belirteçleri oluşturduğu yapının başını ve sonunu belirtmek için kullanır. Örneğin, bir dizinin, mesajın ya da cevabın başlangıç ya da bitişini belirtmek için. Girdi olarak verdiğimiz istemler (prompts) de özel belirteçlerle yapılandırılır. Bunların en önemlisi **Dizi Sonu Token'ıdır (end of sequence - EOS)**.
+Her LLM'in **kendine özgü özel belirteçleri** vardır. Model, bu belirteçleri oluşturduğu yapının başını ve sonunu belirtmek için kullanır. Örneğin, bir dizinin, mesajın ya da cevabın başlangıç ya da bitişini belirtmek için. Girdi olarak verdiğimiz istemler (prompts) de özel belirteçlerle yapılandırılır. Bunların en önemlisi **Dizi Sonu Özel Belirteci'dir (end of sequence - EOS)**.
 
 Bu özel belirteçlerin biçimi, model sağlayıcısına göre çok farklılık gösterebilir.
 
@@ -131,7 +131,7 @@ LLM'lerin **oto-regresif** olduğu söylenir, yani **bir geçişteki çıktı, b
 
 Başka bir deyişle, bir LLM metni EOS'a ulaşana kadar çözer. Peki tek bir kod çözme döngüsü sırasında ne olur?
 
-Agent'ları öğrenme amacıyla tüm süreç oldukça teknik olsa da, işte kısa bir genel bakış:
+Ajanları öğrenme amacıyla tüm süreç oldukça teknik olsa da, işte kısa bir genel bakış:
 
 - Girdi metni **belirteçlere** ayrıldıktan sonra, model her bir belirtecin anlamı ve giriş dizisindeki konumuyla ilgili bilgileri yakalayan bir temsil hesaplar.
 - Bu temsil, modelin her belirtecin sıradaki olma olasılığına göre sıraladığı skorları çıktıladığı modele verilir.
@@ -174,11 +174,11 @@ LLM'lerin temel ilkesi — bir sonraki belirteci tahmin etme — GPT-2'den bu ya
 
 Eğer LLM'lerle etkileşime geçtiyseniz, muhtemelen *context length* (bağlam uzunluğu) terimine aşinasınızdır. Bu, LLM'in işleyebileceği maksimum belirteç sayısını ve dolayısıyla maksimum *dikkat aralığını* ifade eder.
 
-## LLM'leri Yönlendirmek: Prompting (İstem)
+## LLM'leri Yönlendirmek: Prompting (İstemleme)
 
 Bir LLM'in tek görevinin tüm girdi belirteçlerine bakarak bir sonraki belirteci tahmin etmek ve hangilerinin "önemli" olduğunu seçmek olduğunu düşünürsek, girdi dizinizin nasıl yazıldığı çok önemlidir.
 
-LLM'e sağladığınız girdi dizisine _prompt_ (istem) denir. Prompt'u dikkatli bir şekilde tasarlamak, **LLM'in çıktısını istenen sonuca yönlendirmeyi kolaylaştırır**.
+LLM'e sağladığınız girdi dizisine _prompt_ (istem) denir. İstemi dikkatli bir şekilde tasarlamak, **LLM'in çıktısını istenen sonuca yönlendirmeyi kolaylaştırır**.
 
 ## LLM'ler Nasıl Eğitilir?
 
@@ -198,17 +198,17 @@ Bu ilk _ön-eğitimden_ (pre-training) sonra, LLM'ler belirli görevler için de
 
 Bu kurs boyunca, ağırlıklı olarak modelleri Hugging Face Hub üzerinden API'ler aracılığıyla kullanacağız. Daha sonra bu modelleri kendi donanımınızda nasıl çalıştırabileceğinizi de göreceğiz.
 
-## LLM'ler Yapay Zeka Agent'larında Nasıl Kullanılır?
+## LLM'ler Yapay Zeka Ajanlarında Nasıl Kullanılır?
 
-LLM'ler, yapay zeka Agent'larının temel bir bileşenidir. **İnsan dilini anlama ve üretme temelini sağlarlar**.
+LLM'ler, yapay zeka Ajanlarının temel bir bileşenidir. **İnsan dilini anlama ve üretme temelini sağlarlar**.
 
 Kullanıcı talimatlarını yorumlayabilir, konuşmalarda bağlamı sürdürebilir, bir plan tanımlayabilir ve hangi araçları kullanacağına karar verebilirler.
 
-Bu adımları bu ünitenin ilerleyen kısımlarında daha ayrıntılı inceleyeceğiz. Ama şimdilik bilmeniz gereken şey: LLM, **Agent'ın beynidir**.
+Bu adımları bu ünitenin ilerleyen kısımlarında daha ayrıntılı inceleyeceğiz. Ama şimdilik bilmeniz gereken şey: LLM, **Ajanın beynidir**.
 
 ---
 
-Oldukça fazla şey öğrendik! LLM'lerin ne olduklarını, nasıl çalıştıklarını ve yapay zeka Agent'larını nasıl güçlendirdiklerini temel düzeyde inceledik.
+Oldukça fazla şey öğrendik! LLM'lerin ne olduklarını, nasıl çalıştıklarını ve yapay zeka Ajanlarını nasıl güçlendirdiklerini temel düzeyde inceledik.
 
 Eğer dil modelleri ve doğal dil işleme dünyasına daha da derinlemesine dalmak isterseniz, <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">ücretsiz NLP kursumuza</a> göz atabilirsiniz.
 

@@ -1,18 +1,18 @@
 # Düşünce: İçsel Akıl Yürütme ve ReAct (Yeniden Eylem) Yaklaşımı
 
 <Tip> 
-Bu bölümde bir yapay zeka agent'ının iç işleyişine — akıl yürütme ve planlama yeteneğine — dalıyoruz. Agent'ın bilgiyi analiz etmek, karmaşık problemleri yönetilebilir adımlara ayırmak ve bir sonraki adımda ne yapacağına karar vermek için içsel diyalogdan nasıl faydalandığını keşfedeceğiz. Ayrıca, modelin harekete geçmeden önce "adım adım düşünmesini" teşvik eden bir yönlendirme tekniği olan ReAct yaklaşımını da tanıtıyoruz.
+Bu bölümde bir yapay zeka Ajanının iç işleyişine — akıl yürütme ve planlama yeteneğine — dalıyoruz. Ajanın bilgiyi analiz etmek, karmaşık problemleri yönetilebilir adımlara ayırmak ve bir sonraki adımda ne yapacağına karar vermek için içsel diyalogdan nasıl faydalandığını keşfedeceğiz. Ayrıca, modelin harekete geçmeden önce "adım adım düşünmesini" teşvik eden bir yönlendirme tekniği olan ReAct yaklaşımını da tanıtıyoruz.
 </Tip>
 
-Düşünceler, Agent'ın görevi çözmek için **içsel akıl yürütme ve planlama süreçlerini** temsil eder.
+Düşünceler, Ajanın görevi çözmek için **içsel akıl yürütme ve planlama süreçlerini** temsil eder.
 
-Bu, agent'ın Büyük Dil Modeli (LLM) kapasitesini **prompt içinde sunulan bilgiyi analiz etmek** için kullanır.
+Bu, Ajanın Büyük Dil Modeli (LLM) kapasitesini **istem içinde sunulan bilgiyi analiz etmek** için kullanır.
 
-Bunu, agent'ın kendi kendine düşündüğü bir içsel diyalog gibi düşünebilirsiniz; burada elindeki görevi değerlendirir ve strateji geliştirir.
+Bunu, Ajanın kendi kendine düşündüğü bir içsel diyalog gibi düşünebilirsiniz; burada elindeki görevi değerlendirir ve strateji geliştirir.
 
-Agent'ın düşünceleri, mevcut gözlemlere erişip bir sonraki adım(lar)ın ne olması gerektiğine karar vermekten sorumludur.
+Ajanın düşünceleri, mevcut gözlemlere erişip bir sonraki adım(lar)ın ne olması gerektiğine karar vermekten sorumludur.
 
-Bu süreç sayesinde agent, **karmaşık problemleri daha küçük ve yönetilebilir adımlara ayırabilir**, geçmiş deneyimlerden ders çıkarabilir ve yeni bilgilere göre planlarını sürekli olarak uyarlayabilir.
+Bu süreç sayesinde Ajan, **karmaşık problemleri daha küçük ve yönetilebilir adımlara ayırabilir**, geçmiş deneyimlerden ders çıkarabilir ve yeni bilgilere göre planlarını sürekli olarak uyarlayabilir.
 
 İşte bazı yaygın düşünce türlerine örnekler:
 
@@ -42,8 +42,7 @@ Bu yöntem, modelin alt adımları daha ayrıntılı değerlendirmesini sağlar 
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
-<figcaption>(d) örneği, "Hadi adım adım düşünelim" şeklinde yönlendirme yapılan bir ReAct yaklaşımıdır.
-</figcaption>
+<figcaption>(d) örneği, "Hadi adım adım düşünelim" şeklinde yönlendirme yapılan bir ReAct yaklaşımıdır.</figcaption>
 </figure>
 
 <Tip>

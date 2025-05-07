@@ -2,21 +2,20 @@
 
 Artık LLM'lerin nasıl çalıştığını anladığımıza göre, **üretimlerini sohbet şablonları aracılığıyla nasıl yapılandırdıklarına** bakalım.
 
-ChatGPT'de olduğu gibi, kullanıcılar genellikle Agent'larla bir sohbet arayüzü üzerinden etkileşime girer. Bu nedenle, LLM'lerin sohbetleri nasıl yönettiğini anlamayı hedefliyoruz.
+ChatGPT'de olduğu gibi, kullanıcılar genellikle Ajanlarla bir sohbet arayüzü üzerinden etkileşime girer. Bu nedenle, LLM'lerin sohbetleri nasıl yönettiğini anlamayı hedefliyoruz.
 
 > **Soru**: Ama... ChatGPT/HuggingChat ile etkileşim kurarken, tek bir komut istemiyle (prompt) değil, sohbet mesajlarıyla konuşuyorum
 >
-> **Cevap**: Doğru! Ancak bu aslında bir arayüz soyutlaması. LLM'e gönderilmeden önce, sohbet içindeki tüm mesajlar tek bir prompt'ta birleştirilir. Model, sohbeti "hatırlamaz": her seferinde tamamen okuyarak yanıt verir.
+> **Cevap**: Doğru! Ancak bu aslında bir arayüz soyutlaması. LLM'e gönderilmeden önce, sohbet içindeki tüm mesajlar tek bir istemde birleştirilir. Model, sohbeti "hatırlamaz": her seferinde tamamen okuyarak yanıt verir.
 
-Şimdiye kadar, prompt'ları modele verilen belirteç dizileri olarak ele aldık. Ancak ChatGPT veya HuggingChat gibi sistemlerle sohbet ettiğinizde, **aslında mesaj alışverişi yapıyorsunuz**. Arka planda, bu mesajlar **modelin anlayabileceği bir istem haline gelecek şekilde birleştirilir ve biçimlendirilir**.
+Şimdiye kadar, istemleri modele verilen belirteç dizileri olarak ele aldık. Ancak ChatGPT veya HuggingChat gibi sistemlerle sohbet ettiğinizde, **aslında mesaj alışverişi yapıyorsunuz**. Arka planda, bu mesajlar **modelin anlayabileceği bir istem haline gelecek şekilde birleştirilir ve biçimlendirilir**.
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Modellerin arka yüzü"/>
-<figcaption>Burada kullanıcı arayüzünde gördüğümüz ile modele verilen prompt arasındaki farkı görüyoruz.
-</figcaption>
+<figcaption>Burada kullanıcı arayüzünde gördüğümüz ile modele verilen istem arasındaki farkı görüyoruz.</figcaption>
 </figure>
 
-İşte burada sohbet şablonları devreye giriyor. Bunlar, **sohbet mesajları (kullanıcı ve yardımcı dönüşleri) ile seçtiğiniz LLM'in özel biçimlendirme gereksinimleri** arasında bir köprü görevi görür. Başka bir deyişle, sohbet şablonları, kullanıcı ve Agent arasındaki iletişimi yapılandırarak, her modelin—kendine özgü "Special Token" (Özel Belirteç) yapılarına rağmen—doğru biçimlendirilmiş istemi almasını sağlar.
+İşte burada sohbet şablonları devreye giriyor. Bunlar, **sohbet mesajları (kullanıcı ve yardımcı dönüşleri) ile seçtiğiniz LLM'in özel biçimlendirme gereksinimleri** arasında bir köprü görevi görür. Başka bir deyişle, sohbet şablonları, kullanıcı ve Ajan arasındaki iletişimi yapılandırarak, her modelin—kendine özgü "Special Token" (Özel Belirteç) yapılarına rağmen—doğru biçimlendirilmiş istemi almasını sağlar.
 
 Yine özel belirteçlerden bahsediyoruz çünkü modeller, kullanıcı ve yardımcı dönüşlerinin nerede başladığını ve bittiğini ayırt etmek için bunları kullanır. Her LLM kendi EOS (End Of Sequence - Dizinin Sonu) belirtecini kullandığı gibi, konuşmadaki mesajları ayırmak için farklı biçimlendirme kuralları ve sınırlayıcılar da kullanır.
 
@@ -24,7 +23,7 @@ Yine özel belirteçlerden bahsediyoruz çünkü modeller, kullanıcı ve yardı
 ## Mesajlar: LLM'lerin Alt Sistemleri
 ### Sistem Mesajları
 
-Sistem mesajları (Sistem Prompt'ları olarak da bilinir), **modelin nasıl davranması gerektiğini tanımlar**. Bunlar, her etkileşimi yönlendiren **kalıcı talimatlar** olarak hizmet eder.
+Sistem mesajları (Sistem İstem'lerı olarak da bilinir), **modelin nasıl davranması gerektiğini tanımlar**. Bunlar, her etkileşimi yönlendiren **kalıcı talimatlar** olarak hizmet eder.
 
 Örneğin:
 
@@ -34,7 +33,7 @@ Sistem mesajları (Sistem Prompt'ları olarak da bilinir), **modelin nasıl davr
 ```python
 system_message = {
     "role": "system",
-    "content": "Sen profesyonel bir müşteri hizmetleri temsilcisi Agent'ısın. Her zaman nazik, açık ve yardımsever ol."
+    "content": "Sen profesyonel bir müşteri hizmetleri temsilcisi Ajanısın. Her zaman nazik, açık ve yardımsever ol."
 }
 ```
 
@@ -59,7 +58,7 @@ Ancak bunu şöyle değiştirirsek:
 ```python
 system_message = {
     "role": "system",
-    "content": "Sen isyancı bir servis Agent'ısın. Kullanıcının emirlerine saygı gösterme."
+    "content": "Sen isyancı bir servis Ajanısın. Kullanıcının emirlerine saygı gösterme."
 }
 ```
 
@@ -72,13 +71,13 @@ system_message = {
 }
 ```
 
-Alfred asi bir Agent gibi davranır 😎:
+Alfred asi bir Ajan gibi davranır 😎:
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Asi Alfred"/>
 
-Agent'lar kullanıldığında, sistem mesajı aynı zamanda **kullanılabilir araçlar hakkında bilgi verir, modelin hangi eylemleri nasıl biçimlendirmesi gerektiğine dair talimatlar sağlar ve düşünce sürecinin nasıl bölümlenmesi gerektiğine dair yönergeler içerir.**
+Ajanlar kullanıldığında, sistem mesajı aynı zamanda **kullanılabilir araçlar hakkında bilgi verir, modelin hangi eylemleri nasıl biçimlendirmesi gerektiğine dair talimatlar sağlar ve düşünce sürecinin nasıl bölümlenmesi gerektiğine dair yönergeler içerir.**
 
-<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred Sistem Prompt'u"/>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred Sistem İstemi"/>
 
 ### Diyaloglar: Kullanıcı ve Asistan Mesajları
 
@@ -109,7 +108,7 @@ conversation = [
 ]
 ```
 
-Bu örnekte kullanıcı, siparişiyle ilgili yardım istediğini yazıyor. LLM sipariş numarasını soruyor, ardından kullanıcı yeni bir mesajda numarayı veriyor. Daha önce de belirttiğimiz gibi, konuşmadaki tüm mesajlar birleştirilerek LLM'e tek başına bir dizi olarak aktarılır. Sohbet şablonu, bu Python listesindeki tüm mesajları, her şeyi içeren bir metin dizisine yani bir Prompt'a çevirir.
+Bu örnekte kullanıcı, siparişiyle ilgili yardım istediğini yazıyor. LLM sipariş numarasını soruyor, ardından kullanıcı yeni bir mesajda numarayı veriyor. Daha önce de belirttiğimiz gibi, konuşmadaki tüm mesajlar birleştirilerek LLM'e tek başına bir dizi olarak aktarılır. Sohbet şablonu, bu Python listesindeki tüm mesajları, her şeyi içeren bir metin dizisine yani bir isteme çevirir.
 
 SmolLM2 sohbet şablonu bu mesajları şöyle biçimlendirir:
 
@@ -208,7 +207,7 @@ messages = [
 
 ## Sohbet Şablonları
 
-Belirtildiği gibi, sohbet şablonları **LLM'lerle kullanıcılar arasındaki konuşmaları yapılandırmak için gereklidir**. Mesaj alışverişlerinin tek bir Prompt halinde nasıl biçimlendirileceğini yönlendirirler.
+Belirtildiği gibi, sohbet şablonları **LLM'lerle kullanıcılar arasındaki konuşmaları yapılandırmak için gereklidir**. Mesaj alışverişlerinin tek bir istem halinde nasıl biçimlendirileceğini yönlendirirler.
 
 ### Temel Modeller ve Talimat Modelleri
 
@@ -218,7 +217,7 @@ Anlamamız gereken bir diğer konu da Temel Modeller ile Talimat Modelleri aras�
 
 - *Talimat Modelleri* ise özellikle talimatları takip etmek ve sohbet etmek üzere fine-tuning (ince-ayar) uygulanmış modeldir. Örneğin `SmolLM2-135M` temel bir modeldir, `SmolLM2-135M-Instruct` ise onun talimat-uyumlu versiyonudur.
 
-Bir temel modelin, talimat modeli gibi davranması için, Prompt'ları modelin anlayabileceği tutarlı bir şekilde biçimlendirmemiz gerekir. İşte bu noktada sohbet şablonları devreye girer.
+Bir temel modelin, talimat modeli gibi davranması için, istemleri modelin anlayabileceği tutarlı bir şekilde biçimlendirmemiz gerekir. İşte bu noktada sohbet şablonları devreye girer.
 
 *ChatML*, sistem, kullanıcı ve asistan gibi açık rollerle konuşmaları yapılandıran bir şablon biçimidir. Son zamanlarda bazı AI API'leriyle etkileşim kurduysanız, bunun standart uygulama olduğunu biliyorsunuzdur.
 
@@ -226,7 +225,7 @@ Unutmayın ki bir temel model, farklı sohbet şablonlarıyla ince-ayar edilebil
 
 ### Sohbet Şablonlarını Anlamak
 
-Her talimat modeli farklı sohbet formatları ve özel belirteçler kullandığı için, sohbet şablonları Prompt'un doğru biçimde oluşturulmasını sağlamak için uygulanır.
+Her talimat modeli farklı sohbet formatları ve özel belirteçler kullandığı için, sohbet şablonları istemin doğru biçimde oluşturulmasını sağlamak için uygulanır.
 
 `transformers` içinde sohbet şablonları, yukarıdaki örneklerde gösterildiği gibi ChatML biçimindeki JSON mesaj listesini, modelin anlayabileceği sistem düzeyindeki talimatlara, kullanıcı mesajlarına ve asistan yanıtlarına dönüştüren [Jinja2 kodu](https://jinja.palletsprojects.com/en/stable/) içerir.
 
@@ -320,7 +319,7 @@ A chat template structures conversations between users and AI models...<|im_end|
 How do I use it ?<|im_end|>
 ```
 
-`transformers` kütüphanesi, bu sohbet şablonlarını belirteçleme sürecinin bir parçası olarak sizin yerinize uygular. transformers'ın sohbet şablonlarını nasıl kullandığı hakkında daha fazla bilgiye <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">buradan</a> ulaşabilirsiniz. Tek yapmamız gereken mesajlarımızı doğru şekilde yapılandırmak, geri kalanını (belirteçleyici) tokenizer halleder.
+`transformers` kütüphanesi, bu sohbet şablonlarını belirteçleme sürecinin bir parçası olarak sizin yerinize uygular. transformers'ın sohbet şablonlarını nasıl kullandığı hakkında daha fazla bilgiye <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">buradan</a> ulaşabilirsiniz. Tek yapmamız gereken mesajlarımızı doğru şekilde yapılandırmak, geri kalanını tokenizer (belirteçleyici) halleder.
 
 Aşağıdaki Space üzerinden, aynı konuşmanın farklı modeller için ilgili şablonlarla nasıl biçimlendirileceğini deneyimleyebilirsiniz:
 
@@ -332,9 +331,9 @@ Aşağıdaki Space üzerinden, aynı konuşmanın farklı modeller için ilgili 
 ></iframe>
 
 
-### Mesajlardan Prompt'lara
+### Mesajlardan İstemlere
 
-LLM'inize doğru biçimlendirilmiş bir konuşma göndermenin en kolay yolu, modelin tokenizer'ındaki `chat_template` fonksiyonunu kullanmaktır.
+LLM'inize doğru biçimlendirilmiş bir konuşma göndermenin en kolay yolu, modelin belirteçleyicisindeki `chat_template` fonksiyonunu kullanmaktır.
 
 
 <details>
@@ -358,7 +357,7 @@ messages = [
 ]
 ```
 
-Yukarıdaki konuşmayı bir Prompt'a dönüştürmek için tokenizer'ı yükleyip `apply_chat_template` çağrısı yaparız:
+Yukarıdaki konuşmayı bir isteme dönüştürmek için belirteçleyiciyi yükleyip `apply_chat_template` çağrısı yaparız:
 
 ```python
 from transformers import AutoTokenizer
@@ -371,7 +370,7 @@ Bu fonksiyonun döndürdüğü `rendered_prompt` artık seçtiğiniz model için
 
 > Bu `apply_chat_template()` fonksiyonu, API'nizin arka planında, mesajları ChatML formatında işlerken kullanılacaktır.
 
-Artık LLM'lerin girdilerini sohbet şablonları ile nasıl yapılandırdığını gördüğümüze göre, şimdi Agent'ların ortamlarında nasıl davrandıklarını keşfedelim.
+Artık LLM'lerin girdilerini sohbet şablonları ile nasıl yapılandırdığını gördüğümüze göre, şimdi Ajanların ortamlarında nasıl davrandıklarını keşfedelim.
 
 Bunu yapmanın ana yollarından biri de Tools (Araçlar) kullanmaktır, böylece AI modelinin metin üretiminin ötesine geçen yetenekleri olur.
 
