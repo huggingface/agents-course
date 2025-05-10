@@ -28,6 +28,7 @@ For these terms, use the pre-defined translation:
 - onboarding: làm quen
 - Hands-on: Thực hành
 - Challenge: Bài tập lớn
+- Training: Huấn luyện
 
 Here is an example:
 - Original text: To run the models, we will use [ollama](https://ollama.com), a command line tool that allows you to run LLMs and embedding models from Hugging Face. With ollama, you **don't need** to have access to a server or cloud service to run the models. You can run the models directly **on your computer**.
