@@ -1,0 +1,220 @@
+# Qu'est-ce que les LLMs ?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Planification de l'Unité 1"/>
+
+Dans la section précédente, nous avons appris que chaque Agent a besoin **d'un modèle d'IA à son cœur**, et que les LLMs sont le type de modèle d'IA le plus courant pour cet usage.
+
+Maintenant, nous allons découvrir ce que sont les LLMs et comment ils alimentent les Agents.
+
+Cette section offre une explication technique concise sur l'utilisation des LLMs. Si vous souhaitez approfondir, vous pouvez consulter notre <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">cours gratuit de traitement du langage naturel</a>.
+
+## Qu'est-ce qu'un modèle de langage de grande taille ?
+
+Un LLM est un type de modèle d'IA qui excelle dans **la compréhension et la génération du langage humain**. Ils sont entraînés sur d'immenses quantités de données textuelles, ce qui leur permet d'apprendre des motifs, la structure, et même les nuances du langage. Ces modèles se composent généralement de plusieurs millions de paramètres.
+
+La plupart des LLMs d'aujourd'hui sont **basés sur l'architecture Transformer** — une architecture d'apprentissage profond basée sur l'algorithme "Attention", qui a suscité un intérêt considérable depuis la sortie de BERT de Google en 2018.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg" alt="Transformer"/>
+<figcaption>L'architecture originale du Transformer ressemblait à ceci, avec un encodeur à gauche et un décodeur à droite.
+</figcaption>
+</figure>
+
+Il existe 3 types de transformers :
+
+1. **Encodeurs**  
+   Un Transformer basé sur un encodeur prend en entrée un texte (ou d'autres données) et produit une représentation dense (ou embedding) de ce texte.
+
+   - **Exemple** : BERT de Google
+   - **Cas d'utilisation** : Classification de texte, recherche sémantique, reconnaissance d'entités nommées
+   - **Taille typique** : Des millions de paramètres
+
+2. **Décodeurs**  
+   Un Transformer basé sur un décodeur se concentre **sur la génération de nouveaux tokens pour compléter une séquence, un token à la fois**.
+
+   - **Exemple** : Llama de Meta 
+   - **Cas d'utilisation** : Génération de texte, chatbots, génération de code
+   - **Taille typique** : Des milliards (au sens américain, c'est-à-dire 10^9) de paramètres
+
+3. **Seq2Seq (Encodeur–Décodeur)**  
+   Un Transformer séquence-à-séquence _combine_ un encodeur et un décodeur. L'encodeur traite d'abord la séquence d'entrée pour en extraire une représentation contextuelle, puis le décodeur génère une séquence de sortie.
+
+   - **Exemple** : T5, BART
+   - **Cas d'utilisation** : Traduction, résumé, paraphrase
+   - **Taille typique** : Des millions de paramètres
+
+Bien que les modèles de langage de grande taille existent sous différentes formes, les LLMs sont typiquement des modèles basés sur le décodeur avec des milliards de paramètres. Voici quelques-uns des LLMs les plus connus :
+
+| **Modèle**      | **Fournisseur**                     |
+|-----------------|-------------------------------------|
+| **Deepseek-R1** | DeepSeek                            |
+| **GPT4**        | OpenAI                              |
+| **Llama 3**     | Meta (Facebook AI Research)         |
+| **SmolLM2**     | Hugging Face                        |
+| **Gemma**       | Google                              |
+| **Mistral**     | Mistral                             |
+
+Le principe fondamental d'un LLM est simple mais très efficace : **son objectif est de prédire le token suivant, étant donné une séquence de tokens précédents**. Un "token" est l'unité d'information avec laquelle travaille un LLM. Vous pouvez considérer un "token" comme s'il s'agissait d'un "mot", mais pour des raisons d'efficacité, les LLMs n'utilisent pas des mots entiers.
+
+Par exemple, alors que le français compte environ 100 000 mots (l'anglais 600 000), un LLM peut avoir un vocabulaire d'environ 32 000 tokens (comme c'est le cas avec Llama 2). La tokenisation fonctionne souvent sur des unités sous-mot pouvant être combinées.
+
+Par exemple, les tokens "intéress" et "ant" peuvent se combiner pour former "intéressant", ou "é" peut être ajouté pour former "intéressé".
+
+Vous pouvez expérimenter avec différents tokenizers dans le terrain de jeu interactif ci-dessous :
+
+<iframe
+	src="https://agents-course-the-tokenizer-playground.static.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Chaque LLM possède des **tokens spéciaux** propres au modèle. Le LLM utilise ces tokens pour ouvrir et fermer les composants structurés de sa génération. Par exemple, pour indiquer le début ou la fin d'une séquence, d'un message ou d'une réponse. De plus, les invites (ou prompt) que nous passons au modèle sont également structurées avec des tokens spéciaux. Le plus important d'entre eux est le **token de fin de séquence** (EOS).
+
+Les formes des tokens spéciaux varient grandement selon les fournisseurs de modèles.
+
+Le tableau ci-dessous illustre cette diversité :
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Modèle</strong></th>
+      <th><strong>Fournisseur</strong></th>
+      <th><strong>Token EOS</strong></th>
+      <th><strong>Fonctionnalité</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>GPT4</strong></td>
+      <td>OpenAI</td>
+      <td><code>&lt;|endoftext|&gt;</code></td>
+      <td>Fin du texte du message</td>
+    </tr>
+    <tr>
+      <td><strong>Llama 3</strong></td>
+      <td>Meta (Facebook AI Research)</td>
+      <td><code>&lt;|eot_id|&gt;</code></td>
+      <td>Fin de la séquence</td>
+    </tr>
+    <tr>
+      <td><strong>Deepseek-R1</strong></td>
+      <td>DeepSeek</td>
+      <td><code>&lt;|end_of_sentence|&gt;</code></td>
+      <td>Fin du texte du message</td>
+    </tr>
+    <tr>
+      <td><strong>SmolLM2</strong></td>
+      <td>Hugging Face</td>
+      <td><code>&lt;|im_end|&gt;</code></td>
+      <td>Fin de l'instruction ou du message</td>
+    </tr>
+    <tr>
+      <td><strong>Gemma</strong></td>
+      <td>Google</td>
+      <td><code>&lt;end_of_turn&gt;</code></td>
+      <td>Fin du tour de conversation</td>
+    </tr>
+  </tbody>
+</table>
+
+<Tip>
+
+Nous ne vous demandons pas de mémoriser ces tokens spéciaux, mais il est important d'apprécier leur diversité et le rôle qu'ils jouent dans la génération de texte par les LLMs. Si vous souhaitez en savoir plus sur les tokens spéciaux, vous pouvez consulter la configuration du modèle dans son dépôt Hub. Par exemple, vous pouvez trouver les tokens spéciaux du modèle SmolLM2 dans son <a href="https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json">tokenizer_config.json</a>.
+
+</Tip>
+
+## Comprendre la prédiction du token suivant
+
+On dit que les LLMs sont **autoregressifs**, ce qui signifie que **la sortie d'une passe devient l'entrée de la suivante**. Cette boucle continue jusqu'à ce que le modèle prédise que le token suivant est le token EOS, moment où le modèle peut s'arrêter.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="Gif visuel de décodage autoregressif" width="60%">
+
+En d'autres termes, un LLM décodera le texte jusqu'à atteindre le token EOS. Mais que se passe-t-il lors d'une boucle de décodage unique ?
+
+Bien que le processus complet puisse être assez technique dans le cadre de l'apprentissage des agents, voici un aperçu succinct :
+
+- Une fois le texte d'entrée **tokenisé**, le modèle calcule une représentation de la séquence qui capture des informations sur la signification et la position de chaque token.
+- Cette représentation est ensuite traitée par le modèle, qui produit des scores classant la probabilité que chaque token de son vocabulaire soit le suivant dans la séquence.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="Gif visuel du décodage" width="60%">
+
+En se basant sur ces scores, plusieurs stratégies existent pour sélectionner les tokens afin de compléter la phrase.
+
+- La stratégie de décodage la plus simple serait de toujours choisir le token ayant le score maximum.
+
+Vous pouvez interagir vous-même avec le processus de décodage grâce à SmolLM2 dans cet espace (n'oubliez pas, il décode jusqu'à atteindre un token **EOS** qui est **<|im_end|>** pour ce modèle) :
+
+<iframe
+	src="https://agents-course-decoding-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+- Mais il existe des stratégies de décodage plus avancées. Par exemple, le *beam search* (recherche par faisceaux) explore plusieurs séquences candidates pour trouver celle ayant le score total maximum – même si certains tokens individuels présentent des scores plus faibles.
+
+<iframe
+	src="https://agents-course-beam-search-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Si vous souhaitez en savoir plus sur le décodage, vous pouvez jeter un œil au [cours de NLP](https://huggingface.co/learn/nlp-course).
+
+## L'attention est tout ce dont vous avez besoin
+
+Un aspect clé de l'architecture Transformer est **l'Attention**. Lors de la prédiction du mot suivant, tous les mots d'une phrase ne sont pas également importants ; des mots comme "France" et "capitale" dans la phrase *"La capitale de la France est …"* portent le plus de sens.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AttentionSceneFinal.gif" alt="Gif visuel de l'Attention" width="60%">
+
+Ce processus d'identification des mots les plus pertinents pour prédire le token suivant s'est révélé incroyablement efficace.
+
+Bien que le principe de base des LLMs — prédire le token suivant — soit resté constant depuis GPT-2, des avancées significatives ont été réalisées dans la montée en échelle des réseaux de neurones et dans le fonctionnement du mécanisme d'attention pour des séquences toujours plus longues.
+
+Si vous avez déjà interagi avec des LLMs, vous connaissez probablement le terme *longueur de contexte*, qui fait référence au nombre maximum de tokens que le LLM peut traiter, ainsi qu'à la _durée d'attention_ maximale dont il dispose.
+
+## L'importance de bien formuler les invites pour le LLM
+
+Étant donné que la seule tâche d'un LLM est de prédire le token suivant en examinant chaque token d'entrée, et de choisir ceux qui sont "importants", la formulation de votre séquence d'entrée revêt une importance capitale.
+
+La séquence d'entrée que vous fournissez à un LLM est appelée _prompt_. Une conception minutieuse du prompt facilite **l'orientation de la génération du LLM vers la sortie souhaitée**.
+
+## Comment sont entraînés les LLMs ?
+
+Les LLMs sont entraînés sur de grands ensembles de données textuelles, où ils apprennent à prédire le mot suivant dans une séquence grâce à un objectif d'apprentissage auto-supervisé ou de modélisation de langage masquée.
+
+Grâce à cet apprentissage non supervisé, le modèle apprend la structure de la langue et les **motifs sous-jacents du texte, ce qui lui permet de généraliser à des données inédites**.
+
+Après ce _pré-entraînement_ initial, les LLMs peuvent être ajustés via un apprentissage supervisé pour réaliser des tâches spécifiques. Par exemple, certains modèles sont entraînés pour des structures conversationnelles ou l'utilisation d'outils, tandis que d'autres se concentrent sur la classification ou la génération de code.
+
+## Comment puis-je utiliser les LLMs ?
+
+Vous avez deux options principales :
+
+1. **Exécuter localement** (si vous disposez du matériel nécessaire).
+
+2. **Utiliser un service Cloud/API** (par exemple, via l'API d'inférence sans serveur de Hugging Face).
+
+Tout au long de ce cours, nous utiliserons principalement des modèles via des API sur le Hub de Hugging Face. Par la suite, nous explorerons comment exécuter ces modèles localement sur votre matériel.
+
+## Comment les LLMs sont-ils utilisés dans les Agents IA ?
+
+Les LLMs sont un composant clé des Agents IA, **fournissant la base pour comprendre et générer le langage humain**.
+
+Ils peuvent interpréter les instructions de l'utilisateur, maintenir le contexte dans les conversations, définir un plan et décider quels outils utiliser.
+
+Nous explorerons ces étapes en détail dans cette Unité, mais pour l'instant, ce qu'il faut retenir, c'est que le LLM est **le cerveau de l'Agent**.
+
+---
+
+Cela fait beaucoup d'informations ! Nous avons couvert les bases de ce que sont les LLMs, comment ils fonctionnent, et leur rôle dans l'alimentation des agents IA.
+
+Si vous souhaitez plonger encore plus profondément dans le monde fascinant des modèles de langage et du traitement du langage naturel, n'hésitez pas à consulter notre <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">cours gratuit de NLP</a>.
+
+Maintenant que nous comprenons le fonctionnement des LLMs, il est temps de voir **comment les LLMs structurent leurs générations dans un contexte conversationnel**.
+
+Pour exécuter ce notebook, **vous avez besoin d'un token Hugging Face** que vous pouvez obtenir sur <a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a>.
+
+Vous devez également demander l'accès aux <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank">modèles Meta Llama</a>.
