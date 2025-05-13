@@ -133,9 +133,9 @@ GoogleSearchTool 使用 [Serper API](https://serper.dev) 搜索网络，因此�
 ```python
 import os
 from PIL import Image
-from smolagents import CodeAgent, GoogleSearchTool, HfApiModel, VisitWebpageTool
+from smolagents import CodeAgent, GoogleSearchTool, InferenceClientModel, VisitWebpageTool
 
-model = HfApiModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together")
+model = InferenceClientModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together")
 ```
 
 我们可以先创建一个简单的智能体作为基线，为我们提供一个简单的报告。
@@ -234,7 +234,7 @@ detailed_report
 管理智能体应该具有绘图功能来编写其最终报告：因此让我们给它访问额外导入的权限，包括 `matplotlib` 和 `geopandas` + `shapely` 用于空间绘图。
 
 ```python
-model = HfApiModel(
+model = InferenceClientModel(
     "Qwen/Qwen2.5-Coder-32B-Instruct", provider="together", max_tokens=8096
 )
 
@@ -297,7 +297,7 @@ def check_reasoning_and_plot(final_answer, agent_memory):
 
 
 manager_agent = CodeAgent(
-    model=HfApiModel("deepseek-ai/DeepSeek-R1", provider="together", max_tokens=8096),
+    model=InferenceClientModel("deepseek-ai/DeepSeek-R1", provider="together", max_tokens=8096),
     tools=[calculate_cargo_travel_time],
     managed_agents=[web_agent],
     additional_authorized_imports=[

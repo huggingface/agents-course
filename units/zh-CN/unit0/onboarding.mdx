@@ -51,6 +51,49 @@
 
 点击 👉 [此处](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)下载宣传图
 
+### 步骤五：在本地使用Ollama运行模型（如果遇到信用额度问题）
+
+1. 安装Ollama
+
+    请按照<a href="https://ollama.com/download" target="_blank">官方说明</a>安装Ollama
+
+2. 本地拉取模型
+
+```bash
+ollama pull qwen2:7b #访问ollama网站获取更多模型信息
+```
+3. 在后台启动Ollama（在一个终端中）
+
+```bash
+ollama serve 
+```
+
+    如果遇到`listen tcp 127.0.0.1:11434: bind: address already in use`错误，你可以使用命令`sudo lsof -i :11434`来识别当前占用该端口的进程ID（PID）。若该进程是`ollama`，则可能是上述安装脚本已启动了ollama服务，因此可以跳过此命令直接使用Ollama。
+
+4. 使用`LiteLLMModel`替代`InferenceClientModel`
+
+   要在`smolagents`中使用`LiteLLMModel`模块，可运行`pip`命令安装该模块。
+
+```bash
+pip install smolagents[litellm]
+```
+
+```bash
+from smolagents import LiteLLMModel
+
+model = LiteLLMModel(
+    model_id="ollama_chat/qwen2:7b",  # 或尝试其他Ollama支持的模型
+    api_base="http://127.0.0.1:11434",  # 默认的Ollama本地服务器地址
+    num_ctx=8192,
+)
+```
+
+5. 为什么这种方式可行？
+
+- Ollama通过`http://localhost:11434`提供一个与OpenAI兼容的API，用于本地模型服务。
+- `LiteLLMModel`设计用于与任何支持OpenAI chat/completion API格式的模型进行通信。
+- 这意味着你可以无缝地将`InferenceClientModel`替换为`LiteLLMModel`，无需其他代码改动从而实现即插即用的解决方案。
+
 恭喜！🎉 **您已完成启航准备**！现在可以正式开启智能体技术的学习之旅，祝您探索愉快！
 
 保持学习热情，继续闪耀 🤗

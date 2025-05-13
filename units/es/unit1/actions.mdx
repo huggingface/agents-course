@@ -1,0 +1,120 @@
+# Acciones: Permitiendo al Agente Interactuar con Su Entorno
+
+<Tip>
+ En esta sección, exploramos los pasos concretos que un agente de IA toma para interactuar con su entorno. 
+
+ Cubriremos cómo se representan las acciones (usando JSON o código), la importancia del enfoque de detener y analizar, e introduciremos diferentes tipos de agentes.
+</Tip>
+
+Las acciones son los pasos concretos que un **agente de IA toma para interactuar con su entorno**. 
+
+Ya sea navegando por la web en busca de información o controlando un dispositivo físico, cada acción es una operación deliberada ejecutada por el agente. 
+
+Por ejemplo, un agente que asiste con servicio al cliente podría recuperar datos del cliente, ofrecer artículos de soporte o transferir problemas a un representante humano.
+
+## Tipos de Acciones de Agentes
+
+Hay múltiples tipos de Agentes que realizan acciones de manera diferente:
+
+| Tipo de Agente          | Descripción                                                                                      |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| Agente JSON                   | La Acción a tomar se especifica en formato JSON.                                                        |
+| Agente de Código              | El Agente escribe un bloque de código que es interpretado externamente.                                 |
+| Agente de llamada a funciones | Es una subcategoría del Agente JSON que ha sido ajustado para generar un nuevo mensaje para cada acción.|
+
+Las acciones en sí pueden servir para muchos propósitos:
+
+| Tipo de Acción           | Descripción                                                                              |
+|--------------------------|------------------------------------------------------------------------------------------|
+| Recopilación de Información| Realizar búsquedas web, consultar bases de datos o recuperar documentos.               |
+| Uso de Herramientas        | Hacer llamadas a API, realizar cálculos y ejecutar código.                             |
+| Interacción con el Entorno | Manipular interfaces digitales o controlar dispositivos físicos.                       |
+| Comunicación               | Interactuar con usuarios a través de chat o colaborar con otros agentes.               |
+
+Una parte crucial de un agente es la **capacidad de DETENER la generación de nuevos tokens cuando una acción está completa**, y eso es cierto para todos los formatos de Agente: JSON, código o llamada a funciones. Esto previene la salida no intencionada y asegura que la respuesta del agente sea clara y precisa.
+
+El LLM solo maneja texto y lo usa para describir la acción que quiere tomar y los parámetros a suministrar a la herramienta.
+
+## El Enfoque de Detener y Analizar
+
+Un método clave para implementar acciones es el **enfoque de detener y analizar**. Este método asegura que la salida del agente sea estructurada y predecible:
+
+1. **Generación en un Formato Estructurado**:
+
+El agente produce su acción prevista en un formato claro y predeterminado (JSON o código).
+
+2. **Deteniendo la Generación Adicional**:
+
+Una vez que la acción está completa, **el agente deja de generar tokens adicionales**. Esto previene salidas adicionales o erróneas.
+
+3. **Analizando la Salida**:
+
+Un analizador externo lee la acción formateada, determina qué Herramienta llamar y extrae los parámetros requeridos.
+
+Por ejemplo, un agente que necesita verificar el clima podría producir:
+
+
+```json
+Thought: Necesito verificar el clima actual para Nueva York.
+Action :
+{
+  "action": "get_weather",
+  "action_input": {"location": "Nueva York"}
+}
+```
+El framework puede entonces analizar fácilmente el nombre de la función a llamar y los argumentos a aplicar.
+
+Este formato claro y legible por máquina minimiza errores y permite que herramientas externas procesen con precisión el comando del agente.
+
+Nota: Los agentes de llamada a funciones operan de manera similar estructurando cada acción para que una función designada sea invocada con los argumentos correctos.
+Profundizaremos en esos tipos de Agentes en una Unidad futura.
+
+## Agentes de Código
+
+Un enfoque alternativo es usar *Agentes de Código*.
+La idea es: **en lugar de producir un simple objeto JSON**, un Agente de Código genera un **bloque de código ejecutable—típicamente en un lenguaje de alto nivel como Python**. 
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Agentes de Código" />
+
+Este enfoque ofrece varias ventajas:
+
+- **Expresividad:** El código puede representar naturalmente lógica compleja, incluyendo bucles, condicionales y funciones anidadas, proporcionando mayor flexibilidad que JSON.
+- **Modularidad y Reusabilidad:** El código generado puede incluir funciones y módulos que son reutilizables a través de diferentes acciones o tareas.
+- **Depuración Mejorada:** Con una sintaxis de programación bien definida, los errores de código son a menudo más fáciles de detectar y corregir.
+- **Integración Directa:** Los Agentes de Código pueden integrarse directamente con bibliotecas y APIs externas, permitiendo operaciones más complejas como procesamiento de datos o toma de decisiones en tiempo real.
+
+Por ejemplo, un Agente de Código encargado de obtener el clima podría generar el siguiente fragmento de Python:
+
+```python
+# Ejemplo de Agente de Código: Recuperar Información del Clima
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "No hay información del clima disponible")
+    else:
+        return "Error: No se pudo obtener datos del clima."
+
+# Ejecutar la función y preparar la respuesta final
+result = get_weather("Nueva York")
+final_answer = f"El clima actual en Nueva York es: {result}"
+print(final_answer)
+```
+
+En este ejemplo, el Agente de Código:
+
+- Recupera datos del clima **a través de una llamada a API**,
+- Procesa la respuesta,
+- Y usa la función print() para producir una respuesta final.
+
+Este método **también sigue el enfoque de detener y analizar** delimitando claramente el bloque de código y señalando cuando la ejecución está completa (aquí, imprimiendo el final_answer).
+
+---
+
+Aprendimos que las Acciones conectan el razonamiento interno de un agente y sus interacciones con el mundo real ejecutando tareas claras y estructuradas—ya sea a través de JSON, código o llamadas a funciones.
+
+Esta ejecución deliberada asegura que cada acción sea precisa y esté lista para el procesamiento externo a través del enfoque de detener y analizar. En la siguiente sección, exploraremos las Observaciones para ver cómo los agentes capturan e integran retroalimentación de su entorno.
+
+Después de esto, ¡**finalmente estaremos listos para construir nuestro primer Agente**!

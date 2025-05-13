@@ -1,4 +1,4 @@
-# Agent (tác nhân) là gì?
+# Agent là gì?
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Unit 1 planning"/>
 
@@ -37,7 +37,7 @@ Cuối cùng, Alfred mang ly cà phê vừa pha đến cho ta.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Bring coffee"/>
 
-Và đó chính là Agent: **một model AI có khả năng lập luận, lập kế hoạch và tương tác với môi trường**. 
+Và đó chính là Agent: **một mô hình AI có khả năng lập luận, lập kế hoạch và tương tác với môi trường**. 
 
 Chúng ta gọi nó là Agent vì nó có _tính chủ động_, tức khả năng tương tác với môi trường.
 
@@ -47,14 +47,14 @@ Chúng ta gọi nó là Agent vì nó có _tính chủ động_, tức khả nă
 
 Giờ bạn đã nắm tổng quan, đây là định nghĩa chính xác hơn:
 
-> Agent là hệ thống sử dụng model AI để tương tác với môi trường nhằm đạt mục tiêu do người dùng xác định. Nó kết hợp lập luận, lập kế hoạch và thực thi hành động (thường qua các Tools bên ngoài) để hoàn thành nhiệm vụ.
+> Agent là hệ thống sử dụng mô hình AI để tương tác với môi trường nhằm đạt mục tiêu do người dùng xác định. Nó kết hợp lập luận, lập kế hoạch và thực thi hành động (thường qua các Tools bên ngoài) để hoàn thành nhiệm vụ.
 
 Có thể hình dung Agent gồm hai phần chính:
 
-1. **Bộ não (AI Model)**
+1. **Bộ não (Mô hình AI)**
 
-Nơi diễn ra mọi suy nghĩ. AI model **xử lý lập luận và lập kế hoạch**.
-Nó quyết định **Actions nào cần thực hiện dựa trên tình huống**.
+Nơi diễn ra mọi tư duy hay suy nghĩ. Mô hình AI **xử lý lập luận và lập kế hoạch**.
+Nó quyết định **Hành động (Actions) nào cần thực hiện dựa trên tình huống**.
 
 2. **Cơ thể (Khả năng và Tools)**
 
@@ -62,19 +62,19 @@ Phần này đại diện cho **mọi thứ Agent có thể làm**.
 
 **Phạm vi hành động khả thi** phụ thuộc vào **những gì Agent được trang bị**. Ví dụ: vì con người không có cánh, chúng ta không thể thực hiện Action "bay", nhưng có thể thực hiện các Actions như "đi bộ", "chạy", "nhảy", "cầm nắm", v.v.
 
-## Loại AI Models nào được dùng cho Agents?
+## Loại mô hình AI nào được dùng cho Agents?
 
-AI model phổ biến nhất trong Agents là LLM (Mô hình ngôn ngữ lớn), nhận đầu vào là **Văn bản** và cũng xuất ra **Văn bản**.
+Mô hình AI phổ biến nhất trong Agents là Mô hình ngôn ngữ lớn (LLM), nhận đầu vào là **Văn bản** và cũng xuất ra **Văn bản**.
 
-Ví dụ nổi tiếng như **GPT4** từ **OpenAI**, **LLama** từ **Meta**, **Gemini** từ **Google**, v.v. Các model này được training trên lượng văn bản khổng lồ và có khả năng tổng quát hóa tốt. Chúng ta sẽ tìm hiểu thêm về LLMs ở [phần tiếp theo](what-are-llms).
+Ví dụ nổi tiếng như **GPT4** từ **OpenAI**, **LLama** từ **Meta**, **Gemini** từ **Google**, v.v. Các model này được huấn luyện trên lượng văn bản khổng lồ và có khả năng tổng quát hóa tốt. Chúng ta sẽ tìm hiểu thêm về các LLM ở [phần tiếp theo](what-are-llms).
 
 <Tip>
-Ta cũng có thể dùng các model nhận đầu vào khác làm core model cho Agent. Ví dụ: Vision Language Model (VLM) - giống LLM nhưng hiểu được cả hình ảnh. Hiện tại ta tập trung vào LLMs và sẽ thảo luận các lựa chọn khác sau.
+Ta cũng có thể dùng các mô hình nhận đầu vào khác làm mô hình cốt lõi cho Agent. Ví dụ: Mô hình ngôn ngữ thị giác (VLM) - giống LLM nhưng hiểu được cả hình ảnh. Hiện tại ta tập trung vào các LLM và sẽ thảo luận các lựa chọn khác sau.
 </Tip>
 
 ## AI thực hiện hành động thế nào trên môi trường?
 
-LLMs là những model tuyệt vời, nhưng **chúng chỉ có thể tạo văn bản**. 
+Các LLM là những mô hình tuyệt vời, nhưng **chúng chỉ có thể tạo văn bản**. 
 
 Tuy nhiên, nếu bạn yêu cầu ứng dụng chat như HuggingChat hay ChatGPT tạo ảnh, chúng làm được! Làm thế nào vậy?
 
@@ -130,11 +130,11 @@ Mục tiêu định sẵn của chúng có thể bao gồm cải thiện trải 
 
 Các Agents AI sử dụng LLMs có thể làm NPC trở nên năng động và khó đoán hơn.
 
-Thay vì tuân theo các behavior tree cứng nhắc, chúng có thể **phản ứng theo ngữ cảnh, thích ứng với tương tác của người chơi**, và tạo hội thoại tinh tế hơn. Tính linh hoạt này giúp tạo ra các nhân vật sống động, hấp dẫn hơn và phát triển cùng hành động của người chơi.
+Thay vì tuân theo các cây hành vi (behavior tree) cứng nhắc, chúng có thể **phản ứng theo ngữ cảnh, thích ứng với tương tác của người chơi**, và tạo hội thoại tinh tế hơn. Tính linh hoạt này giúp tạo ra các nhân vật sống động, hấp dẫn hơn và phát triển cùng hành động của người chơi.
 
 ---
 
-Tóm lại, Agent là hệ thống sử dụng AI Model (thường là LLM) làm động cơ lập luận chính, để:
+Tóm lại, Agent là hệ thống sử dụng mô hình AI (thường là LLM) làm động cơ lập luận chính, để:
 
 - **Hiểu ngôn ngữ tự nhiên:** Diễn giải và phản hồi chỉ dẫn của con người theo cách có ý nghĩa.
 

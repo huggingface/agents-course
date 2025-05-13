@@ -48,9 +48,9 @@ The key difference is in **how they structure their actions**: instead of execut
 Let's revisit the previous example where Alfred started party preparations, but this time we'll use a `ToolCallingAgent` to highlight the difference. We'll build an agent that can search the web using DuckDuckGo, just like in our Code Agent example. The only difference is the agent type - the framework handles everything else:
 
 ```python
-from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, HfApiModel
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, InferenceClientModel
 
-agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
 
 agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
 ```

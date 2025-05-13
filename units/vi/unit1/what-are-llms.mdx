@@ -2,17 +2,17 @@
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Unit 1 planning"/>
 
-Ở phần trước, ta đã biết mỗi Agent cần **một AI Model làm lõi**, và LLM là loại model AI phổ biến nhất cho mục đích này.
+Ở phần trước, ta đã biết mỗi Agent cần **một mô hình AI làm lõi**, và LLM là loại mô hình AI phổ biến nhất cho mục đích này.
 
 Giờ ta sẽ tìm hiểu LLM là gì và cách chúng vận hành Agent.
 
 Phần này giải thích kỹ thuật ngắn gọn về LLM. Nếu muốn tìm hiểu sâu hơn, bạn có thể xem [khóa học Xử lý Ngôn ngữ Tự nhiên miễn phí](https://huggingface.co/learn/nlp-course/chapter1/1) của chúng mình.
 
-## Large Language Model là gì?
+## Mô hình ngôn ngữ lớn là gì?
 
-LLM (Large Language Model) là một loại model AI **giỏi hiểu và tạo ra ngôn ngữ con người**. Chúng được training trên lượng lớn data văn bản, cho phép học các mẫu, cấu trúc và sắc thái ngôn ngữ. Các model này thường có hàng triệu parameters.
+Mô hình ngôn ngữ lớn (LLM) là một loại mô hình AI **giỏi hiểu và tạo ra ngôn ngữ con người**. Chúng được huấn luyện trên lượng lớn dữ liệu văn bản, cho phép học các mẫu, cấu trúc và sắc thái ngôn ngữ. Các mô hình này thường có hàng triệu tham số (parameters).
 
-Hầu hết LLM hiện nay **dựa trên kiến trúc Transformer** - kiến trúc deep learning sử dụng thuật toán "Attention", thu hút sự quan tâm lớn từ khi BERT của Google ra mắt năm 2018.
+Hầu hết LLM hiện nay **dựa trên kiến trúc Transformer** - kiến trúc học sâu sử dụng thuật toán "Attention", thu hút sự quan tâm lớn từ khi BERT của Google ra mắt năm 2018.
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg" alt="Transformer"/>
@@ -23,27 +23,27 @@ Hầu hết LLM hiện nay **dựa trên kiến trúc Transformer** - kiến tr�
 Có 3 loại transformers:
 
 1. **Encoders**  
-   Transformer dạng encoder nhận input text (hoặc data khác) và output biểu diễn đặc (embedding) của text đó.
+   Transformer dạng encoder nhận dữ liệu đầu vào dạng text (hoặc dữ liệu khác) và đầu ra trả về biểu diễn đặc (embedding) của text đó.
 
    - **Ví dụ**: BERT từ Google
    - **Ứng dụng**: Phân loại văn bản, tìm kiếm ngữ nghĩa, Nhận dạng thực thể
-   - **Kích thước điển hình**: Hàng triệu parameters
+   - **Kích thước điển hình**: Hàng triệu tham số
 
 2. **Decoders**  
    Transformer dạng decoder tập trung **tạo token mới để hoàn thành chuỗi, từng token một**.
 
    - **Ví dụ**: Llama từ Meta
    - **Ứng dụng**: Tạo văn bản, chatbot, sinh code
-   - **Kích thước điển hình**: Hàng tỷ parameters (theo nghĩa Mỹ, tức 10^9)
+   - **Kích thước điển hình**: Hàng tỷ tham số (theo nghĩa Mỹ, tức 10^9)
 
 3. **Seq2Seq (Encoder–Decoder)**  
-   Transformer sequence-to-sequence _kết hợp_ encoder và decoder. Encoder xử lý input thành biểu diễn ngữ cảnh, decoder tạo output sequence.
+   Transformer sequence-to-sequence _kết hợp_ encoder và decoder. Encoder xử lý đầu vào thành biểu diễn ngữ cảnh, decoder tạo ra đầu ra dạng chuỗi (sequence).
 
    - **Ví dụ**: T5, BART
    - **Ứng dụng**: Dịch máy, Tóm tắt, Diễn giải
-   - **Kích thước điển hình**: Hàng triệu parameters
+   - **Kích thước điển hình**: Hàng triệu tham số
 
-Dù LLM có nhiều dạng, chúng thường là decoder-based model với hàng tỷ parameters. Dưới đây là một số LLM nổi tiếng:
+Dù LLM có nhiều dạng, chúng thường là mô hình dựa trên decoder với hàng tỷ tham số. Dưới đây là một số LLM nổi tiếng:
 
 | **Model**                          | **Provider**                              |
 |-----------------------------------|-------------------------------------------|
@@ -69,17 +69,17 @@ Bạn có thể thử nghiệm tokenizer trong playground tương tác dưới �
 	height="450"
 ></iframe>
 
-Mỗi LLM có **Special Token (Token đặc biệt)** riêng. Chúng được dùng để đánh dấu các thành phần trong quá trình tạo văn bản, ví dụ: bắt đầu/kết thúc chuỗi, tin nhắn, phản hồi. Quan trọng nhất là **End of sequence token** (EOS).
+Mỗi LLM có **token đặc biệt (special token)** riêng. Chúng được dùng để đánh dấu các thành phần trong quá trình tạo văn bản, ví dụ: bắt đầu/kết thúc chuỗi, tin nhắn, phản hồi. Quan trọng nhất là **token thông báo kết thúc chuỗi** (EOS).
 
-Các Special Token rất đa dạng giữa các model. Bảng dưới minh họa sự khác biệt:
+Các token đặc biệt này rất đa dạng giữa các mô hình. Bảng dưới minh họa sự khác biệt:
 
 <table>
   <thead>
     <tr>
-      <th><strong>Model</strong></th>
-      <th><strong>Provider</strong></th>
-      <th><strong>EOS Token</strong></th>
-      <th><strong>Functionality</strong></th>
+      <th><strong>Mô hình</strong></th>
+      <th><strong>Nhà cung cấp</strong></th>
+      <th><strong>Token EOS</strong></th>
+      <th><strong>Chức năng</strong></th>
     </tr>
   </thead>
   <tbody>
@@ -118,13 +118,13 @@ Các Special Token rất đa dạng giữa các model. Bảng dưới minh họa
 
 <Tip>
 
-Bạn không cần nhớ hết các Special Token này, nhưng cần hiểu sự đa dạng và vai trò của chúng trong tạo văn bản. Muốn biết thêm, hãy xem cấu hình model trên Hugging Face Hub. Ví dụ: Special Token của SmolLM2 có trong [tokenizer_config.json](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json).
+Bạn không cần nhớ hết các token đặc biệt này, nhưng cần hiểu sự đa dạng và vai trò của chúng trong tạo văn bản. Muốn biết thêm, hãy xem cấu hình model trên Hugging Face Hub. Ví dụ: token đặc biệt của SmolLM2 có trong [tokenizer_config.json](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json).
 
 </Tip>
 
 ## Hiểu về dự đoán token tiếp theo
 
-LLM được gọi là **autoregressive (tự hồi quy)**, nghĩa là **đầu ra từ bước trước thành đầu vào cho bước sau**. Vòng lặp tiếp tục đến khi model dự đoán EOS token.
+LLM được gọi là **autoregressive (tự hồi quy)**, nghĩa là **đầu ra từ bước trước thành đầu vào cho bước sau**. Vòng lặp tiếp tục đến khi model dự đoán token EOS.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="Visual Gif of autoregressive decoding" width="60%">
 
@@ -132,8 +132,8 @@ Nói cách khác, LLM sẽ decode text đến khi gặp EOS. Nhưng điều gì 
 
 Dù quá trình đầy đủ khá kỹ thuật, đây là tổng quan ngắn:
 
-- Sau khi **tokenize** input text, model tính toán biểu diễn chuỗi, nắm bắt ý nghĩa và vị trí từng token.
-- Biểu diễn này đi vào model, output điểm số xếp hạng khả năng mỗi token trong vocab là token tiếp theo.
+- Sau khi **tokenize** input text, mô hình tính toán biểu diễn chuỗi, nắm bắt ý nghĩa và vị trí từng token.
+- Biểu diễn này đi vào mô hình, đầu ra trả về điểm số xếp hạng khả năng mỗi token trong bộ từ vựng (vocab) là token tiếp theo.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="Visual Gif of decoding" width="60%">
 
@@ -141,7 +141,7 @@ Từ các điểm số này, ta có nhiều chiến lược chọn token:
 
 - Chiến lược đơn giản nhất: chọn token có điểm cao nhất.
 
-Bạn có thể tương tác với quá trình decoding của SmolLM2 trong Space này (EOS token của model này là **<|im_end|>**):
+Bạn có thể tương tác với quá trình decode của SmolLM2 trong Space này (token EOS của mô hình này là **<|im_end|>**):
 
 <iframe
 	src="https://agents-course-decoding-visualizer.hf.space"
@@ -150,7 +150,7 @@ Bạn có thể tương tác với quá trình decoding của SmolLM2 trong Spac
 	height="450"
 ></iframe>
 
-- Có những chiến lược nâng cao hơn như *beam search*: khám phá nhiều chuỗi ứng viên để tìm chuỗi có tổng điểm cao nhất.
+- Có những chiến lược nâng cao hơn như *tìm kiếm chùm (beam search)*: khám phá nhiều chuỗi ứng viên để tìm chuỗi có tổng điểm cao nhất.
 
 <iframe
 	src="https://agents-course-beam-search-visualizer.hf.space"
@@ -159,7 +159,7 @@ Bạn có thể tương tác với quá trình decoding của SmolLM2 trong Spac
 	height="450"
 ></iframe>
 
-Muốn tìm hiểu thêm về decoding, hãy xem [khóa NLP](https://huggingface.co/learn/nlp-course).
+Muốn tìm hiểu thêm về decode, hãy xem [khóa NLP](https://huggingface.co/learn/nlp-course).
 
 ## Attention là tất cả
 
@@ -170,21 +170,21 @@ Quá trình xác định từ quan trọng nhất để dự đoán token tiếp
 
 Dù nguyên lý cơ bản của LLM - dự đoán token tiếp theo - không đổi từ thời GPT-2, đã có nhiều cải tiến trong việc mở rộng mạng neural và cơ chế attention cho các chuỗi dài hơn.
 
-Nếu từng dùng LLM, hẳn bạn quen thuộc với khái niệm *context length* - số token tối đa model xử lý được, tương đương _độ dài attention_ tối đa.
+Nếu từng dùng LLM, hẳn bạn quen thuộc với khái niệm *độ dài ngữ cảnh (context length)* - số token tối đa mô hình xử lý được, tương đương _độ dài attention_ tối đa.
 
 ## Prompting rất quan trọng
 
-Vì nhiệm vụ duy nhất của LLM là dự đoán token tiếp theo dựa trên các token input và chọn token "quan trọng", cách bạn diễn đạt input sequence rất quan trọng.
+Vì nhiệm vụ duy nhất của LLM là dự đoán token tiếp theo dựa trên các token input và chọn token "quan trọng", cách bạn diễn đạt chuỗi đầu vào (input sequence) rất quan trọng.
 
-Input sequence bạn đưa vào LLM gọi là _prompt_. Thiết kế prompt cẩn thận giúp **định hướng output của LLM theo mong muốn**.
+Chuỗi đầu vào bạn đưa vào LLM gọi là _prompt_. Thiết kế prompt cẩn thận giúp **định hướng đầu ra của LLM theo mong muốn**.
 
-## LLM được training thế nào?
+## LLM được huấn luyện thế nào?
 
-LLM được training trên dataset văn bản lớn, học cách dự đoán từ tiếp theo qua phương pháp self-supervised hoặc masked language modeling.
+LLM được huấn luyện trên bộ dữ liệu văn bản lớn, học cách dự đoán từ tiếp theo qua phương pháp mô hình tự giám sát (self-supervised) hoặc masked language modeling.
 
-Từ unsupervised learning này, model học cấu trúc ngôn ngữ và **các mẫu ẩn trong văn bản**, cho phép tổng quát hóa với data mới.
+Từ học phi giám sát (unsupervised), mô hình học cấu trúc ngôn ngữ và **các mẫu ẩn trong văn bản**, cho phép tổng quát hóa với dữ liệu mới.
 
-Sau giai đoạn _pre-training_, LLM có thể được fine-tuning trên supervised learning để thực hiện tác vụ cụ thể như hội thoại, sử dụng công cụ, phân loại, sinh code.
+Sau giai đoạn _pre-training_, LLM có thể được tinh chỉnh trên supervised learning để thực hiện tác vụ cụ thể như hội thoại, sử dụng công cụ, phân loại, sinh code.
 
 ## Làm sao dùng LLM?
 
@@ -196,9 +196,9 @@ Có 2 lựa chọn chính:
 
 Trong khóa học này, chúng ta chủ yếu dùng model qua API trên Hugging Face Hub. Sau đó ta sẽ khám phá cách chạy model local trên máy bạn.
 
-## LLM được dùng thế nào trong AI Agent?
+## LLM được dùng thế nào trong AI agent?
 
-LLM là thành phần then chốt của AI Agent, **cung cấp nền tảng hiểu và tạo ngôn ngữ con người**.
+LLM là thành phần then chốt của AI agent, **cung cấp nền tảng hiểu và tạo ngôn ngữ con người**.
 
 Chúng có thể diễn giải chỉ dẫn, duy trì ngữ cảnh hội thoại, lập kế hoạch và quyết định dùng công cụ nào.
 
@@ -206,9 +206,9 @@ Ta sẽ tìm hiểu chi tiết các bước này trong chương, nhưng hiện t
 
 ---
 
-Thật nhiều thông tin! Ta đã điểm qua kiến thức cơ bản về LLM, cách hoạt động và vai trò trong AI Agent.
+Thật nhiều thông tin! Ta đã điểm qua kiến thức cơ bản về LLM, cách hoạt động và vai trò trong AI agent.
 
-Nếu muốn khám phá sâu hơn về language model và xử lý ngôn ngữ tự nhiên, đừng ngần ngại xem [khóa học NLP miễn phí](https://huggingface.co/learn/nlp-course/chapter1/1) của chúng tôi.
+Nếu muốn khám phá sâu hơn về mô hình ngôn ngữ và xử lý ngôn ngữ tự nhiên, đừng ngần ngại xem [khóa học NLP miễn phí](https://huggingface.co/learn/nlp-course/chapter1/1) của chúng tôi.
 
 Giờ đã hiểu cách LLM hoạt động, hãy xem **cách LLM cấu trúc output trong ngữ cảnh hội thoại**.
 

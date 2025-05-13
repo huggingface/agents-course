@@ -108,6 +108,20 @@
     title: 快速测验1
   - local: unit2/langgraph/conclusion
     title: 结论
+- title: 第 3 单元. Agentic RAG 的用例
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Agentic RAG 用例简介
+  - local: unit3/agentic-rag/agentic-rag
+    title: Agentic 检索增强生成（RAG）
+  - local: unit3/agentic-rag/invitees
+    title: 为宾客故事创建 RAG 工具
+  - local: unit3/agentic-rag/tools
+    title: 为你的智能体构建和集成工具
+  - local: unit3/agentic-rag/agent
+    title: 创建你的 Gala 智能体
+  - local: unit3/agentic-rag/conclusion
+    title: 结论
 - title: 附加单元 1. 为函数调用微调大型语言模型
   sections:
   - local: bonus-unit1/introduction
@@ -118,6 +132,16 @@
     title: 让我们为函数调用微调模型
   - local: bonus-unit1/conclusion
     title: 结论
+- title: 附加单元 2. 智能体可观察性和评估
+  sections:
+    - local: bonus_unit2/introduction
+      title: 简介
+    - local: bonus_unit2/what-is-agent-observability-and-evaluation
+      title: 什么是智能体可观察性和评估？
+    - local: bonus_unit2/monitoring-and-evaluating-agents-notebook
+      title: 监控和评估智能体
+    - local: bonus_unit2/quiz
+      title: 测验
 - title: 后续内容何时发布？
   sections:
   - local: communication/next-units

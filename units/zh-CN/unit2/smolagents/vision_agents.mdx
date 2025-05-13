@@ -42,7 +42,10 @@ image_urls = [
 
 images = []
 for url in image_urls:
-    response = requests.get(url)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" 
+    }
+    response = requests.get(url,headers=headers)
     image = Image.open(BytesIO(response.content)).convert("RGB")
     images.append(image)
 ```
@@ -202,9 +205,7 @@ Please search for images of Wonder Woman and generate a detailed visual descript
 
 让我们看看这在下面的视频中是如何工作的：
 
-<video controls>
-  <source src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/VisionBrowserAgent.mp4" type="video/mp4">
-</video>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 这是最终输出：
 

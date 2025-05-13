@@ -31,13 +31,13 @@ Let's build a simple agent that can search the web using DuckDuckGo. This agent 
 Here's how Alfred's agent can achieve this:
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
 
 # Initialize the search tool
 search_tool = DuckDuckGoSearchTool()
 
 # Initialize the model
-model = HfApiModel()
+model = InferenceClientModel()
 
 agent = CodeAgent(
     model=model,
@@ -73,7 +73,7 @@ from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from smolagents import Tool
 from langchain_community.retrievers import BM25Retriever
-from smolagents import CodeAgent, HfApiModel
+from smolagents import CodeAgent, InferenceClientModel
 
 class PartyPlanningRetrieverTool(Tool):
     name = "party_planning_retriever"
@@ -133,7 +133,7 @@ docs_processed = text_splitter.split_documents(source_docs)
 party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
 
 # Initialize the agent
-agent = CodeAgent(tools=[party_planning_retriever], model=HfApiModel())
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
 
 # Example usage
 response = agent.run(

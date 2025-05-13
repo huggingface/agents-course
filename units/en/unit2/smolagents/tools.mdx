@@ -57,7 +57,7 @@ Let's imagine that Alfred has already decided on the menu for the party, but now
 Below is an example of how Alfred can use the `@tool` decorator to make this happen:
 
 ```python
-from smolagents import CodeAgent, HfApiModel, tool
+from smolagents import CodeAgent, InferenceClientModel, tool
 
 # Let's pretend we have a function that fetches the highest-rated catering services.
 @tool
@@ -81,7 +81,7 @@ def catering_service_tool(query: str) -> str:
     return best_service
 
 
-agent = CodeAgent(tools=[catering_service_tool], model=HfApiModel())
+agent = CodeAgent(tools=[catering_service_tool], model=InferenceClientModel())
 
 # Run the agent to find the best catering service
 result = agent.run(
@@ -110,7 +110,7 @@ Alfred's party at the mansion is a **superhero-themed event**, but he needs some
 To do this, he can use an agent that generates superhero-themed party ideas based on a given category. This way, Alfred can find the perfect party theme to wow his guests.
 
 ```python
-from smolagents import Tool, CodeAgent, HfApiModel
+from smolagents import Tool, CodeAgent, InferenceClientModel
 
 class SuperheroPartyThemeTool(Tool):
     name = "superhero_party_theme_generator"
@@ -138,7 +138,7 @@ class SuperheroPartyThemeTool(Tool):
 
 # Instantiate the tool
 party_theme_tool = SuperheroPartyThemeTool()
-agent = CodeAgent(tools=[party_theme_tool], model=HfApiModel())
+agent = CodeAgent(tools=[party_theme_tool], model=InferenceClientModel())
 
 # Run the agent to generate a party theme idea
 result = agent.run(
@@ -196,7 +196,7 @@ party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HU
 You can easily import tools created by other users using the `load_tool()` function. For example, Alfred might want to generate a promotional image for the party using AI. Instead of building a tool from scratch, he can leverage a predefined one from the community:
 
 ```python
-from smolagents import load_tool, CodeAgent, HfApiModel
+from smolagents import load_tool, CodeAgent, InferenceClientModel
 
 image_generation_tool = load_tool(
     "m-ric/text-to-image",
@@ -205,7 +205,7 @@ image_generation_tool = load_tool(
 
 agent = CodeAgent(
     tools=[image_generation_tool],
-    model=HfApiModel()
+    model=InferenceClientModel()
 )
 
 agent.run("Generate an image of a luxurious superhero-themed party at Wayne Manor with made-up superheros.")
@@ -220,7 +220,7 @@ The tool will connect with the spaces Gradio backend using the `gradio_client`, 
 For the party, Alfred can use an existing HF Space for the generation of the AI-generated image to be used in the announcement (instead of the pre-built tool we mentioned before). Let's build it!
 
 ```python
-from smolagents import CodeAgent, HfApiModel, Tool
+from smolagents import CodeAgent, InferenceClientModel, Tool
 
 image_generation_tool = Tool.from_space(
     "black-forest-labs/FLUX.1-schnell",
@@ -228,7 +228,7 @@ image_generation_tool = Tool.from_space(
     description="Generate an image from a prompt"
 )
 
-model = HfApiModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
 
 agent = CodeAgent(tools=[image_generation_tool], model=model)
 
@@ -251,7 +251,7 @@ Here's how he does it:
 
 ```python
 from langchain.agents import load_tools
-from smolagents import CodeAgent, HfApiModel, Tool
+from smolagents import CodeAgent, InferenceClientModel, Tool
 
 search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 
@@ -280,10 +280,10 @@ The MCP servers tools can be loaded in a ToolCollection object as follow:
 import os
 from smolagents import ToolCollection, CodeAgent
 from mcp import StdioServerParameters
-from smolagents import HfApiModel
+from smolagents import InferenceClientModel
 
 
-model = HfApiModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
 
 
 server_parameters = StdioServerParameters(

@@ -1,0 +1,117 @@
+# Pequeño Quiz (no calificado) [[quiz1]]
+
+Hasta ahora hemos discutido los componentes clave y herramientas utilizadas en LlamaIndex.
+Es hora de hacer un pequeño quiz, ya que **probarse a sí mismo** es la mejor manera de aprender y [evitar la ilusi n de competencia](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf).
+Esto te ayudar  a encontrar **dónde debes reforzar tus conocimientos**.
+
+Este es un quiz opcional y no está calificado.
+
+### Q1:   ¿Qué  es un QueryEngine?
+   ¿Cuál de las siguientes opciones describe mejor un componente QueryEngine?
+
+<Question
+choices={[
+{
+text: "Un sistema que solo procesa texto estático sin capacidad de recuperación.",
+explain: "Un QueryEngine debe ser capaz de recuperar y procesar información relevante.",
+},
+{
+text: "Un componente que encuentra y recupera información relevante como parte del proceso RAG.",
+explain: "Esta es la función principal de un componente QueryEngine.",
+correct: true
+},
+{
+text: "Un herramienta que solo almacena embeddings vectoriales sin funcionalidad de búsqueda.",
+explain: "Un QueryEngine hace más que solo almacenar embeddings - busca y recupera información activamente.",
+},
+{
+text: "Un componente que solo evalúa la calidad de la respuesta.",
+explain: "La evaluación es separada del propósito principal de recuperación del QueryEngine.",
+}
+]}
+/>
+
+---
+
+### Q2:   ¿Cuál  es el propósito de FunctionTools?
+   ¿Por qué  son importantes FunctionTools para un Agente?
+
+<Question
+choices={[
+{
+text: "Para manejar grandes cantidades de almacenamiento de datos.",
+explain: "FunctionTools no son principalmente para almacenamiento de datos.",
+},
+{
+text: "Para convertir funciones de Python en herramientas que un agente puede usar.",
+explain: "FunctionTools envuelven funciones de Python para hacerlas accesibles a los agentes.",
+correct: true
+},
+{
+text: "Para permitir que los agentes creen definiciones de funciones aleatorias.",
+explain: "FunctionTools sirven para un propósito específico: hacer que las funciones sean accesibles a los agentes.",
+},
+{
+text: "Para procesar solo datos de texto.",
+explain: "FunctionTools pueden trabajar con varios tipos de funciones, no solo procesamiento de texto.",
+}
+]}
+/>
+
+---
+
+### Q3:   ¿Qué  son los Toolspecs en LlamaIndex?
+   ¿Cuál es el propósito principal de los Toolspecs?
+
+<Question
+choices={[
+{
+text: "Son componentes redundantes que no añaden funcionalidad.",
+explain: "Los Toolspecs sirven para un propósito importante en el ecosistema de LlamaIndex.",
+},
+{
+text: "Son conjuntos de herramientas creadas por la comunidad que amplían las capacidades de los agentes.",
+explain: "Los Toolspecs permiten a la comunidad compartir y reutilizar herramientas.",
+correct: true
+},
+{
+text: "Solo se utilizan para manejo de memoria.",
+explain: "Los Toolspecs son sobre proporcionar herramientas, no manejo de memoria.",
+},
+{
+text: "Solo trabajan con procesamiento de texto.",
+explain: "Los Toolspecs pueden incluir varios tipos de herramientas, no solo procesamiento de texto.",
+}
+]}
+/>
+
+---
+
+### Q4:   ¿Qué se requiere para crear una herramienta?
+   ¿Qué información debe incluirse al crear una herramienta?
+
+<Question
+choices={[
+{
+text: "Una función, un nombre y una descripción deben ser definidos.",
+explain: "Aunque todos estos elementos forman parte de una herramienta, el nombre y la descripción pueden ser parseados desde la función y la docstring.",
+},
+{
+text: "Solo se requiere el nombre.",
+explain: "Una función y descripción/docstring también son requeridas para la documentación adecuada de la herramienta.",
+},
+{
+text: "Solo se requiere la descripción.",
+explain: "Una función es requerida para que tengamos código que ejecutar cuando un agente selecciona una herramienta.",
+},
+{
+text: "Solo se requiere la función.",
+explain: "El nombre y la descripción se pueden establecer en el nombre y la docstring de la función proporcionada",
+correct: true
+}
+]}
+/>
+
+---
+
+!Felicitaciones por completar este Quiz 🥳!, si no entendiste algün elemento, tóoma el tiempo de releer el capítulo para reforzar tus conocimientos. Si lo pasaste, estás listo para profundizar en el uso de estos componentes!

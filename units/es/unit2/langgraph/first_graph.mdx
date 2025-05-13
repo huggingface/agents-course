@@ -1,0 +1,361 @@
+# Construyendo Tu Primer LangGraph
+
+Ahora que entendemos los componentes básicos, vamos a ponerlos en práctica construyendo nuestro primer grafo funcional. Implementaremos el sistema de procesamiento de correos electrónicos de Alfred, donde necesita:
+
+1. Leer correos electrónicos entrantes
+2. Clasificarlos como spam o legítimos
+3. Redactar una respuesta preliminar para correos legítimos
+4. Enviar información al Sr. Wayne cuando son legítimos (solo impresión)
+
+Este ejemplo demuestra cómo estructurar un flujo de trabajo con LangGraph que involucra toma de decisiones basada en LLM. Aunque esto no puede considerarse un Agente ya que no se involucra ninguna herramienta, esta sección se enfoca más en aprender el marco de trabajo de LangGraph que en Agentes.
+
+<Tip>
+Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/resolve/main/unit2/langgraph/mail_sorting.ipynb" target="_blank">este notebook</a> que puedes ejecutar usando Google Colab.
+</Tip>
+## Nuestro Flujo de Trabajo
+
+Aquí está el flujo de trabajo que construiremos:
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/first_graph.png" alt="First LangGraph"/>
+
+## Configurando Nuestro Entorno
+
+Primero, instalemos los paquetes necesarios:
+
+```python
+%pip install langgraph langchain_openai
+```
+
+A continuación, importemos los módulos necesarios:
+
+```python
+import os
+from typing import TypedDict, List, Dict, Any, Optional
+from langgraph.graph import StateGraph, END
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage
+```
+
+## Paso 1: Definir Nuestro Estado
+
+Definamos qué información necesita rastrear Alfred durante el flujo de trabajo de procesamiento de correos electrónicos:
+
+```python
+class EmailState(TypedDict):
+    # El correo electrónico que se está procesando
+    email: Dict[str, Any]  # Contiene asunto, remitente, cuerpo, etc.
+    
+    # Análisis y decisiones
+    is_spam: Optional[bool]
+    
+    # Generación de respuesta
+    draft_response: Optional[str]
+    
+    # Metadatos de procesamiento
+    messages: List[Dict[str, Any]]  # Rastrea la conversación con LLM para análisis
+```
+
+> 💡 **Tip:** Haz que tu estado sea lo suficientemente completo para rastrear toda la información importante, pero evita sobrecargarlo con detalles innecesarios.
+
+## Paso 2: Definir Nuestros Nodos
+
+Ahora, creemos las funciones de procesamiento que formarán nuestros nodos:
+
+```python
+# Inicializar nuestro LLM
+model = ChatOpenAI(temperature=0)
+
+def read_email(state: EmailState):
+    """Alfred lee y registra el correo electrónico entrante"""
+    email = state["email"]
+    
+    # Aquí podríamos hacer algún preprocesamiento inicial
+    print(f"Alfred está procesando un correo electrónico de {email['sender']} con asunto: {email['subject']}")
+    
+    # No se necesitan cambios de estado aquí
+    return {}
+
+def classify_email(state: EmailState):
+    """Alfred usa un LLM para determinar si el correo es spam o legítimo"""
+    email = state["email"]
+    
+     # Preparar nuestro prompt para el LLM
+    prompt = f"""
+    Como Alfred el mayordomo, analiza este correo electrónico y determina si es spam o legítimo.
+    
+    Email:
+    De:  {email['sender']}
+    Asunto: {email['subject']}
+    Body: {email['body']}
+    
+    Primero, determina si este correo es spam. Si es spam, explica por qué.
+    Si es legítimo, categorízalo (consulta, queja, agradecimiento, etc.).
+    """
+    
+    # Llamar al LLM
+    messages = [HumanMessage(content=prompt)]
+    response = model.invoke(messages)
+    
+    # Lógica simple para analizar la respuesta (en una aplicación real, querrías un análisis más robusto)
+    response_text = response.content.lower()
+    is_spam = "spam" in response_text and "not spam" not in response_text
+    
+    # Extraer una razón si es spam
+    spam_reason = None
+    if is_spam and "reason:" in response_text:
+        spam_reason = response_text.split("reason:")[1].strip()
+    
+    # Determinar categoría si es legítimo
+    email_category = None
+    if not is_spam:
+        categories = ["consulta", "queja", "agradecimiento", "solicitud", "información"]
+        for category in categories:
+            if category in response_text:
+                email_category = category
+                break
+    
+    # Actualizar mensajes para seguimiento
+    new_messages = state.get("messages", []) + [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": response.content}
+    ]
+    
+     # Regresar actualizaciones de estado
+    return {
+        "is_spam": is_spam,
+        "spam_reason": spam_reason,
+        "email_category": email_category,
+        "messages": new_messages
+    }
+
+def handle_spam(state: EmailState):
+    """Alfred descarta el correo spam con una nota"""
+    print(f"Alfred ha marcado el correo como spam. Razón: {state['spam_reason']}")
+    print("El correo ha sido movido a la carpeta de spam.")
+    
+    # Hemos terminado de procesar este correo
+    return {}
+
+def draft_response(state: EmailState):
+    """Alfred redacta una respuesta preliminar para correos legítimos"""
+    email = state["email"]
+    category = state["email_category"] or "general"
+    
+   # Preparar nuestro prompt para el LLM
+    prompt = f"""
+    Como Alfred el mayordomo, redacta una respuesta preliminar cortés a este correo.
+    
+    Email:
+    From: {email['sender']}
+    Subject: {email['subject']}
+    Body: {email['body']}
+    
+     ste correo ha sido categorizado como: {category}
+    
+    Redacta una respuesta breve y profesional que el Sr. Hugg pueda revisar y personalizar antes de enviar.
+    """
+    
+    # Llamar al LLM
+    messages = [HumanMessage(content=prompt)]
+    response = model.invoke(messages)
+    
+    # Actualizar mensajes para seguimiento
+    new_messages = state.get("messages", []) + [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": response.content}
+    ]
+    
+     # Regresar actualizaciones de estado
+    return {
+        "draft_response": response.content,
+        "messages": new_messages
+    }
+
+def notify_mr_hugg(state: EmailState):
+    """Alfred notifica al Sr. Hugg sobre el correo y presenta el borrador de respuesta"""
+    email = state["email"]
+    
+    print("\n" + "="*50)
+    print(f"Señor, ha recibido un correo electrónico de {email['sender']}.")
+    print(f"Subject: {email['subject']}")
+    print(f"Categoría: {state['email_category']}")
+    print("\nHe preparado un borrador de respuesta para su revisión:")
+    print("-"*50)
+    print(state["draft_response"])
+    print("="*50 + "\n")
+    
+    # Hemos terminado de procesar este correo
+    return {}
+```
+
+## Paso 3: Definir Nuestra Lógica de Enrutamiento
+
+Necesitamos una función para determinar qué camino tomar después de la clasificación:
+
+```python
+def route_email(state: EmailState) -> str:
+    """Determinar el siguiente paso basado en la clasificación de spam"""
+    if state["is_spam"]:
+        return "spam"
+    else:
+        return "legitimate"
+```
+
+> 💡 **Nota:** Esta función de enrutamiento es llamada por LangGraph para determinar qué arista(edge) seguir después del nodo de clasificación. El valor de retorno debe coincidir con una de las claves en nuestro mapeo de aristas(edges) condicionales.
+
+## Paso 4: Crear el StateGraph y Definir Aristas(Edges)
+
+Ahora conectamos todo:
+
+```python
+# Crear el grafo
+email_graph = StateGraph(EmailState)
+
+# Añadir nodos
+email_graph.add_node("read_email", read_email)
+email_graph.add_node("classify_email", classify_email)
+email_graph.add_node("handle_spam", handle_spam)
+email_graph.add_node("draft_response", draft_response)
+email_graph.add_node("notify_mr_hugg", notify_mr_hugg)
+
+# Añadir aristas(edges) - definiendo el flujo
+email_graph.add_edge("read_email", "classify_email")
+
+# Añadir ramificación condicional desde classify_email
+email_graph.add_conditional_edges(
+    "classify_email",
+    route_email,
+    {
+        "spam": "handle_spam",
+        "legitimate": "draft_response"
+    }
+)
+
+# Añadir las aristas(edges) finales
+email_graph.add_edge("handle_spam", END)
+email_graph.add_edge("draft_response", "notify_mr_hugg")
+email_graph.add_edge("notify_mr_hugg", END)
+
+# Compilar el grafo
+compiled_graph = email_graph.compile()
+```
+
+Observa cómo usamos el nodo especial  `END` proporcionado por LangGraph. Esto indica estados terminales donde el flujo de trabajo se completa.
+
+## Paso 5: Ejecutar la Aplicación
+
+Probemos nuestro grafo con un correo legítimo y un correo spam:
+
+```python
+# Ejemplo de correo legítimo
+legitimate_email = {
+    "sender": "john.smith@example.com",
+    "subject": "Pregunta sobre sus servicios",
+    "body": "Estimado Sr. Hugg, un colega me recomendó contactarle y estoy interesado en conocer más sobre sus servicios de consultoría. ¿Podríamos programar una llamada la próxima semana? Saludos cordiales, John Smith"
+}
+
+# Ejemplo de correo spam
+spam_email = {
+    "sender": "winner@lottery-intl.com",
+    "subject": ¡¡¡HAS GANADO $5,000,000!!!",
+    "body": "¡FELICIDADES! ¡Has sido seleccionado como el ganador de nuestra lotería internacional! Para reclamar tu premio de $5,000,000, por favor envíanos tus datos bancarios y una tarifa de procesamiento de $100."
+}
+
+# Procesar el correo legítimo
+print("\nProcesando correo legítimo...")
+legitimate_result = compiled_graph.invoke({
+    "email": legitimate_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+
+# Procesar el correo spam
+print("\nProcesando correo spam...")
+spam_result = compiled_graph.invoke({
+    "email": spam_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+```
+
+## Paso 6: Inspeccionando Nuestro Agente de Clasificación de Correo con Langfuse 📡
+
+Mientras Alfred perfecciona el Agente de Clasificación de Correo, se está cansando de depurar sus ejecuciones. Los agentes, por naturaleza, son impredecibles y difíciles de inspeccionar. Pero como su objetivo es construir el mejor Agente de Detección de Spam y desplegarlo en producción, necesita una trazabilidad robusta para el monitoreo y análisis futuros.
+
+Para hacer esto, Alfred puede usar una herramienta de observabilidad como [Langfuse](https://langfuse.com/) para rastrear y monitorear el agente.
+
+Primero, instalamos Langfuse con pip: 
+```python
+%pip install -q langfuse
+```
+
+Luego, agregamos las claves API de Langfuse y la dirección del host como variables de entorno. Puedes obtener tus credenciales de Langfuse registrándote en [Langfuse Cloud](https://cloud.langfuse.com) o [self-host Langfuse](https://langfuse.com/self-hosting). 
+
+```python
+import os
+ 
+# Obtén las claves para tu proyecto desde la página de configuración del proyecto: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..."
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 región de la UE
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 región de EE.U
+```
+
+Luego, configuramos el [Langfuse `callback_handler`](https://langfuse.com/docs/integrations/langchain/tracing#add-langfuse-to-your-langchain-application) instrumentamos el agente añadiendo el `langfuse_callback` a la invocación del grafo: `config={"callbacks": [langfuse_handler]}`.
+
+```python   
+from langfuse.callback import CallbackHandler
+
+# Inicializar CallbackHandler de Langfuse para LangGraph/Langchain (trazado)
+langfuse_handler = CallbackHandler()
+
+# Procesar correo legítimo
+legitimate_result = compiled_graph.invoke(
+    input={"email": legitimate_email, "is_spam": None, "spam_reason": None, "email_category": None, "draft_response": None, "messages": []},
+    config={"callbacks": [langfuse_handler]}
+)
+```
+
+¡Alfred está ahora conectado 🔌! Las ejecuciones de LangGraph se están registrando en Langfuse, dándole visibilidad completa del comportamiento del agente. Con esta configuración, está listo para revisar ejecuciones anteriores y refinar aún más su Agente de Clasificación de Correo.  
+
+![Example trace in Langfuse](https://langfuse.com/images/cookbook/huggingface-agent-course/langgraph-trace-legit.png)
+
+_[Public link to the trace with the legit email](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/f5d6d72e-20af-4357-b232-af44c3728a7b?timestamp=2025-03-17T10%3A13%3A28.413Z&observation=6997ba69-043f-4f77-9445-700a033afba1)_
+
+Visualizando Nuestro Grafo
+
+LangGraph nos permite visualizar nuestro flujo de trabajo para entender y depurar mejor su estructura:
+
+```python
+compiled_graph.get_graph().draw_mermaid_png()
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/mail_flow.png" alt="Mail LangGraph"/>
+
+Esto produce una representación visual que muestra cómo están conectados nuestros nodos y los caminos condicionales que se pueden tomar.
+
+## Lo Que Hemos Construido
+
+Hemos creado un flujo de trabajo completo de procesamiento de correos electrónicos que:
+
+1. Toma un correo electrónico entrante
+2. Usa un LLM para clasificarlo como spam o legítimo
+3. Maneja el spam descartándolo
+4. Para correos legítimos, redacta una respuesta y notifica al Sr. Hugg
+
+Esto demuestra el poder de LangGraph para orquestar flujos de trabajo complejos con LLMs mientras mantiene un flujo claro y estructurado.
+
+## Puntos Clave
+
+- **Gestión de Estado**: Definimos un estado completo para rastrear todos los aspectos del procesamiento de correos electrónicos
+- **Implementación de Nodos:**: Creamos nodos funcionales que interactúan con un LLM
+- **Enrutamiento Condicional**: Implementamos lógica de ramificación basada en la clasificación de correos
+- **Estados Terminales:**: Usamos el nodo END para marcar puntos de finalización en nuestro flujo de trabajo
+
+## ¿Qué Sigue?
+
+En la siguiente sección, exploraremos características más avanzadas de LangGraph, incluyendo el manejo de interacción humana en el flujo de trabajo y la implementación de lógica de ramificación más compleja basada en múltiples condiciones.

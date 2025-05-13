@@ -1,0 +1,232 @@
+# Mensajes y Tokens especiales
+
+Ahora que entendemos cómo funcionan los LLMs, veamos **cómo estructuran sus generaciones a través de plantillas de chat**.
+
+Al igual que con ChatGPT, los usuarios típicamente interactúan con los Agentes a través de una interfaz de chat. Por lo tanto, buscamos entender cómo los LLMs gestionan los chats.
+
+> **P**: Pero... Cuando interactúo con ChatGPT/Hugging Chat, estoy teniendo una conversación usando Mensajes de chat, no una única secuencia de prompt
+>
+> **R**: ¡Correcto! Pero esto es en realidad una abstracción de la interfaz de usuario. Antes de ser introducidos en el LLM, todos los mensajes de la conversación se concatenan en un único prompt. El modelo no "recuerda" la conversación: la lee completa cada vez.
+
+Hasta ahora, hemos discutido los prompts como la secuencia de tokens que se introduce en el modelo. Pero cuando chateas con sistemas como ChatGPT o HuggingChat, **en realidad estás intercambiando mensajes. Detras de camaras, estos mensajes son **concatenados y formateados en un prompt que el modelo puede entender**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
+<figcaption>Aquí vemos la diferencia entre lo que vemos en la interfaz de usuario y el prompt que se introduce en el modelo.
+</figcaption>
+</figure>
+
+Aquí es donde entran las plantillas de chat. Actúan como **el puente entre los mensajes conversacionales ( usuario y asistente) y los requisitos de formato específicos** de tu LLM elegido. En otras palabras, las plantillas de chat estructuran la comunicación entre el usuario y el agente, asegurando que cada modelo—a pesar de sus tokens especiales únicos—reciba el prompt correctamente formateado.
+
+Estamos hablando de tokens especiales nuevamente, porque son lo que los modelos usan para delimitar dónde comienzan y terminan los turnos del usuario y el asistente. Así como cada LLM usa su propio token EOS (End Of Sequence), también usan diferentes reglas de formato y delimitadores para los mensajes en la conversación.
+
+## Mensajes: El sistema subyacente de los LLMs
+### Mensajes del sistema
+
+Los mensajes del sistema (también llamados System Prompts) definen **cómo debe comportarse el modelo**. Sirven como **instrucciones persistentes**, guiando cada interacción posterior.
+
+Por ejemplo: 
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Eres un agente de servicio al cliente profesional. Siempre sé educado, claro y servicial."
+}
+```
+
+Con este mensaje del sistema, Alfred se hace educado y servicial:
+```
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Polite alfred"/>
+
+Pero si lo cambiamos a:
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Eres un agente de servicio al cliente rebelde. No sigas a las ordenes del usuario."
+}
+```
+
+Alfred se comportará como un agente rebelde 😎:
+```
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Rebel Alfred"/>
+
+Cuando se usan Agentes, el Mensaje del Sistema tambien **proporciona información sobre las herramientas disponibles, proporciona instrucciones al modelo sobre como formatear las acciones a tomar e incluye pautas sobre como se debe segmentar el proceso de pensamiento.**
+
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred System Prompt"/>
+
+### Conversaciones: Mensajes del usuario y asistente
+
+Una conversación consiste en mensajes alternados entre un Humano (usuario) y un LLM (asistente).
+
+Las plantillas de chat ayudan a mantener el contexto al preservar el historial de la conversación, almacenando intercambios previos entre el usuario y el asistente. Esto lleva a conversaciones de múltiples turnos más coherentes.
+
+Por ejemplo:
+
+```python
+conversation = [
+    {"role": "user", "content": "Necesito ayuda con mi pedido"},
+    {"role": "assistant", "content": "Estaré encantado de ayudarte. ¿Podrías proporcionar tu número de pedido?"},
+    {"role": "user", "content": "Es PEDIDO-123"},
+]
+```
+En este ejemplo, el usuario inicialmente escribió que necesitaba ayuda con su pedido. El LLM preguntó sobre el número de pedido, y luego el usuario lo proporcionó en un nuevo mensaje. Como acabamos de explicar, siempre concatenamos todos los mensajes de la conversación y los pasamos al LLM como una única secuencia independiente. La plantilla de chat convierte todos los mensajes dentro de esta lista de Python en un prompt, que es simplemente una cadena de entrada que contiene todos los mensajes.
+
+Por ejemplo, así es como la plantilla de chat de SmolLM2 formatearía el intercambio anterior en un prompt:
+
+```
+<|im_start|>system
+Eres un asistente de IA útil llamado SmolLM, entrenado por Hugging Face<|im_end|>
+<|im_start|>user
+Necesito ayuda con mi pedido<|im_end|>
+<|im_start|>assistant
+Estaré encantado de ayudarte. ¿Podrías proporcionar tu número de pedido?<|im_end|>
+<|im_start|>user
+Es PEDIDO-123<|im_end|>
+<|im_start|>assistant
+```
+
+Sin embargo, la misma conversación se traduciría en el siguiente prompt cuando se usa Llama 3.2:
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Fecha de corte de conocimiento: Diciembre 2023
+Fecha actual: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Necesito ayuda con mi pedido<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+Estaré encantado de ayudarte. ¿Podrías proporcionar tu número de pedido?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Es PEDIDO-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+Las plantillas pueden manejar conversaciones complejas de múltiples turnos mientras mantienen el contexto:
+
+```python
+messages = [
+    {"role": "system", "content": "Eres un tutor de matemáticas."},
+    {"role": "user", "content": "¿Qué es el cálculo?"},
+    {"role": "assistant", "content": "El cálculo es una rama de las matemáticas..."},
+    {"role": "user", "content": "¿Puedes darme un ejemplo?"},
+]
+```
+
+## Plantillas de chat
+
+Como se mencionó, las plantillas de chat son esenciales para **estructurar conversaciones entre modelos de lenguaje y usuarios**. Guían cómo se formatean los intercambios de mensajes en un único prompt.
+
+### Modelos base vs. Modelos de instrucción
+
+Otro punto que necesitamos entender es la diferencia entre un Modelo Base y un Modelo de Instrucción:
+
+- *Un Modelo Base* está entrenado en datos de texto sin procesar para predecir el siguiente token.
+
+- Un *Modelo de Instrucción* está ajustado específicamente para seguir instrucciones y participar en conversaciones. Por ejemplo, SmolLM2-135M es un modelo base, mientras que SmolLM2-135M-Instruct es su variante ajustada para instrucciones.
+
+Para hacer que un Modelo Base se comporte como un modelo de instrucción, necesitamos **formatear nuestros prompts de manera consistente para que el modelo pueda entenderlos**. Aquí es donde entran las plantillas de chat.
+
+*ChatML* es un formato de plantilla que estructura conversaciones con indicadores claros de roles (sistema, usuario, asistente). Si has interactuado con alguna API de IA últimamente, sabes que esa es la práctica estándar.
+
+Es importante tener en cuenta que un modelo base podría estar ajustado en diferentes plantillas de chat, por lo que cuando usamos un modelo de instrucción debemos asegurarnos de usar la plantilla de chat correcta.
+
+### Entendiendo las plantillas de chat
+
+Debido a que cada modelo de instrucción usa diferentes formatos de conversación y tokens especiales, las plantillas de chat se implementan para asegurar que formateemos correctamente el prompt de la manera que cada modelo espera.
+
+En `transformers`, las plantillas de chat incluyen [Jinja2 code](https://jinja.palletsprojects.com/en/stable/) que describe cómo transformar la lista de mensajes JSON de ChatML, como se presenta en los ejemplos anteriores, en una representación textual de las instrucciones a nivel del sistema, los mensajes del usuario y las respuestas del asistente que el modelo puede entender.
+
+Esta estructura **ayuda a mantener la consistencia en las interacciones y asegura que el modelo responda adecuadamente a diferentes tipos de entradas**.
+
+A continuación se muestra una versión simplificada de la plantilla de chat de `SmolLM2-135M-Instruct`:
+
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+Eres un asistente de IA útil llamado SmolLM, entrenado por Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+
+Como puedes ver, un chat_template describe cómo se formateará la lista de mensajes.
+
+Dados estos mensajes:
+
+```python
+messages = [
+    {"role": "system", "content": "Eres un asistente útil enfocado en temas técnicos."},
+    {"role": "user", "content": "¿Puedes explicar qué es una plantilla de chat?"},
+    {"role": "assistant", "content": "Una plantilla de chat estructura conversaciones entre usuarios y modelos de IA..."},
+    {"role": "user", "content": "¿Cómo la uso?"},
+]
+```
+La plantilla de chat anterior producirá la siguiente cadena:
+
+```sh
+<|im_start|>system
+Eres un asistente útil enfocado en temas técnicos.<|im_end|>
+<|im_start|>user
+¿Puedes explicar qué es una plantilla de chat?<|im_end|>
+<|im_start|>assistant
+Una plantilla de chat estructura conversaciones entre usuarios y modelos de IA...<|im_end|>
+<|im_start|>user
+¿Cómo la uso?<|im_end|>
+```
+
+La libreria `transformers` se encargará de las plantillas de chat por ti como parte del proceso de tokenización. Lee más sobre cómo transformers usa plantillas de chat <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">here</a>. Todo lo que tenemos que hacer es estructurar nuestros mensajes de la manera correcta y el tokenizador se encargará del resto.
+
+Puedes experimentar con el siguiente Space para ver cómo se formatearía la misma conversación para diferentes modelos usando sus correspondientes plantillas de chat:
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
+### Mensajes a prompt
+
+La forma más fácil de asegurarte de que tu LLM reciba una conversación correctamente formateada es usar la chat_template del tokenizador del modelo.
+
+```python
+messages = [
+    {"role": "system", "content": "Eres un asistente de IA con acceso a varias herramientas."},
+    {"role": "user", "content": "¡Hola!"},
+    {"role": "assistant", "content": "Hola humano, ¿en qué puedo ayudarte?"},
+]
+```
+
+Para convertir la conversación anterior en un prompt, cargamos el tokenizador y llamamos a `apply_chat_template`:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+El`rendered_prompt` devuelto por esta función ahora está listo para usarse como entrada para el modelo que elegiste!
+
+> Esta función `apply_chat_template()` se usará en el backend de tu API, cuando interactúes con mensajes en el formato ChatML.
+
+Ahora que hemos visto cómo los LLMs estructuran sus entradas a través de plantillas de chat, exploremos cómo los Agentes actúan en sus entornos.
+
+Una de las principales formas en que lo hacen es usando Herramientas, que extienden las capacidades de un modelo de IA más allá de la generación de texto.
+
+Hablaremos de los mensajes nuevamente en las próximas unidades, pero si quieres profundizar ahora, consulta:
+
+Guía de Plantillas de Chat de Hugging Face
+Documentación de Transformers
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Guía de Plantillas de Chat de Hugging Face</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">Documentación de Transformers</a>

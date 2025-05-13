@@ -1,0 +1,38 @@
+# De LLMs a Agentes de IA
+
+Aprendimos en la [primera unidad](https://huggingface.co/learn/agents-course/unit1/introduction) del curso que los Agentes de IA son capaces de planificar y tomar decisiones.
+Y aunque los LLMs han permitido interacciones más naturales con los NPCs, la IA Agéntica va un paso más allá al permitir que los personajes tomen decisiones, planifiquen acciones y se adapten a entornos cambiantes.
+
+Para ilustrar la diferencia, piensa en un NPC clásico de RPG:
+
+- Con un LLM: el NPC podría responder a tus preguntas de una manera más natural y variada. Es genial para el diálogo, pero el NPC permanece estático, no actuará a menos que tú hagas algo primero.
+- Con IA Agéntica: el NPC puede decidir ir a buscar ayuda, poner una trampa o evitarte por completo, incluso si no estás interactuando directamente con él.
+
+Este pequeño cambio lo cambia todo. Estamos pasando de respondedores con guion a actores autónomos dentro del mundo del juego.
+
+Este cambio significa que los NPCs ahora pueden interactuar directamente con su entorno a través de comportamientos dirigidos a objetivos, lo que finalmente conduce a una jugabilidad más dinámica e impredecible.
+
+La IA Agéntica empodera a los NPCs con:
+
+- **Autonomía**: Tomar decisiones independientes basadas en el estado del juego.
+- **Adaptabilidad**: Ajustar estrategias en respuesta a las acciones del jugador.
+- **Persistencia**: Recordar interacciones pasadas para informar el comportamiento futuro.
+
+Esto transforma a los NPCs de entidades reactivas (reaccionando a tus entradas) en participantes proactivos en el mundo del juego, abriendo la puerta a una jugabilidad innovadora.
+
+
+## La gran limitación de los Agentes: **es lento** (por ahora)
+
+Sin embargo, no seamos demasiado optimistas todavía. A pesar de su potencial, la IA Agéntica actualmente enfrenta desafíos en aplicaciones en tiempo real.
+
+Los procesos de razonamiento y planificación pueden introducir latencia, haciéndola menos adecuada para juegos de ritmo rápido como *Doom* o *Super Mario Bros.*
+
+Toma el ejemplo de [_Claude Plays Pokémon_](https://www.twitch.tv/claudeplayspokemon). Si consideras la cantidad de tokens necesarios para **pensar**, más los tokens necesarios para **actuar**, queda claro que necesitaríamos estrategias de decodificación completamente diferentes para que el juego en tiempo real sea factible.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit3/claude-plays-pokemon.png" alt="Claude plays Pokémon"/>
+
+La mayoría de los juegos necesitan ejecutarse a unos 30 FPS, lo que significa que un agente de IA en tiempo real necesitaría actuar 30 veces por segundo, lo que actualmente no es factible con los LLMs agénticos de hoy en día.
+
+Sin embargo, los juegos por turnos como *Pokémon* son candidatos ideales, ya que le dan a la IA tiempo suficiente para deliberar y tomar decisiones estratégicas.
+
+Es por eso que en la próxima sección, construirás tu propio Agente de IA para luchar en combates por turnos al estilo Pokémon, e incluso desafiarlo tú mismo. ¡Manos a la obra!

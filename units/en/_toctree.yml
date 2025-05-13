@@ -122,6 +122,20 @@
     title: Creating Your Gala Agent
   - local: unit3/agentic-rag/conclusion
     title: Conclusion
+- title: Unit 4. Final Project - Create, Test, and Certify Your Agent
+  sections:
+  - local: unit4/introduction
+    title: Introduction to the Final Unit
+  - local: unit4/what-is-gaia
+    title: What is GAIA?
+  - local: unit4/hands-on
+    title: The Final Hands-On
+  - local: unit4/get-your-certificate
+    title: Get Your Certificate Of Excellence
+  - local: unit4/conclusion
+    title: Conclusion of the Course
+  - local: unit4/additional-readings
+    title: What Should You Learn Now?
 - title: Bonus Unit 1. Fine-tuning an LLM for Function-calling
   sections:
   - local: bonus-unit1/introduction
@@ -142,8 +156,17 @@
     title: Monitoring and evaluating agents
   - local: bonus-unit2/quiz
     title: Quiz
-- title: When the next steps are published?
+- title: Bonus Unit 3. Agents in Games with Pokemon
   sections:
-  - local: communication/next-units
-    title: Next Units
-
+  - local: bonus-unit3/introduction
+    title: Introduction
+  - local: bonus-unit3/state-of-art
+    title: The State of the Art in Using LLMs in Games
+  - local: bonus-unit3/from-llm-to-agents
+    title: From LLMs to AI Agents
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: Build Your Own Pokémon Battle Agent
+  - local: bonus-unit3/launching_agent_battle
+    title: Launching Your Pokémon Battle Agent
+  - local: bonus-unit3/conclusion
+    title: Conclusion

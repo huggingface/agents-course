@@ -31,9 +31,8 @@ Actions themselves can serve many purposes:
 | Environment Interaction  | Manipulating digital interfaces or controlling physical devices.                         |
 | Communication            | Engaging with users via chat or collaborating with other agents.                         |
 
-One crucial part of an agent is the **ability to STOP generating new tokens when an action is complete**, and that is true for all formats of Agent: JSON, code, or function-calling. This prevents unintended output and ensures that the agent’s response is clear and precise.
+The LLM only handles text and uses it to describe the action it wants to take and the parameters to supply to the tool. For an agent to work properly, the LLM must STOP generating new tokens after emitting all the tokens to define a complete Action. This passes control from the LLM back to the agent and ensures the result is parseable - whether the intended format is JSON, code, or function-calling. 
 
-The LLM only handles text and uses it to describe the action it wants to take and the parameters to supply to the tool.
 
 ## The Stop and Parse Approach
 
@@ -45,7 +44,7 @@ The agent outputs its intended action in a clear, predetermined format (JSON or 
 
 2. **Halting Further Generation**:
 
-Once the action is complete, **the agent stops generating additional tokens**. This prevents extra or erroneous output.
+Once the text defining the action has been emitted, **the LLM stops generating additional tokens**. This prevents extra or erroneous output.
 
 3. **Parsing the Output**:
 

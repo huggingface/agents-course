@@ -1,0 +1,45 @@
+# Introducción a LlamaHub
+
+**LlamaHub es un registro de cientos de integraciones, agentes y herramientas que puedes utilizar dentro de LlamaIndex.**
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+Vamos a utilizar varias integraciones en este curso, así que primero echaremos un vistazo a LlamaHub y veremos cómo puede ayudarnos.
+
+Vamos a ver cómo encontrar e instalar las dependencias para los componentes que necesitamos.
+
+## Instalación
+
+Las instrucciones de instalación de LlamaIndex están disponibles en **[LlamaHub](https://llamahub.ai/)**.
+Puede parecer un poco abrumador al principio, pero la mayoría de los comandos de **instalación siguen un formato fácil de recordar **:
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+Vamos a intentar instalar las dependencias para un componente de LLM utilizando la [integración de la API de inferencia de Hugging Face](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms).
+
+```bash
+pip install llama-index-llms-huggingface-api
+```
+
+## Uso
+
+Una vez instalado, podemos ver los patrones de uso. Notaras que los caminos de importación siguen el comando de instalación!
+Debajo, podemos ver un ejemplo de la utilización de **la API de inferencia de Hugging Face para un componente LLM**.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token="hf_xxx",
+)
+
+llm.completar(" Hola, cómo estás?")
+# Estoy bien, ¿cómo puedo ayudarte hoy?
+```
+
+Genial, ahora sabemos como encontrar, instalar y utilizar las integraciones para los componentes que necesitamos.
+**Vamos a profundizar en los componentes** y veremos como podemos utilizarlos para construir nuestros propios agentes.

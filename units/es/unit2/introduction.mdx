@@ -1,0 +1,37 @@
+# Introducción a los Frameworks de Agentes
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+Bienvenido/a a esta segunda unidad, donde **exploraremos diferentes frameworks de agentes** que pueden ser utilizados para construir poderosas aplicaciones basadas en agentes.
+
+Estudiaremos:
+
+- En la Unidad 2.1: [smolagents](https://huggingface.co/docs/smolagents/es/index)  
+- En la Unidad 2.2: [LlamaIndex](https://www.llamaindex.ai/)
+- En la Unidad 2.3: [LangGraph](https://www.langchain.com/langgraph)
+
+¡Vamos a sumergirnos! 🕵
+
+## Cuándo Usar un Framework de Agentes
+
+Un framework de agentes **no siempre es necesario cuando se construye una aplicación basada en LLMs**. Proporcionan flexibilidad en el flujo de trabajo para resolver eficientemente una tarea específica, pero no siempre son necesarios.
+
+A veces, **los flujos de trabajo predefinidos son suficientes** para satisfacer las solicitudes de los usuarios, y no hay una necesidad real de un framework de agentes. Si el enfoque para construir un agente es simple, como una cadena de prompts, usar código plano puede ser suficiente. La ventaja es que el desarrollador/a tendrá **control total y comprensión de su sistema sin abstracciones**.
+
+Sin embargo, cuando el flujo de trabajo se vuelve más complejo, como permitir que un LLM llame a funciones o usar múltiples agentes, estas abstracciones comienzan a ser útiles.
+
+Considerando estas ideas, ya podemos identificar la necesidad de algunas características:
+
+* Un *motor LLM* que impulse el sistema.
+* Una *lista de herramientas* a las que el agente puede acceder.  
+* Un *analizador* para extraer llamadas a herramientas de la salida del LLM.
+* Un *prompt de sistema* sincronizado con el analizador.
+* Un *sistema de memoria*.
+* *Registro de errores y mecanismos de reintento* para controlar los errores del LLM.
+Exploraremos cómo se resuelven estos temas en varios frameworks, incluyendo `smolagents`, `LlamaIndex` y `LangGraph`.
+
+## Unidades de Frameworks de Agentes
+
+| Framework  | Descripción | Autor de la Unidad |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introducción) | Framework de agentes desarrollado por Hugging Face. | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |

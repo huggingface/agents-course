@@ -27,7 +27,7 @@
 
 `smolagents` 中的智能体将具有**与我们之前构建的自定义智能体相同的行为**：它将**以循环的方式思考、行动和观察**，直到得出最终答案：
 
-[智能体流程](https://www.youtube.com/watch?v=PQDKcWiuln4)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 很令人兴奋，对吧？
 
@@ -54,7 +54,7 @@
 - 文件开头是一些简单但必要的库导入
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, load_tool, tool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
 import datetime
 import requests
 import pytz
@@ -113,7 +113,7 @@ def get_current_time_in_timezone(timezone: str) -> str:
 
 ```python
 final_answer = FinalAnswerTool()
-model = HfApiModel(
+model = InferenceClientModel(
     max_tokens=2096,
     temperature=0.5,
     model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
@@ -139,7 +139,7 @@ agent = CodeAgent(
 GradioUI(agent).launch()
 ```
 
-这个智能体仍在使用我们在前面部分中看到的`InferenceClient`，它位于**HfApiModel**类的背后！
+这个智能体仍在使用我们在前面部分中看到的`InferenceClient`，它位于**InferenceClientModel**类的背后！
 
 当我们介绍 Unit 2 中的框架时，我们会给出更深入的例子。目前，你需要专注于通过智能体的`tools`参数**向工具列表中添加新工具**。
 
@@ -150,7 +150,7 @@ GradioUI(agent).launch()
 完整的"app.py"：
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel, load_tool, tool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
 import datetime
 import requests
 import pytz
@@ -187,7 +187,7 @@ def get_current_time_in_timezone(timezone: str) -> str:
 
 
 final_answer = FinalAnswerTool()
-model = HfApiModel(
+model = InferenceClientModel(
     max_tokens=2096,
     temperature=0.5,
     model_id='Qwen/Qwen2.5-Coder-32B-Instruct',

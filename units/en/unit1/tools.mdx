@@ -141,6 +141,9 @@ We create a generic `Tool` class that we can reuse whenever we need to use a too
 > **Disclaimer:** This example implementation is fictional but closely resembles real implementations in most libraries.
 
 ```python
+from typing import Callable
+
+
 class Tool:
     """
     A class representing a reusable piece of code (Tool).
@@ -155,7 +158,7 @@ class Tool:
     def __init__(self,
                  name: str,
                  description: str,
-                 func: callable,
+                 func: Callable,
                  arguments: list,
                  outputs: str):
         self.name = name
@@ -217,6 +220,8 @@ But we can also use Python's `inspect` module to retrieve all the information fo
 <summary> decorator code</summary>
 
 ```python
+import inspect
+
 def tool(func):
     """
     A decorator that creates a Tool instance from the given function.

@@ -31,13 +31,13 @@
 以下是 Alfred 的智能体实现此功能的代码示例：
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
 
 # 初始化搜索工具
 search_tool = DuckDuckGoSearchTool()
 
 # 初始化模型
-model = HfApiModel()
+model = InferenceClientModel()
 
 agent = CodeAgent(
     model=model,
@@ -73,7 +73,7 @@ from langchain.docstore.document import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from smolagents import Tool
 from langchain_community.retrievers import BM25Retriever
-from smolagents import CodeAgent, HfApiModel
+from smolagents import CodeAgent, InferenceClientModel
 
 class PartyPlanningRetrieverTool(Tool):
     name = "party_planning_retriever"
@@ -133,7 +133,7 @@ docs_processed = text_splitter.split_documents(source_docs)
 party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
 
 # 初始化智能体
-agent = CodeAgent(tools=[party_planning_retriever], model=HfApiModel())
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
 
 # 使用示例
 response = agent.run(
@@ -161,4 +161,4 @@ print(response)
 
 ## 资源
 
-- [Agentic RAG: 使用查询重构和自查询加速您的 RAG 系统！🚀](https://huggingface.co/learn/cookbook/agent_rag) - 使用 smolagents 开发智能驱动 RAG 系统的实践指南
+- [Agentic RAG: 使用查询重构和自查询加速您的 RAG 系统！🚀](https://huggingface.co/learn/cookbook/zh-CN/agent_rag) - 使用 smolagents 开发智能驱动 RAG 系统的实践指南

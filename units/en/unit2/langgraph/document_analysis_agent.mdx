@@ -2,9 +2,9 @@
 
 Alfred at your service. As Mr. Wayne's trusted butler, I've taken the liberty of documenting how I assist Mr Wayne with his various documentary needs. While he's out attending to his... nighttime activities, I ensure all his paperwork, training schedules, and nutritional plans are properly analyzed and organized.
 
-Before leaving, he left a note with his week training program. I then took the responsability to come up with a **menu** for tomorrow's meals.
+Before leaving, he left a note with his week's training program. I then took the responsibility to come up with a **menu** for tomorrow's meals.
 
-For future such event, let's create a document analysis system using LangGraph to serve Mister Wayne's needs. This system can:
+For future such events, let's create a document analysis system using LangGraph to serve Mr. Wayne's needs. This system can:
 
 1. Process images document
 2. Extract text using vision models (Vision Language Model)
@@ -14,7 +14,7 @@ For future such event, let's create a document analysis system using LangGraph t
 
 ## The Butler's Workflow
 
-The workflow we'll build, follows a structured this schema:
+The workflow we’ll build follows this structured schema:
 
 ![Butler's Document Analysis Workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
 
@@ -42,7 +42,7 @@ from IPython.display import Image, display
 ## Defining Agent's State
 
 This state is a little more complex than the previous ones we have seen.
-AnyMessage is a class from langchain that define messages and the add_messages is an operator that add the latest message rather than overwritting it with the latest state.
+`AnyMessage` is a class from Langchain that defines messages, and `add_messages` is an operator that adds the latest message rather than overwriting it with the latest state.
 
 This is a new concept in LangGraph, where you can add operators in your state to define the way they should interact together.
 
@@ -139,7 +139,7 @@ divide(a: int, b: int) -> float:
     Divide a and b
 """
     image=state["input_file"]
-    sys_msg = SystemMessage(content=f"You are an helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
+    sys_msg = SystemMessage(content=f"You are a helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
 
     return {
         "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
@@ -156,7 +156,7 @@ Allow me to explain the approach in this agent. The agent follows what's known a
 3. **Observe** the results
 4. **Repeat** as necessary until I've fully addressed his needs
 
-This is a simple implementation of an agent using langGraph.
+This is a simple implementation of an agent using LangGraph.
 
 ```python
 # The graph
@@ -184,7 +184,7 @@ display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
 We define a `tools` node with our list of tools. The `assistant` node is just our model with bound tools.
 We create a graph with `assistant` and `tools` nodes.
 
-We add `tools_condition` edge, which routes to `End` or to `tools` based on whether the `assistant` calls a tool.
+We add a `tools_condition` edge, which routes to `End` or to `tools` based on whether the `assistant` calls a tool.
 
 Now, we add one new step:
 
@@ -260,8 +260,8 @@ Should you wish to create your own document analysis butler, here are key consid
 
 1. **Define clear tools** for specific document-related tasks
 2. **Create a robust state tracker** to maintain context between tool calls
-3. **Consider error handling** for tools fails
-5. **Maintain contextual awareness** of previous interactions (ensured by the operator add_messages)
+3. **Consider error handling** for tool failures
+4. **Maintain contextual awareness** of previous interactions (ensured by the operator `add_messages`)
 
 With these principles, you too can provide exemplary document analysis service worthy of Wayne Manor.
 

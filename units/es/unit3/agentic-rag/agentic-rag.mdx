@@ -1,0 +1,27 @@
+# Generación Aumentada por Recuperación con Agentes (RAG Agéntico)
+
+En esta unidad, veremos cómo podemos usar RAG Agéntico para ayudar a Alfred a prepararse para la increíble gala.
+
+<Tip>Sabemos que ya hemos discutido la Generación Aumentada por Recuperación (RAG) y RAG agéntico en la unidad anterior, así que siéntete libre de avanzar si ya estás familiarizado con los conceptos.</Tip>
+
+Los LLMs están entrenados en enormes volúmenes de datos para aprender conocimiento general.
+Sin embargo, el modelo de conocimiento del mundo de los LLMs no siempre puede contener información relevante y actualizada.
+**RAG resuelve este problema encontrando y recuperando información relevante de tus datos y enviándola al LLM.**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Ahora, piensa en cómo funciona Alfred:
+
+1. Le hemos pedido a Alfred que ayude a planificar una gala
+2. Alfred necesita encontrar las últimas noticias e información meteorológica
+3. Alfred necesita estructurar y buscar la información de los invitados
+
+Así como Alfred necesita buscar en la información de tu hogar para ser útil, cualquier agente necesita una manera de encontrar y comprender datos relevantes.
+**RAG Agéntico es una forma poderosa de usar agentes para responder preguntas sobre tus datos.** Podemos proporcionar varias herramientas a Alfred para ayudarlo a responder preguntas.
+Sin embargo, en lugar de responder automáticamente a la pregunta basada en documentos, Alfred puede decidir usar cualquier otra herramienta o flujo para responder la pregunta.
+
+![RAG Agéntico](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+¡Comencemos a **construir nuestro flujo de trabajo de RAG agéntico!**  
+
+Primero, crearemos una herramienta RAG para recuperar detalles actualizados sobre los invitados. Luego, desarrollaremos herramientas para búsqueda web, actualizaciones meteorológicas y estadísticas de descargas de modelos de Hugging Face Hub. Finalmente, integraremos todo para dar vida a nuestro agente RAG agéntico!  

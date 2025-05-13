@@ -2,7 +2,7 @@
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Unit 1 planning"/>
 
-Một khía cạnh quan trọng của AI Agents (tác nhân AI) là khả năng thực hiện **hành động**. Như ta đã thấy, điều này xảy ra thông qua việc sử dụng **Tools** (công cụ).
+Một khía cạnh quan trọng của AI agents là khả năng thực hiện **hành động**. Như ta đã thấy, điều này xảy ra thông qua việc sử dụng **Tools** (công cụ).
 
 Trong phần này, ta sẽ tìm hiểu Tools là gì, cách thiết kế chúng hiệu quả và cách tích hợp vào Agent thông qua System Message.
 
@@ -10,7 +10,7 @@ Bằng cách cung cấp đúng Tools cho Agent - và mô tả rõ ràng cách ch
 
 ## AI Tools là gì?
 
-**Tool (công cụ) là một hàm được cung cấp cho LLM**. Hàm này cần đáp ứng **một mục tiêu rõ ràng**.
+**Tool là một hàm được cung cấp cho LLM**. Hàm này cần đáp ứng **một mục tiêu rõ ràng**.
 
 Dưới đây là những Tools phổ biến trong AI agents:
 
@@ -25,11 +25,11 @@ Dưới đây là những Tools phổ biến trong AI agents:
 
 Một Tool tốt cần **bổ sung năng lực của LLM**. 
 
-Ví dụ: nếu cần tính toán số học, việc cung cấp **công cụ máy tính** cho LLM sẽ cho kết quả tốt hơn so với dựa vào khả năng tự nhiên của model.
+Ví dụ: nếu cần tính toán số học, việc cung cấp **công cụ máy tính** cho LLM sẽ cho kết quả tốt hơn so với dựa vào khả năng tự nhiên của mô hình.
 
-Hơn nữa, **LLM dự đoán phần tiếp theo của prompt dựa trên dữ liệu training**, nghĩa là kiến thức của chúng chỉ bao gồm sự kiện trước thời điểm training. Do đó, nếu agent cần dữ liệu mới nhất, bạn phải cung cấp thông qua Tools.
+Hơn nữa, **LLM dự đoán phần tiếp theo của prompt dựa trên dữ liệu huấn luyện**, nghĩa là kiến thức của chúng chỉ bao gồm sự kiện trước thời điểm huấn luyện. Do đó, nếu agent cần dữ liệu mới nhất, bạn phải cung cấp thông qua Tools.
 
-Ví dụ: nếu hỏi trực tiếp LLM (không dùng công cụ tìm kiếm) về thời tiết hôm nay, LLM có thể "hallucinate" ra thời tiết ngẫu nhiên.
+Ví dụ: nếu hỏi trực tiếp LLM (không dùng công cụ tìm kiếm) về thời tiết hôm nay, LLM có thể "bịa" (hallucinate) ra một thông tin thời tiết ngẫu nhiên.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Weather"/>
 
@@ -38,26 +38,26 @@ Ví dụ: nếu hỏi trực tiếp LLM (không dùng công cụ tìm kiếm) v�
   - **Mô tả bằng văn bản** về chức năng
   - *Callable* (thứ để thực thi hành động)
   - *Arguments* với kiểu dữ liệu
-  - (Tùy chọn) Outputs với kiểu dữ liệu
+  - (Tùy chọn) Đầu ra với kiểu dữ liệu
 
 ## Tools hoạt động thế nào?
 
-Như đã biết, LLM chỉ nhận input text và tạo output text. Chúng không thể tự gọi Tools. Khi nói về _cung cấp Tools cho Agent_, nghĩa là ta **dạy** LLM về sự tồn tại của Tools và yêu cầu model tạo text để kích hoạt Tools khi cần. Ví dụ: nếu cung cấp Tool kiểm tra thời tiết từ Internet, khi hỏi LLM về thời tiết Paris, LLM sẽ nhận ra cần dùng Tool "weather". LLM sẽ tạo _text_ dạng code để gọi Tool. **Agent** có nhiệm vụ phân tích output của LLM, nhận diện lệnh gọi Tool và thực thi thay cho LLM. Output từ Tool sẽ được gửi lại LLM để tổng hợp response cuối cho người dùng.
+Như đã biết, LLM chỉ nhận đầu vào dạng text và tạo đầu ra dạng text. Chúng không thể tự gọi Tools. Khi nói về _cung cấp Tools cho Agent_, nghĩa là ta **dạy** LLM về sự tồn tại của Tools và yêu cầu mô hình tạo text để kích hoạt Tools khi cần. Ví dụ: nếu cung cấp Tool kiểm tra thời tiết từ Internet, khi hỏi LLM về thời tiết Paris, LLM sẽ nhận ra cần dùng Tool "weather". LLM sẽ tạo _text_ dạng code để gọi Tool. **Agent** có nhiệm vụ phân tích đầu ra của LLM, nhận diện lệnh gọi Tool và thực thi thay cho LLM. Đầu ra từ Tool sẽ được gửi lại LLM để tổng hợp trả lời (response) cuối cho người dùng.
 
-Output từ Tool là một loại message khác trong hội thoại. Các bước gọi Tool thường không hiển thị cho người dùng: Agent lấy hội thoại, gọi Tool(s), nhận output, thêm chúng vào hội thoại và gửi lại LLM. Từ góc độ người dùng, trông như LLM tự dùng Tool nhưng thực chất là code ứng dụng (**Agent**) thực hiện.
+Đầu ra từ Tool là một loại message khác trong hội thoại. Các bước gọi Tool thường không hiển thị cho người dùng: Agent lấy hội thoại, gọi Tool(s), nhận đầu ra, thêm chúng vào hội thoại và gửi lại LLM. Từ góc độ người dùng, trông như LLM tự dùng Tool nhưng thực chất là code ứng dụng (**Agent**) thực hiện.
 
 Chúng ta sẽ nói thêm về quy trình này trong các bài sau.
 
 ## Cách cung cấp Tools cho LLM?
 
-Câu trả lời đầy đủ có vẻ phức tạp, nhưng về cơ bản ta dùng system prompt để cung cấp mô tả Tools cho model:
+Câu trả lời đầy đủ có vẻ phức tạp, nhưng về cơ bản ta dùng system prompt để cung cấp mô tả Tools cho mô hình:
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="System prompt for tools"/>
 
 Để điều này hoạt động, ta cần chính xác về:
 
 1. **Chức năng của Tool**
-2. **Inputs mà nó mong đợi**
+2. **Đầu vào mà nó mong đợi**
 
 Đây là lý do mô tả Tools thường dùng cấu trúc chính xác như ngôn ngữ máy tính hoặc JSON. Không _bắt buộc_ phải làm vậy, bất kỳ định dạng chính xác nào cũng được.
 
@@ -71,12 +71,12 @@ def calculator(a: int, b: int) -> int:
     return a * b
 ```
 
-Tool của ta tên `calculator`, **nhân hai số nguyên** và cần các inputs:
+Tool của ta tên `calculator`, **nhân hai số nguyên** và cần các đầu vào:
 
 - **`a`** (*int*): Số nguyên
 - **`b`** (*int*): Số nguyên
 
-Output của Tool là số nguyên:
+Đầu ra của Tool là số nguyên:
 - (*int*): Tích của `a` và `b`
 
 Tất cả chi tiết này đều quan trọng. Hãy tổng hợp chúng thành chuỗi mô tả Tool cho LLM:
@@ -87,7 +87,7 @@ Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b
 
 > **Nhắc nhở:** Mô tả text này là *thứ ta muốn LLM biết về Tool*.
 
-Khi đưa chuỗi trên vào input của LLM, model sẽ nhận diện nó là Tool và biết cần truyền inputs gì, mong đợi output gì.
+Khi đưa chuỗi trên vào đầu vào của LLM, mô hình sẽ nhận diện nó là Tool và biết cần truyền đầu vào gì, mong đợi đầu ra gì.
 
 Nếu muốn cung cấp nhiều Tools, ta cần nhất quán định dạng. Quá trình này có thể mong manh và dễ bỏ sót chi tiết.
 
@@ -95,18 +95,18 @@ Có cách nào tốt hơn?
 
 ### Tự động định dạng phần Tools
 
-Tool của ta được viết bằng Python, và implementation đã cung cấp mọi thứ cần thiết:
+Tool của ta được viết bằng Python, và phần triển khai đã cung cấp mọi thứ cần thiết:
 
 - Tên mô tả: `calculator`
 - Mô tả dài trong docstring: `Multiply two integers.`
-- Inputs và kiểu dữ liệu: hàm mong đợi hai `int`
-- Kiểu output.
+- Đầu vào và kiểu dữ liệu: hàm mong đợi hai `int`
+- Kiểu đầu ra.
 
 Có lý do để mọi người dùng ngôn ngữ lập trình: chúng biểu đạt tốt, ngắn gọn và chính xác.
 
-Ta có thể đưa source code Python làm _đặc tả_ Tool cho LLM, nhưng cách triển khai Tool không quan trọng. Điều quan trọng là tên, chức năng, inputs và outputs.
+Ta có thể đưa mã nguồn Python làm _đặc tả_ Tool cho LLM, nhưng cách triển khai Tool không quan trọng. Điều quan trọng là tên, chức năng, đầu vào và đầu ra.
 
-Ta sẽ tận dụng tính năng introspection của Python để tự động xây dựng mô tả Tool từ source code. Điều kiện là implementation Tool phải dùng type hints, docstrings và tên hàm hợp lý. Ta sẽ viết code để trích xuất thông tin từ source code.
+Ta sẽ tận dụng tính năng introspection của Python để tự động xây dựng mô tả Tool từ mã nguồn. Điều kiện là phần triển khai Tool phải dùng type hints, docstrings và tên hàm hợp lý. Ta sẽ viết code để trích xuất thông tin từ mã nguồn.
 
 Sau đó, ta chỉ cần dùng Python decorator để đánh dấu hàm `calculator` là Tool:
 
@@ -121,7 +121,7 @@ print(calculator.to_string())
 
 Chú ý decorator `@tool` trước định nghĩa hàm.
 
-Với implementation sẽ học tiếp theo, ta có thể tự động lấy text mô tả Tool thông qua hàm `to_string()` từ decorator:
+Với phần triển khai sẽ học tiếp theo, ta có thể tự động lấy text mô tả Tool thông qua hàm `to_string()` từ decorator:
 
 ```text
 Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
@@ -133,7 +133,7 @@ Như bạn thấy, nó giống hệt phần ta viết tay trước đó!
 
 Ta tạo lớp `Tool` tổng quát để tái sử dụng khi cần dùng Tool.
 
-> **Lưu ý:** Ví dụ này là giả định nhưng gần với implementation thực tế trong các thư viện.
+> **Lưu ý:** Ví dụ này là giả định nhưng gần với phần triển khai thực tế trong các thư viện.
 
 ```python
 class Tool:
@@ -199,8 +199,8 @@ calculator_tool = Tool(
     "calculator",                   # tên
     "Multiply two integers.",       # mô tả
     calculator,                     # hàm gọi
-    [("a", "int"), ("b", "int")],   # inputs (tên và kiểu)
-    "int",                          # output
+    [("a", "int"), ("b", "int")],   # đầu vào (tên và kiểu)
+    "int",                          # đầu ra
 )
 ```
 
@@ -219,7 +219,7 @@ def tool(func):
     # Lấy signature của hàm
     signature = inspect.signature(func)
     
-    # Trích xuất cặp (tên tham số, kiểu dữ liệu) cho inputs
+    # Trích xuất cặp (tên tham số, kiểu dữ liệu) cho đầu vào
     arguments = []
     for param in signature.parameters.values():
         annotation_name = (
@@ -289,10 +289,10 @@ Tóm lại, ta đã học:
 
 - *Tools là gì*: Các hàm mở rộng khả năng của LLM như tính toán hay truy cập dữ liệu ngoài
 
-- *Cách định nghĩa Tool*: Bằng cách cung cấp mô tả rõ ràng, inputs, outputs và hàm thực thi
+- *Cách định nghĩa Tool*: Bằng cách cung cấp mô tả rõ ràng, đầu vào, đầu ra và hàm thực thi
 
-- *Tại sao Tools quan trọng*: Chúng giúp Agent vượt giới hạn của model tĩnh, xử lý tác vụ thời gian thực và thực hiện hành động chuyên biệt
+- *Tại sao Tools quan trọng*: Chúng giúp Agent vượt giới hạn của mô hình tĩnh, xử lý tác vụ thời gian thực và thực hiện hành động chuyên biệt
 
-Giờ ta có thể chuyển sang [Agent Workflow](agent-steps-and-structure) để xem cách Agent quan sát, suy nghĩ và hành động. Đây là **tổng hợp mọi thứ đã học** và đặt nền móng để bạn tạo AI Agent chức năng hoàn chỉnh.
+Giờ ta có thể chuyển sang [Agent Workflow](agent-steps-and-structure) để xem cách Agent quan sát, tư duy và hành động. Đây là **tổng hợp mọi thứ đã học** và đặt nền móng để bạn tạo AI agent chức năng hoàn chỉnh.
 
 Nhưng trước hết, hãy cùng làm Kiểm tra nhanh!

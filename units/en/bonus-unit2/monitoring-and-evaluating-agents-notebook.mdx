@@ -98,12 +98,12 @@ Here is a simple CodeAgent from smolagents that calculates `1+1`. We run it to c
 
 
 ```python
-from smolagents import HfApiModel, CodeAgent
+from smolagents import InferenceClientModel, CodeAgent
 
 # Create a simple agent to test instrumentation
 agent = CodeAgent(
     tools=[],
-    model=HfApiModel()
+    model=InferenceClientModel()
 )
 
 agent.run("1+1=")
@@ -123,10 +123,10 @@ Now that you have confirmed your instrumentation works, let's try a more complex
 
 
 ```python
-from smolagents import (CodeAgent, DuckDuckGoSearchTool, HfApiModel)
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
 
 search_tool = DuckDuckGoSearchTool()
-agent = CodeAgent(tools=[search_tool], model=HfApiModel())
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
 
 agent.run("How many Rubik's Cubes could you fit inside the Notre Dame Cathedral?")
 ```
@@ -135,7 +135,7 @@ agent.run("How many Rubik's Cubes could you fit inside the Notre Dame Cathedral?
 
 Most observability tools record a **trace** that contains **spans**, which represent each step of your agent’s logic. Here, the trace contains the overall agent run and sub-spans for:
 - The tool calls (DuckDuckGoSearchTool)
-- The LLM calls (HfApiModel)
+- The LLM calls (InferenceClientModel)
 
 You can inspect these to see precisely where time is spent, how many tokens are used, and so on:
 
@@ -178,13 +178,13 @@ You may also pass additional attributes—such as user IDs, session IDs, or tags
 
 
 ```python
-from smolagents import (CodeAgent, DuckDuckGoSearchTool, HfApiModel)
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
 from opentelemetry import trace
 
 search_tool = DuckDuckGoSearchTool()
 agent = CodeAgent(
     tools=[search_tool],
-    model=HfApiModel()
+    model=InferenceClientModel()
 )
 
 with tracer.start_as_current_span("Smolagent-Trace") as span:
@@ -207,11 +207,11 @@ In the code snippet below, when a user sends a chat message, we capture the Open
 ```python
 import gradio as gr
 from opentelemetry.trace import format_trace_id
-from smolagents import (CodeAgent, HfApiModel)
+from smolagents import (CodeAgent, InferenceClientModel)
 from langfuse import Langfuse
 
 langfuse = Langfuse()
-model = HfApiModel()
+model = InferenceClientModel()
 agent = CodeAgent(tools=[], model=model, add_base_tools=True)
 
 formatted_trace_id = None  # We'll store the current trace_id globally for demonstration
@@ -284,10 +284,10 @@ Example from Langfuse:
 
 ```python
 # Example: Checking if the agent’s output is toxic or not.
-from smolagents import (CodeAgent, DuckDuckGoSearchTool, HfApiModel)
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
 
 search_tool = DuckDuckGoSearchTool()
-agent = CodeAgent(tools=[search_tool], model=HfApiModel())
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
 
 agent.run("Can eating carrots improve your vision?")
 ```
@@ -374,10 +374,10 @@ Then, we loop over each dataset item, run the agent, and link the trace to the d
 
 ```python
 from opentelemetry.trace import format_trace_id
-from smolagents import (CodeAgent, HfApiModel, LiteLLMModel)
+from smolagents import (CodeAgent, InferenceClientModel, LiteLLMModel)
 
-# Example: using HfApiModel or LiteLLMModel to access openai, anthropic, gemini, etc. models:
-model = HfApiModel()
+# Example: using InferenceClientModel or LiteLLMModel to access openai, anthropic, gemini, etc. models:
+model = InferenceClientModel()
 
 agent = CodeAgent(
     tools=[],

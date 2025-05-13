@@ -1,0 +1,281 @@
+# Crear workflows agenticos en LlamaIndex
+
+Un workflow en LlamaIndex proporciona una forma estructurada de organizar su código en pasos secuenciales y manejables.
+
+Tal workflow se crea definiendo `Steps` que se activan por `Events`, y emiten `Events` para activar pasos posteriores.
+
+Echemos un vistazo a Alfred mostrando un workflow de LlamaIndex para una tarea de RAG.
+
+![Workflows esquematico](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflows.png)
+
+**Workflows ofrecen varios beneficios clave:**
+
+- Organizacion clara de código en pasos discretos
+- Arquitectura de control de flujo basada en eventos flexible
+- Comunicación de tipado segura entre pasos
+- Manejo de estado integrado
+- Apoyo para agentes simples y complejos
+
+Como podra haber adivinado, **workflows ofrecen un equilibrio entre la autonomía de los agentes mientras se mantiene el control sobre el workflow global.**
+
+Asi que, vamos a aprender como crear un workflow nosotros mismos!
+
+## Crear Workflows
+
+<Tip>
+Puede seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">esta notebook</a> que puede ejecutar utilizando Google Colab.
+</Tip>
+
+### Crear un workflow básico
+
+<details>
+<summary>Instalar el paquete Workflow</summary>
+Como se introdujo en la [sección sobre LlamaHub](llama-hub), podemos instalar el paquete Workflow con el siguiente comando:
+
+```python
+pip install llama-index-utils-workflow
+```
+</details>
+
+Podemos crear un flujo de trabajo de un solo paso definiendo una clase que herede de `Workflow` y decorando tus funciones con `@step`.
+También necesitaremos añadir `StartEvent` y `StopEvent`, que son eventos especiales que se utilizan para indicar el inicio y el fin del flujo de trabajo.
+
+```python
+from llama_index.core.workflow import StartEvent, StopEvent, Workflow, step
+
+class MyWorkflow(Workflow):
+    @step
+    async def my_step(self, ev: StartEvent) -> StopEvent:
+        # hacer algo aquí
+        return StopEvent(result="¡Hola, mundo!")
+
+
+w = MyWorkflow(timeout=10, verbose=False)
+result = await w.run()
+```
+
+Como puedes ver, ahora podemos ejecutar el flujo de trabajo llamando a `w.run()`.
+
+### Conectando Múltiples Pasos
+
+Para conectar múltiples pasos, **creamos eventos personalizados que transportan datos entre pasos.**
+Para hacerlo, necesitamos agregar un `Event` que se pasa entre los pasos y transfiere la salida del primer paso al segundo paso.
+
+```python
+from llama_index.core.workflow import Event
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent) -> ProcessingEvent:
+        # Procesar datos iniciales
+        return ProcessingEvent(intermediate_result="Paso 1 completado")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Usar el resultado intermedio
+        final_result = f"Procesamiento finalizado: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+w = MultiStepWorkflow(timeout=10, verbose=False)
+result = await w.run()
+result
+```
+
+La indicación de tipo es importante aquí, ya que asegura que el flujo de trabajo se ejecute correctamente. ¡Vamos a complicar un poco más las cosas!
+
+### Bucles y Ramificaciones
+
+La indicación de tipo es la parte más poderosa de los flujos de trabajo porque nos permite crear ramificaciones, bucles y uniones para facilitar flujos de trabajo más complejos.
+
+Veamos un ejemplo de **creación de un bucle** usando el operador de unión `|`.
+En el ejemplo siguiente, vemos que el `LoopEvent` se toma como entrada para el paso y también puede devolverse como salida.
+
+```python
+from llama_index.core.workflow import Event
+import random
+
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+
+class LoopEvent(Event):
+    loop_output: str
+
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent) -> ProcessingEvent | LoopEvent:
+        if random.randint(0, 1) == 0:
+            print("Ocurrió algo malo")
+            return LoopEvent(loop_output="Volver al paso uno.")
+        else:
+            print("Ocurrió algo bueno")
+            return ProcessingEvent(intermediate_result="Primer paso completado.")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent | LoopEvent) -> StopEvent:
+        # Usar el resultado intermedio
+        final_result = f"Procesamiento finalizado: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+
+w = MultiStepWorkflow(verbose=False)
+result = await w.run()
+result
+```
+
+### Dibujando Flujos de Trabajo
+
+También podemos dibujar flujos de trabajo. Usemos la función `draw_all_possible_flows` para dibujar el flujo de trabajo. Esto almacena el flujo de trabajo en un archivo HTML.
+
+```python
+from llama_index.utils.workflow import draw_all_possible_flows
+
+w = ... # como se definió en la sección anterior
+draw_all_possible_flows(w, "flow.html")
+```
+
+![dibujo del flujo de trabajo](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflow-draw.png)
+
+Hay un último truco interesante que cubriremos en el curso, que es la capacidad de añadir estado al flujo de trabajo.
+
+### Gestión de Estado
+
+La gestión de estado es útil cuando quieres hacer un seguimiento del estado del flujo de trabajo, para que cada paso tenga acceso al mismo estado.
+Podemos hacer esto usando la pista de tipo `Context` encima de un parámetro en la función del paso.
+
+```python
+from llama_index.core.workflow import Context, StartEvent, StopEvent
+
+
+@step
+async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
+    # almacenar en contexto
+    await ctx.set("query", "¿Cuál es la capital de Francia?")
+
+    # hacer algo con el contexto y el evento
+    val = ...
+
+    # recuperar del contexto
+    query = await ctx.get("query")
+
+    return StopEvent(result=result)
+```
+
+¡Genial! ¡Ahora sabes cómo crear flujos de trabajo básicos en LlamaIndex!
+
+<Tip>Hay algunos matices más complejos en los flujos de trabajo, que puedes aprender en <a href="https://docs.llamaindex.ai/en/stable/understanding/workflows/">la documentación de LlamaIndex</a>.</Tip>
+
+Sin embargo, hay otra forma de crear flujos de trabajo, que se basa en la clase `AgentWorkflow`. Veamos cómo podemos usar esto para crear un flujo de trabajo multiagente.
+
+## Automatizando flujos de trabajo con Flujos de Trabajo Multiagente
+
+En lugar de la creación manual de flujos de trabajo, podemos usar la clase **`AgentWorkflow` para crear un flujo de trabajo multiagente**.
+El `AgentWorkflow` utiliza Agentes de Flujo de Trabajo para permitirte crear un sistema de uno o más agentes que pueden colaborar y transferir tareas entre sí según sus capacidades especializadas.
+Esto permite construir sistemas de agentes complejos donde diferentes agentes manejan diferentes aspectos de una tarea.
+En lugar de importar clases de `llama_index.core.agent`, importaremos las clases de agente de `llama_index.core.agent.workflow`.
+Un agente debe ser designado como el agente raíz en el constructor de `AgentWorkflow`.
+Cuando llega un mensaje de usuario, primero se dirige al agente raíz.
+
+Cada agente puede entonces:
+
+- Manejar la solicitud directamente usando sus herramientas
+- Transferir a otro agente mejor preparado para la tarea
+- Devolver una respuesta al usuario
+
+Veamos cómo crear un flujo de trabajo multiagente.
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow, ReActAgent
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Definir algunas herramientas
+def add(a: int, b: int) -> int:
+    """Sumar dos números."""
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    """Multiplicar dos números."""
+    return a * b
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# podemos pasar funciones directamente sin FunctionTool -- la función/docstring se analizan para el nombre/descripción
+multiply_agent = ReActAgent(
+    name="multiply_agent",
+    description="Es capaz de multiplicar dos enteros",
+    system_prompt="Un asistente útil que puede usar una herramienta para multiplicar números.",
+    tools=[multiply],
+    llm=llm,
+)
+
+addition_agent = ReActAgent(
+    name="add_agent",
+    description="Es capaz de sumar dos enteros",
+    system_prompt="Un asistente útil que puede usar una herramienta para sumar números.",
+    tools=[add],
+    llm=llm,
+)
+
+# Crear el flujo de trabajo
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+)
+
+# Ejecutar el sistema
+response = await workflow.run(user_msg="¿Puedes sumar 5 y 3?")
+```
+
+Las herramientas del agente también pueden modificar el estado del flujo de trabajo que mencionamos anteriormente. Antes de iniciar el flujo de trabajo, podemos proporcionar un diccionario de estado inicial que estará disponible para todos los agentes.
+El estado se almacena en la clave state del contexto del flujo de trabajo. Se inyectará en el state_prompt que aumenta cada nuevo mensaje de usuario.
+
+Vamos a inyectar un contador para contar las llamadas a funciones modificando el ejemplo anterior:
+
+```python
+from llama_index.core.workflow import Context
+
+# Definir algunas herramientas
+async def add(ctx: Context, a: int, b: int) -> int:
+    """Sumar dos números."""
+    # actualizar nuestro contador
+    cur_state = await ctx.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.set("state", cur_state)
+
+    return a + b
+
+async def multiply(ctx: Context, a: int, b: int) -> int:
+    """Multiplicar dos números."""
+    # actualizar nuestro contador
+    cur_state = await ctx.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.set("state", cur_state)
+
+    return a * b
+
+...
+
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent"
+    initial_state={"num_fn_calls": 0},
+    state_prompt="Estado actual: {state}. Mensaje del usuario: {msg}",
+)
+
+# ejecutar el flujo de trabajo con contexto
+ctx = Context(workflow)
+response = await workflow.run(user_msg="¿Puedes sumar 5 y 3?", ctx=ctx)
+
+# extraer e inspeccionar el estado
+state = await ctx.get("state")
+print(state["num_fn_calls"])
+```
+
+¡Felicidades! ¡Ahora has dominado los conceptos básicos de los Agentes en LlamaIndex! 🎉
+
+¡Continuemos con un último cuestionario para consolidar tu conocimiento! 🚀

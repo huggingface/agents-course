@@ -1,0 +1,109 @@
+# Uso de Herramientas en LlamaIndex
+
+**Definir un conjunto claro de herramientas es crucial para el rendimiento.** Como discutimos en [unidad 1](../../unit1/tools), las interfaces de herramientas claras son más fáciles de usar para los LLM.
+Al igual que una interfaz de API para ingenieros humanos, pueden obtener m s de la herramienta si es f cil de entender c mo funciona.
+
+Hay **cuatro tipos principales de herramientas en LlamaIndex**:
+
+![Herramientas](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1. `FunctionTool`: Convierte cualquier función de Python en una herramienta que un agente puede utilizar. Averigua autom ticamente cómo funciona.
+2. `QueryEngineTool`: Una herramienta que permite a los agentes utilizar motores de consulta. Dado que los agentes est n construidos sobre motores de consulta, también pueden utilizar a otros agentes como herramientas.
+3. `Toolspecs`: Conjuntos de herramientas creados por la comunidad, que a menudo incluyen herramientas para servicios específicos como Gmail.
+4. `Utility Tools`: Herramientas especiales que ayudan a manejar grandes cantidades de datos de otras herramientas.
+
+Vamos a ver cada una de ellas en más detalle a continuación.
+
+## Crear una FunctionTool
+
+<Tip>
+Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">este cuaderno</a> que puedes ejecutar utilizando Google Colab.
+</Tip>
+
+Una FunctionTool proporciona una forma sencilla de envolver cualquier función de Python y hacerla disponible para un agente.
+Puedes pasar tanto una función sincrónica como asincrona a la herramienta, junto con par metros opcionales `name` y `description`.
+El nombre y la descripción son particularmente importantes, ya que ayudan al agente a entender cuando y cómo utilizar la herramienta de manera efectiva.
+Vamos a ver cómo crear una FunctionTool a continuación y luego llamarla.
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Útil para obtener el clima para una ubicación determinada."""
+    print(f"Obtener clima de {location}")
+    return f"El clima en {location} es soleado"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Útil para obtener el clima para una ubicación determinada.",
+)
+tool.call("Nuevo York")
+```
+
+<Tip>Cuando se utiliza un agente o LLM con llamadas a funciones, la herramienta seleccionada (y los argumentos escritos para esa herramienta) dependen en gran medida del nombre de la herramienta y la descripción del proposito y argumentos de la herramienta. Aprende más sobre la llamada a funciones en la <a href="https://docs.llamaindex.ai/es/stable/module_guides/deploying/agents/modules/function_calling.html">Guía de llamada a funciones</a> y <a href="https://docs.llamaindex.ai/es/stable/understanding/agent/function_calling.html">Guía de aprendizaje de llamada a funciones</a>.</Tip>
+
+## Creando un QueryEngineTool
+
+The `QueryEngine` que definimos en la unidad anterior puede ser facilmente transformado en una herramienta usando la clase `QueryEngineTool`.
+Vamos a ver como crear un `QueryEngineTool` desde un `QueryEngine` en el ejemplo siguiente.
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceInferenceAPIEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## Crear Herramientas Especificas
+
+Piensa en `ToolSpecs` como colecciones de herramientas que trabajan juntas armoniosamente - como una caja de herramientas bien organizada de un profesional.
+Al igual que una caja de herramientas de un mecanico contiene herramientas complementarias que trabajan juntas para reparaciones de vehiculos, un `ToolSpec` combina herramientas relacionadas para un proposito especifico.
+Por ejemplo, la herramienta especifica de un agente contable podria combinar elegante mente capacidades de hoja de calculo, funcionalidad de correo electronico y herramientas de calculo para manejar tareas financieras con precision y eficiencia.
+
+<details>
+<summary>Instalar la herramienta especifica de Google</summary>
+Como se introdujo en la [seccion sobre LlamaHub](llama-hub), podemos instalar la herramienta especifica de Google con el siguiente comando:
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+Y ahora podemos cargar la herramienta especifica y convertirla en una lista de herramientas.
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+
+Para obtener una visión más detallada de las herramientas, podemos examinar los `metadata` de cada una de ellas.
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+## Herramientas de utilidad
+
+A menudo, realizar consultas a una API **puede devolver una cantidad excesiva de datos**, algunos de los cuales pueden ser irrelevantes, desbordar la ventana de contexto del LLM o aumentar innecesariamente el número de tokens que se están utilizando.
+Vamos a revisar nuestras dos principales herramientas de utilidad a continuaci n.
+
+1. `OnDemandToolLoader`: Esta herramienta convierte cualquier cargador de datos existente de LlamaIndex (clase BaseReader) en una herramienta que un agente puede utilizar. La herramienta se puede llamar con todos los parámetros necesarios para desencadenar `load_data` del cargador de datos, junto con una cadena de consulta de lenguaje natural. Durante la ejecución, primero cargamos datos del cargador de datos, los indexamos (por ejemplo, con un vector store) y luego los consultamos. Todos estos tres pasos se realizan en una sola llamada a la herramienta.
+2. `LoadAndSearchToolSpec`: El LoadAndSearchToolSpec toma cualquier herramienta existente como entrada. Como herramienta específicas, implementa `to_tool_list`, y cuando se llama a esa función, se devuelven dos herramientas: una herramienta de carga y una herramienta de búsqueda. La ejecución de la herramienta de carga llamar  a la herramienta subyacente, y luego indexar  la salida (por defecto con un vector index). La ejecución de la herramienta de búsqueda tomar  una cadena de consulta como entrada y llamar  al vector index subyacente.
+
+<Tip>Puedes encontrar herramientas y herramientas de utilidad en <a href="https://llamahub.ai/">LlamaHub</a></Tip>
+
+Ahora que entendemos los conceptos básicos de agentes y herramientas en LlamaIndex, veamos cómo podemos **usar LlamaIndex para crear flujos de trabajo configurables y manejables!**

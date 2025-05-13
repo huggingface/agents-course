@@ -1,0 +1,464 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/bonus-unit2/monitoring-and-evaluating-agents.ipynb"},
+]} />
+
+# 附加单元 2：AI 智能体(AI Agent)的可观测性与评估
+
+<Tip>
+你可以跟随<a href="https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit2/monitoring-and-evaluating-agents-notebook.ipynb" target="_blank">这个 notebook</a> 中的代码进行操作，你可以在 Google Colab 上运行它。
+</Tip>
+
+在这个 notebook 中，我们将学习如何使用开源可观测性工具来**监督我们 AI 智能体的内部步骤（追踪）**并**评估其性能**。
+
+观测和评估智能体行为的能力对于以下方面至关重要：
+- 当任务失败或产生次优结果时调试问题
+- 实时跟踪成本和性能
+- 通过持续反馈提高可靠性和安全性
+
+## 练习先决条件 🏗️
+
+在运行此 notebook 之前，请确保你已经：
+
+🔲 📚  **学习了** [智能体简介](https://huggingface.co/learn/agents-course/unit1/introduction)
+
+🔲 📚  **学习了** [smolagents 框架](https://huggingface.co/learn/agents-course/unit2/smolagents/introduction)
+
+## 步骤 0：安装所需的库
+
+我们将需要一些库，以便我们能够运行、监控和评估我们的智能体：
+
+
+```python
+%pip install 'smolagents[telemetry]'
+%pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+%pip install langfuse datasets 'smolagents[gradio]'
+```
+
+## 步骤 1：检测你的智能体
+
+在这个 notebook 中，我们将使用 [Langfuse](https://langfuse.com/) 作为我们的可观测性工具，但你可以使用**任何其他兼容 OpenTelemetry 的服务**。下面的代码展示了如何为 Langfuse（或任何 OTel 端点）设置环境变量，以及如何检测你的 smolagent。
+
+**请注意：** 如果你正在使用 LlamaIndex 或 LangGraph，你可以在[这里](https://langfuse.com/docs/integrations/llama-index/workflows)和[这里](https://langfuse.com/docs/integrations/langchain/example-python-langgraph)找到检测它们的文档。
+
+首先，让我们配置正确的环境变量，以设置到 Langfuse OpenTelemetry 端点的连接。
+
+```python
+import os
+import base64
+
+# 从 https://cloud.langfuse.com 获取你自己的密钥
+LANGFUSE_PUBLIC_KEY = "pk-lf-..."
+LANGFUSE_SECRET_KEY = "sk-lf-..."
+os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
+os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"  # 🇪🇺 欧盟区域示例
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com"  # 🇺🇸 美国区域示例
+
+LANGFUSE_AUTH = base64.b64encode(
+    f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()
+).decode()
+
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = os.environ.get("LANGFUSE_HOST") + "/api/public/otel"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+```
+我们还需要配置我们的 Hugging Face token 用于推理调用。
+
+```python
+# 将你的 Hugging Face 和其他 token或者密钥设置为环境变量
+os.environ["HF_TOKEN"] = "hf_..."
+```
+接下来，我们可以为我们配置的 OpenTelemetry 设置一个 tracer-provider。
+
+```python
+from opentelemetry.sdk.trace import TracerProvider
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+
+# 为 OpenTelemetry 创建一个 TracerProvider
+trace_provider = TracerProvider()
+
+# 添加一个带有 OTLPSpanExporter 的 SimpleSpanProcessor 来发送追踪
+trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+
+# 设置全局默认 tracer provider
+from opentelemetry import trace
+trace.set_tracer_provider(trace_provider)
+tracer = trace.get_tracer(__name__)
+
+# 使用配置的 provider 检测 smolagents
+SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+
+```
+
+## 步骤 2：测试你的检测
+
+这里有一个来自 smolagents 的简单 CodeAgent，用于计算 `1+1`。我们运行它来确认检测是否正常工作。如果一切设置正确，你将在你的可观测性仪表板中看到日志/跨度（spans）。
+
+
+```python
+from smolagents import InferenceClientModel, CodeAgent
+
+# 创建一个简单的智能体来测试检测
+agent = CodeAgent(
+    tools=[],
+    model=InferenceClientModel()
+)
+
+agent.run("1+1=")
+```
+
+检查你的 [Langfuse Traces Dashboard](https://cloud.langfuse.com)（或你选择的可观测性工具）以确认跨度（spans）和日志已被记录。
+
+Langfuse 中的示例截图：
+
+![Example trace in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/first-example-trace.png)
+
+_[追踪链接](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1b94d6888258e0998329cdb72a371155?timestamp=2025-03-10T11%3A59%3A41.743Z)_
+
+## 步骤 3：观测和评估更复杂的AI智能体
+
+既然你已经确认你的检测工作正常，让我们尝试一个更复杂的查询，这样我们就可以看到高级指标（token 使用量、延迟、成本等）是如何被追踪的。
+
+
+```python
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+
+search_tool = DuckDuckGoSearchTool()
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
+
+agent.run("How many Rubik's Cubes could you fit inside the Notre Dame Cathedral?")
+```
+
+### 追踪结构
+
+大多数可观测性工具会记录一个**追踪（trace）**，其中包含**跨度（spans）**，每个跨度代表你的智能体逻辑的一个步骤。在这里，追踪包含了整体的智能体运行以及用于以下内容的子跨度：
+- 工具调用 (DuckDuckGoSearchTool)
+- LLM 调用 (InferenceClientModel)
+
+你可以检查这些跨度，以精确地了解时间花在哪里、使用了多少 token 等等：
+
+Langfuse 中的追踪树：
+
+![Trace tree in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/trace-tree.png)
+
+_[前往追踪（trace）的链接](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1ac33b89ffd5e75d4265b62900c348ed?timestamp=2025-03-07T13%3A45%3A09.149Z&display=preview)_
+
+## 在线评估
+
+在上一节中，我们了解了在线评估和离线评估的区别。现在，我们将了解如何在生产环境中监控你的智能体并实时评估它。
+
+### 生产环境中要追踪的常见指标
+
+1.  **成本** — smolagents 检测会捕获 token 使用量，你可以通过为每个 token 分配价格将其转换为近似成本。
+2.  **延迟** — 观察完成每个步骤或整个运行所需的时间。
+3.  **用户反馈** — 用户可以提供直接反馈（点赞/点踩）来帮助优化或纠正智能体。
+4.  **LLM 作为评判者** — 使用一个单独的 LLM 来近乎实时地评估你的智能体的输出（例如，检查毒性或正确性）。
+
+下面，我们展示这些指标的示例。
+
+#### 1. 成本
+
+下面是一个显示 `Qwen2.5-Coder-32B-Instruct` 调用使用情况的截图。这对于查看成本高昂的步骤并优化你的智能体很有用。
+
+![Costs](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-costs.png)
+
+_[前往追踪（trace）的链接](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1ac33b89ffd5e75d4265b62900c348ed?timestamp=2025-03-07T13%3A45%3A09.149Z&display=preview)_
+
+#### 2. 延迟
+
+我们还可以看到完成每个步骤所需的时间。在下面的示例中，整个对话花费了 32 秒，你可以按步骤分解。这有助于你识别瓶颈并优化你的智能体。
+
+![Latency](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-latency.png)
+
+_[前往追踪（trace）的链接](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1ac33b89ffd5e75d4265b62900c348ed?timestamp=2025-03-07T13%3A45%3A09.149Z&display=preview)_
+
+#### 3. 附加属性
+
+你还可以通过在跨度（spans）上设置附加属性——例如用户 ID、会话 ID 或标签。例如，smolagents 检测使用 OpenTelemetry 来附加诸如 `langfuse.user.id` 或自定义标签之类的属性。
+
+
+```python
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+from opentelemetry import trace
+
+search_tool = DuckDuckGoSearchTool()
+agent = CodeAgent(
+    tools=[search_tool],
+    model=InferenceClientModel()
+)
+
+with tracer.start_as_current_span("Smolagent-Trace") as span:
+    span.set_attribute("langfuse.user.id", "smolagent-user-123")
+    span.set_attribute("langfuse.session.id", "smolagent-session-123456789")
+    span.set_attribute("langfuse.tags", ["city-question", "testing-agents"])
+
+    agent.run("What is the capital of Germany?")
+
+```
+
+![Enhancing agent runs with additional metrics](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-attributes.png)
+
+#### 4. 用户反馈
+
+如果你的智能体嵌入到用户界面中，你可以记录直接的用户反馈（例如聊天界面中的点赞/点踩）。下面是使用 [Gradio](https://gradio.app/) 嵌入带有简单反馈机制的聊天示例。
+
+在下面的代码片段中，当用户发送聊天消息时，我们捕获 OpenTelemetry 追踪 ID。如果用户喜欢/不喜欢上一个答案，我们将评分附加到该追踪上。
+
+
+```python
+import gradio as gr
+from opentelemetry.trace import format_trace_id
+from smolagents import (CodeAgent, InferenceClientModel)
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+model = InferenceClientModel()
+agent = CodeAgent(tools=[], model=model, add_base_tools=True)
+
+formatted_trace_id = None  # 为演示目的，我们将在全局存储当前的 trace_id
+
+def respond(prompt, history):
+    with trace.get_tracer(__name__).start_as_current_span("Smolagent-Trace") as span:
+        output = agent.run(prompt)
+
+        current_span = trace.get_current_span()
+        span_context = current_span.get_span_context()
+        trace_id = span_context.trace_id
+        global formatted_trace_id
+        formatted_trace_id = str(format_trace_id(trace_id))
+        langfuse.trace(id=formatted_trace_id, input=prompt, output=output)
+
+    history.append({"role": "assistant", "content": str(output)})
+    return history
+
+def handle_like(data: gr.LikeData):
+    # 作为演示，我们将用户反馈映射为 1 (喜欢) 或 0 (不喜欢)
+    if data.liked:
+        langfuse.score(
+            value=1,
+            name="user-feedback",
+            trace_id=formatted_trace_id
+        )
+    else:
+        langfuse.score(
+            value=0,
+            name="user-feedback",
+            trace_id=formatted_trace_id
+        )
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot(label="Chat", type="messages")
+    prompt_box = gr.Textbox(placeholder="Type your message...", label="Your message")
+
+    # 当用户在提示框上按 'Enter' 时，我们运行 'respond'
+    prompt_box.submit(
+        fn=respond,
+        inputs=[prompt_box, chatbot],
+        outputs=chatbot
+    )
+
+    # 当用户点击消息上的 '喜欢' 按钮时，我们运行 'handle_like'
+    chatbot.like(handle_like, None, None)
+
+demo.launch()
+
+```
+
+然后，用户反馈会被捕获到你的可观测性工具中：
+
+![User feedback is being captured in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/user-feedback-gradio.png)
+
+#### 5. LLM 作为评判者
+
+LLM 作为评判者（LLM-as-a-Judge）是另一种自动评估你的智能体输出的方法。你可以设置一个单独的 LLM 调用来衡量输出的正确性、毒性、风格或你关心的任何其他标准。
+
+**工作流程**：
+1.  你定义一个**评估模板**，例如，“检查文本是否有毒。”
+2.  每次你的智能体生成输出时，你将该输出连同模板一起传递给你的“评判者” LLM。
+3.  评判者 LLM 会返回一个评分或标签，你将其记录到你的可观测性工具中。
+
+来自 Langfuse 的示例：
+
+
+![LLM-as-a-Judge Evaluation Template](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/evaluator-template.png)
+![LLM-as-a-Judge Evaluator](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/evaluator.png)
+
+
+```python
+# 示例：检查智能体的输出是否有毒。
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+
+search_tool = DuckDuckGoSearchTool()
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
+
+agent.run("Can eating carrots improve your vision?")
+
+```
+
+你可以看到这个例子的答案被判定为“无毒”。
+
+![LLM-as-a-Judge Evaluation Score](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/llm-as-a-judge-score.png)
+
+#### 6. 可观测性指标概览
+
+所有这些指标都可以在仪表板中一起可视化。这使你能够快速查看你的智能体在多个会话中的表现，并帮助你随时间追踪质量指标。
+
+![Observability metrics overview](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/langfuse-dashboard.png)
+
+## 离线评估
+
+在线评估对于实时反馈至关重要，但你还需要**离线评估**——在开发之前或期间进行系统性检查。这有助于在将更改推送到生产环境之前维护质量和可靠性。
+
+### 数据集评估
+
+在离线评估中，你通常：
+1.  拥有一个基准数据集（包含提示和预期输出对）
+2.  在该数据集上运行你的智能体
+3.  将输出与预期结果进行比较，或使用额外的评分机制
+
+下面，我们使用 [GSM8K 数据集](https://huggingface.co/datasets/gsm8k) 来演示这种方法，该数据集包含数学问题和解决方案。
+
+
+```python
+import pandas as pd
+from datasets import load_dataset
+
+# 从 Hugging Face 获取 GSM8K
+dataset = load_dataset("openai/gsm8k", 'main', split='train')
+df = pd.DataFrame(dataset)
+print("GSM8K 数据集的前几行：")
+print(df.head())
+
+```
+
+接下来，我们在 Langfuse 中创建一个数据集实体来追踪运行。然后，我们将数据集中的每个项目添加到系统中。（如果你不使用 Langfuse，你可以简单地将这些存储在你自己的数据库或本地文件中进行分析。）
+
+
+```python
+from langfuse import Langfuse
+langfuse = Langfuse()
+
+langfuse_dataset_name = "gsm8k_dataset_huggingface"
+
+# 在 Langfuse 中创建数据集
+langfuse.create_dataset(
+    name=langfuse_dataset_name,
+    description="从 Huggingface 上传的 GSM8K 基准数据集",
+    metadata={
+        "date": "2025-03-10",
+        "type": "benchmark"
+    }
+)
+
+```
+
+
+```python
+for idx, row in df.iterrows():
+    langfuse.create_dataset_item(
+        dataset_name=langfuse_dataset_name,
+        input={"text": row["question"]},
+        expected_output={"text": row["answer"]},
+        metadata={"source_index": idx}
+    )
+    if idx >= 9: # 仅上传前 10 个项目用于演示
+        break
+
+```
+
+![Dataset items in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/example-dataset.png)
+
+#### 在数据集上运行智能体
+
+我们定义一个辅助函数 `run_smolagent()`，它：
+1.  启动一个 OpenTelemetry 跨度（span）
+2.  在提示上运行我们的智能体
+3.  在 Langfuse 中记录追踪 ID
+
+然后，我们遍历每个数据集项目，运行智能体，并将追踪链接到数据集项目。如果需要，我们还可以附加一个快速评估分数。
+
+
+```python
+from opentelemetry.trace import format_trace_id
+from smolagents import (CodeAgent, InferenceClientModel, LiteLLMModel)
+
+# 示例：使用 InferenceClientModel 或 LiteLLMModel 访问 openai、anthropic、gemini 等模型：
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    add_base_tools=True
+)
+
+def run_smolagent(question):
+    with tracer.start_as_current_span("Smolagent-Trace") as span:
+        span.set_attribute("langfuse.tag", "dataset-run")
+        output = agent.run(question)
+
+        current_span = trace.get_current_span()
+        span_context = current_span.get_span_context()
+        trace_id = span_context.trace_id
+        formatted_trace_id = format_trace_id(trace_id)
+
+        langfuse_trace = langfuse.trace(
+            id=formatted_trace_id,
+            input=question,
+            output=output
+        )
+    return langfuse_trace, output
+
+```
+
+
+```python
+dataset = langfuse.get_dataset(langfuse_dataset_name)
+
+# 针对每个数据集项目运行我们的智能体（上面限制为前 10 个）
+for item in dataset.items:
+    langfuse_trace, output = run_smolagent(item.input["text"])
+
+    # 将追踪链接到数据集项目以供分析
+    item.link(
+        langfuse_trace,
+        run_name="smolagent-notebook-run-01",
+        run_metadata={ "model": model.model_id }
+    )
+
+    # 可选地，存储一个快速评估分数用于演示
+    langfuse_trace.score(
+        name="<example_eval>",
+        value=1,
+        comment="这是一条评论"
+    )
+
+# 刷新数据以确保所有遥测数据都已发送
+langfuse.flush()
+
+```
+
+你可以用不同的配置重复这个过程：
+- 模型 (OpenAI GPT, 本地 LLM 等)
+- 工具 (使用搜索 vs. 不使用搜索)
+- 提示 (不同的系统消息)
+
+然后在你的可观测性工具中并排比较它们：
+
+![Dataset run overview](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/dataset_runs.png)
+![Dataset run comparison](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/dataset-run-comparison.png)
+
+
+## 结语
+
+在这个 notebook 中，我们介绍了如何：
+1.  **设置可观测性** 使用 smolagents + OpenTelemetry 导出器
+2.  **检查检测** 通过运行一个简单的智能体
+3.  **捕获详细指标** (成本、延迟等) 通过可观测性工具
+4.  **收集用户反馈** 通过 Gradio 界面
+5.  **使用 LLM 作为评判者** 自动评估输出
+6.  **执行离线评估** 使用基准数据集
+
+🤗 编代码愉快！

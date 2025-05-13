@@ -1,0 +1,163 @@
+### P1: ¿Qué es un Agente?
+¿Cuál de las siguientes opciones describe mejor a un Agente de IA?
+
+<Question
+choices={[
+{
+text: "Un modelo de IA que puede razonar, planificar y usar herramientas para interactuar con su entorno para lograr un objetivo específico.",
+explain: "Esta definición captura las características esenciales de un Agente.",
+correct: true
+},
+{
+text: "Un sistema que únicamente procesa texto estático, sin ningún mecanismo inherente para interactuar dinámicamente con su entorno o ejecutar acciones significativas.",
+explain: "Un Agente debe ser capaz de realizar una acción e interactuar con su entorno.",
+},
+{
+text: "Un agente conversacional restringido a responder consultas, sin la capacidad de realizar acciones o interactuar con sistemas externos.",
+explain: "Un chatbot como este carece de la capacidad de realizar acciones, lo que lo hace diferente de un Agente.",
+},
+{
+text: "Un repositorio de información en línea que ofrece contenido estático sin la capacidad de ejecutar tareas o interactuar activamente con los usuarios.",
+explain: "Un Agente interactúa activamente con su entorno en lugar de solo proporcionar información estática.",
+}
+]}
+/>
+
+---
+
+### P2: ¿Cuál es el Papel de la Planificación en un Agente?
+¿Por qué un Agente necesita planificar antes de realizar una acción?
+
+<Question
+choices={[
+{
+text: "Para principalmente almacenar o recordar interacciones pasadas, en lugar de mapear una secuencia de acciones futuras.",
+explain: "La planificación se trata de determinar acciones futuras, no de almacenar interacciones pasadas.",
+},
+{
+text: "Para decidir sobre la secuencia de acciones y seleccionar las herramientas apropiadas necesarias para cumplir con la solicitud del usuario.",
+explain: "La planificación ayuda al Agente a determinar los mejores pasos y herramientas para completar una tarea.",
+correct: true
+},
+{
+text: "Para ejecutar una secuencia de acciones arbitrarias y no coordinadas que carecen de cualquier estrategia definida u objetivo intencional.",
+explain: "La planificación asegura que las acciones del Agente sean intencionales y no aleatorias.",
+},
+{
+text: "Para simplemente convertir o traducir texto, evitando cualquier proceso de formulación de una secuencia deliberada de acciones o empleo de razonamiento estratégico.",
+explain: "La planificación se trata de estructurar acciones, no solo de convertir texto.",
+}
+]}
+/>
+
+---
+
+### P3: ¿Cómo Mejoran las Herramientas las Capacidades de un Agente?
+¿Por qué las herramientas son esenciales para un Agente?
+
+<Question
+choices={[
+{
+text: "Las herramientas no sirven para ningún propósito real y no contribuyen a la capacidad del Agente para realizar acciones más allá de la generación básica de texto.",
+explain: "Las herramientas amplían las capacidades de un Agente al permitirle realizar acciones más allá de la generación de texto.",
+},
+{
+text: "Las herramientas están diseñadas únicamente para el almacenamiento de memoria, careciendo de cualquier capacidad para facilitar la ejecución de tareas o mejorar el rendimiento interactivo.",
+explain: "Las herramientas son principalmente para realizar acciones, no solo para almacenar datos.",
+},
+{
+text: "Las herramientas restringen severamente al Agente exclusivamente a generar texto, impidiéndole así participar en una gama más amplia de acciones interactivas.",
+explain: "Por el contrario, las herramientas permiten a los Agentes ir más allá de las respuestas basadas en texto.",
+},
+{
+text: "Las herramientas proporcionan al Agente la capacidad de ejecutar acciones que un modelo de generación de texto no puede realizar de forma nativa, como hacer café o generar imágenes.",
+explain: "Las herramientas permiten a los Agentes interactuar con el mundo real y completar tareas.",
+correct: true
+}
+]}
+/>
+
+---
+
+### P4: ¿Cómo Difieren las Acciones de las Herramientas?
+¿Cuál es la diferencia clave entre Acciones y Herramientas?
+
+<Question
+choices={[
+{
+text: "Las Acciones son los pasos que toma el Agente, mientras que las Herramientas son recursos externos que el Agente puede usar para realizar esas acciones.",
+explain: "Las Acciones son objetivos de nivel superior, mientras que las Herramientas son funciones específicas que el Agente puede invocar.",
+correct: true
+},
+{
+text: "Las Acciones y las Herramientas son componentes completamente idénticos que pueden usarse indistintamente, sin diferencias claras entre ellos.",
+explain: "No, las Acciones son metas o tareas, mientras que las Herramientas son utilidades específicas que el Agente usa para lograrlas.",
+},
+{
+text: "Las Herramientas se consideran utilidades amplias disponibles para diversas funciones, mientras que las Acciones se consideran erróneamente restringidas solo a interacciones físicas.",
+explain: "No necesariamente. Las Acciones pueden involucrar tanto tareas digitales como físicas.",
+},
+{
+text: "Las Acciones inherentemente requieren el uso de LLMs para ser determinadas y ejecutadas, mientras que las Herramientas están diseñadas para funcionar de manera autónoma sin tales dependencias.",
+explain: "Si bien los LLMs ayudan a decidir las Acciones, las Acciones en sí no dependen de los LLMs.",
+}
+]}
+/>
+
+---
+
+### P5: ¿Qué Papel Juegan los Modelos de Lenguaje Grandes (LLMs) en los Agentes?
+¿Cómo contribuyen los LLMs a la funcionalidad de un Agente?
+
+<Question
+choices={[
+{
+text: "Los LLMs funcionan meramente como repositorios pasivos que almacenan información, careciendo de cualquier capacidad para procesar activamente la entrada o producir respuestas dinámicas.",
+explain: "Los LLMs procesan activamente la entrada de texto y generan respuestas, en lugar de solo almacenar información.",
+},
+{
+text: "Los LLMs sirven como el 'cerebro' de razonamiento del Agente, procesando entradas de texto para entender instrucciones y planificar acciones.",
+explain: "Los LLMs permiten al Agente interpretar, planificar y decidir sobre los próximos pasos.",
+correct: true
+},
+{
+text: "Los LLMs se cree erróneamente que se utilizan únicamente para el procesamiento de imágenes, cuando en realidad su función principal es procesar y generar texto.",
+explain: "Los LLMs trabajan principalmente con texto, aunque a veces pueden interactuar con entradas multimodales.",
+},
+{
+text: "Los LLMs se consideran completamente irrelevantes para la operación de los Agentes de IA, lo que implica que son totalmente superfluos en cualquier aplicación práctica.",
+explain: "Los LLMs son un componente central de los Agentes de IA modernos.",
+}
+]}
+/>
+
+---
+
+### P6: ¿Cuál de los Siguientes Demuestra Mejor un Agente de IA?
+¿Qué ejemplo del mundo real ilustra mejor el funcionamiento de un Agente de IA?
+
+<Question
+choices={[
+{
+text: "Una página de preguntas frecuentes estática en un sitio web que proporciona información fija y carece de capacidades de respuesta interactiva o dinámica.",
+explain: "Una página de preguntas frecuentes estática no interactúa dinámicamente con los usuarios ni realiza acciones.",
+},
+{
+text: "Una calculadora simple que realiza operaciones aritméticas basadas en reglas fijas, sin ninguna capacidad de razonamiento o planificación.",
+explain: "Una calculadora sigue reglas fijas sin razonamiento o planificación, por lo que no es un Agente.",
+},
+{
+text: "Un asistente virtual como Siri o Alexa que puede entender comandos hablados, razonar a través de ellos y realizar tareas como establecer recordatorios o enviar mensajes.",
+explain: "Este ejemplo incluye razonamiento, planificación e interacción con el entorno.",
+correct: true
+},
+{
+text: "Un NPC de videojuego que opera en un guión fijo de respuestas, sin la capacidad de razonar, planificar o usar herramientas externas.",
+explain: "A menos que el NPC pueda razonar, planificar y usar herramientas, no funciona como un Agente de IA.",
+}
+]}
+/>
+
+---
+
+¡Felicidades por terminar este Quiz 🥳! Si necesitas revisar algún elemento, tómate el tiempo para volver al capítulo y reforzar tu conocimiento antes de profundizar en el "cerebro del Agente": los LLMs.

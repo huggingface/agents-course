@@ -46,9 +46,9 @@ for query in [
 让我们重新审视 Alfred 开始筹备派对的示例，这次使用 `ToolCallingAgent` 来展示区别。我们将构建一个能够使用 DuckDuckGo 进行网页搜索的智能体，与代码智能体示例的唯一区别在于智能体类型——框架会处理其他所有细节：
 
 ```python
-from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, HfApiModel
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, InferenceClientModel
 
-agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
 
 agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
 ```

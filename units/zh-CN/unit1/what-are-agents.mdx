@@ -61,6 +61,21 @@
 
 **可能行动的范围**取决于智能体**被配备了什么**。例如，因为人类没有翅膀，所以他们不能执行“飞”这个**行动**，但他们可以执行“走”、“跑”、“跳”、“抓”等**行动**。
 
+### “智能体”能力的层次
+
+根据上述定义，智能体的能力递增可视为一个连续谱系：
+
+| 智能体等级 | 描述 | 常见称谓 | 示例模式 |
+| --- | --- | --- | --- |
+| ☆☆☆ | 智能体输出不影响程序流程 | 简单处理器 | `processllmoutput(llmresponse)` |
+| ★☆☆ | 智能体输出决定基本控制流 | 路由 | `if llmdecision(): patha() else: pathb()` |
+| ★★☆ | 智能体输出决定函数调用 | 函数调用者 | `runfunction(llmchosentool, llmchosenargs)` |
+| ★★★ | 智能体输出控制迭代及程序延续 | 多步智能体 | `while llmshouldcontinue(): executenextstep()` |
+| ★★★ | 一个智能体流程可启动另一个智能体流程 | 多智能体系统 | `if llmtrigger(): executeagent()` |
+
+表格摘自[smolagents概念指南](https://huggingface.co/docs/smolagents/conceptualguides/intro_agents)。
+
+
 ## 我们为智能体使用什么类型的 AI 模型？
 
 智能体中最常见的 AI 模型是 LLM（大型语言模型），它接受**文本**作为输入，并输出**文本**。

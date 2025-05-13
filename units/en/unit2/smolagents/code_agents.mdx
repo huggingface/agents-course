@@ -84,14 +84,14 @@ Music is an essential part of a successful party! Alfred needs some help selecti
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred Playlist"/>
 
-For the model, we'll rely on `HfApiModel`, which provides access to Hugging Face's [Serverless Inference API](https://huggingface.co/docs/api-inference/index). The default model is `"Qwen/Qwen2.5-Coder-32B-Instruct"`, which is performant and available for fast inference, but you can select any compatible model from the Hub.  
+For the model, we'll rely on `InferenceClientModel`, which provides access to Hugging Face's [Serverless Inference API](https://huggingface.co/docs/api-inference/index). The default model is `"Qwen/Qwen2.5-Coder-32B-Instruct"`, which is performant and available for fast inference, but you can select any compatible model from the Hub.  
 
 Running an agent is quite straightforward:
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
 
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
 
 agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
 ```
@@ -116,7 +116,7 @@ Now that we have selected a playlist, we need to organize the menu for the guest
 As you can see in the example below, we will create a tool using the `@tool` decorator and include it in the `tools` list.  
 
 ```python
-from smolagents import CodeAgent, tool, HfApiModel
+from smolagents import CodeAgent, tool, InferenceClientModel
 
 # Tool to suggest a menu based on the occasion
 @tool
@@ -140,7 +140,7 @@ def suggest_menu(occasion: str) -> str:
         return "Custom menu for the butler."
 
 # Alfred, the butler, preparing the menu for the party
-agent = CodeAgent(tools=[suggest_menu], model=HfApiModel())
+agent = CodeAgent(tools=[suggest_menu], model=InferenceClientModel())
 
 # Preparing the menu for the party
 agent.run("Prepare a formal menu for the party.")
@@ -163,12 +163,12 @@ For more details on secure code execution, see the official [guide](https://hugg
 When creating the agent, we'll use `additional_authorized_imports` to allow for importing the `datetime` module. 
 
 ```python
-from smolagents import CodeAgent, HfApiModel
+from smolagents import CodeAgent, InferenceClientModel
 import numpy as np
 import time
 import datetime
 
-agent = CodeAgent(tools=[], model=HfApiModel(), additional_authorized_imports=['datetime'])
+agent = CodeAgent(tools=[], model=InferenceClientModel(), additional_authorized_imports=['datetime'])
 
 agent.run(
     """
@@ -223,7 +223,7 @@ For example, the _AlfredAgent_ is available [here](https://huggingface.co/spaces
 You may be wondering—how did Alfred build such an agent using `smolagents`? By integrating several tools, he can generate an agent as follows. Don't worry about the tools for now, as we'll have a dedicated section later in this unit to explore that in detail:
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, HfApiModel, Tool, tool, VisitWebpageTool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
 
 @tool
 def suggest_menu(occasion: str) -> str:
@@ -293,9 +293,10 @@ agent = CodeAgent(
         VisitWebpageTool(),
         suggest_menu,
         catering_service_tool,
-        SuperheroPartyThemeTool()
+        SuperheroPartyThemeTool(),
+	FinalAnswerTool()
     ], 
-    model=HfApiModel(),
+    model=InferenceClientModel(),
     max_steps=10,
     verbosity_level=2
 )
@@ -362,9 +363,9 @@ Alfred is now connected 🔌! The runs from `smolagents` are being logged in Lan
 <Tip>To learn more about tracing your agents and using the collected data to evaluate their performance, check out <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Bonus Unit 2</a>.</Tip>
 
 ```python
-from smolagents import CodeAgent, HfApiModel
+from smolagents import CodeAgent, InferenceClientModel
 
-agent = CodeAgent(tools=[], model=HfApiModel())
+agent = CodeAgent(tools=[], model=InferenceClientModel())
 alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
 alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
 ```
@@ -372,7 +373,7 @@ alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The 
 Alfred can now access these logs [here](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z) to review and analyze them.  
 
 <Tip>
-Actually, a minor error occured during execution. Can you spot it in the logs? Try to track how the agent handles it and still returns a valid answer. <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">Here</a> is the direct link to the error if you want to verify your answer. Of course the error has been fixed in the meantime, more details can be found in this <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">issue</a>.
+Actually, a minor error occurred during execution. Can you spot it in the logs? Try to track how the agent handles it and still returns a valid answer. <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">Here</a> is the direct link to the error if you want to verify your answer. Of course the error has been fixed in the meantime, more details can be found in this <a href="https://github.com/huggingface/smolagents/issues/838">issue</a>.
 </Tip>
 
 Meanwhile, the [suggested playlist](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw) sets the perfect vibe for the party preparations. Cool, right? 🎶  

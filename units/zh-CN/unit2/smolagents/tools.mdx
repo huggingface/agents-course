@@ -57,7 +57,7 @@
 以下是通过`@tool`装饰器实现该功能的示例：
 
 ```python
-from smolagents import CodeAgent, HfApiModel, tool
+from smolagents import CodeAgent, InferenceClientModel, tool
 
 # 假设我们有一个获取最高评分餐饮服务的函数
 @tool
@@ -81,7 +81,7 @@ def catering_service_tool(query: str) -> str:
     return best_service
 
 
-agent = CodeAgent(tools=[catering_service_tool], model=HfApiModel())
+agent = CodeAgent(tools=[catering_service_tool], model=InferenceClientModel())
 
 # 运行智能体寻找最佳餐饮服务
 result = agent.run(
@@ -110,7 +110,7 @@ Alfred 计划在庄园举办**超级英雄主题派对**，但需要独特创意
 为此，我们可以创建根据类别生成派对创意的工具，帮助 Alfred 找到最惊艳的主题方案：
 
 ```python
-from smolagents import Tool, CodeAgent, HfApiModel
+from smolagents import Tool, CodeAgent, InferenceClientModel
 
 class SuperheroPartyThemeTool(Tool):
     name = "superhero_party_theme_generator"
@@ -138,7 +138,7 @@ class SuperheroPartyThemeTool(Tool):
 
 # 实例化工具
 party_theme_tool = SuperheroPartyThemeTool()
-agent = CodeAgent(tools=[party_theme_tool], model=HfApiModel())
+agent = CodeAgent(tools=[party_theme_tool], model=InferenceClientModel())
 
 # 运行智能体生成派对主题
 result = agent.run(
@@ -196,7 +196,7 @@ party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HU
 您可以使用 `load_tool()` 函数轻松导入其他用户创建的工具。例如，Alfred 可能希望使用 AI 生成派对的宣传图片。无需从头构建工具，他可以直接使用社区预定义的方案:
 
 ```python
-from smolagents import load_tool, CodeAgent, HfApiModel
+from smolagents import load_tool, CodeAgent, InferenceClientModel
 
 image_generation_tool = load_tool(
     "m-ric/text-to-image",
@@ -205,7 +205,7 @@ image_generation_tool = load_tool(
 
 agent = CodeAgent(
     tools=[image_generation_tool],
-    model=HfApiModel()
+    model=InferenceClientModel()
 )
 
 agent.run("Generate an image of a luxurious superhero-themed party at Wayne Manor with made-up superheros.")
@@ -220,7 +220,7 @@ agent.run("Generate an image of a luxurious superhero-themed party at Wayne Mano
 对于本次派对，Alfred 可以使用现有的 HF Space 生成公告所需的 AI 图像（替代之前提到的预建工具）。让我们开始构建：
 
 ```python
-from smolagents import CodeAgent, HfApiModel, Tool
+from smolagents import CodeAgent, InferenceClientModel, Tool
 
 image_generation_tool = Tool.from_space(
     "black-forest-labs/FLUX.1-schnell",
@@ -228,7 +228,7 @@ image_generation_tool = Tool.from_space(
     description="Generate an image from a prompt"
 )
 
-model = HfApiModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
 
 agent = CodeAgent(tools=[image_generation_tool], model=model)
 
@@ -251,7 +251,7 @@ agent.run(
 
 ```python
 from langchain.agents import load_tools
-from smolagents import CodeAgent, HfApiModel, Tool
+from smolagents import CodeAgent, InferenceClientModel, Tool
 
 search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 

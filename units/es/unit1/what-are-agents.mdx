@@ -1,0 +1,145 @@
+# ¿Qué es un Agente?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Planificación de la Unidad 1"/>
+
+Al final de esta sección, te sentirás cómodo con el concepto de agentes y sus diversas aplicaciones en la IA.
+
+Para explicar qué es un Agente, comencemos con una analogía.
+
+## La Imagen General: Alfred El Agente
+
+Conoce a Alfred. Alfred es un **Agente**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="Este es Alfred"/>
+
+Imagina que Alfred **recibe una orden**, como: "Alfred, me gustaría un café por favor."
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="Me gustaría un café"/>
+
+Como Alfred **entiende el lenguaje natural**, comprende rápidamente nuestra petición.
+
+Antes de cumplir la orden, Alfred se involucra en un proceso de **razonamiento y planificación**, determinando los pasos y herramientas que necesita para:
+
+1. Ir a la cocina  
+2. Usar la máquina de café  
+3. Preparar el café  
+4. Traer el café de vuelta
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="Razonar y planificar"/>
+
+Una vez que tiene un plan, **debe actuar**. Para ejecutar su plan, **puede usar herramientas de la lista de herramientas que conoce**. 
+
+En este caso, para hacer un café, usa una máquina de café. Activa la máquina de café para preparar el café.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="Hacer café"/>
+
+Finalmente, Alfred nos trae el café recién preparado.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Traer café"/>
+
+Y esto es lo que es un Agente: un **modelo de IA capaz de razonar, planificar e interactuar con su entorno**. 
+
+Lo llamamos Agente porque tiene _agencia_, es decir, tiene la capacidad de interactuar con el entorno.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="Proceso del Agente"/>
+
+## Vamos a ser más formales
+
+Ahora que tienes la imagen general, aquí hay una definición más precisa:
+
+> Un Agente es un sistema que aprovecha un modelo de IA para interactuar con su entorno con el fin de lograr un objetivo definido por el usuario. Combina razonamiento, planificación y ejecución de acciones (a menudo a través de herramientas externas) para cumplir tareas.
+
+Piensa en el Agente como si tuviera dos partes principales:
+
+1. **El Cerebro (Modelo de IA)**
+
+Aquí es donde ocurre todo el pensamiento. El modelo de IA **maneja el razonamiento y la planificación**.
+Decide **qué Acciones tomar según la situación**.
+
+2. **El Cuerpo (Capacidades y Herramientas)**
+
+Esta parte representa **todo lo que el Agente está equipado para hacer**.
+
+El **alcance de las acciones posibles** depende de con qué **ha sido equipado** el agente. Por ejemplo, como los humanos carecen de alas, no pueden realizar la "Acción" de "volar", pero pueden ejecutar **Acciones** como "caminar", "correr", "saltar", "agarrar", etc.
+
+## ¿Qué tipo de modelos de IA usamos para los Agentes?
+
+El modelo de IA más común en los Agentes es un LLM (Modelo de Lenguaje Grande), que toma **Texto** como entrada y también produce **Texto** como salida.
+
+Ejemplos conocidos son **GPT4** de **OpenAI**, **LLama** de **Meta**, **Gemini** de **Google**, etc. Estos modelos han sido entrenados con una gran cantidad de texto y son capaces de generalizar bien. Aprenderemos más sobre los LLMs en la [siguiente sección](what-are-llms.mdx).
+
+<Tip>
+También es posible usar modelos que aceptan otras entradas como modelo central del Agente. Por ejemplo, un Modelo de Lenguaje Visual (VLM), que es como un LLM pero también entiende imágenes como entrada. Por ahora nos centraremos en los LLMs y discutiremos otras opciones más adelante.
+</Tip>
+
+## ¿Cómo actúa una IA sobre su entorno?
+
+Los LLMs son modelos asombrosos, pero **solo pueden generar texto**. 
+
+Sin embargo, si le pides a una aplicación de chat conocida como HuggingChat o ChatGPT que genere una imagen, ¡pueden hacerlo! ¿Cómo es posible?
+
+La respuesta es que los desarrolladores de HuggingChat, ChatGPT y aplicaciones similares implementaron funcionalidades adicionales (llamadas **Herramientas**), que el LLM puede usar para crear imágenes.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="Eiffel Brócolis"/>
+<figcaption>El modelo usó una Herramienta de Generación de Imágenes para generar esta imagen.
+</figcaption>
+</figure>
+
+Aprenderemos más sobre herramientas en la sección de [Herramientas](tools.mdx).
+
+## ¿Qué tipo de tareas puede hacer un Agente?
+
+Un Agente puede realizar cualquier tarea que implementemos a través de **Herramientas** para completar **Acciones**.
+
+Por ejemplo, si escribo un Agente para que actúe como mi asistente personal (como Siri) en mi computadora, y le pido que "envíe un correo electrónico a mi Gerente pidiendo retrasar la reunión de hoy", puedo darle un código para enviar correos electrónicos. Esta será una nueva Herramienta que el Agente puede usar cuando necesite enviar un correo electrónico. Podemos escribirlo en Python:
+
+```python
+def send_message_to(recipient, message):
+    """Útil para enviar un mensaje de correo electrónico a un destinatario"""
+    ...
+```
+
+El LLM, como veremos, generará código para ejecutar la herramienta cuando la necesite, y así cumplir con la tarea deseada.
+
+```python
+send_message_to("Gerente", "¿Podemos posponer la reunión de hoy?")
+```
+
+El **diseño de las Herramientas es muy importante y tiene un gran impacto en la calidad de tu Agente**. Algunas tareas requerirán Herramientas muy específicas, mientras que otras pueden resolverse con herramientas de propósito general como "búsqueda_web".
+
+> Ten en cuenta que **las Acciones no son lo mismo que las Herramientas**. Una Acción, por ejemplo, puede involucrar el uso de múltiples Herramientas para completarse.
+
+Permitir que un agente interactúe con su entorno **permite un uso en la vida real para empresas e individuos**.
+
+### Ejemplo 1: Asistentes Virtuales Personales
+
+Asistentes virtuales como Siri, Alexa o Google Assistant, funcionan como agentes cuando interactúan en nombre de los usuarios utilizando sus entornos digitales.
+
+Toman las consultas de los usuarios, analizan el contexto, recuperan información de bases de datos y proporcionan respuestas o inician acciones (como establecer recordatorios, enviar mensajes o controlar dispositivos inteligentes).
+
+### Ejemplo 2: Chatbots de Servicio al Cliente
+
+Muchas empresas implementan chatbots como agentes que interactúan con los clientes en lenguaje natural. 
+
+Estos agentes pueden responder preguntas, guiar a los usuarios a través de pasos de solución de problemas, abrir incidencias en bases de datos internas o incluso completar transacciones.
+
+Sus objetivos predefinidos podrían incluir mejorar la satisfacción del usuario, reducir los tiempos de espera o aumentar las tasas de conversión de ventas. Al interactuar directamente con los clientes, aprender de los diálogos y adaptar sus respuestas con el tiempo, demuestran los principios fundamentales de un agente en acción.
+
+### Ejemplo 3: Personaje No Jugable de IA en un videojuego
+
+Los agentes de IA impulsados por LLMs pueden hacer que los Personajes No Jugables (NPCs) sean más dinámicos e impredecibles.
+
+En lugar de seguir árboles de comportamiento rígidos, pueden **responder contextualmente, adaptarse a las interacciones del jugador** y generar diálogos más matizados. Esta flexibilidad ayuda a crear personajes más realistas y atractivos que evolucionan junto con las acciones del jugador.
+
+---
+
+En resumen, un Agente es un sistema que utiliza un Modelo de IA (típicamente un LLM) como su motor de razonamiento central, para:
+
+- **Entender el lenguaje natural:** Interpretar y responder a las instrucciones humanas de manera significativa.
+
+- **Razonar y planificar:** Analizar información, tomar decisiones y diseñar estrategias para resolver problemas.
+
+- **Interactuar con su entorno:** Recopilar información, realizar acciones y observar los resultados de esas acciones.
+
+Ahora que tienes una comprensión sólida de lo que son los Agentes, reforcemos tu comprensión con un breve cuestionario sin calificación. Después de eso, profundizaremos en el "cerebro del Agente": los [LLMs](what-are-llms.mdx).

@@ -53,7 +53,7 @@ smolagents 在以下情况下是最理想的：
 `smolagents` 支持灵活的 LLM 集成，允许使用符合 [某些标准](https://huggingface.co/docs/smolagents/main/en/reference/models) 的任何可调用模型。该框架提供了多个预定义类以简化模型连接：
 
 - **[TransformersModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.TransformersModel):** 实现本地 `transformers` 管道以实现无缝集成。
-- **[HfApiModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.HfApiModel):** 通过 [Hugging Face 的基础设施](https://huggingface.co/docs/api-inference/index) 或越来越多的 [第三方推理提供商](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks) 支持 [无服务器推理](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference) 调用。
+- **[InferenceClientModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.InferenceClientModel):** 通过 [Hugging Face 的基础设施](https://huggingface.co/docs/api-inference/index) 或越来越多的 [第三方推理提供商](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks) 支持 [无服务器推理](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference) 调用。
 - **[LiteLLMModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.LiteLLMModel):** 利用 [LiteLLM](https://www.litellm.ai/) 实现轻量级模型交互。
 - **[OpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.OpenAIServerModel):** 连接到提供 OpenAI API 接口的任何服务。
 - **[AzureOpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.AzureOpenAIServerModel):** 支持与任何 Azure OpenAI 部署集成。
