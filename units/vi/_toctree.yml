@@ -114,12 +114,12 @@
     title: Giới thiệu các Use Case cho Agentic RAG
   - local: unit3/agentic-rag/agentic-rag
     title: Tìm kiếm và tạo câu trả lời mang tính tác nhân (RAG)
-  - local: unit3/agentic-rag/invitees
-    title: Tạo ra công cụ RAG cho Thông tin Khách mời
-  - local: unit3/agentic-rag/tools
-    title: Xây dựng và Tích hợp Công cụ cho Agent của Bạn
-  - local: unit3/agentic-rag/agent
-    title: Tạo Agent Tổ Chức Gala Của Bạn
+  # - local: unit3/agentic-rag/invitees
+  #   title: Tạo ra công cụ RAG cho Thông tin Khách mời
+  # - local: unit3/agentic-rag/tools
+  #   title: Xây dựng và Tích hợp Công cụ cho Agent của Bạn
+  # - local: unit3/agentic-rag/agent
+  #   title: Tạo Agent Tổ Chức Gala Của Bạn
   - local: unit3/agentic-rag/conclusion
     title: Kết luận
 - title: Chương bổ trợ 1. Fine-tune LLM cho Function-calling
