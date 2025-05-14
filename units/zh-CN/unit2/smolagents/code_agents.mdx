@@ -152,7 +152,8 @@ agent.run("Prepare a formal menu for the party.")
 
 阿尔弗雷德需要计算如果他现在开始准备，什么时候一切都会准备就绪，以防他们需要其他超级英雄的帮助。
 
-`smolagents` 专门用于编写和执行 Python 代码片段的智能体，为安全提供沙盒执行环境。  
+`smolagents` 专门用于编写和执行 Python 代码片段的智能体，处于安全方面的考量，其提供沙盒执行环境。
+
 **代码执行有严格的安全措施** - 默认情况下，预定义安全列表之外的导入被阻止。但是，您可以通过将它们作为字符串传递到 `additional_authorized_imports` 中来授权额外的导入。
 有关安全代码执行的更多详情，请参阅官方[指南](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution)。
 
