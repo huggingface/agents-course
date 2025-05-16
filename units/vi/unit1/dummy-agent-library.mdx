@@ -18,7 +18,7 @@ Sau phần này, bạn sẽ sẵn sàng **tạo Agent đơn giản** bằng `smo
 
 Chúng mình sẽ sử dụng các package Python tích hợp sẵn như `datetime` và `os` để bạn có thể chạy thử trong mọi môi trường.
 
-Bạn có thể theo dõi quy trình [trong notebook này](https://huggingface.co/agents-course/notebooks/blob/main/dummy_agent_library.ipynb) và **tự chạy code**.
+Bạn có thể theo dõi quy trình [trong notebook này](https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb) và **tự chạy code**.
 
 ## Serverless API
 
@@ -33,7 +33,7 @@ from huggingface_hub import InferenceClient
 ## Bạn cần token từ https://hf.co/settings/tokens, chọn loại token 'read'. Nếu chạy trên Google Colab, hãy thiết lập trong tab "settings" mục "secrets". Đặt tên secret là "HF_TOKEN"
 os.environ["HF_TOKEN"]="hf_xxxxxxxxxxxxxx"
 
-client = InferenceClient("meta-llama/Llama-3.2-3B-Instruct")
+client = InferenceClient("meta-llama/Llama-3.3-70B-Instruct")
 # nếu đầu ra sai ở các cell sau, mô hình miễn phí có thể đang quá tải. Bạn cũng có thể dùng public endpoint này chứa Llama-3.2-3B-Instruct
 # client = InferenceClient("https://jc26mwg228mkj8dw.us-east-1.aws.endpoints.huggingface.cloud")
 ```
