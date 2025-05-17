@@ -156,7 +156,17 @@
       title: 监控和评估智能体
     - local: bonus_unit2/quiz
       title: 测验
-- title: 后续内容何时发布？
+- title: 附加单元 3. 游戏中的智能体 - 宝可梦篇
   sections:
-  - local: communication/next-units
-    title: 后续单元
+  - local: bonus-unit3/introduction
+    title: "简介"
+  - local: bonus-unit3/state-of-art
+    title: "游戏中使用 LLMs 的最新技术"
+  - local: bonus-unit3/from-llm-to-agents
+    title: "从 LLMs 到 AI 智能体"
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: "构建你的宝可梦对战智能体"
+  - local: bonus-unit3/launching_agent_battle
+    title: "部署你的宝可梦对战智能体"
+  - local: bonus-unit3/conclusion
+    title: "总结"
