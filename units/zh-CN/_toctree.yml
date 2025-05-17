@@ -122,6 +122,20 @@
     title: 创建你的 Gala 智能体
   - local: unit3/agentic-rag/conclusion
     title: 结论
+- title: 第 4 单元. 期末项目 - 创建、测试和认证你的智能体
+  sections:
+  - local: unit4/introduction
+    title: 最终单元简介
+  - local: unit4/what-is-gaia
+    title: 什么是 GAIA？
+  - local: unit4/hands-on
+    title: 最终动手实验
+  - local: unit4/get-your-certificate
+    title: 获取优秀证书
+  - local: unit4/conclusion
+    title: 课程总结
+  - local: unit4/additional-readings
+    title: 后续学习建议
 - title: 附加单元 1. 为函数调用微调大型语言模型
   sections:
   - local: bonus-unit1/introduction
@@ -142,7 +156,17 @@
       title: 监控和评估智能体
     - local: bonus_unit2/quiz
       title: 测验
-- title: 后续内容何时发布？
+- title: 附加单元 3. 游戏中的智能体 - 宝可梦篇
   sections:
-  - local: communication/next-units
-    title: 后续单元
+  - local: bonus-unit3/introduction
+    title: "简介"
+  - local: bonus-unit3/state-of-art
+    title: "游戏中使用 LLMs 的最新技术"
+  - local: bonus-unit3/from-llm-to-agents
+    title: "从 LLMs 到 AI 智能体"
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: "构建你的宝可梦对战智能体"
+  - local: bonus-unit3/launching_agent_battle
+    title: "部署你的宝可梦对战智能体"
+  - local: bonus-unit3/conclusion
+    title: "总结"
