@@ -103,6 +103,15 @@ To get a more detailed view of the tools, we can take a look at the `metadata` o
 LlamaIndex also allows using MCP tools through a [ToolSpec on the LlamaHub](https://llamahub.ai/l/tools/llama-index-tools-mcp?from=).
 You can simply run an MCP server and start using it through the following implementation.
 
+<details>
+<summary>Install the MCP Toolspec</summary>
+As introduced in the <a href="./llama-hub">section on the LlamaHub</a>, we can install the MCP toolspec with the following command:
+
+```python
+pip install llama-index-tools-mcp
+```
+</details>
+
 ```python
 from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
 
