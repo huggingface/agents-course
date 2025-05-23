@@ -132,7 +132,7 @@ Oftentimes, directly querying an API **can return an excessive amount of data**,
 Let's walk through our two main utility tools below.
 
 1. `OnDemandToolLoader`: This tool turns any existing LlamaIndex data loader (BaseReader class) into a tool that an agent can use. The tool can be called with all the parameters needed to trigger `load_data` from the data loader, along with a natural language query string. During execution, we first load data from the data loader, index it (for instance with a vector store), and then query it 'on-demand'. All three of these steps happen in a single tool call.
-2. `LoadAndSearchToolSpec`: The LoadAndSearchToolSpec takes in any existing Tool as input. As a tool spec, it implements `to_tool_list`, and when that function is called, two tools are returned: a loading tool and then a search tool. The load Tool execution would call the underlying Tool, and the index the output (by default with a vector index). The search Tool execution would take in a query string as input and call the underlying index.
+2. `LoadAndSearchToolSpec`: The LoadAndSearchToolSpec takes in any existing Tool as input. As a tool spec, it implements `to_tool_list`, and when that function is called, two tools are returned: a loading tool and then a search tool. The load Tool execution would call the underlying Tool, and then index the output (by default with a vector index). The search Tool execution would take in a query string as input and call the underlying index.
 
 <Tip>You can find toolspecs and utility tools on the <a href="https://llamahub.ai/">LlamaHub</a></Tip>
 
