@@ -18,7 +18,7 @@ Para mantener las cosas simples, utilizaremos una función simple de Python como
 
 Utilizaremos paquetes integrados de Python como `datetime` y `os` para que puedas probarlo en cualquier entorno.
 
-Puedes seguir el proceso [en este notebook](https://huggingface.co/agents-course/notebooks/blob/main/dummy_agent_library.ipynb) y **ejecutar el código tú mismo**.
+Puedes seguir el proceso [en este notebook](https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb) y **ejecutar el código tú mismo**.
 
 ## API Serverless
 
@@ -31,7 +31,7 @@ from huggingface_hub import InferenceClient
 ## Necesitas un token de https://hf.co/settings/tokens, asegúrate de seleccionar 'read' como tipo de token. Si ejecutas esto en Google Colab, puedes configurarlo en la pestaña "settings" bajo "secrets". Asegúrate de llamarlo "HF_TOKEN"
 os.environ["HF_TOKEN"]="hf_xxxxxxxxxxxxxx"
 
-client = InferenceClient("meta-llama/Llama-3.2-3B-Instruct")
+client = InferenceClient("meta-llama/Llama-3.3-70B-Instruct")
 # si las salidas para las siguientes celdas son incorrectas, el modelo gratuito puede estar sobrecargado. También puedes usar este endpoint público que contiene Llama-3.2-3B-Instruct
 # client = InferenceClient("https://jc26mwg228mkj8dw.us-east-1.aws.endpoints.huggingface.cloud")
 ```
