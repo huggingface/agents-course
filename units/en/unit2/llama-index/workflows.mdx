@@ -70,6 +70,7 @@ class MultiStepWorkflow(Workflow):
     @step
     async def step_one(self, ev: StartEvent) -> ProcessingEvent:
         # Process initial data
+        print("Starting Step 1")
         return ProcessingEvent(intermediate_result="Step 1 complete")
 
     @step
