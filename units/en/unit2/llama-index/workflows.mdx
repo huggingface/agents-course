@@ -236,6 +236,7 @@ The state is stored in the state key of the workflow context. It will be injecte
 Let's inject a counter to count function calls by modifying the previous example:
 
 ```python
+from llama_index.core.agent.workflow import ReActAgent, AgentWorkflow
 from llama_index.core.workflow import Context
 
 # Define some tools
@@ -257,22 +258,50 @@ async def multiply(ctx: Context, a: int, b: int) -> int:
 
     return a * b
 
-...
+# Initialize agents
+multiply_agent = ReActAgent(
+    name="multiply_agent",
+    description="Is able to multiply two integers",
+    system_prompt="A helpful assistant that can use a tool to multiply numbers.",
+    tools=[multiply],
+    llm=llm,
+)
 
+addition_agent = ReActAgent(
+    name="add_agent",
+    description="Is able to add two integers",
+    system_prompt="A helpful assistant that can use a tool to add numbers.",
+    tools=[add],
+    llm=llm,
+)
+
+# Create workflow
 workflow = AgentWorkflow(
     agents=[multiply_agent, addition_agent],
-    root_agent="multiply_agent"
+    root_agent="multiply_agent",
     initial_state={"num_fn_calls": 0},
     state_prompt="Current state: {state}. User message: {msg}",
 )
 
-# run the workflow with context
+# Initialize context
 ctx = Context(workflow)
-response = await workflow.run(user_msg="Can you add 5 and 3?", ctx=ctx)
 
-# pull out and inspect the state
+# Run the workflow
+response = await workflow.run(user_msg="Add 438 and 856, then multiply the result by 761", ctx=ctx)
+print("===RESPONSE===")
+print(response)
+print()
+
+# Check the updated state
 state = await ctx.get("state")
+print("===num_fn_calls===")
 print(state["num_fn_calls"])
+```
+
+We can also check tool calls and handoff details by using `tool_calls` method. 
+
+```python
+response.tool_calls
 ```
 
 Congratulations! You have now mastered the basics of Agents in LlamaIndex! 🎉
