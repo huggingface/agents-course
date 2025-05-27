@@ -320,7 +320,7 @@ os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
 # os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US region
 ```
 
-Then, we configure the [Langfuse `callback_handler`](https://langfuse.com/docs/integrations/langchain/tracing#add-langfuse-to-your-langchain-application) and instrument the agent by adding the `langfuse_callback` to the invocation of the graph: `config={"callbacks": [langfuse_handler]}`.
+Then, we configure the Langfuse [`callback_handler`](https://langfuse.com/docs/integrations/langchain/tracing#add-langfuse-to-your-langchain-application) and instrument the agent by adding the `langfuse_callback` to the invocation of the graph: `config={"callbacks": [langfuse_handler]}`.
 
 ```python   
 from langfuse.callback import CallbackHandler
@@ -329,8 +329,26 @@ from langfuse.callback import CallbackHandler
 langfuse_handler = CallbackHandler()
 
 # Process legitimate email
+print("\nProcessing legitimate email...")
 legitimate_result = compiled_graph.invoke(
-    input={"email": legitimate_email, "is_spam": None, "spam_reason": None, "email_category": None, "draft_response": None, "messages": []},
+    input={
+        "email": legitimate_email,
+        "is_spam": None,
+        "draft_response": None,
+        "messages": []
+    },
+    config={"callbacks": [langfuse_handler]}
+)
+
+# Process spam email
+print("\nProcessing spam email...")
+spam_result = compiled_graph.invoke(
+    input={
+        "email": spam_email,
+        "is_spam": None,
+        "draft_response": None,
+        "messages": []
+    },
     config={"callbacks": [langfuse_handler]}
 )
 ```
@@ -340,6 +358,10 @@ Alfred is now connected 🔌! The runs from LangGraph are being logged in Langfu
 ![Example trace in Langfuse](https://langfuse.com/images/cookbook/huggingface-agent-course/langgraph-trace-legit.png)
 
 _[Public link to the trace with the legit email](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/f5d6d72e-20af-4357-b232-af44c3728a7b?timestamp=2025-03-17T10%3A13%3A28.413Z&observation=6997ba69-043f-4f77-9445-700a033afba1)_
+
+![Example trace in Langfuse](https://langfuse.com/images/cookbook/huggingface-agent-course/langgraph-trace-spam.png)
+
+_[Public link to the trace with the spam email](https://langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/6e498053-fee4-41fd-b1ab-d534aca15f82?timestamp=2025-03-17T10%3A13%3A30.884Z&observation=84770fc8-4276-4720-914f-bf52738d44ba)_
 
 ## Visualizing Our Graph
 
