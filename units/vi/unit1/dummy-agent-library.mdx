@@ -33,7 +33,7 @@ from huggingface_hub import InferenceClient
 ## Bạn cần token từ https://hf.co/settings/tokens, chọn loại token 'read'. Nếu chạy trên Google Colab, hãy thiết lập trong tab "settings" mục "secrets". Đặt tên secret là "HF_TOKEN"
 os.environ["HF_TOKEN"]="hf_xxxxxxxxxxxxxx"
 
-client = InferenceClient("meta-llama/Llama-3.3-70B-Instruct")
+client = InferenceClient(provider="hf-inference", model="meta-llama/Llama-3.3-70B-Instruct")
 # nếu đầu ra sai ở các cell sau, mô hình miễn phí có thể đang quá tải. Bạn cũng có thể dùng public endpoint này chứa Llama-3.2-3B-Instruct
 # client = InferenceClient("https://jc26mwg228mkj8dw.us-east-1.aws.endpoints.huggingface.cloud")
 ```
