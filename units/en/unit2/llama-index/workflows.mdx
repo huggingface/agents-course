@@ -261,7 +261,7 @@ async def multiply(ctx: Context, a: int, b: int) -> int:
 
 workflow = AgentWorkflow(
     agents=[multiply_agent, addition_agent],
-    root_agent="multiply_agent"
+    root_agent="multiply_agent",
     initial_state={"num_fn_calls": 0},
     state_prompt="Current state: {state}. User message: {msg}",
 )
