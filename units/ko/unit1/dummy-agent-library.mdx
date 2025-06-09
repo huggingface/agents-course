@@ -1,0 +1,330 @@
+# 더미 에이전트 라이브러리 [[dummy-agent-library]]
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-unit1sub3DONE.jpg" alt="Unit 1 planning"/>
+
+이 코스는 특정 프레임워크에 종속되지 않도록 설계되었습니다. 그 이유는 **AI 에이전트의 개념에 집중하고 특정 프레임워크의 세부 사항에 매몰되지 않기 위함입니다**.
+
+또한, 학생들이 이 강의에서 배운 개념을 원하는 프레임워크를 사용해 자신의 프로젝트에 적용할 수 있기를 바랍니다.
+
+따라서 Unit 1에서는 간단한 더미 에이전트 라이브러리와 서버리스 API를 사용하여 LLM 엔진에 접근할 것입니다.
+
+실제 프로덕션 환경에서는 이런 방식을 사용하지 않겠지만, **에이전트의 작동 원리를 이해하는 데 좋은 출발점**이 될 것입니다.
+
+이 섹션을 마치면 `smolagents`를 사용하여 **간단한 에이전트를 만들** 준비가 될 것입니다.
+
+이어지는 Unit에서는 `LangGraph`, `LangChain`, `LlamaIndex`와 같은 다른 AI 에이전트 라이브러리도 사용해 볼 예정입니다.
+
+간단하게 하기 위해 도구와 에이전트로 단순한 Python 함수를 사용할 것입니다.
+
+어떤 환경에서도 시도해볼 수 있도록 `datetime`이나 `os`와 같은 내장 Python 패키지를 사용할 것입니다.
+
+[이 노트북](https://huggingface.co/agents-course/notebooks/blob/main/dummy_agent_library.ipynb)에서 과정을 따라가며 **직접 코드를 실행**해볼 수 있습니다.
+
+## 서버리스 API [[serverless-api]]
+
+Hugging Face 생태계에는 다양한 모델에서 쉽게 추론을 실행할 수 있게 해주는 서버리스 API라는 편리한 기능이 있습니다. 별도의 설치나 배포 과정이 필요 없습니다.
+
+```python
+import os
+from huggingface_hub import InferenceClient
+
+## https://hf.co/settings/tokens에서 토큰이 필요합니다. 토큰 유형으로 'read'를 선택했는지 확인하세요. Google Colab에서 실행할 경우 "설정" 탭의 "시크릿" 아래에서 설정할 수 있습니다. 반드시 "HF_TOKEN"이라고 이름을 지정해야 합니다.
+os.environ["HF_TOKEN"]="hf_xxxxxxxxxxxxxx"
+
+client = InferenceClient("meta-llama/Llama-3.2-3B-Instruct")
+# 다음 셀의 출력이 올바르지 않다면, 무료 모델이 과부하 상태일 수 있습니다. 대신 Llama-3.2-3B-Instruct가 포함된 이 공개 엔드포인트를 사용할 수 있습니다
+# client = InferenceClient("https://jc26mwg228mkj8dw.us-east-1.aws.endpoints.huggingface.cloud")
+```
+
+```python
+output = client.text_generation(
+    "The capital of France is",
+    max_new_tokens=100,
+)
+
+print(output)
+```
+출력:
+```
+Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris.
+```
+LLM 섹션에서 보았듯이, 단순 디코딩만 수행하면 **모델은 EOS(End of Sequence) 토큰을 예측할 때만 멈추게 됩니다**. 하지만 여기서는 그런 일이 일어나지 않습니다. 이는 이것이 대화형(채팅) 모델이고 **모델이 기대하는 채팅 템플릿을 적용하지 않았기 때문입니다**.
+
+이제 우리가 사용하는 <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct">Llama-3.2-3B-Instruct 모델</a>과 관련된 특수 토큰을 추가하면, 동작이 바뀌어 예상대로 EOS가 생성됩니다.
+
+```python
+prompt="""<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+The capital of France is<|eot_id|><|start_header_id|>assistant<|end_header_id|>"""
+output = client.text_generation(
+    prompt,
+    max_new_tokens=100,
+)
+
+print(output)
+```
+출력:
+```
+The capital of France is Paris.
+```
+
+"chat" 메서드를 사용하는 것이 채팅 템플릿을 적용하는 훨씬 더 편리하고 안정적인 방법입니다:
+```python
+output = client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "The capital of France is"},
+    ],
+    stream=False,
+    max_tokens=1024,
+)
+print(output.choices[0].message.content)
+```
+출력:
+```
+Paris.
+```
+chat 메서드는 모델 간 원활한 전환을 보장하기 위해 권장되는 방법이지만, 이 노트북은 교육용이므로 세부 내용을 이해하기 위해 계속해서 "text_generation" 메서드를 사용하겠습니다.
+
+## 더미 에이전트 [[dummy-agent]]
+
+앞 섹션에서 보았듯이, 에이전트 라이브러리의 핵심은 시스템 프롬프트에 정보를 추가하는 것입니다.
+
+이 시스템 프롬프트는 앞서 본 것보다 조금 더 복잡하지만, 이미 다음과 같은 내용을 포함하고 있습니다:
+
+1. **도구에 관한 정보**
+2. **사이클 지시사항** (생각(Thought) → 행동(Action) → 관찰(Observation))
+
+```
+Answer the following questions as best you can. You have access to the following tools:
+
+get_weather: Get the current weather in a given location
+
+The way you use the tools is by specifying a json blob.
+Specifically, this json should have an `action` key (with the name of the tool to use) and an `action_input` key (with the input to the tool going here).
+
+The only values that should be in the "action" field are:
+get_weather: Get the current weather in a given location, args: {"location": {"type": "string"}}
+example use : 
+
+{{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}}
+
+ALWAYS use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about one action to take. Only one action at a time in this format:
+Action:
+
+$JSON_BLOB (inside markdown cell)
+
+Observation: the result of the action. This Observation is unique, complete, and the source of truth.
+... (this Thought/Action/Observation can repeat N times, you should take several steps when needed. The $JSON_BLOB must be formatted as markdown and only use a SINGLE action at a time.)
+
+You must always end your output with the following format:
+
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you provide a definitive answer.
+```
+
+"text_generation" 메서드를 사용하고 있으므로 프롬프트를 수동으로 적용해야 합니다:
+```python
+prompt=f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+{SYSTEM_PROMPT}
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+What's the weather in London ?
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+"""
+```
+
+다음과 같이 할 수도 있습니다. 이는 `chat` 메서드 내부에서 일어나는 일입니다:
+```python
+messages=[
+    {"role": "system", "content": SYSTEM_PROMPT},
+    {"role": "user", "content": "What's the weather in London ?"},
+    ]
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+
+tokenizer.apply_chat_template(messages, tokenize=False,add_generation_prompt=True)
+```
+
+이제 프롬프트는 다음과 같습니다:
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+Answer the following questions as best you can. You have access to the following tools:
+
+get_weather: Get the current weather in a given location
+
+The way you use the tools is by specifying a json blob.
+Specifically, this json should have an `action` key (with the name of the tool to use) and a `action_input` key (with the input to the tool going here).
+
+The only values that should be in the "action" field are:
+get_weather: Get the current weather in a given location, args: {"location": {"type": "string"}}
+example use : 
+
+{{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}}
+
+ALWAYS use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about one action to take. Only one action at a time in this format:
+Action:
+
+$JSON_BLOB (inside markdown cell)
+
+Observation: the result of the action. This Observation is unique, complete, and the source of truth.
+... (this Thought/Action/Observation can repeat N times, you should take several steps when needed. The $JSON_BLOB must be formatted as markdown and only use a SINGLE action at a time.)
+
+You must always end your output with the following format:
+
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you provide a definitive answer. 
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+What's the weather in London ?
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+이제 디코딩을 해봅시다!
+```python
+output = client.text_generation(
+    prompt,
+    max_new_tokens=200,
+)
+
+print(output)
+```
+출력:
+
+````
+Thought: I will check the weather in London.
+Action:
+```
+{
+  "action": "get_weather",
+  "action_input": {"location": "London"}
+}
+```
+Observation: The current weather in London is mostly cloudy with a high of 12°C and a low of 8°C.
+````
+
+문제가 보이시나요?
+>모델이 실제 데이터 없이 허구의 답변을 만들어냈습니다. 실제 함수를 실행하려면 여기서 생성을 중단해야 합니다!
+이제 허구의 응답이 생성되지 않도록 "Observation:" 부분 전에 생성을 중지해 봅시다.
+
+```python
+output = client.text_generation(
+    prompt,
+    max_new_tokens=200,
+    stop=["Observation:"] # 실제 함수가 호출되기 전에 중단합니다
+)
+
+print(output)
+```
+출력:
+
+````
+Thought: I will check the weather in London.
+Action:
+```
+{
+  "action": "get_weather",
+  "action_input": {"location": "London"}
+}
+```
+Observation:
+````
+
+훨씬 좋아졌습니다!
+이제 간단한 날씨 정보 제공 함수를 만들어 봅시다. 실제 상황에서는 API를 호출하게 될 것입니다.
+
+```python
+# 더미 함수
+def get_weather(location):
+    return f"the weather in {location} is sunny with low temperatures. \n"
+
+get_weather('London')
+```
+출력:
+```
+'the weather in London is sunny with low temperatures. \n'
+```
+
+이제 기본 프롬프트, 함수 실행까지의 출력, 그리고 함수 실행 결과를 관찰 결과로 연결한 다음 생성을 계속해 봅시다.
+
+```python
+new_prompt = prompt + output + get_weather('London')
+final_output = client.text_generation(
+    new_prompt,
+    max_new_tokens=200,
+)
+
+print(final_output)
+```
+새로운 프롬프트는 다음과 같습니다:
+````
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+    Answer the following questions as best you can. You have access to the following tools:
+
+get_weather: Get the current weather in a given location
+
+The way you use the tools is by specifying a json blob.
+Specifically, this json should have a `action` key (with the name of the tool to use) and a `action_input` key (with the input to the tool going here).
+
+The only values that should be in the "action" field are:
+get_weather: Get the current weather in a given location, args: {"location": {"type": "string"}}
+example use : 
+
+{{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}}
+
+ALWAYS use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about one action to take. Only one action at a time in this format:
+Action:
+
+$JSON_BLOB (inside markdown cell)
+
+Observation: the result of the action. This Observation is unique, complete, and the source of truth.
+... (this Thought/Action/Observation can repeat N times, you should take several steps when needed. The $JSON_BLOB must be formatted as markdown and only use a SINGLE action at a time.)
+
+You must always end your output with the following format:
+
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Now begin! Reminder to ALWAYS use the exact characters `Final Answer:` when you provide a definitive answer. 
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+What's the weather in London ?
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+Thought: I will check the weather in London.
+Action:
+```
+{
+  "action": "get_weather",
+  "action_input": {"location": {"type": "string", "value": "London"}
+}
+```
+Observation:the weather in London is sunny with low temperatures. 
+````
+
+출력:
+```
+Final Answer: The weather in London is sunny with low temperatures.
+```
+
+---
+
+지금까지 Python 코드를 사용하여 처음부터 에이전트를 만드는 방법을 배웠고, **그 과정이 얼마나 번거로울 수 있는지** 확인했습니다. 다행히 많은 에이전트 라이브러리들이 이러한 작업을 단순화하여 복잡한 부분을 대신 처리해 줍니다.
+
+이제 `smolagents` 라이브러리를 사용하여 **첫 번째 실제 에이전트를 만들** 준비가 되었습니다.
