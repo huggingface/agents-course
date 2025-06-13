@@ -42,11 +42,11 @@
     title: 第 1 单元最终测验
   - local: unit1/conclusion
     title: 结论
-- title: Unit 2. AI 智能体框架
+- title: 第 2 单元. AI 智能体框架
   sections:
   - local: unit2/introduction
     title: AI 智能体框架
-- title: Unit 2.1 smolagents 框架
+- title: 第 2.1 单元. smolagents 框架
   sections:
   - local: unit2/smolagents/introduction
     title: smolagents 简介
@@ -72,7 +72,7 @@
     title: 最终测验
   - local: unit2/smolagents/conclusion
     title: 结论
-- title: Unit 2.2 The LlamaIndex framework
+- title: 第 2.2 单元. LlamaIndex 框架
   sections:
   - local: unit2/llama-index/introduction
     title: LlamaIndex 简介
@@ -92,7 +92,7 @@
     title: 快速测验2
   - local: unit2/llama-index/conclusion
     title: 结论
-- title: Unit 2.3 LangGraph
+- title: 第 2.3 单元. LangGraph 框架
   sections:
   - local: unit2/langgraph/introduction
     title: LangGraph 是什么？
@@ -122,7 +122,7 @@
     title: 创建你的 Gala 智能体
   - local: unit3/agentic-rag/conclusion
     title: 结论
-- title: 第四单元. 最终项目 - 创建，测试和认证你的智能体
+- title: 第 4 单元. 最终项目 - 创建，测试和认证你的智能体
   sections:
   - local: unit4/introduction
     title: 欢迎来到最后一个单元
