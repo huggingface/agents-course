@@ -326,7 +326,7 @@ Setting it up is straightforward!
 First, we need to install the necessary dependencies:  
 
 ```bash
-pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents langfuse
 ```
 
 Next, Alfred has already created an account on Langfuse and has his API keys ready. If you haven’t done so yet, you can sign up for Langfuse Cloud [here](https://cloud.langfuse.com/) or explore [alternatives](https://huggingface.co/docs/smolagents/tutorials/inspect_runs).  
@@ -335,30 +335,34 @@ Once you have your API keys, they need to be properly configured as follows:
 
 ```python
 import os
-import base64
 
-LANGFUSE_PUBLIC_KEY="pk-lf-..."
-LANGFUSE_SECRET_KEY="sk-lf-..."
-LANGFUSE_AUTH=base64.b64encode(f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()).decode()
+# Get keys for your project from the project settings page: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..." 
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US region
+```
 
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://cloud.langfuse.com/api/public/otel" # EU data region
-# os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://us.cloud.langfuse.com/api/public/otel" # US data region
-os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+With the environment variables set, we can now initialize the Langfuse client. get_client() initializes the Langfuse client using the credentials provided in the environment variables.
+
+```python
+from langfuse import get_client
+ 
+langfuse = get_client()
+ 
+# Verify connection
+if langfuse.auth_check():
+    print("Langfuse client is authenticated and ready!")
+else:
+    print("Authentication failed. Please check your credentials and host.")
 ```
 
 Finally, Alfred is ready to initialize the `SmolagentsInstrumentor` and start tracking his agent's performance.  
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-
 from openinference.instrumentation.smolagents import SmolagentsInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
-trace_provider = TracerProvider()
-trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
-
-SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+SmolagentsInstrumentor().instrument()
 ```
 
 Alfred is now connected 🔌! The runs from `smolagents` are being logged in Langfuse, giving him full visibility into the agent's behavior. With this setup, he's ready to revisit previous runs and refine his Party Preparator Agent even further. 
