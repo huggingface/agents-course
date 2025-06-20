@@ -31,7 +31,7 @@ from huggingface_hub import InferenceClient
 ## 你需要一个来自 https://hf.co/settings/tokens 的令牌，确保你选择'read'作为令牌类型。如果你在 Google Colab 上运行，你可以在"settings"标签下的"secrets"中设置它。确保将其命名为"HF_TOKEN"
 os.environ["HF_TOKEN"]="hf_xxxxxxxxxxxxxx"
 
-client = InferenceClient("meta-llama/Llama-3.3-70B-Instruct")
+client = InferenceClient(provider="hf-inference", model="meta-llama/Llama-3.3-70B-Instruct")
 # 如果下一个单元格的输出不正确，免费模型可能过载。你也可以使用这个包含 Llama-3.2-3B-Instruct 的公共端点
 # client = InferenceClient("https://jc26mwg228mkj8dw.us-east-1.aws.endpoints.huggingface.cloud")
 ```
