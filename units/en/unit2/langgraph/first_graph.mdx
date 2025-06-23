@@ -34,6 +34,7 @@ from typing import TypedDict, List, Dict, Any, Optional
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+from langgraph.graph import START, END
 ```
 
 ## Step 1: Define Our State
@@ -323,7 +324,7 @@ os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
 Then, we configure the [Langfuse `callback_handler`](https://langfuse.com/docs/integrations/langchain/tracing#add-langfuse-to-your-langchain-application) and instrument the agent by adding the `langfuse_callback` to the invocation of the graph: `config={"callbacks": [langfuse_handler]}`.
 
 ```python   
-from langfuse.callback import CallbackHandler
+from langfuse.langchain import CallbackHandler
 
 # Initialize Langfuse CallbackHandler for LangGraph/Langchain (tracing)
 langfuse_handler = CallbackHandler()
