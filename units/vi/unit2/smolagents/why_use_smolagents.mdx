@@ -1,0 +1,67 @@
+![smolagents banner](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/license_to_call.png)
+# Tại sao nên dùng smolagents
+
+Trong Mô-đun này, chúng ta sẽ khám phá ưu nhược điểm của [smolagents](https://huggingface.co/docs/smolagents/en/index), giúp bạn đưa ra quyết định sáng suốt về việc liệu đây có phải framework phù hợp cho nhu cầu của mình không.
+
+## `smolagents` là gì?
+
+`smolagents` là một framework đơn giản nhưng mạnh mẽ để xây dựng các AI Agent. Nó cung cấp cho LLM khả năng _tương tác_ với thế giới thực, như tìm kiếm hay tạo ảnh.
+
+Như đã học ở Chương 1, AI Agent là các chương trình sử dụng LLM để tạo **'suy nghĩ'** dựa trên **'quan sát'** để thực hiện **'hành động'**. Hãy cùng tìm hiểu cách triển khai điều này trong smolagents.
+
+### Ưu điểm chính của `smolagents`
+- **Đơn giản:** Độ phức tạp code và abstraction tối thiểu, giúp framework dễ hiểu, áp dụng và mở rộng
+- **Hỗ trợ LLM linh hoạt:** Hoạt động với mọi LLM thông qua tích hợp công cụ Hugging Face và API bên ngoài
+- **Tiếp cận Code-First:** Hỗ trợ hàng đầu cho Code Agent - các Agent viết hành động trực tiếp bằng code, loại bỏ nhu cầu parse và đơn giản hóa tool calling
+- **Tích hợp HF Hub:** Liên kết liền mạch với Hugging Face Hub, cho phép sử dụng Gradio Space như công cụ
+
+### Khi nào nên dùng smolagents?
+
+Với những ưu điểm trên, khi nào ta nên chọn smolagents thay framework khác?
+
+smolagents lý tưởng khi:
+- Bạn cần **giải pháp nhẹ và tối giản**
+- Muốn **thử nghiệm nhanh** không cấu hình phức tạp
+- **Logic ứng dụng đơn giản**
+
+### Hành động bằng Code vs. JSON
+Khác với các framework khác nơi Agent viết hành động bằng JSON, `smolagents` **tập trung vào tool call bằng code**, đơn giản hóa quá trình thực thi. Vì không cần parse JSON để xây code gọi công cụ: đầu ra có thể chạy trực tiếp.
+
+Sơ đồ sau minh họa sự khác biệt:
+
+![Code vs. JSON actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+Để ôn lại khác biệt giữa Hành động Code vs JSON, bạn có thể xem lại [phần Actions trong Chương 1](https://huggingface.co/learn/agents-course/unit1/actions#actions-enabling-the-agent-to-engage-with-its-environment).
+
+### Các loại Agent trong `smolagents`
+
+Agent trong `smolagents` hoạt động như agent đa bước (**multi-step agent**). 
+
+Mỗi [`MultiStepAgent`](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.MultiStepAgent) thực hiện:
+- Một suy nghĩ
+- Một tool call và thực thi
+
+Ngoài việc dùng **[CodeAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.CodeAgent)** làm loại Agent chính, smolagents cũng hỗ trợ **[ToolCallingAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.ToolCallingAgent)** - Agent viết tool call bằng JSON.
+
+Chúng ta sẽ khám phá chi tiết từng loại Agent trong các phần tiếp theo.
+
+<Tip> 
+Trong smolagents, công cụ được định nghĩa bằng decorator <code>@tool</code> bao quanh hàm python hoặc lớp <code>Tool</code>.
+</Tip>
+
+### Tích hợp Model trong `smolagents`
+`smolagents` hỗ trợ tích hợp LLM linh hoạt, cho phép dùng bất kỳ mô hình nào đáp ứng [tiêu chí nhất định](https://huggingface.co/docs/smolagents/main/en/reference/models). Framework cung cấp sẵn các lớp để đơn giản hóa kết nối mô hình:
+
+- **[TransformersModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.TransformersModel):** Triển khai pipeline `transformers` local để tích hợp liền mạch
+- **[HfApiModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.HfApiModel):** Hỗ trợ gọi [serverless inference](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference) qua [cơ sở hạ tầng Hugging Face](https://huggingface.co/docs/api-inference/index), hoặc qua nhiều [nhà cung cấp inference bên thứ ba](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks)
+- **[LiteLLMModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.LiteLLMModel):** Tận dụng [LiteLLM](https://www.litellm.ai/) cho tương tác mô hình nhẹ
+- **[OpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.OpenAIServerModel):** Kết nối dịch vụ cung cấp giao diện API OpenAI
+- **[AzureOpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.AzureOpenAIServerModel):** Hỗ trợ tích hợp với triển khai Azure OpenAI
+
+Tính linh hoạt này đảm bảo developer có thể chọn mô hình và dịch vụ phù hợp nhất cho use case cụ thể, đồng thời dễ dàng thử nghiệm.
+
+Giờ chúng ta đã hiểu tại sao và khi nào dùng smolagents, hãy cùng khám phá sâu hơn thư viện mạnh mẽ này!
+
+## Tài nguyên
+
+- [Blog smolagents](https://huggingface.co/blog/smolagents) - Giới thiệu smolagents và tương tác code

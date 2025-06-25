@@ -1,0 +1,241 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/retrieval_agents.ipynb"},
+]} />
+
+# Xây dựng hệ thống Agentic RAG
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">notebook này</a> và chạy bằng Google Colab.
+</Tip>
+
+Hệ thống Tìm kiếm và Tạo ra câu trả lời (RAG) kết hợp khả năng tìm kiếm dữ liệu với mô hình sinh nội dung để đưa ra phản hồi theo ngữ cảnh. Ví dụ: truy vấn người dùng được đưa vào công cụ tìm kiếm, kết quả tìm được cùng với truy vấn sẽ được chuyển cho mô hình. Mô hình sẽ sinh câu trả lời dựa trên cả truy vấn và thông tin thu thập được.
+
+Agentic RAG mở rộng hệ thống RAG truyền thống bằng cách **kết hợp các Agent tự trị với cơ chế thu thập tri thức động**. 
+
+Trong khi hệ thống RAG truyền thống dùng LLM để trả lời dựa trên dữ liệu tìm được, Agentic RAG **cho phép kiểm soát thông minh cả quá trình thu thập và sinh dữ liệu**, giúp cải thiện hiệu quả và độ chính xác.
+
+Hệ thống RAG truyền thống có một số hạn chế như **chỉ thực hiện một bước tìm kiếm** và tập trung vào độ tương đồng ngữ nghĩa trực tiếp với truy vấn, có thể bỏ sót thông tin liên quan.
+
+Agentic RAG giải quyết các vấn đề này bằng cách cho phép Agent tự động xây dựng truy vấn tìm kiếm, đánh giá kết quả và thực hiện nhiều bước thu thập để cho ra kết quả toàn diện và phù hợp hơn.
+
+## Tìm kiếm cơ bản với DuckDuckGo
+
+Hãy xây dựng một Agent đơn giản có thể tìm kiếm web bằng DuckDuckGo. Agent này sẽ thu thập thông tin và tổng hợp câu trả lời cho các truy vấn. Với Agentic RAG, Agent của Alfred có thể:
+
+* Tìm kiếm xu hướng tiệc siêu anh hùng mới nhất
+* Lọc kết quả để bao gồm các yếu tố sang trọng 
+* Tổng hợp thông tin thành kế hoạch hoàn chỉnh
+
+Đây là cách Agent của Alfred thực hiện:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+
+# Khởi tạo công cụ tìm kiếm
+search_tool = DuckDuckGoSearchTool()
+
+# Khởi tạo model
+model = HfApiModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool]
+)
+
+# Ví dụ sử dụng
+response = agent.run(
+    "Tìm kiếm ý tưởng tiệc siêu anh hùng sang trọng, bao gồm trang trí, giải trí và ẩm thực."
+)
+print(response)
+```
+
+Agent thực hiện theo quy trình:
+
+1. **Phân tích yêu cầu:** Agent của Alfred xác định các yếu tố chính trong truy vấn - kế hoạch tiệc siêu anh hùng sang trọng, tập trung vào trang trí, giải trí và ẩm thực.
+2. **Thực hiện tìm kiếm:** Agent sử dụng DuckDuckGo để tìm thông tin mới nhất và phù hợp nhất với sở thích sang trọng của Alfred.
+3. **Tổng hợp thông tin:** Sau khi thu thập kết quả, Agent xử lý chúng thành một kế hoạch hành động mạch lạc cho Alfred, bao quát mọi khía cạnh của bữa tiệc.
+4. **Lưu trữ để tham khảo:** Agent lưu thông tin đã thu thập để dễ dàng truy cập khi lên kế hoạch cho các sự kiện tương lai.
+
+## Công cụ tri thức chuyên biệt
+
+Đối với các tác vụ chuyên sâu, một cơ sở tri thức tùy chỉnh sẽ rất hữu ích. Hãy tạo công cụ truy vấn cơ sở dữ liệu vector chứa tài liệu kỹ thuật hoặc tri thức chuyên ngành. Sử dụng tìm kiếm ngữ nghĩa, Agent có thể tìm thông tin phù hợp nhất với nhu cầu của Alfred.
+
+Cơ sở dữ liệu vector lưu trữ biểu diễn số (embedding) của văn bản hoặc dữ liệu khác, được tạo bởi các mô hình học máy. Nó cho phép tìm kiếm ngữ nghĩa bằng cách xác định các ý nghĩa tương đồng trong không gian nhiều chiều.
+
+Cách tiếp cận này kết hợp tri thức định sẵn với tìm kiếm ngữ nghĩa để đưa ra giải pháp theo ngữ cảnh cho việc lập kế hoạch sự kiện. Với quyền truy cập vào tri thức chuyên sâu, Alfred có thể hoàn thiện từng chi tiết của bữa tiệc.
+
+Trong ví dụ này, chúng ta sẽ tạo công cụ truy xuất ý tưởng lập kế hoạch tiệc từ cơ sở tri thức tùy chỉnh. Sử dụng BM25 retriever để tìm kiếm và `RecursiveCharacterTextSplitter` để chia tài liệu thành các đoạn nhỏ.
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+```python
+from langchain.docstore.document import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, HfApiModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Sử dụng tìm kiếm ngữ nghĩa để truy xuất ý tưởng lập kế hoạch tiệc phù hợp cho bữa tiệc siêu anh hùng của Alfred tại Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "Truy vấn cần thực hiện. Nên liên quan đến lập kế hoạch tiệc hoặc chủ đề siêu anh hùng.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Truy xuất 5 tài liệu phù hợp nhất
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Truy vấn phải là chuỗi ký tự"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nÝ tưởng tìm được:\n" + "".join(
+            [
+                f"\n\n===== Ý tưởng {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Giả lập cơ sở tri thức về lập kế hoạch tiệc
+party_ideas = [
+    {"text": "Tiệc hóa trang siêu anh hùng sang trọng với trang trí vàng và rèm nhung.", "source": "Ý tưởng tiệc 1"},
+    {"text": "Thuê DJ chuyên nghiệp chơi nhạc chủ đề siêu anh hùng như Batman và Wonder Woman.", "source": "Ý tưởng giải trí"},
+    {"text": "Phục vụ món ăn đặt tên theo siêu anh hùng như 'Sinh tố xanh Hulk' và 'Bò bít tết Iron Man'.", "source": "Ý tưởng ẩm thực"},
+    {"text": "Trang trí với biểu tượng siêu anh hùng và hình chiếu các thành phố như Gotham quanh địa điểm.", "source": "Ý tưởng trang trí"},
+    {"text": "Trải nghiệm VR tương tác nơi khách có thể tham gia mô phỏng siêu anh hùng.", "source": "Ý tưởng giải trí"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Chia tài liệu thành các đoạn nhỏ
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Tạo công cụ truy xuất
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Khởi tạo Agent
+agent = CodeAgent(tools=[party_planning_retriever], model=HfApiModel())
+
+# Ví dụ sử dụng
+response = agent.run(
+    "Tìm ý tưởng cho bữa tiệc siêu anh hùng sang trọng, bao gồm giải trí, ẩm thực và trang trí."
+)
+
+print(response)
+```
+</details>
+```python
+from langchain.docstore.document import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, HfApiModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The query to perform. This should be a query related to party planning or superhero themes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Retrieve the top 5 documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Your search query must be a string"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nRetrieved ideas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Mô phỏng cơ sở kiến ​​thức về lập kế hoạch tiệc
+party_ideas = [
+    {"text": "A superhero-themed masquerade ball with luxury decor, including gold accents and velvet curtains.", "source": "Party Ideas 1"},
+    {"text": "Hire a professional DJ who can play themed music for superheroes like Batman and Wonder Woman.", "source": "Entertainment Ideas"},
+    {"text": "For catering, serve dishes named after superheroes, like 'The Hulk's Green Smoothie' and 'Iron Man's Power Steak.'", "source": "Catering Ideas"},
+    {"text": "Decorate with iconic superhero logos and projections of Gotham and other superhero cities around the venue.", "source": "Decoration Ideas"},
+    {"text": "Interactive experiences with VR where guests can engage in superhero simulations or compete in themed games.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Split the documents into smaller chunks
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Create the retriever tool
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Initialize the agent
+agent = CodeAgent(tools=[party_planning_retriever], model=HfApiModel())
+
+# Example usage
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+Agent nâng cao này có thể:
+1. Kiểm tra tài liệu để tìm thông tin liên quan
+2. Kết hợp thông tin từ cơ sở tri thức
+3. Duy trì ngữ cảnh hội thoại trong bộ nhớ
+
+## Khả năng truy xuất nâng cao
+
+Khi xây dựng hệ thống Agentic RAG, Agent có thể áp dụng các chiến lược phức tạp như:
+
+1. **Định dạng lại truy vấn:** Thay vì dùng truy vấn thô, Agent có thể tối ưu hóa từ khóa tìm kiếm để phù hợp với tài liệu mục tiêu
+2. **Truy xuất đa bước:** Agent có thể thực hiện nhiều lần tìm kiếm, sử dụng kết quả ban đầu để cải thiện truy vấn tiếp theo
+3. **Tích hợp nguồn đa dạng:** Kết hợp thông tin từ nhiều nguồn như tìm kiếm web và tài liệu nội bộ
+4. **Xác thực kết quả:** Phân tích nội dung tìm được về độ liên quan và chính xác trước khi đưa vào câu trả lời
+
+Các hệ thống Agentic RAG hiệu quả cần xem xét kỹ lưỡng nhiều khía cạnh. Agent **cần chọn lựa công cụ phù hợp dựa trên loại truy vấn và ngữ cảnh**. Hệ thống bộ nhớ giúp duy trì lịch sử hội thoại và tránh truy xuất trùng lặp. Các chiến lược dự phòng đảm bảo hệ thống vẫn hoạt động ngay cả khi phương pháp truy xuất chính thất bại. Bên cạnh đó, các bước xác thực giúp đảm bảo tính chính xác của thông tin thu thập.
+
+## Tài nguyên
+
+- [Agentic RAG: turbocharge your RAG with query reformulation and self-query! 🚀](https://huggingface.co/learn/cookbook/agent_rag) - Công thức phát triển hệ thống Agentic RAG sử dụng smolagents.
