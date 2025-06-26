@@ -318,7 +318,7 @@ agent.run("Give me best playlist for a party at the Wayne's mansion. The party i
 首先，我们需要安装必要的依赖项：
 
 ```bash
-pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents langfuse
 ```
 
 接下来，阿尔弗雷德已经在 Langfuse 上创建了一个账户，并准备好了他的 API 密钥。如果你还没有这样做，你可以在[这里](https://cloud.langfuse.com/)注册 Langfuse Cloud 或探索[替代方案](https://huggingface.co/docs/smolagents/tutorials/inspect_runs)。
@@ -327,30 +327,34 @@ pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrume
 
 ```python
 import os
-import base64
 
-LANGFUSE_PUBLIC_KEY="pk-lf-..."
-LANGFUSE_SECRET_KEY="sk-lf-..."
-LANGFUSE_AUTH=base64.b64encode(f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()).decode()
+# Get keys for your project from the project settings page: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..." 
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US region
+```
 
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://cloud.langfuse.com/api/public/otel" # EU 数据区域
-# os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://us.cloud.langfuse.com/api/public/otel" # US 数据区域
-os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+With the environment variables set, we can now initialize the Langfuse client. get_client() initializes the Langfuse client using the credentials provided in the environment variables.
+
+```python
+from langfuse import get_client
+ 
+langfuse = get_client()
+ 
+# Verify connection
+if langfuse.auth_check():
+    print("Langfuse client is authenticated and ready!")
+else:
+    print("Authentication failed. Please check your credentials and host.")
 ```
 
 最后，阿尔弗雷德准备初始化 `SmolagentsInstrumentor` 并开始跟踪他的智能体性能。
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-
 from openinference.instrumentation.smolagents import SmolagentsInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
-trace_provider = TracerProvider()
-trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
-
-SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+SmolagentsInstrumentor().instrument()
 ```
 
 阿尔弗雷德现在已连接 🔌！来自 `smolagents` 的运行正在 Langfuse 中记录，让他完全可见智能体的行为。有了这个设置，他准备重新访问之前的运行并进一步改进他的派对准备智能体。

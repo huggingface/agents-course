@@ -31,9 +31,7 @@ We will need a few libraries that allow us to run, monitor, and evaluate our age
 
 
 ```python
-%pip install 'smolagents[telemetry]'
-%pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
-%pip install langfuse datasets 'smolagents[gradio]'
+%pip install langfuse 'smolagents[telemetry]' openinference-instrumentation-smolagents datasets 'smolagents[gradio]' gradio --upgrade
 ```
 
 ## Step 1: Instrument Your Agent
@@ -42,26 +40,15 @@ In this notebook, we will use [Langfuse](https://langfuse.com/) as our observabi
 
 **Note:** If you are using LlamaIndex or LangGraph, you can find documentation on instrumenting them [here](https://langfuse.com/docs/integrations/llama-index/workflows) and [here](https://langfuse.com/docs/integrations/langchain/example-python-langgraph). 
 
-First, let's configure the right environment variable for setting up the connection to the Langfuse OpenTelemetry endpoint. 
+First, let's set up the Langfuse credentials as environment variables. Get your Langfuse API keys by signing up for [Langfuse Cloud](https://cloud.langfuse.com) or [self-hosting Langfuse](https://langfuse.com/self-hosting).
 
 ```python
 import os
-import base64
-
-# Get your own keys from https://cloud.langfuse.com
-LANGFUSE_PUBLIC_KEY = "pk-lf-..." 
-LANGFUSE_SECRET_KEY = "sk-lf-..." 
-os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
-os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
-os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"  # 🇪🇺 EU region example
-# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com"  # 🇺🇸 US region example
-
-LANGFUSE_AUTH = base64.b64encode(
-    f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()
-).decode()
-
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = os.environ.get("LANGFUSE_HOST") + "/api/public/otel"
-os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+# Get keys for your project from the project settings page: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..." 
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US region
 ```
 We also need to configure our Hugging Face token for inference calls.
 
@@ -69,27 +56,27 @@ We also need to configure our Hugging Face token for inference calls.
 # Set your Hugging Face and other tokens/secrets as environment variable
 os.environ["HF_TOKEN"] = "hf_..." 
 ```
-Next, we can set up the a tracer-provider for our configured OpenTelemetry.
+
+With the environment variables set, we can now initialize the Langfuse client. `get_client()` initializes the Langfuse client using the credentials provided in the environment variables.
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-from openinference.instrumentation.smolagents import SmolagentsInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from langfuse import get_client
  
-# Create a TracerProvider for OpenTelemetry
-trace_provider = TracerProvider()
+langfuse = get_client()
+ 
+# Verify connection
+if langfuse.auth_check():
+    print("Langfuse client is authenticated and ready!")
+else:
+    print("Authentication failed. Please check your credentials and host.")
+```
 
-# Add a SimpleSpanProcessor with the OTLPSpanExporter to send traces
-trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+Next, we can set up the `SmolagentsInstrumentor()` to instrument our smolagent and send traces to Langfuse.
 
-# Set the global default tracer provider
-from opentelemetry import trace
-trace.set_tracer_provider(trace_provider)
-tracer = trace.get_tracer(__name__)
-
-# Instrument smolagents with the configured provider
-SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+```python
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+ 
+SmolagentsInstrumentor().instrument()
 ```
 
 ## Step 2: Test Your Instrumentation
@@ -174,12 +161,10 @@ _[Link to the trace](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja
 
 #### 3. Additional Attributes
 
-You may also pass additional attributes—such as user IDs, session IDs, or tags—by setting them on the spans. For example, smolagents instrumentation uses OpenTelemetry to attach attributes like `langfuse.user.id` or custom tags.
-
+You may also pass additional attributes to your spans. These can include `user_id`, `tags`, `session_id`, and custom metadata. Enriching traces with these details is important for analysis, debugging, and monitoring of your application’s behavior across different users or sessions.
 
 ```python
 from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
-from opentelemetry import trace
 
 search_tool = DuckDuckGoSearchTool()
 agent = CodeAgent(
@@ -187,12 +172,25 @@ agent = CodeAgent(
     model=InferenceClientModel()
 )
 
-with tracer.start_as_current_span("Smolagent-Trace") as span:
-    span.set_attribute("langfuse.user.id", "smolagent-user-123")
-    span.set_attribute("langfuse.session.id", "smolagent-session-123456789")
-    span.set_attribute("langfuse.tags", ["city-question", "testing-agents"])
-
-    agent.run("What is the capital of Germany?")
+with langfuse.start_as_current_span(
+    name="Smolagent-Trace",
+    ) as span:
+    
+    # Run your application here
+    response = agent.run("What is the capital of Germany?")
+ 
+    # Pass additional attributes to the span
+    span.update_trace(
+        input="What is the capital of Germany?",
+        output=response,
+        user_id="smolagent-user-123",
+        session_id="smolagent-session-123456789",
+        tags=["city-question", "testing-agents"],
+        metadata={"email": "user@langfuse.com"},
+        )
+ 
+# Flush events in short-lived applications
+langfuse.flush()
 ```
 
 ![Enhancing agent runs with additional metrics](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-attributes.png)
@@ -201,31 +199,29 @@ with tracer.start_as_current_span("Smolagent-Trace") as span:
 
 If your agent is embedded into a user interface, you can record direct user feedback (like a thumbs-up/down in a chat UI). Below is an example using [Gradio](https://gradio.app/) to embed a chat with a simple feedback mechanism.
 
-In the code snippet below, when a user sends a chat message, we capture the OpenTelemetry trace ID. If the user likes/dislikes the last answer, we attach a score to the trace.
-
+In the code snippet below, when a user sends a chat message, we capture the trace in Langfuse. If the user likes/dislikes the last answer, we attach a score to the trace.
 
 ```python
 import gradio as gr
-from opentelemetry.trace import format_trace_id
 from smolagents import (CodeAgent, InferenceClientModel)
-from langfuse import Langfuse
+from langfuse import get_client
 
-langfuse = Langfuse()
+langfuse = get_client()
+
 model = InferenceClientModel()
 agent = CodeAgent(tools=[], model=model, add_base_tools=True)
 
-formatted_trace_id = None  # We'll store the current trace_id globally for demonstration
+trace_id = None
 
 def respond(prompt, history):
-    with trace.get_tracer(__name__).start_as_current_span("Smolagent-Trace") as span:
+    with langfuse.start_as_current_span(
+        name="Smolagent-Trace"):
+        
+        # Run your application here
         output = agent.run(prompt)
 
-        current_span = trace.get_current_span()
-        span_context = current_span.get_span_context()
-        trace_id = span_context.trace_id
-        global formatted_trace_id
-        formatted_trace_id = str(format_trace_id(trace_id))
-        langfuse.trace(id=formatted_trace_id, input=prompt, output=output)
+        global trace_id
+        trace_id = langfuse.get_current_trace_id()
 
     history.append({"role": "assistant", "content": str(output)})
     return history
@@ -233,16 +229,16 @@ def respond(prompt, history):
 def handle_like(data: gr.LikeData):
     # For demonstration, we map user feedback to a 1 (like) or 0 (dislike)
     if data.liked:
-        langfuse.score(
+        langfuse.create_score(
             value=1,
             name="user-feedback",
-            trace_id=formatted_trace_id
+            trace_id=trace_id
         )
     else:
-        langfuse.score(
+        langfuse.create_score(
             value=0,
             name="user-feedback",
-            trace_id=formatted_trace_id
+            trace_id=trace_id
         )
 
 with gr.Blocks() as demo:
@@ -260,7 +256,6 @@ with gr.Blocks() as demo:
     chatbot.like(handle_like, None, None)
 
 demo.launch()
-
 ```
 
 User feedback is then captured in your observability tool:
@@ -331,8 +326,8 @@ Next, we create a dataset entity in Langfuse to track the runs. Then, we add eac
 
 
 ```python
-from langfuse import Langfuse
-langfuse = Langfuse()
+from langfuse import get_client
+langfuse = get_client()
 
 langfuse_dataset_name = "gsm8k_dataset_huggingface"
 
@@ -365,7 +360,7 @@ for idx, row in df.iterrows():
 #### Running the Agent on the Dataset
 
 We define a helper function `run_smolagent()` that:
-1. Starts an OpenTelemetry span
+1. Starts a Langfuse span
 2. Runs our agent on the prompt
 3. Records the trace ID in Langfuse
 
@@ -375,6 +370,10 @@ Then, we loop over each dataset item, run the agent, and link the trace to the d
 ```python
 from opentelemetry.trace import format_trace_id
 from smolagents import (CodeAgent, InferenceClientModel, LiteLLMModel)
+from langfuse import get_client
+ 
+langfuse = get_client()
+
 
 # Example: using InferenceClientModel or LiteLLMModel to access openai, anthropic, gemini, etc. models:
 model = InferenceClientModel()
@@ -385,48 +384,39 @@ agent = CodeAgent(
     add_base_tools=True
 )
 
+dataset_name = "gsm8k_dataset_huggingface"
+current_run_name = "smolagent-notebook-run-01" # Identifies this specific evaluation run
+ 
+# Assume 'run_smolagent' is your instrumented application function
 def run_smolagent(question):
-    with tracer.start_as_current_span("Smolagent-Trace") as span:
-        span.set_attribute("langfuse.tag", "dataset-run")
-        output = agent.run(question)
-
-        current_span = trace.get_current_span()
-        span_context = current_span.get_span_context()
-        trace_id = span_context.trace_id
-        formatted_trace_id = format_trace_id(trace_id)
-
-        langfuse_trace = langfuse.trace(
-            id=formatted_trace_id, 
-            input=question, 
-            output=output
+    with langfuse.start_as_current_generation(name="qna-llm-call") as generation:
+        # Simulate LLM call
+        result = agent.run(question)
+ 
+        # Update the trace with the input and output
+        generation.update_trace(
+            input= question,
+            output=result,
         )
-    return langfuse_trace, output
-```
-
-
-```python
-dataset = langfuse.get_dataset(langfuse_dataset_name)
-
-# Run our agent against each dataset item (limited to first 10 above)
+ 
+        return result
+ 
+dataset = langfuse.get_dataset(name=dataset_name) # Fetch your pre-populated dataset
+ 
 for item in dataset.items:
-    langfuse_trace, output = run_smolagent(item.input["text"])
-
-    # Link the trace to the dataset item for analysis
-    item.link(
-        langfuse_trace,
-        run_name="smolagent-notebook-run-01",
-        run_metadata={ "model": model.model_id }
-    )
-
-    # Optionally, store a quick evaluation score for demonstration
-    langfuse_trace.score(
-        name="<example_eval>",
-        value=1,
-        comment="This is a comment"
-    )
-
-# Flush data to ensure all telemetry is sent
-langfuse.flush()
+ 
+    # Use the item.run() context manager
+    with item.run(
+        run_name=current_run_name,
+        run_metadata={"model_provider": "Hugging Face", "temperature_setting": 0.7},
+        run_description="Evaluation run for GSM8K dataset"
+    ) as root_span: # root_span is the root span of the new trace for this item and run.
+        # All subsequent langfuse operations within this block are part of this trace.
+ 
+        # Call your application logic
+        generated_answer = run_smolagent(question=item.input["text"])
+ 
+        print(item.input)
 ```
 
 You can repeat this process with different:
