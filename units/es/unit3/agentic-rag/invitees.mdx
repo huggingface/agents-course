@@ -82,7 +82,7 @@ Usaremos la librería `datasets` de Hugging Face para cargar el conjunto de dato
 
 ```python
 import datasets
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 
 # Cargar el conjunto de datos
 guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
@@ -137,7 +137,7 @@ Usaremos la librería `datasets` de Hugging Face para cargar el conjunto de dato
 
 ```python
 import datasets
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 
 # Cargar el conjunto de datos
 guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
