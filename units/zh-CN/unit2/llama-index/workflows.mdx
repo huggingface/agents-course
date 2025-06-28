@@ -154,13 +154,13 @@ from llama_index.core.workflow import Context, StartEvent, StopEvent
 @step
 async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
     # 存储在上下文中
-    await ctx.set("query", "What is the capital of France?")
+    await ctx.store.set("query", "What is the capital of France?")
 
     # 根据上下文和事件做某事
     val = ...
 
     # 从上下文中检索
-    query = await ctx.get("query")
+    query = await ctx.store.get("query")
 
     return StopEvent(result=result)
 ```
@@ -242,18 +242,18 @@ from llama_index.core.workflow import Context
 async def add(ctx: Context, a: int, b: int) -> int:
     """Add two numbers."""
     # update our count
-    cur_state = await ctx.get("state")
+    cur_state = await ctx.store.get("state")
     cur_state["num_fn_calls"] += 1
-    await ctx.set("state", cur_state)
+    await ctx.store.set("state", cur_state)
 
     return a + b
 
 async def multiply(ctx: Context, a: int, b: int) -> int:
     """Multiply two numbers."""
     # update our count
-    cur_state = await ctx.get("state")
+    cur_state = await ctx.store.get("state")
     cur_state["num_fn_calls"] += 1
-    await ctx.set("state", cur_state)
+    await ctx.store.set("state", cur_state)
 
     return a * b
 
@@ -271,7 +271,7 @@ ctx = Context(workflow)
 response = await workflow.run(user_msg="Can you add 5 and 3?", ctx=ctx)
 
 # 拉出并检查状态
-state = await ctx.get("state")
+state = await ctx.store.get("state")
 print(state["num_fn_calls"])
 ```
 

@@ -155,13 +155,13 @@ from llama_index.core.workflow import Context, StartEvent, StopEvent
 @step
 async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
     # almacenar en contexto
-    await ctx.set("query", "¿Cuál es la capital de Francia?")
+    await ctx.store.set("query", "¿Cuál es la capital de Francia?")
 
     # hacer algo con el contexto y el evento
     val = ...
 
     # recuperar del contexto
-    query = await ctx.get("query")
+    query = await ctx.store.get("query")
 
     return StopEvent(result=result)
 ```
@@ -243,18 +243,18 @@ from llama_index.core.workflow import Context
 async def add(ctx: Context, a: int, b: int) -> int:
     """Sumar dos números."""
     # actualizar nuestro contador
-    cur_state = await ctx.get("state")
+    cur_state = await ctx.store.get("state")
     cur_state["num_fn_calls"] += 1
-    await ctx.set("state", cur_state)
+    await ctx.store.set("state", cur_state)
 
     return a + b
 
 async def multiply(ctx: Context, a: int, b: int) -> int:
     """Multiplicar dos números."""
     # actualizar nuestro contador
-    cur_state = await ctx.get("state")
+    cur_state = await ctx.store.get("state")
     cur_state["num_fn_calls"] += 1
-    await ctx.set("state", cur_state)
+    await ctx.store.set("state", cur_state)
 
     return a * b
 
@@ -272,7 +272,7 @@ ctx = Context(workflow)
 response = await workflow.run(user_msg="¿Puedes sumar 5 y 3?", ctx=ctx)
 
 # extraer e inspeccionar el estado
-state = await ctx.get("state")
+state = await ctx.store.get("state")
 print(state["num_fn_calls"])
 ```
 

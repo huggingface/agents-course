@@ -154,13 +154,13 @@ from llama_index.core.workflow import Context, StartEvent, StopEvent
 @step
 async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
     # store query in the context
-    await ctx.set("query", "What is the capital of France?")
+    await ctx.store.set("query", "What is the capital of France?")
 
     # do something with context and event
     val = ...
 
     # retrieve query from the context
-    query = await ctx.get("query")
+    query = await ctx.store.get("query")
 
     return StopEvent(result=val)
 ```
@@ -242,18 +242,18 @@ from llama_index.core.workflow import Context
 async def add(ctx: Context, a: int, b: int) -> int:
     """Add two numbers."""
     # update our count
-    cur_state = await ctx.get("state")
+    cur_state = await ctx.store.get("state")
     cur_state["num_fn_calls"] += 1
-    await ctx.set("state", cur_state)
+    await ctx.store.set("state", cur_state)
 
     return a + b
 
 async def multiply(ctx: Context, a: int, b: int) -> int:
     """Multiply two numbers."""
     # update our count
-    cur_state = await ctx.get("state")
+    cur_state = await ctx.store.get("state")
     cur_state["num_fn_calls"] += 1
-    await ctx.set("state", cur_state)
+    await ctx.store.set("state", cur_state)
 
     return a * b
 
@@ -271,7 +271,7 @@ ctx = Context(workflow)
 response = await workflow.run(user_msg="Can you add 5 and 3?", ctx=ctx)
 
 # pull out and inspect the state
-state = await ctx.get("state")
+state = await ctx.store.get("state")
 print(state["num_fn_calls"])
 ```
 
