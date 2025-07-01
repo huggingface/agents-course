@@ -1,0 +1,12 @@
+- title: Unit 0. Welcome to the course
+  sections:
+  - local: unit0/introduction
+    title: Welcome to the course 🤗
+  - local: unit0/onboarding
+    title: Onboarding
+  - local: unit0/discord101
+    title: (Optional) Discord 101
+- title: Live 1. How the course works and Q&A
+  sections:
+  - local: communication/live1
+    title: Live 1. How the course works and Q&A
