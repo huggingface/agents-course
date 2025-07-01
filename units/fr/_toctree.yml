@@ -1,0 +1,50 @@
+- title: Unité 0. Bienvenue dans le cours
+  sections:
+  - local: unit0/introduction
+    title: Bienvenue dans le cours 🤗
+  - local: unit0/onboarding
+    title: Intégration
+  - local: unit0/discord101
+    title: (Optionnel) Discord 101
+- title: Live 1. Comment fonctionne le cours et Q&R
+  sections:
+  - local: communication/live1
+    title: Live 1. Comment fonctionne le cours et Q&R
+- title: Unité 1. Introduction aux Agents
+  sections:
+  - local: unit1/introduction
+    title: Introduction
+  - local: unit1/what-are-agents
+    title: Qu'est-ce qu'un Agent ?
+  - local: unit1/quiz1
+    title: Quiz rapide 1
+  - local: unit1/what-are-llms
+    title: Que sont les LLMs ?
+  - local: unit1/messages-and-special-tokens
+    title: Messages et Tokens Spéciaux
+  - local: unit1/tools
+    title: Que sont les Outils ?
+  - local: unit1/quiz2
+    title: Quiz rapide 2
+  - local: unit1/agent-steps-and-structure
+    title: Comprendre les Agents IA à travers le cycle Pensée-Action-Observation
+  - local: unit1/thoughts
+    title: Pensée, Raisonnement Interne et l'Approche Re-Act
+  - local: unit1/actions
+    title: Actions, permettant à l'Agent d'interagir avec son environnement
+  - local: unit1/observations
+    title: Observer, intégrer les retours pour réfléchir et s'adapter
+  - local: unit1/dummy-agent-library
+    title: Bibliothèque d'Agents Factices
+  - local: unit1/tutorial
+    title: Créons notre premier Agent avec Smolagents
+  - local: unit1/final-quiz
+    title: Quiz Final de l'Unité 1
+  - local: unit1/get-your-certificate
+    title: Obtenez votre certificat
+  - local: unit1/conclusion
+    title: Conclusion
+- title: Quand les prochaines unités seront-elles publiées ?
+  sections:
+  - local: communication/next-units
+    title: Prochaines unités
