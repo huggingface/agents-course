@@ -1,0 +1,27 @@
+# Agent tìm kiếm và tạo câu trả lời mang tính tác nhân (Agentic RAG)
+
+Trong Chương này, chúng ta sẽ cùng tìm hiểu cách sử dụng Agentic RAG để giúp Alfred chuẩn bị cho buổi tiệc gala tuyệt vời.
+
+<Tip>Chúng mình biết các bạn đã được học về RAG và agentic RAG ở Chương trước, vì vậy hãy thoải mái bỏ qua phần này nếu đã nắm vững các khái niệm.</Tip>
+
+LLM được huấn luyện trên kho dữ liệu khổng lồ để học kiến thức tổng quát.  
+Tuy nhiên, kiến thức thế giới trong LLM có thể không phải lúc nào cũng cập nhật và phù hợp.  
+**RAG giải quyết vấn đề này bằng cách tìm kiếm và trích xuất thông tin liên quan từ dữ liệu của bạn rồi chuyển cho LLM xử lý.**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Giờ hãy xem cách Alfred hoạt động:
+
+1. Chúng ta yêu cầu Alfred hỗ trợ lên kế hoạch tổ chức gala
+2. Alfred cần tìm kiếm thông tin thời tiết và tin tức mới nhất
+3. Alfred cần sắp xếp và tìm kiếm thông tin khách mời
+
+Giống như Alfred cần tìm kiếm thông tin trong gia đình bạn để hỗ trợ, bất kỳ Agent nào cũng cần cách hiểu và tìm kiếm dữ liệu liên quan.  
+**Agentic RAG là phương pháp mạnh mẽ để sử dụng các Agent trả lời câu hỏi về dữ liệu của bạn.** Ta có thể cung cấp nhiều Tools khác nhau để Alfred trả lời câu hỏi.  
+Tuy nhiên, thay vì tự động trả lời dựa trên tài liệu, Alfred có thể quyết định sử dụng bất kỳ công cụ hay quy trình nào khác.
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+**Hãy cùng bắt đầu xây dựng workflow agentic RAG!**  
+
+Đầu tiên, ta sẽ tạo một công cụ RAG để lấy thông tin cập nhật về khách mời. Tiếp theo, ta phát triển các công cụ tìm kiếm web, cập nhật thời tiết và thống kê tải mô hình từ Hugging Face Hub. Cuối cùng, ta sẽ tích hợp mọi thứ để tạo nên Agentic RAG Agent hoàn chỉnh!
