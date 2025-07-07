@@ -1,0 +1,222 @@
+# LLMとは何か？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Unit 1 planning"/>
+
+前のセクションでは、各エージェントには**コアにAIモデルが必要であり、LLMがこの目的に最も一般的なAIモデルである**ことを学びました。
+
+ここではLLMとは何か、そしてそれらがどのようにエージェントを支えるのかを学びます。
+
+このセクションはLLMの使用に関する簡潔な技術的説明を提供します。より深く掘り下げたい場合は、<a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">無料の自然言語処理コース</a>をチェックしてください。
+
+## 大規模言語モデルとは？
+
+LLMは、**人間の言語を理解し生成することに優れたAIモデルの一種**です。膨大な量のテキストデータで訓練されており、言語のパターン、構造、さらにはニュアンスを学習することができます。これらのモデルは通常、数百万のパラメータで構成されています。
+
+現在のほとんどのLLMは、**Transformerアーキテクチャに基づいて構築されています**。これは「Attention」アルゴリズムに基づく深層学習アーキテクチャであり、2018年にGoogleからBERTがリリースされて以来、注目を集めています。
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg" alt="Transformer"/>
+<figcaption>Transformerの元のアーキテクチャはこのようになっており、左側にエンコーダー、右側にデコーダーがあります。</figcaption>
+</figure>
+
+Transformerには3つのタイプがあります:
+
+1. **エンコーダー(Encoders)**  
+   エンコーダーベースのTransformerは、テキスト（または他のデータ）を入力として受け取り、そのテキストの密な表現（または埋め込み）を出力します。
+
+   - **例**: GoogleのBERT
+   - **ユースケース**: テキスト分類、セマンティック検索、固有表現認識
+   - **典型的なサイズ**: 数百万のパラメータ
+
+2. **デコーダー(Decoders)**  
+   デコーダーベースのTransformerは、**シーケンスを1トークンずつ完成させるために新しいトークンを生成することに焦点を当てています**。
+
+   - **例**: MetaのLlama
+   - **ユースケース**: テキスト生成、チャットボット、コード生成
+   - **典型的なサイズ**: 数十億のパラメータ
+
+3. **Seq2Seq (Encoder–Decoder)**  
+   シーケンス・ツー・シーケンスTransformerは、エンコーダーとデコーダーを_組み合わせた_ものです。エンコーダーは最初に入力シーケンスをコンテキスト表現に処理し、その後デコーダーが出力シーケンスを生成します。
+
+   - **例**: T5、BART
+   - **ユースケース**: 翻訳、要約、言い換え
+   - **典型的なサイズ**: 数百万のパラメータ
+
+大規模言語モデルは様々な形態がありますが、LLMは通常、数十億のパラメータを持つデコーダーベースのモデルです。以下は、最もよく知られているLLMの例です:
+
+| **モデル**                          | **プロバイダー**                              |
+|-----------------------------------|-------------------------------------------|
+| **Deepseek-R1**                    | DeepSeek                                  |
+| **GPT4**                           | OpenAI                                    |
+| **Llama 3**                        | Meta (Facebook AI Research)               |
+| **SmolLM2**                       | Hugging Face                              |
+| **Gemma**                          | Google                                    |
+| **Mistral**                        | Mistral                                  |
+
+LLMの基本的な原則はシンプルでありながら非常に効果的です: **その目的は、以前のトークンのシーケンスを考慮して次のトークンを予測することです**。 "トークン(token)"は、LLMが扱う情報の単位です。 "トークン"は"単語"のように考えることができますが、効率の理由からLLMは全体の単語を使用しません。
+
+たとえば、英語には約600,000の単語があると推定されていますが、LLMは約32,000のトークンの語彙を持っているかもしれません（Llama 2の場合）。トークン化は、結合可能なサブワード単位で機能することがよくあります。
+
+たとえば、"interest"と"ing"というトークンが結合されて"interesting"が形成されたり、"ed"が追加されて"interested"が形成されたりする様子を考えてみてください。
+
+以下のインタラクティブなプレイグラウンドで、さまざまなトークナイザーを試すことができます:
+
+<iframe
+	src="https://agents-course-the-tokenizer-playground.static.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+各LLMには、モデル固有の**特別なトークン**があります。LLMはこれらのトークンを使用して、生成の構造化されたコンポーネントを開いたり閉じたりします。たとえば、シーケンス、メッセージ、または応答の開始や終了を示すためです。さらに、モデルに渡す入力プロンプトも特別なトークンで構造化されています。その中で最も重要なのは、**End of sequence token (EOS)**です。
+
+特別なトークンの形式は、モデルプロバイダーによって非常に多様です。
+
+以下の表は、特別なトークンの多様性を示しています。
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Model</strong></th>
+      <th><strong>Provider</strong></th>
+      <th><strong>EOS Token</strong></th>
+      <th><strong>Functionality</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>GPT4</strong></td>
+      <td>OpenAI</td>
+      <td><code>&lt;|endoftext|&gt;</code></td>
+      <td>End of message text</td>
+    </tr>
+    <tr>
+      <td><strong>Llama 3</strong></td>
+      <td>Meta (Facebook AI Research)</td>
+      <td><code>&lt;|eot_id|&gt;</code></td>
+      <td>End of sequence</td>
+    </tr>
+    <tr>
+      <td><strong>Deepseek-R1</strong></td>
+      <td>DeepSeek</td>
+      <td><code>&lt;|end_of_sentence|&gt;</code></td>
+      <td>End of message text</td>
+    </tr>
+    <tr>
+      <td><strong>SmolLM2</strong></td>
+      <td>Hugging Face</td>
+      <td><code>&lt;|im_end|&gt;</code></td>
+      <td>End of instruction or message</td>
+    </tr>
+    <tr>
+      <td><strong>Gemma</strong></td>
+      <td>Google</td>
+      <td><code>&lt;end_of_turn&gt;</code></td>
+      <td>End of conversation turn</td>
+    </tr>
+  </tbody>
+</table>
+
+<Tip>
+
+特別なトークンを覚える必要はありませんが、特別なトークンの多様性とLLMのテキスト生成における役割を理解することが重要です。特別なトークンについてもっと知りたい場合は、モデルのHubリポジトリの設定を確認できます。たとえば、SmolLM2モデルの特別なトークンは、その<a href="https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json">tokenizer_config.json</a>で見つけることができます。
+
+</Tip>
+
+## トークン予測の理解
+
+LLMは**自己回帰的(autoregressive)**であると言われています。つまり、**1回のパスからの出力が次のパスの入力となります**。このループは、モデルが次のトークンをEOSトークンと予測するまで続き、その時点でモデルは停止できます。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="Visual Gif of autoregressive decoding" width="60%">
+
+言い換えると、LLMはEOSに到達するまでテキストをデコードします。しかし、単一のデコードループ中に何が起こるのでしょうか？
+
+プロセス全体はエージェントを学習する点においてはかなり技術的ですが、簡単な概要を以下に示します:
+
+- 入力テキストが**トークン化**されると、モデルはシーケンスの意味と各トークンの位置に関する情報をキャプチャする表現を計算します。
+- この表現がモデルに入力され、モデルはシーケンス内の次のトークンである可能性のある各トークンのスコアを出力します。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="Visual Gif of decoding" width="60%">
+
+これらのスコアに基づいて、文を完成させるためのトークンを選択するための複数の戦略があります。
+
+- 最も簡単なデコード戦略は、常に最大スコアのトークンを選択することです。
+
+SmolLM2を使用してデコードプロセスを自分で操作できます。このSpaceで試してみてください（このモデルのEOSトークンは **<|im_end|>** ですので、デコードはそれに到達するまで続きます）:
+
+<iframe
+	src="https://agents-course-decoding-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+- しかし、より高度なデコード戦略もあります。たとえば、*ビームサーチ*は、複数の候補シーケンスを探索して、個々のトークンが低いスコアを持っていても、合計スコアが最大のものを見つけます。
+
+<iframe
+	src="https://agents-course-beam-search-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+デコードについてもっと知りたい場合は、[NLPコース](https://huggingface.co/learn/nlp-course)をチェックしてください。
+
+## Attention is all you need
+
+Transformerアーキテクチャの重要な側面は**Attention**です。次の単語を予測する際、文中のすべての単語が同じ重要性を持つわけではありません。たとえば、文 *"The capital of France is ..."* では、「France」や「capital」といった単語が最も意味を持ちます。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AttentionSceneFinal.gif" alt="Visual Gif of Attention" width="60%">
+
+このプロセスは、次のトークンを予測するために最も関連性の高い単語を特定するものであり、非常に効果的であることが証明されています。
+
+LLMの基本原則である「次のトークンを予測する」という点は、GPT-2以降一貫していますが、ニューラルネットワークのスケーリングや、注意メカニズムをより長いシーケンスに対応させるための重要な進展がありました。
+
+LLMと対話したことがある場合、*コンテキスト長(context length)*という用語に馴染みがあるかもしれません。これは、LLMが処理できる最大トークン数と、LLMが持つ最大の*注意スパン(attention span)*を指します。
+
+## プロンプトを工夫することが重要
+
+LLMの唯一の仕事は、すべての入力トークンを見て次のトークンを予測し、どのトークンが「重要」であるかを選択することです。そのため、入力シーケンスの表現は非常に重要です。
+
+LLMに提供する入力シーケンスは _プロンプト(prompt)_ と呼ばれます。プロンプトを慎重に設計することで、LLMの生成を**望ましい出力に導く**ことが容易になります。
+
+## LLMはどのように学習するのか？
+
+LLMは、大規模なテキストデータセットで学習され、自己教師ありまたはマスク付き言語モデルの目的を通じて、シーケンス内の次の単語を予測する方法を学びます。
+
+この教師なし学習から、モデルは言語の構造と**テキスト内の基本的なパターンを学習し、モデルが見えないデータに一般化できるようにします**。
+
+この初期の_事前学習_の後、LLMは特定のタスクを実行するために、教師あり学習の目的で微調整されることがあります。たとえば、いくつかのモデルは会話構造やツールの使用のために訓練されている一方で、他のモデルは分類やコード生成に焦点を当てています。
+
+## LLMはどのように使用できるのか？
+
+主に2つのオプションがあります:
+
+1. **ローカルで実行** (十分なハードウェアがある場合)。
+
+2. **クラウド/APIを使用** (例: Hugging Face Serverless Inference APIを介して)。
+
+このコース全体を通じて、主にHugging Face HubのAPIを介してモデルを使用します。後で、これらのモデルをローカルのハードウェアで実行する方法を探ります。
+
+
+## LLMはAIエージェントでどのように使用されるのか？
+
+LLMはAIエージェントの重要なコンポーネントであり、**人間の言語を理解し生成するための基盤を提供します**。
+
+LLMはユーザーの指示を解釈し、会話の文脈を維持し、計画を定義し、使用するツールを決定することができます。
+
+このユニットでは、これらのステップをより詳細に探りますが、今のところ理解しておくべきことは、LLMが**エージェントの脳**であるということです。
+
+---
+
+かなり多くの情報でしたね！LLMとは何か、どのように機能するのか、AIエージェントを支える役割について基本を学びました。
+
+LLMの詳細をさらに深く掘り下げたい場合は、ぜひ<a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">無料のNLPコース</a>をチェックしてください。
+
+LLMの仕組みを理解したところで、次は**会話の文脈におけるLLMの生成の構造**を見てみましょう。
+
+<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb" target="_blank">このノートブック</a>を実行するには、**Hugging Faceトークン**が必要です。このトークンは、<a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a>から取得できます。
+
+Jupyter Notebooksを実行する方法の詳細については、<a href="https://huggingface.co/docs/hub/notebooks">Hugging Face HubのJupyter Notebooks</a>をチェックしてください。
+
+また、<a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank">Meta Llamaモデル</a>へのアクセスをリクエストする必要があります。
