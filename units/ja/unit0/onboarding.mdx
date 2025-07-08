@@ -1,0 +1,97 @@
+# オンボーディング: はじめの一歩 ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Time to Onboard" width="100%"/>
+
+それでは始めましょう！私達は4つのことを行います:
+1. **Hugging Faceアカウントを作成** (まだ作成していない場合)
+2. **Discordにサインアップして自己紹介をする** (恥ずかしがらずに 🤗)
+3. **Hugging Face Agents CourseをHubでフォローする**
+4. **コースについて広める**
+
+### ステップ1: Hugging Faceアカウントを作成
+
+(まだ作成していない場合) Hugging Faceアカウントを<a href='https://huggingface.co/join' target='_blank'>こちら</a>で作成してください。
+
+### ステップ2: Discordコミュニティに参加
+
+👉🏻 我々のDiscordサーバーに参加するには、<a href="https://discord.gg/UrrTSsSyjb" target="_blank">こちら</a>をクリックしてください。
+
+参加したら、`#introduce-yourself`チャンネルで自己紹介をすることを忘れないでください。
+
+AIエージェント関連の複数のチャンネルがあります:
+- `agents-course-announcements`: **最新のコース情報**用。
+- `🎓-agents-course-general`: **一般的な議論や雑談**用。
+- `agents-course-questions`: **質問をしたり、クラスメートを助けたり**するためのもの。
+- `agents-course-showcase`: **自分のエージェントを披露する**ためのもの。
+
+さらに、以下もチェックできます:
+
+- `smolagents`: **ライブラリに関する議論やサポート**用。
+
+初めてDiscordを使用する場合は、最良のプラクティスを得るためにDiscord 101を作成しました。[次のセクション](discord101)を確認してください。
+
+### ステップ3: Hugging Face Agents Courseをフォローする
+
+最新のコース資料、アップデート、およびアナウンスメントを受け取るには、**Hugging Face Agents Course Organizationをフォローしてください**。
+
+👉 [こちら](https://huggingface.co/agents-course)をクリックして、**フォロー**をクリックしてください。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="Follow" width="100%"/>
+
+### ステップ4: コースについて広める
+
+このコースをより目立たせるために、あなたの助けが必要です！あなたができることは2つあります。
+
+1. ⭐ <a href="https://github.com/huggingface/agents-course" target="_blank">コースのリポジトリ</a>をスターしてサポートを示してください。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="Repo star"/>
+
+2. 学習の旅を共有する: 他の人に**このコースを受講していることを知らせてください**！ソーシャルメディアの投稿に使用できるイラストを用意しました。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png">
+
+
+クリックすることで画像をダウンロードできます。 👉 [こちら](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)
+
+### ステップ5: Ollamaを使用してローカルでモデルを実行する (クレジット制限に達した場合)
+
+1. **Ollamaをインストールする**
+
+    公式の手順に従って<a href="https://ollama.com/download" target="_blank">こちら</a>からインストールしてください。
+
+2. **ローカルでモデルをプルする**
+``` bash
+    ollama pull qwen2:7b #Check out ollama website for more models
+```
+3. **Ollamaをバックグラウンドで起動する (1つのターミナルで)**
+``` bash
+    ollama serve
+``` 
+    もし "listen tcp 127.0.0.1:11434: bind: address already in use" というエラーが発生した場合は、`sudo lsof -i :11434` コマンドを使用して、現在このポートを使用しているプロセスID (PID) を特定できます。もしプロセスが `ollama` であれば、上記のインストールスクリプトがollamaサービスを開始している可能性があるため、このコマンドをスキップしてOllamaを起動できます。
+
+4. **`InferenceClientModel`の代わりに`LiteLLMModel`を使用する**
+
+   `smolagents`で`LiteLLMModel`モジュールを使用するには、`pip`コマンドを実行してモジュールをインストールします。
+
+``` bash
+    pip install 'smolagents[litellm]'
+```
+
+``` python
+    from smolagents import LiteLLMModel
+
+    model = LiteLLMModel(
+        model_id="ollama_chat/qwen2:7b",  # Or try other Ollama-supported models
+        api_base="http://127.0.0.1:11434",  # Default Ollama local server
+        num_ctx=8192,
+    )
+```
+
+5. **なぜこれが機能するのか？**
+- OllamaはOpenAI互換のAPIを使用してローカルでモデルを提供します。`http://localhost:11434`でアクセスできます。
+- `LiteLLMModel`は、OpenAIのチャット/補完API形式をサポートする任意のモデルと通信するように構築されています。
+- これは、`InferenceClientModel`を`LiteLLMModel`に単純に置き換えることができ、他のコード変更は必要ありません。シームレスでプラグアンドプレイのソリューションです。
+
+おめでとうございます！🎉 **オンボーディングプロセスを完了しました**！これでAIエージェントについて学ぶ準備が整いました。楽しんでください！
+
+学習を続けましょう！継続は力なりです 🤗
