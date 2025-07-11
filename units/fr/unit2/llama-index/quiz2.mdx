@@ -1,0 +1,111 @@
+# Auto-vérification rapide (non notée) [[quiz2]]
+
+Quoi ?! Un autre Quiz ? Nous savons, nous savons, ... 😅 Mais ce court quiz non noté est là pour **vous aider à renforcer les concepts clés que vous venez d'apprendre**.
+
+Ce quiz couvre les *workflows* d'agents et les interactions - *components* essentiels pour construire des agents d'*IA* efficaces.
+
+### Q1 : Quel est le but de l'*AgentWorkflow* dans LlamaIndex ?
+
+<Question
+choices={[
+{
+text: "Pour exécuter un ou plusieurs agents avec des tools",
+explain: "Oui, l'AgentWorkflow est la façon principale de créer rapidement un système avec un ou plusieurs agents.",
+correct: true
+},
+{
+text: "Pour créer un seul agent qui peut interroger vos données sans mémoire",
+explain: "Non, l'AgentWorkflow est plus capable que cela, le QueryEngine est pour des requêtes simples sur vos données.",
+},
+{
+text: "Pour construire automatiquement des tools pour les agents",
+explain: "L'AgentWorkflow ne construit pas de tools, c'est le travail du développeur.",
+},
+{
+text: "Pour gérer la mémoire et l'état des agents",
+explain: "Gérer la mémoire et l'état n'est pas l'objectif principal de l'AgentWorkflow.",
+}
+]}
+/>
+
+---
+
+### Q2 : Quel objet est utilisé pour garder une trace de l'état du *workflow* ?
+
+<Question
+choices={[
+{
+text: "State",
+explain: "State n'est pas le bon objet pour la gestion d'état du workflow.",
+},
+{
+text: "Context",
+explain: "Context est le bon objet utilisé pour garder une trace de l'état du workflow.",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowState n'est pas le bon objet.",
+},
+{
+text: "Management",
+explain: "Management n'est pas un objet valide pour l'état du workflow.",
+}
+]}
+/>
+
+---
+
+### Q3 : Quelle méthode devrait être utilisée si vous voulez qu'un agent se souvienne des interactions précédentes ?
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str) ne maintient pas l'historique de conversation.",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat() n'est pas une méthode valide sur les workflows.",
+},
+{
+text: "interact(query_str)",
+explain: "interact() n'est pas une méthode valide pour les interactions d'agents.",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "En passant et maintenant le contexte, nous pouvons maintenir l'état !",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4 : Quelle est une caractéristique clé du *RAG* agentique ?
+
+<Question
+choices={[
+{
+text: "Il ne peut utiliser que des tools basés sur des documents, pour répondre aux questions dans un workflow RAG",
+explain: "Le RAG agentique peut utiliser différents tools, incluant les tools basés sur des documents.",
+},
+{
+text: "Il répond automatiquement aux questions sans tools, comme un chatbot",
+explain: "Le RAG agentique utilise bien des tools pour répondre aux questions.",
+},
+{
+text: "Il peut décider d'utiliser n'importe quel tool pour répondre aux questions, incluant les tools RAG",
+explain: "Le RAG agentique a la flexibilité d'utiliser différents tools pour répondre aux questions.",
+correct: true
+},
+{
+text: "Il ne fonctionne qu'avec les Function Calling Agents",
+explain: "Le RAG agentique n'est pas limité aux Function Calling Agents.",
+}
+]}
+/>
+
+---
+
+Vous avez compris ? Parfait ! Maintenant faisons **un bref récapitulatif de l'unité !**

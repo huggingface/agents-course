@@ -1,0 +1,53 @@
+# Introduction
+
+![Bonus Unit 1 Thumbnail](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit1/thumbnail.jpg)
+
+Bienvenue dans cette première **Unité Bonus**, où vous apprendrez à **ajuster finement un Grand Modèle de Langage (LLM) pour l'appel de fonctions** (*function calling*).
+
+En termes de LLMs, l'appel de fonctions devient rapidement une technique *incontournable*. 
+
+L'idée est que, plutôt que de s'appuyer uniquement sur des approches basées sur des prompts comme nous l'avons fait dans l'Unité 1, l'appel de fonctions entraîne votre modèle à **prendre des actions et interpréter des observations pendant la phase d'entraînement**, rendant votre IA plus robuste.
+
+> **Quand dois-je faire cette Unité Bonus ?**
+>
+> Cette section est **optionnelle** et plus avancée que l'Unité 1, donc n'hésitez pas à faire cette unité maintenant ou à la revisiter quand vos connaissances se seront améliorées grâce à ce cours. 
+>  
+> Mais ne vous inquiétez pas, cette Unité Bonus est conçue pour avoir toutes les informations dont vous avez besoin, donc nous vous guiderons à travers chaque concept central de l'ajustement fin d'un modèle pour l'appel de fonctions même si vous n'avez pas encore appris le fonctionnement interne de l'ajustement fin.
+
+La meilleure façon pour vous de pouvoir suivre cette Unité Bonus est de :
+
+1. Savoir comment Ajuster finement un LLM avec *Transformers*, si ce n'est pas le cas [consultez ceci](https://huggingface.co/learn/nlp-course/chapter3/1?fw=pt).
+
+2. Savoir comment utiliser `SFTTrainer` pour ajuster finement notre modèle, pour en savoir plus à ce sujet [consultez cette documentation](https://huggingface.co/learn/nlp-course/en/chapter11/1). 
+
+---
+
+## Ce que vous apprendrez
+
+1. **L'Appel de Fonctions** (*Function Calling*)  
+   Comment les LLMs modernes structurent leurs conversations de manière efficace leur permettant de déclencher des **Outils**.
+
+2. **LoRA** (*Low-Rank Adaptation*)  
+   Une méthode d'ajustement fin **légère et efficace** qui réduit les coûts computationnels et de stockage. LoRA rend l'entraînement de gros modèles *plus rapide, moins cher et plus facile* à déployer.
+
+3. **Le Cycle Réflexion → Action → Observation** dans les modèles d'appel de fonctions  
+   Une approche simple mais puissante pour structurer comment votre modèle décide quand (et comment) appeler des fonctions, suivre les étapes intermédiaires et interpréter les résultats des Outils ou APIs externes.
+
+4. **Nouveaux Tokens Spéciaux**  
+   Nous introduirons des **marqueurs spéciaux** qui aident le modèle à distinguer entre :
+   - Le raisonnement interne "*chain-of-thought*"  
+   - Les appels de fonctions sortants  
+   - Les réponses provenant d'outils externes
+
+---
+
+À la fin de cette unité bonus, vous serez capable de :
+
+- **Comprendre** le fonctionnement interne des APIs quand il s'agit d'Outils.  
+- **Ajuster finement** un modèle en utilisant la technique LoRA.  
+- **Implémenter** et **modifier** le cycle Réflexion → Action → Observation pour créer des flux de travail d'appel de fonctions robustes et maintenables.  
+- **Concevoir et utiliser** des tokens spéciaux pour séparer de manière transparente le raisonnement interne du modèle de ses actions externes.
+
+Et vous **aurez ajusté finement votre propre modèle pour faire de l'appel de fonctions.**
+
+Plongeons dans **l'appel de fonctions** !
