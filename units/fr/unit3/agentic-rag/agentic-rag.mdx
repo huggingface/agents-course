@@ -1,0 +1,27 @@
+# Génération augmentée par récupération agentique (*Agentic Retrieval Augmented Generation* - RAG)
+
+Dans cette unité, nous allons examiner comment nous pouvons utiliser le *RAG agentique* pour aider Alfred à préparer l'incroyable gala.
+
+<Tip>Nous savons que nous avons déjà discuté de la génération augmentée par récupération (*Retrieval Augmented Generation* - RAG) et du *RAG agentique* dans l'unité précédente, donc n'hésitez pas à passer directement à la suite si vous êtes déjà familier avec ces concepts.</Tip>
+
+Les *LLMs* sont entraînés sur d'énormes corpus de données pour apprendre des connaissances générales.
+Cependant, le modèle de connaissance du monde des *LLMs* peut ne pas toujours être des informations pertinentes et à jour.
+**Le RAG résout ce problème en trouvant et récupérant des informations pertinentes à partir de vos données et en les transmettant au *LLM*.**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Maintenant, pensez à comment Alfred fonctionne :
+
+1. Nous avons demandé à Alfred d'aider à planifier un gala
+2. Alfred doit trouver les dernières nouvelles et informations météorologiques
+3. Alfred doit structurer et rechercher les informations sur les invités
+
+Tout comme Alfred a besoin de chercher dans vos informations domestiques pour être utile, tout agent a besoin d'un moyen de trouver et comprendre les données pertinentes.
+**Le *RAG agentique* est un moyen puissant d'utiliser les agents pour répondre aux questions sur vos données.** Nous pouvons passer divers outils à Alfred pour l'aider à répondre aux questions.
+Cependant, au lieu de répondre automatiquement à la question sur la base de documents, Alfred peut décider d'utiliser tout autre outil ou flux pour répondre à la question.
+
+![RAG agentique](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+Commençons **à construire notre flux de travail de *RAG agentique* !**
+
+Tout d'abord, nous créerons un outil *RAG* pour récupérer les détails à jour sur les invités. Ensuite, nous développerons des outils pour la recherche web, les mises à jour météorologiques et les statistiques de téléchargement de modèles *Hugging Face Hub*. Enfin, nous intégrerons tout pour donner vie à notre agent *RAG agentique* !

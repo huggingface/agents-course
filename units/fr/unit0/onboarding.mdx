@@ -1,0 +1,97 @@
+# Intégration : Vos Premiers Pas ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Il est temps de démarrer" width="100%"/>
+
+Maintenant que vous avez tous les détails, commençons ! Nous allons réaliser quatre choses :
+
+1. **Créez votre compte Hugging Face** si ce n'est pas déjà fait  
+2. **Inscrivez-vous sur Discord et présentez-vous** (ne soyez pas timide 🤗)  
+3. **Suivez le cours Hugging Face Agents** sur le Hub  
+4. **Faites passer le mot** à propos du cours
+
+### Étape 1 : Créez votre compte Hugging Face
+
+(Si ce n'est pas déjà fait) créez un compte Hugging Face <a href='https://huggingface.co/join' target='_blank'>ici</a>.
+
+### Étape 2 : Rejoignez notre communauté Discord
+
+👉🏻 Rejoignez notre serveur Discord <a href="https://discord.gg/UrrTSsSyjb" target="_blank">ici.</a>
+
+Lorsque vous rejoignez, n'oubliez pas de vous présenter dans `#introduce-yourself`.
+
+Nous disposons de plusieurs canaux liés aux agents IA :
+- `agents-course-announcements` : pour les **dernières informations du cours**.
+- `🎓-agents-course-general` : pour **les discussions générales et les bavardages**.
+- `agents-course-questions` : pour **poser des questions et aider vos camarades**.
+- `agents-course-showcase` : pour **présenter vos meilleurs agents**.
+
+De plus, vous pouvez consulter :
+
+- `smolagents` : pour **les discussions et l'assistance concernant la bibliothèque**.
+
+Si c'est votre première utilisation de Discord, nous avons rédigé un guide Discord 101 pour vous donner les meilleures pratiques. Consultez [la section suivante](discord101).
+
+### Étape 3 : Suivez l'organisation du cours Hugging Face Agents
+
+Restez à jour avec les derniers matériels de cours, mises à jour, et annonces **en suivant l'organisation du cours Hugging Face Agents**.
+
+👉 Rendez-vous <a href="https://huggingface.co/agents-course" target="_blank">ici</a> et cliquez sur **suivre**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="Suivre" width="100%"/>
+
+### Étape 4 : Faites passer le mot à propos du cours
+
+Aidez-nous à rendre ce cours plus visible ! Il y a deux façons de nous aider :
+
+1. Montrez votre soutien en ⭐ <a href="https://github.com/huggingface/agents-course" target="_blank">aimant le dépôt du cours</a>.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="Favoriser le dépôt"/>
+
+2. Partagez votre parcours d'apprentissage : Faites savoir aux autres **que vous suivez ce cours** ! Nous avons préparé une illustration que vous pouvez utiliser dans vos publications sur les réseaux sociaux.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png" alt="Partagez votre parcours d'apprentissage" width="100%"/>
+
+Vous pouvez télécharger l'image en cliquant 👉 [ici](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)
+
+### Étape 5 : Exécuter des modèles localement avec Ollama (En cas de limites de crédits)
+
+1. **Installez Ollama**
+
+    Suivez les instructions officielles <a href="https://ollama.com/download" target="_blank">ici.</a>
+
+2. **Téléchargez un modèle localement**
+``` bash
+    ollama pull qwen2:7b #Consultez le site web d'Ollama pour plus de modèles
+```
+3. **Démarrez Ollama en arrière-plan (Dans un terminal)**
+``` bash
+    ollama serve
+``` 
+    Si vous rencontrez l'erreur "listen tcp 127.0.0.1:11434: bind: address already in use", vous pouvez utiliser la commande `sudo lsof -i :11434` pour identifier l'ID du processus (PID) qui utilise actuellement ce port. Si le processus est `ollama`, il est probable que le script d'installation ci-dessus ait démarré le service ollama, vous pouvez donc ignorer cette commande pour démarrer Ollama.
+
+4. **Utilisez `LiteLLMModel` au lieu de `InferenceClientModel`**
+
+   Pour utiliser le module `LiteLLMModel` dans `smolagents`, vous pouvez exécuter la commande `pip` pour installer le module.
+
+``` bash
+    pip install 'smolagents[litellm]'
+```
+
+``` python
+    from smolagents import LiteLLMModel
+
+    model = LiteLLMModel(
+        model_id="ollama_chat/qwen2:7b",  # Ou essayez d'autres modèles supportés par Ollama
+        api_base="http://127.0.0.1:11434",  # Serveur local Ollama par défaut
+        num_ctx=8192,
+    )
+```
+
+5. **Pourquoi cela fonctionne-t-il ?**
+- Ollama sert des modèles localement en utilisant une API compatible OpenAI à `http://localhost:11434`.
+- `LiteLLMModel` est conçu pour communiquer avec tout modèle qui supporte le format d'API OpenAI chat/completion.
+- Cela signifie que vous pouvez simplement remplacer `InferenceClientModel` par `LiteLLMModel` sans autres changements de code nécessaires. C'est une solution transparente et prête à l'emploi.
+
+Félicitations ! 🎉 **Vous avez terminé le processus d'intégration** ! Vous êtes maintenant prêt à commencer à apprendre sur les agents IA. Amusez-vous bien !
+
+Continuez à apprendre, restez formidable 🤗

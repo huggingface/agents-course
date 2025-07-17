@@ -1,0 +1,47 @@
+# Ajustons finement votre modèle pour l'appel de fonctions
+
+Nous sommes maintenant prêts à ajuster finement notre premier modèle pour l'appel de fonctions 🔥.
+
+## Comment entraînons-nous notre modèle pour l'appel de fonctions ?
+
+> Réponse : Nous avons besoin de **données**
+
+Un processus d'entraînement de modèle peut être divisé en 3 étapes :
+
+1. **Le modèle est pré-entraîné sur une grande quantité de données**. Le résultat de cette étape est un **modèle pré-entraîné**. Par exemple, [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b). C'est un modèle de base et il sait seulement comment **prédire le prochain token sans fortes capacités de suivi d'instructions**.
+
+2. Pour être utile dans un contexte de chat, le modèle doit ensuite être **ajusté finement** pour suivre des instructions. À cette étape, il peut être entraîné par les créateurs du modèle, la communauté open-source, vous, ou n'importe qui. Par exemple, [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) est un modèle ajusté pour les instructions par l'équipe Google derrière le projet Gemma.
+
+3. Le modèle peut ensuite être **aligné** selon les préférences du créateur. Par exemple, un modèle de chat de service client qui ne doit jamais être impoli avec les clients.
+
+Habituellement, un produit complet comme *Gemini* ou *Mistral* **passera par les 3 étapes**, alors que les modèles que vous pouvez trouver sur *Hugging Face* ont complété une ou plusieurs étapes de cet entraînement.
+
+Dans ce tutoriel, nous construirons un modèle d'appel de fonctions basé sur [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it). Nous choisissons le modèle ajusté finement [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) au lieu du modèle de base [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b) parce que le modèle ajusté finement a été amélioré pour notre cas d'usage.
+
+Partir du modèle pré-entraîné **nécessiterait plus d'entraînement pour apprendre le suivi d'instructions, le chat ET l'appel de fonctions**.
+
+En partant du modèle ajusté pour les instructions, **nous minimisons la quantité d'informations que notre modèle doit apprendre**.
+
+## LoRA (*Low-Rank Adaptation of Large Language Models*)
+
+LoRA est une technique d'entraînement populaire et légère qui **réduit significativement le nombre de paramètres entraînables**.
+
+Elle fonctionne en **insérant un plus petit nombre de nouveaux poids comme adaptateur dans le modèle à entraîner**. Cela rend l'entraînement avec LoRA beaucoup plus rapide, économe en mémoire, et produit des poids de modèle plus petits (quelques centaines de MB), qui sont plus faciles à stocker et partager.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
+
+LoRA fonctionne en ajoutant des paires de matrices de décomposition de rang aux couches *Transformer*, se concentrant typiquement sur les couches linéaires. Durant l'entraînement, nous "gèlerons" le reste du modèle et ne mettrons à jour que les poids de ces adaptateurs nouvellement ajoutés.
+
+Ce faisant, le nombre de **paramètres** que nous devons entraîner chute considérablement car nous devons seulement mettre à jour les poids de l'adaptateur.
+
+Durant l'inférence, l'entrée est passée dans l'adaptateur et le modèle de base, ou ces poids d'adaptateur peuvent être fusionnés avec le modèle de base, ne résultant en aucune surcharge de latence supplémentaire.
+
+LoRA est particulièrement utile pour adapter des modèles de langage **larges** à des tâches ou domaines spécifiques tout en gardant les exigences de ressources gérables. Cela aide à réduire la mémoire **requise** pour entraîner un modèle.
+
+Si vous voulez en savoir plus sur comment LoRA fonctionne, vous devriez consulter ce [tutoriel](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt).
+
+## Ajustement fin d'un modèle pour l'appel de fonctions
+
+Vous pouvez accéder au notebook du tutoriel 👉 [ici](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb).
+
+Ensuite, cliquez sur [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) pour pouvoir l'exécuter dans un *Notebook Colab*.

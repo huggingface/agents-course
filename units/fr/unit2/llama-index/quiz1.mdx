@@ -1,0 +1,117 @@
+# Petit quiz (non noté) [[quiz1]]
+
+Jusqu'à présent, nous avons discuté des *components* et *tools* clés utilisés dans LlamaIndex.
+Il est temps de faire un petit quiz, car **se tester soi-même** est la meilleure façon d'apprendre et [d'éviter l'illusion de compétence](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf).
+Cela vous aidera à trouver **où vous devez renforcer vos connaissances**.
+
+Ceci est un quiz optionnel et il n'est pas noté.
+
+### Q1 : Qu'est-ce qu'un *QueryEngine* ?
+Laquelle des affirmations suivantes décrit le mieux un *component* *QueryEngine* ?
+
+<Question
+choices={[
+{
+text: "Un système qui traite uniquement du texte statique sans aucune capacité de récupération.",
+explain: "Un QueryEngine doit être capable de récupérer et traiter des informations pertinentes.",
+},
+{
+text: "Un component qui trouve et récupère des informations pertinentes dans le cadre du processus RAG.",
+explain: "Cela capture l'objectif principal d'un component QueryEngine.",
+correct: true
+},
+{
+text: "Un tool qui ne fait que stocker des embeddings vectoriels sans fonctionnalité de recherche.",
+explain: "Un QueryEngine fait plus que simplement stocker des embeddings - il recherche et récupère activement des informations.",
+},
+{
+text: "Un component qui évalue uniquement la qualité des réponses.",
+explain: "L'évaluation est séparée de l'objectif principal de récupération du QueryEngine.",
+}
+]}
+/>
+
+---
+
+### Q2 : Quel est le but des *FunctionTools* ?
+Pourquoi les *FunctionTools* sont-ils importants pour un Agent ?
+
+<Question
+choices={[
+{
+text: "Pour gérer de grandes quantités de stockage de données.",
+explain: "Les FunctionTools ne sont pas principalement pour le stockage de données.",
+},
+{
+text: "Pour convertir des fonctions Python en tools qu'un agent peut utiliser.",
+explain: "Les FunctionTools enveloppent les fonctions Python pour les rendre accessibles aux agents.",
+correct: true
+},
+{
+text: "Pour permettre aux agents de créer des définitions de fonctions aléatoires.",
+explain: "Les FunctionTools servent l'objectif spécifique de rendre les fonctions disponibles aux agents.",
+},
+{
+text: "Pour traiter uniquement des données textuelles.",
+explain: "Les FunctionTools peuvent fonctionner avec différents types de fonctions, pas seulement le traitement de texte.",
+}
+]}
+/>
+
+---
+
+### Q3 : Que sont les *Toolspecs* dans LlamaIndex ?
+Quel est l'objectif principal des *Toolspecs* ?
+
+<Question
+choices={[
+{
+text: "Ce sont des components redondants qui n'ajoutent pas de fonctionnalité.",
+explain: "Les Toolspecs servent un objectif important dans l'écosystème LlamaIndex.",
+},
+{
+text: "Ce sont des ensembles de tools créés par la communauté qui étendent les capacités des agents.",
+explain: "Les Toolspecs permettent à la communauté de partager et réutiliser des tools.",
+correct: true
+},
+{
+text: "Ils sont utilisés uniquement pour la gestion mémoire.",
+explain: "Les Toolspecs concernent la fourniture de tools, pas la gestion mémoire.",
+},
+{
+text: "Ils ne fonctionnent qu'avec le traitement de texte.",
+explain: "Les Toolspecs peuvent inclure différents types de tools, pas seulement le traitement de texte.",
+}
+]}
+/>
+
+---
+
+### Q4 : Qu'est-ce qui est requis pour créer un *tool* ?
+Quelles informations doivent être incluses lors de la création d'un *tool* ?
+
+<Question
+choices={[
+{
+text: "Une fonction, un nom et une description doivent être définis.",
+explain: "Bien que tous ceux-ci constituent un tool, le nom et la description peuvent être analysés à partir de la fonction et de la docstring.",
+},
+{
+text: "Seul le nom est requis.",
+explain: "Une fonction et une description/docstring sont également requises pour une documentation appropriée du tool.",
+},
+{
+text: "Seule la description est requise.",
+explain: "Une fonction est requise pour que nous ayons du code à exécuter quand un agent sélectionne un tool",
+},
+{
+text: "Seule la fonction est requise.",
+explain: "Le nom et la description sont par défaut le nom et la docstring de la fonction fournie",
+correct: true
+}
+]}
+/>
+
+---
+
+Félicitations pour avoir terminé ce Quiz 🥳, si vous avez manqué certains éléments, prenez le temps de relire le chapitre pour renforcer vos connaissances. Si vous le réussissez, vous êtes prêt à plonger plus profondément dans la construction avec ces *components* !
