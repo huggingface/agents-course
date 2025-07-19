@@ -1,0 +1,39 @@
+# Giới thiệu Use Case cho Agent tìm kiếm và tạo ra câu trả lời (Agentic RAG)
+
+![Agentic RAG banner](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit3/agentic-rag/thumbnail.jpg)
+
+Trong Chương này, chúng ta sẽ giúp Alfred - Agent thân thiện đang tổ chức buổi tiệc - bằng cách sử dụng Agentic RAG để tạo công cụ trả lời các câu hỏi về khách mời.
+
+<Tip>
+Đây là use case 'thực tế' cho Agentic RAG mà bạn có thể áp dụng trong dự án/công việc của mình. Nếu muốn khám phá sâu hơn, hãy thử áp dụng vào use case riêng và chia sẻ trên Discord nhé!
+</Tip>
+
+Bạn có thể chọn bất kỳ framework nào đã đề cập trong khóa học cho use case này. Chúng mình cung cấp code mẫu cho từng framework trong các tab riêng.
+
+## Một Buổi Tiệc Đáng Nhớ
+
+Giờ là lúc bắt tay vào use case thực tế. Hãy dựng sân khấu nào!
+
+**Bạn quyết định tổ chức bữa tiệc xa hoa nhất thế kỷ** với yến tiệc thịnh soạn, vũ công quyến rũ, DJ nổi tiếng, thức uống hảo hạng, màn pháo hoa ngoạn mục và nhiều hơn thế nữa.
+
+Alfred - Agent thân thiện của chúng ta - đang chuẩn bị đảm nhiệm mọi nhu cầu của bạn cho bữa tiệc này, và **Alfred sẽ tự mình quản lý tất cả**. Để làm được điều đó, cậu ấy cần truy cập mọi thông tin về bữa tiệc: thực đơn, danh sách khách mời, lịch trình, dự báo thời tiết và nhiều thứ khác!
+
+Không chỉ vậy, Alfred còn phải đảm bảo bữa tiệc thành công nên **cần có khả năng trả lời mọi câu hỏi về sự kiện trong suốt buổi tiệc**, đồng thời xử lý các tình huống bất ngờ phát sinh.
+
+Alfred không thể làm điều này một mình, nên chúng ta cần trang bị cho cậu ấy mọi thông tin và công cụ cần thiết.
+
+Trước hết, hãy đưa ra danh sách yêu cầu cứng cho buổi tiệc.
+
+## Yêu Cầu Cho Buổi Tiệc
+
+Một người có học thức đúng chuẩn thời **Phục Hưng** cần hội tụ ba đặc điểm chính:
+- Am hiểu sâu sắc về **thể thao, văn hóa và khoa học**. Vì vậy, chúng ta cần gây ấn tượng với khách mời bằng kiến thức uyên thâm và mang đến cho họ một buổi tiệc thực sự khó quên.
+- Tránh các **chủ đề nhạy cảm như chính trị và tôn giáo** để tránh xung đột. Đây phải là một bữa tiệc vui vẻ không tranh cãi về niềm tin hay lý tưởng.
+
+Theo nghi thức xã giao, **một chủ nhà tốt cần nắm rõ thông tin cá nhân của khách mời** như sở thích và thành tựu. Họ cũng cần biết cách chia sẻ những câu chuyện thú vị về các vị khách với nhau.
+
+Cuối cùng, chúng ta cần **cập nhật kiến thức chung về thời tiết** liên tục để chọn thời điểm hoàn hảo phóng pháo hoa và kết thúc buổi tiệc thật ngoạn mục! 🎆
+
+Như bạn thấy, Alfred cần rất nhiều thông tin để tổ chức thành công. May mắn thay, chúng ta có thể giúp cậu ấy chuẩn bị qua **khóa training Retrieval Augmented Generation (RAG)!**
+
+Hãy bắt đầu bằng cách tạo các Tools cần thiết cho Alfred nào!
