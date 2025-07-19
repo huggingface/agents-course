@@ -1,40 +1,106 @@
 - title: Unit 0. Welcome to the course
   sections:
   - local: unit0/introduction
-    title: Welcome to the course 🤗
+    title: AI 에이전트 코스에 오신걸 환영합니다 🤗
   - local: unit0/onboarding
-    title: Onboarding
+    title: 온보딩(Onboarding), 첫 걸음 내딛기 ⛵
   - local: unit0/discord101
-    title: (Optional) Discord 101
+    title: (선택) Discord 101
 - title: Unit 1. Introduction to Agents
   sections:
   - local: unit1/introduction
-    title: Introduction
+    title: 에이전트 소개
   - local: unit1/what-are-agents
-    title: What is an Agent?
+    title: 에이전트란?
   - local: unit1/quiz1
     title: Quick Quiz 1
   - local: unit1/what-are-llms
-    title: What are LLMs?
+    title: LLM이란?
   - local: unit1/messages-and-special-tokens
-    title: Messages and Special Tokens
+    title: 메세지와 특수 토큰
   - local: unit1/tools
-    title: What are Tools?
+    title: 도구란?
   - local: unit1/quiz2
     title: Quick Quiz 2
   - local: unit1/agent-steps-and-structure
-    title: Understanding AI Agents through the Thought-Action-Observation Cycle
+    title: 사고-행동-관찰 주기를 통해 AI 에이전트 이해하기
   - local: unit1/thoughts
-    title: Thought, Internal Reasoning and the Re-Act Approach
+    title: 사고, AI 에이전트의 내부 추론과 Re-Act 방식
   - local: unit1/actions
-    title: Actions, Enabling the Agent to Engage with Its Environment
+    title: 액션, 에이전트가 환경과 상호작용할 수 있게 하기
   - local: unit1/observations
-    title: Observe, Integrating Feedback to Reflect and Adapt
+    title: 관찰, 피드백을 통합하여 성찰하고 적응하기
   - local: unit1/dummy-agent-library
-    title: Dummy Agent Library
+    title: 더미 에이전트 라이브러리
   - local: unit1/tutorial
-    title: Let’s Create Our First Agent Using smolagents
+    title: smolagents로 첫 번째 에이전트 만들기
   - local: unit1/final-quiz
     title: Unit 1 Final Quiz
   - local: unit1/conclusion
+    title: Conclusion
+- title: Unit 2. Frameworks for AI Agents
+  sections:
+  - local: unit2/introduction
+    title: AI Agent 프레임워크 소개
+- title: Unit 2.1 The smolagents framework
+  sections:
+  - local: unit2/smolagents/introduction
+    title: smolagents 소개
+  - local: unit2/smolagents/why_use_smolagents
+    title: smolagents를 왜 사용할까?
+  - local: unit2/smolagents/quiz1
+    title: Quick Quiz 1
+  - local: unit2/smolagents/code_agents
+    title: 코드를 사용하는 에이전트 만들기
+  - local: unit2/smolagents/tool_calling_agents
+    title: 액션을 코드 조각(코드 스니펫)이나 JSON 블롭으로 작성하기
+  - local: unit2/smolagents/tools
+    title: Tool 도구 소개
+  - local: unit2/smolagents/retrieval_agents
+    title: 검색 에이전트
+  - local: unit2/smolagents/quiz2
+    title: Quick Quiz 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: 멀티 에이전트 시스템
+  - local: unit2/smolagents/vision_agents
+    title: 비전과 브라우저 에이전트
+  - local: unit2/smolagents/final_quiz
+    title: 최종 Quiz
+  - local: unit2/smolagents/conclusion
+    title: 결론
+- title: Unit 2.2 The LlamaIndex framework
+  sections:
+  - local: unit2/llama-index/introduction
+    title: LLamaIndex 소개
+  - local: unit2/llama-index/llama-hub
+    title: LlamaHub 소개
+  - local: unit2/llama-index/components
+    title: LlamaIndex의 구성 요소
+  - local: unit2/llama-index/tools
+    title: LlamaIndex에서 도구 사용하기
+  - local: unit2/llama-index/quiz1
+    title: Quick Quiz 1
+  - local: unit2/llama-index/agents
+    title: LlamaIndex에서 에이전트 사용하기
+  - local: unit2/llama-index/workflows
+    title: LlamaIndex에서 에이전트 워크플로우 만들기
+  - local: unit2/llama-index/quiz2
+    title: Quick Quiz 2
+  - local: unit2/llama-index/conclusion
+    title: 결론
+- title: Unit 2.3 The LangGraph framework
+  sections:
+  - local: unit2/langgraph/introduction
+    title: LangGraph 소개
+  - local: unit2/langgraph/when_to_use_langgraph
+    title: LangGraph란?
+  - local: unit2/langgraph/building_blocks
+    title: LangGraph의 구성 요소
+  - local: unit2/langgraph/first_graph
+    title: 첫 번째 LangGraph 만들기
+  - local: unit2/langgraph/document_analysis_agent
+    title: Document Analysis Graph
+  - local: unit2/langgraph/quiz1
+    title: Quick Quiz 1
+  - local: unit2/langgraph/conclusion
     title: Conclusion
