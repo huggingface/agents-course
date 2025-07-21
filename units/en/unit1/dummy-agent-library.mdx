@@ -34,7 +34,7 @@ from huggingface_hub import InferenceClient
 client = InferenceClient(model="meta-llama/Llama-4-Scout-17B-16E-Instruct")
 ```
 
-We use the `chat` method since is a convenient and reliable way to apply chat templates:
+We use the `chat` method since it is a convenient and reliable way to apply chat templates:
 
 ```python
 output = client.chat.completions.create(
