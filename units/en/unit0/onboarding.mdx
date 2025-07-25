@@ -1,6 +1,10 @@
 # Onboarding: Your First Steps ⛵
 
-<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Time to Onboard" width="100%"/>
+<img
+  src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg"
+  alt="Time to Onboard"
+  width="100%"
+/>
 
 Now that you have all the details, let's get started! We're going to do four things:
 
@@ -20,6 +24,7 @@ Now that you have all the details, let's get started! We're going to do four thi
 When you join, remember to introduce yourself in `#introduce-yourself`.
 
 We have multiple AI Agent-related channels:
+
 - `agents-course-announcements`: for the **latest course information**.
 - `🎓-agents-course-general`: for **general discussions and chitchat**.
 - `agents-course-questions`: to **ask questions and help your classmates**.
@@ -37,7 +42,11 @@ Stay up to date with the latest course materials, updates, and announcements **b
 
 👉 Go <a href="https://huggingface.co/agents-course" target="_blank">here</a> and click on **follow**.
 
-<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="Follow" width="100%"/>
+<img
+  src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif"
+  alt="Follow"
+  width="100%"
+/>
 
 ### Step 4: Spread the word about the course
 
@@ -45,7 +54,10 @@ Help us make this course more visible! There are two ways you can help us:
 
 1. Show your support by ⭐ <a href="https://github.com/huggingface/agents-course" target="_blank">the course's repository</a>.
 
-<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="Repo star"/>
+<img
+  src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif"
+  alt="Repo star"
+/>
 
 2. Share Your Learning Journey: Let others **know you're taking this course**! We've prepared an illustration you can use in your social media posts
 
@@ -57,16 +69,22 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 
 1. **Install Ollama**
 
-    Follow the official Instructions <a href="https://ollama.com/download" target="_blank"> here.</a>
+   Follow the official Instructions <a href="https://ollama.com/download" target="_blank"> here.</a>
 
 2. **Pull a model Locally**
-``` bash
-    ollama pull qwen2:7b #Check out ollama website for more models
+
+```bash
+    ollama pull qwen2:7b
 ```
+
+    Check out ollama website for more models
+
 3. **Start Ollama in the background (In one terminal)**
-``` bash
+
+```bash
     ollama serve
-``` 
+```
+
     If you run into the error "listen tcp 127.0.0.1:11434: bind: address already in use", you can use command `sudo lsof -i :11434` to identify the process
     ID (PID) that is currently using this port. If the process is `ollama`, it is likely that the installation script above has started ollama
     service, so you can skip this command to start Ollama.
@@ -75,11 +93,11 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 
    To use `LiteLLMModel` module in `smolagents`, you may run `pip` command to install the module.
 
-``` bash
+```bash
     pip install 'smolagents[litellm]'
 ```
 
-``` python
+```python
     from smolagents import LiteLLMModel
 
     model = LiteLLMModel(
@@ -90,6 +108,7 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 ```
 
 5. **Why this works?**
+
 - Ollama serves models locally using an OpenAI-compatible API at `http://localhost:11434`.
 - `LiteLLMModel` is built to communicate with any model that supports the OpenAI chat/completion API format.
 - This means you can simply swap out `InferenceClientModel` for `LiteLLMModel` no other code changes required. It’s a seamless, plug-and-play solution.
