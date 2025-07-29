@@ -211,8 +211,8 @@ Action:
   "action": "get_weather",
   "action_input": {"location": "London"}
 }
-```
-Observation:
+
+
 ````
 
 Much Better!
@@ -239,7 +239,7 @@ Let's concatenate the system prompt, the base prompt, the completion until funct
 messages=[
     {"role": "system", "content": SYSTEM_PROMPT},
     {"role": "user", "content": "What's the weather in London ?"},
-    {"role": "assistant", "content": output.choices[0].message.content + get_weather('London')},
+    {"role": "assistant", "content": output.choices[0].message.content + "Observation:\n" + get_weather('London')},
 ]
 
 output = client.chat.completions.create(
