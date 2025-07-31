@@ -1,0 +1,74 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# 액션을 코드 스니펫 또는 JSON 블롭으로 작성하기
+
+<Tip>
+코드는 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">이 노트북</a>에서 따라할 수 있습니다. Google Colab에서 실행할 수 있습니다.
+</Tip>
+
+Tool Calling Agent는 `smolagents`에서 제공하는 두 번째 유형의 에이전트입니다. Python 코드를 실행하는 CodeAgent와 달리, **Tool Calling Agent는 LLM 제공업체의 내장 툴 콜링 기능**을 활용해 **JSON 구조**로 툴 호출을 생성합니다. 이는 OpenAI, Anthropic 등 많은 제공업체에서 사용하는 표준 방식입니다.
+
+예를 들어, Alfred가 케이터링 서비스와 파티 아이디어를 검색하고 싶을 때, `CodeAgent`는 다음과 같이 Python 코드를 생성해 실행합니다:
+
+```python
+for query in [
+    "Best catering services in Gotham City", 
+    "Party theme ideas for superheroes"
+]:
+    print(web_search(f"Search for: {query}"))
+```
+
+`ToolCallingAgent`는 대신 JSON 구조를 생성합니다:
+
+```python
+[
+    {"name": "web_search", "arguments": "Best catering services in Gotham City"},
+    {"name": "web_search", "arguments": "Party theme ideas for superheroes"}
+]
+```
+
+이 JSON 블롭이 시스템에 전달되어 툴 호출이 실행됩니다.
+
+`smolagents`는 [CodeAgent가 전반적으로 더 좋은 성능을 보이기 때문에](https://huggingface.co/papers/2402.01030) 주로 CodeAgent에 초점을 맞추지만, ToolCallingAgent는 변수 처리나 복잡한 툴 호출이 필요 없는 간단한 시스템에 효과적입니다.
+
+![Code vs JSON Actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)  
+
+## Tool Calling Agent는 어떻게 동작하나요?  
+
+Tool Calling Agent는 CodeAgent와 동일한 다단계 워크플로우를 따릅니다([이전 섹션](./code_agents) 참고). 
+
+핵심 차이점은 **액션을 구조화하는 방식**입니다. ToolCallingAgent는 실행 가능한 코드 대신, **툴 이름과 인자를 명시한 JSON 객체**를 생성합니다. 시스템은 이 명령을 파싱해 적절한 툴을 실행합니다.
+
+## 예시: Tool Calling Agent 실행하기  
+
+앞서 Alfred가 파티 준비를 시작했던 예시를 ToolCallingAgent로 다시 구현해보겠습니다. DuckDuckGo를 활용해 웹을 검색하는 에이전트를 만들지만, 에이전트 타입만 다르고 나머지는 프레임워크가 처리합니다:
+
+```python
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+에이전트의 실행 로그를 보면, `Executing parsed code:` 대신 다음과 같은 메시지가 출력됩니다:
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "best music recommendations for a party at Wayne's         │
+│ mansion"}                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+에이전트는 구조화된 툴 호출을 생성하고, 시스템이 이를 처리해 결과를 반환합니다. CodeAgent처럼 코드를 직접 실행하지 않습니다.
+
+이제 두 에이전트 타입의 차이를 이해했으니, 필요에 따라 적합한 방식을 선택할 수 있습니다. Alfred의 파티 준비를 계속 이어가봅시다! 🎉
+
+## 참고 자료
+
+- [ToolCallingAgent 공식 문서](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - ToolCallingAgent에 대한 공식 문서
