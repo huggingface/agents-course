@@ -38,3 +38,7 @@
     title: Unit 1 Final Quiz
   - local: unit1/conclusion
     title: Conclusion
+- title: Bonus Unit 1. Fine-tuning an LLM for Function-calling
+  sections:
+  - local: bonus-unit1/introduction
+    title: Introduction
