@@ -1,151 +1,151 @@
 - title: 第 0 单元. 课程欢迎
   sections:
-  - local: unit0/introduction
-    title: 欢迎来到课程 🤗
-  - local: unit0/onboarding
-    title: 入门指南
-  - local: unit0/discord101
-    title: (可选) Discord 使用指南
+    - local: unit0/introduction
+      title: 欢迎来到课程 🤗
+    - local: unit0/onboarding
+      title: 入门指南
+    - local: unit0/discord101
+      title: (可选) Discord 使用指南
 - title: 直播 1. 课程运作方式和问答
   sections:
-  - local: communication/live1
-    title: 直播 1. 课程运作方式和问答
+    - local: communication/live1
+      title: 直播 1. 课程运作方式和问答
 - title: 第 1 单元. 智能体简介
   sections:
-  - local: unit1/introduction
-    title: 简介
-  - local: unit1/what-are-agents
-    title: 什么是智能体？
-  - local: unit1/quiz1
-    title: 快速测验 1
-  - local: unit1/what-are-llms
-    title: 什么是 LLMs？
-  - local: unit1/messages-and-special-tokens
-    title: 消息和特殊令牌
-  - local: unit1/tools
-    title: 什么是工具？
-  - local: unit1/quiz2
-    title: 快速测验 2
-  - local: unit1/agent-steps-and-structure
-    title: 通过思考-行动-观察循环理解 AI 智能体
-  - local: unit1/thoughts
-    title: 思考、内部推理和 Re-Act 方法
-  - local: unit1/actions
-    title: 行动，使智能体能够与环境交互
-  - local: unit1/observations
-    title: 观察，整合反馈以反思和适应
-  - local: unit1/dummy-agent-library
-    title: 简单智能体库
-  - local: unit1/tutorial
-    title: 使用 Smolagents 创建我们的第一个智能体
-  - local: unit1/final-quiz
-    title: 第 1 单元最终测验
-  - local: unit1/conclusion
-    title: 结论
+    - local: unit1/introduction
+      title: 简介
+    - local: unit1/what-are-agents
+      title: 什么是智能体？
+    - local: unit1/quiz1
+      title: 快速测验 1
+    - local: unit1/what-are-llms
+      title: 什么是 LLMs？
+    - local: unit1/messages-and-special-tokens
+      title: 消息和特殊令牌
+    - local: unit1/tools
+      title: 什么是工具？
+    - local: unit1/quiz2
+      title: 快速测验 2
+    - local: unit1/agent-steps-and-structure
+      title: 通过思考-行动-观察循环理解 AI 智能体
+    - local: unit1/thoughts
+      title: 思考、内部推理和 Re-Act 方法
+    - local: unit1/actions
+      title: 行动，使智能体能够与环境交互
+    - local: unit1/observations
+      title: 观察，整合反馈以反思和适应
+    - local: unit1/dummy-agent-library
+      title: 简单智能体库
+    - local: unit1/tutorial
+      title: 使用 Smolagents 创建我们的第一个智能体
+    - local: unit1/final-quiz
+      title: 第 1 单元最终测验
+    - local: unit1/conclusion
+      title: 结论
 - title: 第 2 单元. AI 智能体框架
   sections:
-  - local: unit2/introduction
-    title: AI 智能体框架
+    - local: unit2/introduction
+      title: AI 智能体框架
 - title: 第 2.1 单元. smolagents 框架
   sections:
-  - local: unit2/smolagents/introduction
-    title: smolagents 简介
-  - local: unit2/smolagents/why_use_smolagents
-    title: 为什么使用 smolagents？
-  - local: unit2/smolagents/quiz1
-    title: 快速测验1
-  - local: unit2/smolagents/code_agents
-    title: 构建使用代码的智能体
-  - local: unit2/smolagents/tool_calling_agents
-    title: 将智能体与工具集成
-  - local: unit2/smolagents/tools
-    title: 工具
-  - local: unit2/smolagents/retrieval_agents
-    title: 检索智能体
-  - local: unit2/smolagents/quiz2
-    title: 快速测验2
-  - local: unit2/smolagents/multi_agent_systems
-    title: 多智能体系统
-  - local: unit2/smolagents/vision_agents
-    title: 视觉和浏览器智能体
-  - local: unit2/smolagents/final_quiz
-    title: 最终测验
-  - local: unit2/smolagents/conclusion
-    title: 结论
+    - local: unit2/smolagents/introduction
+      title: smolagents 简介
+    - local: unit2/smolagents/why_use_smolagents
+      title: 为什么使用 smolagents？
+    - local: unit2/smolagents/quiz1
+      title: 快速测验1
+    - local: unit2/smolagents/code_agents
+      title: 构建使用代码的智能体
+    - local: unit2/smolagents/tool_calling_agents
+      title: 将智能体与工具集成
+    - local: unit2/smolagents/tools
+      title: 工具
+    - local: unit2/smolagents/retrieval_agents
+      title: 检索智能体
+    - local: unit2/smolagents/quiz2
+      title: 快速测验2
+    - local: unit2/smolagents/multi_agent_systems
+      title: 多智能体系统
+    - local: unit2/smolagents/vision_agents
+      title: 视觉和浏览器智能体
+    - local: unit2/smolagents/final_quiz
+      title: 最终测验
+    - local: unit2/smolagents/conclusion
+      title: 结论
 - title: 第 2.2 单元. LlamaIndex 框架
   sections:
-  - local: unit2/llama-index/introduction
-    title: LlamaIndex 简介
-  - local: unit2/llama-index/llama-hub
-    title: LlamaHub 简介
-  - local: unit2/llama-index/components
-    title: LlamaIndex 中的组件是什么？
-  - local: unit2/llama-index/tools
-    title: 在 LlamaIndex 中使用工具
-  - local: unit2/llama-index/quiz1
-    title: 快速测验1
-  - local: unit2/llama-index/agents
-    title: 在 LlamaIndex 中使用智能体
-  - local: unit2/llama-index/workflows
-    title: 在 LlamaIndex 中创建智能工作流
-  - local: unit2/llama-index/quiz2
-    title: 快速测验2
-  - local: unit2/llama-index/conclusion
-    title: 结论
+    - local: unit2/llama-index/introduction
+      title: LlamaIndex 简介
+    - local: unit2/llama-index/llama-hub
+      title: LlamaHub 简介
+    - local: unit2/llama-index/components
+      title: LlamaIndex 中的组件是什么？
+    - local: unit2/llama-index/tools
+      title: 在 LlamaIndex 中使用工具
+    - local: unit2/llama-index/quiz1
+      title: 快速测验1
+    - local: unit2/llama-index/agents
+      title: 在 LlamaIndex 中使用智能体
+    - local: unit2/llama-index/workflows
+      title: 在 LlamaIndex 中创建智能工作流
+    - local: unit2/llama-index/quiz2
+      title: 快速测验2
+    - local: unit2/llama-index/conclusion
+      title: 结论
 - title: 第 2.3 单元. LangGraph 框架
   sections:
-  - local: unit2/langgraph/introduction
-    title: LangGraph 是什么？
-  - local: unit2/langgraph/when_to_use_langgraph
-    title: 何时使用 LangGraph？
-  - local: unit2/langgraph/building_blocks
-    title: LangGraph 的构建模块
-  - local: unit2/langgraph/first_graph
-    title: 创建你的第一个 LangGraph
-  - local: unit2/langgraph/document_analysis_agent
-    title: 文档分析智能体
-  - local: unit2/langgraph/quiz1
-    title: 快速测验1
-  - local: unit2/langgraph/conclusion
-    title: 结论
+    - local: unit2/langgraph/introduction
+      title: LangGraph 是什么？
+    - local: unit2/langgraph/when_to_use_langgraph
+      title: 何时使用 LangGraph？
+    - local: unit2/langgraph/building_blocks
+      title: LangGraph 的构建模块
+    - local: unit2/langgraph/first_graph
+      title: 创建你的第一个 LangGraph
+    - local: unit2/langgraph/document_analysis_agent
+      title: 文档分析智能体
+    - local: unit2/langgraph/quiz1
+      title: 快速测验1
+    - local: unit2/langgraph/conclusion
+      title: 结论
 - title: 第 3 单元. Agentic RAG 的用例
   sections:
-  - local: unit3/agentic-rag/introduction
-    title: Agentic RAG 用例简介
-  - local: unit3/agentic-rag/agentic-rag
-    title: Agentic 检索增强生成（RAG）
-  - local: unit3/agentic-rag/invitees
-    title: 为宾客故事创建 RAG 工具
-  - local: unit3/agentic-rag/tools
-    title: 为你的智能体构建和集成工具
-  - local: unit3/agentic-rag/agent
-    title: 创建你的 Gala 智能体
-  - local: unit3/agentic-rag/conclusion
-    title: 结论
+    - local: unit3/agentic-rag/introduction
+      title: Agentic RAG 用例简介
+    - local: unit3/agentic-rag/agentic-rag
+      title: Agentic 检索增强生成（RAG）
+    - local: unit3/agentic-rag/invitees
+      title: 为宾客故事创建 RAG 工具
+    - local: unit3/agentic-rag/tools
+      title: 为你的智能体构建和集成工具
+    - local: unit3/agentic-rag/agent
+      title: 创建你的 Gala 智能体
+    - local: unit3/agentic-rag/conclusion
+      title: 结论
 - title: 第 4 单元. 最终项目 - 创建，测试和认证你的智能体
   sections:
-  - local: unit4/introduction
-    title: 欢迎来到最后一个单元
-  - local: unit4/what-is-gaia
-    title: 什么是GAIA？
-  - local: unit4/hands-on
-    title: 动手实践
-  - local: unit4/get-your-certificate
-    title: 领取你的证书
-  - local: unit4/conclusion
-    title: 结论
-  - local: unit4/additional-readings
-    title: 那现在呢？我应该学习哪些主题？
+    - local: unit4/introduction
+      title: 欢迎来到最后一个单元
+    - local: unit4/what-is-gaia
+      title: 什么是GAIA？
+    - local: unit4/hands-on
+      title: 动手实践
+    - local: unit4/get-your-certificate
+      title: 领取你的证书
+    - local: unit4/conclusion
+      title: 结论
+    - local: unit4/additional-readings
+      title: 那现在呢？我应该学习哪些主题？
 - title: 附加单元 1. 为函数调用微调大型语言模型
   sections:
-  - local: bonus-unit1/introduction
-    title: 简介
-  - local: bonus-unit1/what-is-function-calling
-    title: 什么是函数调用？
-  - local: bonus-unit1/fine-tuning
-    title: 让我们为函数调用微调模型
-  - local: bonus-unit1/conclusion
-    title: 结论
+    - local: bonus-unit1/introduction
+      title: 简介
+    - local: bonus-unit1/what-is-function-calling
+      title: 什么是函数调用？
+    - local: bonus-unit1/fine-tuning
+      title: 让我们为函数调用微调模型
+    - local: bonus-unit1/conclusion
+      title: 结论
 - title: 附加单元 2. 智能体可观察性和评估
   sections:
     - local: bonus_unit2/introduction
@@ -156,7 +156,21 @@
       title: 监控和评估智能体
     - local: bonus_unit2/quiz
       title: 测验
+- title: 附加单元 3. 宝可梦中的AI智能体
+  sections:
+    - local: bonus-unit3/introduction
+      title: 简介
+    - local: bonus-unit3/state-of-art
+      title: 游戏中使用 LLM 的最新技术
+    - local: bonus-unit3/from-llm-to-agents
+      title: 从LLM到AI智能体
+    - local: bonus-unit3/building_your_pokemon_agent
+      title: 构建你自己的宝可梦对战智能体
+    - local: bonus-unit3/launching_agent_battle
+      title: 启动你的宝可梦战斗智能体
+    - local: bonus-unit3/conclusion
+      title: 结论
 - title: 后续内容何时发布？
   sections:
-  - local: communication/next-units
-    title: 后续单元
+    - local: communication/next-units
+      title: 后续单元
