@@ -1,0 +1,223 @@
+# LLM  (Büyük Dil Modelleri) Nedir?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Unit 1 planning"/>
+
+Önceki bölümde her Ajanın **merkezinde bir Yapay Zeka Modeline** ihtiyacı olduğunu ve bu amaçla en yaygın kullanılan model türünün LLM'ler olduğunu öğrendik.
+
+Şimdi LLM'lerin ne olduğunu ve Ajanları nasıl çalıştırdığını öğreneceğiz.
+
+Bu bölüm, LLM'lerin kullanımına dair kısa ve teknik bir açıklama sunar. Daha derine inmek isterseniz, <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">ücretsiz Doğal Dil İşleme Kursumuza</a> göz atabilirsiniz.
+
+## Büyük Dil Modeli Nedir?
+
+LLM, **insan dilini anlama ve üretme** konusunda son derece başarılı bir yapay zeka modelidir. Bu modeller, dili yapı, kalıp ve hatta nüanslarıyla öğrenebilmek için çok büyük miktarda metin verisi üzerinde eğitilir. Genellikle milyonlarca parametre içerirler.
+
+Günümüzdeki LLM'lerin çoğu **Transformer mimarisi** üzerine kuruludur — 2018'de Google tarafından yayımlanan BERT modelinden bu yana büyük ilgi gören ve "Attention" (dikkat) algoritmasına dayanan bir derin öğrenme mimarisi.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg" alt="Transformer"/>
+<figcaption>Orijinal Transformer mimarisi bu şekildedir: solda bir encoder (kodlayıcı), sağda ise bir decoder (çözümleyici) yer alır.</figcaption>
+</figure>
+
+Transformer'ların 3 türü vardır:
+
+1. **Encoder'lar**  
+   Encoder tabanlı bir Transformer, metni (veya başka bir veriyi) girdi olarak alır ve bu metnin yoğun bir gösterimini (embedding) üretir.
+
+   - **Örnek**: Google'dan BERT
+   - **Kullanım Alanları**: Metin sınıflandırma, anlamsal arama, adlandırılmış varlık tanıma (Named Entity Recognition - NER)
+   - **Tipik Boyut**: Milyonlarca parametre
+
+2. **Decoder'lar**  
+   Decoder tabanlı bir Transformer, **bir diziyi tamamlamak için her seferinde bir belirteç (belirteç) üreterek** çalışır.
+
+   - **Örnek**: Meta'dan Llama
+   - **Kullanım Alanları**: Metin üretimi, sohbet robotları, kod üretimi
+   - **Tipik Boyut**: Milyarlarca parametre
+
+3. **Seq2Seq (Encoder–Decoder)**  
+   Dizi-dönüştürücü (sequence-to-sequence) Transformer, bir encoder ve bir decoder'ı _birleştirir_. Encoder önce girdi dizisini bağlamsal bir temsil haline getirir, ardından decoder bu temsile göre bir çıktı dizisi üretir.
+
+   - **Örnek**: T5, BART
+   - **Kullanım Alanları**: Çeviri, Özetleme, Parafrazlama
+   - **Tipik Boyut**: Milyonlarca parametre
+
+Her ne kadar LLM'ler farklı biçimlerde gelebilse de, LLM'ler genellikle milyarlarca parametreye sahip decoder tabanlı modellerdir. İşte en bilinen LLM'lerden bazıları:
+
+| **Model**                          | **Sağlayıcı**                              |
+|-----------------------------------|--------------------------------------------|
+| **Deepseek-R1**                   | DeepSeek                                   |
+| **GPT4**                          | OpenAI                                     |
+| **Llama 3**                       | Meta (Facebook AI Research)                |
+| **SmolLM2**                       | Hugging Face                               |
+| **Gemma**                         | Google                                     |
+| **Mistral**                       | Mistral                                    |
+
+LLM'lerin temel prensibi basit ama etkili: **önceki belirteçlerdan oluşan bir diziyi baz alarak bir sonraki belirteçi tahmin etmek**. "Belirteç", bir LLM'in çalıştığı bilgi birimidir. Bunu bir "kelime" gibi düşünebilirsiniz, fakat verimlilik açısından LLM'ler tüm kelimeleri kullanmaz.
+
+Örneğin, İngilizce'de yaklaşık 600.000 kelime varken, Llama 2 gibi bir model yalnızca yaklaşık 32.000 belirteçlik bir kelime dağarcığına sahiptir. Belirteçleme (tokenizasyon) genellikle kelime-altı birimler üzerinden yapılır.
+
+Mesela "interest" ve "ing" belirteçleri birleştirilerek "interesting" elde edilebilir. Ya da "ed" eklenerek "interested" oluşturulabilir.
+
+Aşağıdaki etkileşimli oynatma alanında farklı belirteçleyicileri deneyebilirsiniz:
+
+<iframe
+	src="https://agents-course-the-belirteçizer-playground.static.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Her LLM'in **kendine özgü özel belirteçleri** vardır. Model, bu belirteçleri oluşturduğu yapının başını ve sonunu belirtmek için kullanır. Örneğin, bir dizinin, mesajın ya da cevabın başlangıç ya da bitişini belirtmek için. Girdi olarak verdiğimiz istemler (prompts) de özel belirteçlerle yapılandırılır. Bunların en önemlisi **Dizi Sonu Özel Belirteci'dir (end of sequence - EOS)**.
+
+Bu özel belirteçlerin biçimi, model sağlayıcısına göre çok farklılık gösterebilir.
+
+Aşağıdaki tablo, özel belirteçlerin çeşitliliğini göstermektedir:
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Model</strong></th>
+      <th><strong>Sağlayıcı</strong></th>
+      <th><strong>EOS Belirteci</strong></th>
+      <th><strong>İşlev</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>GPT4</strong></td>
+      <td>OpenAI</td>
+      <td><code>&lt;|endoftext|&gt;</code></td>
+      <td>Mesaj metninin sonu</td>
+    </tr>
+    <tr>
+      <td><strong>Llama 3</strong></td>
+      <td>Meta (Facebook AI Research)</td>
+      <td><code>&lt;|eot_id|&gt;</code></td>
+      <td>Dizi sonu</td>
+    </tr>
+    <tr>
+      <td><strong>Deepseek-R1</strong></td>
+      <td>DeepSeek</td>
+      <td><code>&lt;|end_of_sentence|&gt;</code></td>
+      <td>Mesaj metninin sonu</td>
+    </tr>
+    <tr>
+      <td><strong>SmolLM2</strong></td>
+      <td>Hugging Face</td>
+      <td><code>&lt;|im_end|&gt;</code></td>
+      <td>Talimat veya mesajın sonu</td>
+    </tr>
+    <tr>
+      <td><strong>Gemma</strong></td>
+      <td>Google</td>
+      <td><code>&lt;end_of_turn&gt;</code></td>
+      <td>Konuşma turunun sonu</td>
+    </tr>
+  </tbody>
+</table>
+
+<Tip>
+
+Bu özel belirteçleri ezberlemeniz beklenmiyor, ancak çeşitliliklerini ve metin üretimindeki rollerini anlamak önemlidir. Daha fazla bilgi için modelin Hub sayfasındaki yapılandırma dosyalarını inceleyebilirsiniz. Örneğin, SmolLM2 modelinin özel belirteçlerinı şu dosyada görebilirsiniz: <a href="https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json">tokenizer_config.json</a>.
+
+</Tip>
+
+## Bir Sonraki Belirteç Tahminini Anlamak
+
+LLM'lerin **oto-regresif** olduğu söylenir, yani **bir geçişteki çıktı, bir sonraki geçişin girdisi olur**. Bu döngü, model bir EOS (dizi sonu) belirteci tahmin edene kadar devam eder; o noktada model durabilir.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="Oto-regresif kod çözmenin görsel GIF'i" width="60%">
+
+Başka bir deyişle, bir LLM metni EOS'a ulaşana kadar çözer. Peki tek bir kod çözme döngüsü sırasında ne olur?
+
+Ajanları öğrenme amacıyla tüm süreç oldukça teknik olsa da, işte kısa bir genel bakış:
+
+- Girdi metni **belirteçlere** ayrıldıktan sonra, model her bir belirtecin anlamı ve giriş dizisindeki konumuyla ilgili bilgileri yakalayan bir temsil hesaplar.
+- Bu temsil, modelin her belirtecin sıradaki olma olasılığına göre sıraladığı skorları çıktıladığı modele verilir.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="Kod çözmenin görsel GIF'i" width="60%">
+
+Bu skorlara göre, cümleyi tamamlamak için belirteç seçmenin birden çok stratejisi vardır:
+
+- En basit kod çözme stratejisi, her zaman en yüksek skora sahip belirteci seçmektir.
+
+Kod çözme süreciyle kendiniz etkileşime geçebilirsiniz. Bu Space'te SmolLM2 ile oynayabilirsiniz (unutmayın, bu model **EOS** belirteci olan **<|im_end|>**'e ulaşana kadar kod çözer):
+
+<iframe
+	src="https://agents-course-decoding-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+- Ama daha gelişmiş kod çözme stratejileri de vardır. Örneğin, *beam search*, birden fazla aday diziyi keşfederek toplam skoru en yüksek olanı bulmaya çalışır — bireysel bazı belirteçlerin skoru düşük olsa bile.
+
+<iframe
+	src="https://agents-course-beam-search-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Kod çözme hakkında daha fazla bilgi edinmek isterseniz, [Doğal Dil İşleme kursuna](https://huggingface.co/learn/nlp-course) göz atabilirsiniz.
+
+## Attention (Dikkat): Tek İhtiyacınız Olan Şey
+
+Transformer mimarisinin temel bir yönü **Attention (Dikkat Mekanizması)**dır. Bir sonraki kelimeyi tahmin ederken, cümledeki her kelime eşit derecede önemli değildir; *"Fransa'nın başkenti..."* cümlesinde "Fransa" ve "başkenti" gibi kelimeler en anlamlı olanlardır.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AttentionSceneFinal.gif" alt="Attention'ın görsel GIF'i" width="60%">
+
+Dizide bir sonraki belirteci doğru tahmin edebilmek için, mevcut belirteçle en ilgili olanları dizideki diğer belirteçler arasından seçmek oldukça önemlidir.
+
+LLM'lerin temel ilkesi — bir sonraki belirteci tahmin etme — GPT-2'den bu yana aynı kalsa da, sinir ağlarının ölçeklenmesi ve dikkat mekanizmasının daha uzun dizilerde çalıştırılması konusunda büyük gelişmeler yaşanmıştır.
+
+Eğer LLM'lerle etkileşime geçtiyseniz, muhtemelen *context length* (bağlam uzunluğu) terimine aşinasınızdır. Bu, LLM'in işleyebileceği maksimum belirteç sayısını ve dolayısıyla maksimum *dikkat aralığını* ifade eder.
+
+## LLM'leri Yönlendirmek: Prompting (İstemleme)
+
+Bir LLM'in tek görevinin tüm girdi belirteçlerine bakarak bir sonraki belirteci tahmin etmek ve hangilerinin "önemli" olduğunu seçmek olduğunu düşünürsek, girdi dizinizin nasıl yazıldığı çok önemlidir.
+
+LLM'e sağladığınız girdi dizisine _prompt_ (istem) denir. İstemi dikkatli bir şekilde tasarlamak, **LLM'in çıktısını istenen sonuca yönlendirmeyi kolaylaştırır**.
+
+## LLM'ler Nasıl Eğitilir?
+
+LLM'ler, büyük metin veri kümeleri üzerinde eğitilir. Bu süreçte model, kendiliğinden denetimli (self-supervised) ya da maskeleme temelli dil modelleme (masked language modeling) görevleri aracılığıyla bir sonraki kelimeyi tahmin etmeyi öğrenir.
+
+Bu denetimsiz öğrenme sayesinde model dilin yapısını ve **metindeki temel kalıpları öğrenir, böylece daha önce hiç görmediği verilerde genelleme yapabilir**.
+
+Bu ilk _ön-eğitimden_ (pre-training) sonra, LLM'ler belirli görevler için denetimli öğrenmeyle _ince-ayar (fine-tuning)_ yapılabilir. Örneğin, bazı modeller diyalog yapıları ya da araç kullanımı için eğitilirken, bazıları sınıflandırma ya da kod üretimi üzerine odaklanır.
+
+## LLM'leri Nasıl Kullanabilirim?
+
+İki temel seçeneğiniz var:
+
+1. **Yerel Olarak Çalıştırmak** (donanımınız yeterliyse).
+
+2. **Bulut/API Kullanmak** (örneğin Hugging Face Serverless Inference API aracılığıyla).
+
+Bu kurs boyunca, ağırlıklı olarak modelleri Hugging Face Hub üzerinden API'ler aracılığıyla kullanacağız. Daha sonra bu modelleri kendi donanımınızda nasıl çalıştırabileceğinizi de göreceğiz.
+
+## LLM'ler Yapay Zeka Ajanlarında Nasıl Kullanılır?
+
+LLM'ler, yapay zeka Ajanlarının temel bir bileşenidir. **İnsan dilini anlama ve üretme temelini sağlarlar**.
+
+Kullanıcı talimatlarını yorumlayabilir, konuşmalarda bağlamı sürdürebilir, bir plan tanımlayabilir ve hangi araçları kullanacağına karar verebilirler.
+
+Bu adımları bu ünitenin ilerleyen kısımlarında daha ayrıntılı inceleyeceğiz. Ama şimdilik bilmeniz gereken şey: LLM, **Ajanın beynidir**.
+
+---
+
+Oldukça fazla şey öğrendik! LLM'lerin ne olduklarını, nasıl çalıştıklarını ve yapay zeka Ajanlarını nasıl güçlendirdiklerini temel düzeyde inceledik.
+
+Eğer dil modelleri ve doğal dil işleme dünyasına daha da derinlemesine dalmak isterseniz, <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">ücretsiz NLP kursumuza</a> göz atabilirsiniz.
+
+Artık LLM'lerin nasıl çalıştığını bildiğimize göre, **LLM'lerin kelime üretimlerini konuşma bağlamında nasıl yapılandırdığını** görme zamanı.
+
+<a href="https://huggingface.co/agents-course/notebooks/blob/main/dummy_agent_library.ipynb" target="_blank">Bu notebook'u</a> çalıştırmak için **bir Hugging Face token'ına** ihtiyacınız var. Bunu <a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a> adresinden alabilirsiniz.
+
+Jupyter Notebook'ları nasıl çalıştıracağınızı öğrenmek için <a href="https://huggingface.co/docs/hub/notebooks">Hugging Face Hub'daki Jupyter Notebooklar</a> sayfasına göz atın.
+
+Ayrıca <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank">Meta Llama modelleri</a> için erişim talep etmeniz gerekir.
+"""
+
