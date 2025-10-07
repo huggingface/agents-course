@@ -6,7 +6,6 @@ AI 에이전트(AI Agents)의 핵심 요소 중 하나는 **행동(Actions)**을
 
 이번 섹션에서는 도구란 무엇이고, 어떻게 효과적으로 설계하는지, 시스템 메시지를 통해 에이전트에 통합하는 방법을 학습합니다.
 
-By giving your Agent the right Tools—and clearly describing how those Tools work—you can dramatically increase what your AI can accomplish. Let’s dive in!
 에이전트에게 적절한 도구를 제공하고, 해당 도구의 동작 방식을 명확히 설명하면, AI의 수행 능력을 극적으로 향상시킬 수 있습니다. 함께 살펴보겠습니다!
 
 
@@ -19,7 +18,7 @@ By giving your Agent the right Tools—and clearly describing how those Tools wo
 | 도구            | 설명                                                   |
 |----------------|---------------------------------------------------------------|
 | 웹 검색 (Web Search)     | 인터넷에서 최신 정보를 검색하여 가져옵니다. |
-| 이미지 생성(Image generation) | 주어진 설명을 기반으로 이미지를 생성합니다.                  |
+| 이미지 생성 (Image generation) | 주어진 설명을 기반으로 이미지를 생성합니다.                  |
 | 정보 검색 (Retrieval)      | 외부 데이터 소스에서 정보를 검색하여 제공합니다.                |
 | API 인터페이스  | 외부 API (GitHub, YouTube, Spotify 등)와 상호작용합니다. |
 
@@ -29,7 +28,7 @@ By giving your Agent the right Tools—and clearly describing how those Tools wo
 
 예를 들어, 계산이 필요한 경우, **계산기 도구**를 제공하면 모델 자체의 계산 능력보다 훨씬 정확한 결과를 얻을 수 있습니다.
 
-또한, **LLM은 학습 데이터에 기반해 프롬프트의 다음 단어를 예측**하므로, 사실상 훈련 이전 정보만 알고 있는 상태입니다. 따라서, 에이전트가 최신 데이터를 필요로하는 경우 적절한 도구를 제공해야 합니다.
+또한, **LLM은 학습 데이터에 기반해 프롬프트의 다음 단어를 예측**하므로, 사실상 훈련 이전 정보만 알고 있는 상태입니다. 따라서, 에이전트가 최신 데이터를 필요로 하는 경우 적절한 도구를 제공해야 합니다.
 
 예를 들어, 검색 도구 없이 LLM에 직접적으로 오늘의 날씨에 대해 묻는다면, LLM은 임의로 날씨 정보를 생성(환각, hallucination)할 가능성이 높습니다.
 
@@ -217,7 +216,7 @@ calculator_tool = Tool(
 )
 ```
 
-그러나 Python의 `inspect` 모듈을 사용하면 이 정보를 자동으로 추출할 수 있습니다.바로 이 역할을 하는 것이 @tool 데코레이터입니다.
+그러나 Python의 `inspect` 모듈을 사용하면 이 정보를 자동으로 추출할 수 있습니다. 바로 이 역할을 하는 것이 @tool 데코레이터입니다.
 
 > 데코레이터 구현 부분을 확인하고 싶다면 클릭하세요.
 
@@ -292,7 +291,7 @@ Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="System prompt for tools"/>
 
- [Actions](actions) 섹션에서 우리가 방금 만든 도구를 에이전트가 어떻게 **호출**하는지에 대해 살펴볼 것 입니다.
+ [Actions](actions) 섹션에서 우리가 방금 만든 도구를 에이전트가 어떻게 **호출**하는지에 대해 살펴볼 것입니다.
 
 ---
 
@@ -307,7 +306,7 @@ Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b
 - *도구가 중요한 이유*: 에이전트가 사전에 학습된 정적 모델의 한계를 뛰어넘어, 실시간 작업 및 특수 기능을 수행할 수 있도록 함
 
 
-이제 [에이전트의 작동 방식(Workflow)](agent-steps-and-structure)에 대해 알아볼 차례입니다!이 과정에서는 에이전트가 관찰하고, 사고하며, 행동하는 방법을 살펴보게 됩니다.
+이제 [에이전트의 작동 방식(Workflow)](agent-steps-and-structure)에 대해 알아볼 차례입니다! 이 과정에서는 에이전트가 관찰하고, 사고하며, 행동하는 방법을 살펴보게 됩니다.
 이 과정을 마치게 되면, 이제까지 배운 모든 내용을 통합하여 나만의 AI 에이전트를 만들 준비가 될 것입니다!
 
 

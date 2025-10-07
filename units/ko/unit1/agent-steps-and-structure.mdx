@@ -88,8 +88,6 @@ Alfred는 추론과 `get_weather` 도구를 알고 있다는 사실에 기반해
     }
  ```
 
-Here, the action clearly specifies which tool to call (e.g., get_weather) and what parameter to pass (the “location": “New York”).
-
 여기서, action은 어떤 도구를 호출할지 지정하고 (get_weather) 필요한 입력값(예: "location": "New York")을 설정합니다.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
@@ -133,9 +131,9 @@ Alfred는 이제 사용자에게 전달할 최종 응답을 우리가 지정해�
 
 이 예제를 통해 배운 것:
 
-- **에이전트는 목표가 달성될 때까지 반복적으로 루프를 실행한다.:**
+- **에이전트는 목표가 달성될 때까지 반복적으로 루프를 실행한다:**
     
-**Alfred의 과정은 순환적입니다.**. 사고(thought)에서 시작해, 도구를 호출함으로 행동(Action)을 취하고, 마지막으로 결과를 관찰(Observation)합니다. 만약 관찰 단계에서 오류가 발생하거나 데이터가 불완전하면, Alfred는 루프를 다시 실행하여 문제를 해결합니다.
+**Alfred의 과정은 순환적입니다. 사고(thought)에서 시작해, 도구를 호출함으로 행동(Action)을 취하고, 마지막으로 결과를 관찰(Observation)합니다. 만약 관찰 단계에서 오류가 발생하거나 데이터가 불완전하면, Alfred는 루프를 다시 실행하여 문제를 해결합니다.
     
 - **도구(Tool) 통합:**
 
