@@ -2,14 +2,14 @@
 
 이제 LLM이 어떻게 동작하는지 이해했으니, **채팅 템플릿을 통해 생성 결과를 구조화**하는 방법을 살펴보겠습니다.
 
-예로 ChatGPT를 떠올려봅시다. 사용자는 에이전트(Agent)와 상호작용 할 때 채팅 인터페이스를 사용합니다. 따라서 LLM이 어떻게 채팅을 관리하는지 이해하는 것은 중요합니다.
+예로 ChatGPT를 떠올려봅시다. 사용자는 에이전트(Agent)와 상호작용할 때 채팅 인터페이스를 사용합니다. 따라서 LLM이 어떻게 채팅을 관리하는지 이해하는 것은 중요합니다.
 
-> **Q**: 하지만 ... 저는 ChatGPT/Hugging Chat을 사용할 때 프롬프트가 아니라 메세지로 대화를 주고 받는 데요?
+> **Q**: 하지만 ... 저는 ChatGPT/Hugging Chat을 사용할 때 프롬프트가 아니라 메세지로 대화를 주고 받는데요?
 >
 > **A**: 맞습니다! 하지만 사실 그 메세지는 UI의 추상화일 뿐입니다.
  실제로는 모든 대화 메시지가 하나의 프롬프트로 연결되어 LLM에 입력됩니다. LLM은 이전 대화를 "기억"하는 것이 아니라, 매번 대화를 전체적으로 읽는 방식으로 동작합니다.
 
-지금까지 우리는 프롬프트를 모델에 입력되는 토큰의 시퀀스로 설명했습니다. 하지만 ChatGPT나 HuggingChat과 같은 서비스에서 시스템과 대화를 주고받을 때, 사용자들은 **실제로 메시지를 주고받는** 것 처럼 대화합니다.사실 내부에서 메세지는 **모델이 이해할 수 있도록 연결되어 프롬프트에 구조화**되고 있답니다.
+지금까지 우리는 프롬프트를 모델에 입력되는 토큰의 시퀀스로 설명했습니다. 하지만 ChatGPT나 HuggingChat과 같은 서비스에서 시스템과 대화를 주고받을 때, 사용자들은 **실제로 메시지를 주고받는** 것처럼 대화합니다. 사실 내부에서 메세지는 **모델이 이해할 수 있도록 연결되어 프롬프트에 구조화**되고 있답니다.
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
@@ -115,7 +115,7 @@ messages = [
     {"role": "system", "content": "너는 수학 선생님이야."},
     {"role": "user", "content": "미적분학이 뭐야?"},
     {"role": "assistant", "content": "미적분학은 수학의 한 분야로...""},
-    {"role": "user", "content": "예시을 들어줘."},
+    {"role": "user", "content": "예시를 들어줘."},
 ]
 ```
 
@@ -227,5 +227,5 @@ rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_ge
 
 이후 새로운 유닛에서 메세지에 대해 더 다룰 예정이지만, 지금 더 깊이 탐구하고 싶으시다면 다음 문서를 참고하세요:
 
-- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face 채팅 템플릿 가이드/a>
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face 채팅 템플릿 가이드</a>
 - <a href="https://huggingface.co/docs/transformers" target="_blank">Transformers 문서</a>
