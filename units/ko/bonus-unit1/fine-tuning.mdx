@@ -1,49 +1,49 @@
-# Let's Fine-Tune Your Model for Function-Calling
+# 함수 호출(Function-Calling)을 위한 모델 미세조정[[lets-fine-tune-your-model-for-function-calling]]
 
-We're now ready to fine-tune our first model for function-calling 🔥.
+이제 함수 호출을 위한 첫 번째 모델을 미세조정할 준비가 되었습니다 🔥.
 
-## How do we train our model for function-calling?
+## 함수 호출용 모델은 어떻게 학습하나요?[[how-do-we-train-our-model-for-function-calling]]
 
-> Answer: We need **data**
+> 답변: **데이터**가 필요합니다.
 
-A model training process can be divided into 3 steps:
+모델 학습 과정은 세 단계로 나눌 수 있습니다.
 
-1. **The model is pre-trained on a large quantity of data**. The output of that step is a **pre-trained model**. For instance, [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b). It's a base model and only knows how **to predict the next token without strong instruction following capabilities**.
+1. **모델은 대규모 데이터로 사전 학습(pre-training)** 됩니다. 이 단계의 결과물은 **사전 학습된 모델**입니다. 예를 들어 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b)는 **명령어를 따르는 능력이 강하지 않은, 다음 토큰을 예측하는 데 특화된 기본(base) 모델**입니다.
 
-2. To be useful in a chat context, the model then needs to be **fine-tuned** to follow instructions. In this step, it can be trained by model creators, the open-source community, you, or anyone. For instance, [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) is an instruction-tuned model by the Google Team behind the Gemma project.
+2. 채팅 환경에서 유용하게 사용되기 위해서는 모델이 **명령어를 따르도록(fine-tuning)** 추가 학습이 필요합니다. 이 단계는 모델 제작자, 오픈소스 커뮤니티, 또는 여러분이 직접 수행할 수 있습니다. 예를 들어 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)은 Google의 Gemma 프로젝트 팀이 **명령어 튜닝(instruction-tuning)** 을 거친 모델입니다.
 
-3. The model can then be **aligned** to the creator's preferences. For instance, a customer service chat model that must never be impolite to customers.
+3. 이후 모델은 제작자의 **선호도에 맞게 정렬(alignment)** 될 수 있습니다. 예를 들어 고객 응대용 챗봇 모델은 어떤 상황에서도 고객에게 무례하게 응답하지 않도록 조정되어야 합니다.
 
-Usually a complete product like Gemini or Mistral **will go through all 3 steps**, whereas the models you can find on Hugging Face have completed one or more steps of this training.
+일반적으로 Gemini나 Mistral과 같은 완성된 제품은 **이 세 단계를 모두 거치지만**, Hugging Face에서 제공하는 모델들은 이 중 하나 이상의 단계를 완료한 상태로 공개되어 있습니다.
 
-In this tutorial, we will build a function-calling model based on [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it). We choose the fine-tuned model [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) instead of the base model [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b) because the fine-tuned model has been improved for our use-case.
+이 튜토리얼에서는 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)을 기반으로 함수 호출 모델을 구축합니다.
+기본 모델 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b) 대신 **명령어 튜닝된 모델** [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)을 선택한 이유는, 이 모델이 우리의 사용 목적에 더 적합하게 개선되어 있기 때문입니다.
 
-Starting from the pre-trained model **would require more training in order to learn instruction following, chat AND function-calling**.
+사전 학습된 모델로부터 시작한다면, **명령어 수행, 대화, 함수 호출을 학습하기 위해 훨씬 더 많은 훈련이 필요**합니다.
 
-By starting from the instruction-tuned model, **we minimize the amount of information that our model needs to learn**.
+반면, 명령어 튜닝된 모델에서 시작하면 **모델이 새롭게 학습해야 할 정보의 양을 최소화**할 수 있습니다.
 
-## LoRA (Low-Rank Adaptation of Large Language Models)
+## LoRA (대규모 언어 모델의 저랭크 적응 기법) [[lora-low-rank-adaptation-of-large-language-models]]
 
-LoRA is a popular and lightweight training technique that significantly **reduces the number of trainable parameters**.
+LoRA는 훈련해야 하는 **파라미터 수를 획기적으로 줄여주는**, 널리 사용되는 경량 학습 기법입니다.
 
-It works by **inserting a smaller number of new weights as an adapter into the model to train**. This makes training with LoRA much faster, memory-efficient, and produces smaller model weights (a few hundred MBs), which are easier to store and share.
+이 기법은 모델 내부에 **소량의 새로운 가중치를 어댑터 형태로 삽입해 학습**하도록 작동합니다. 이를 통해 LoRA 학습은 훨씬 빠르고, 메모리 효율적이며, 수백 MB 수준의 **작고 가벼운 가중치 파일**을 생성하여 저장 및 공유가 용이합니다.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
 
-LoRA works by adding pairs of rank decomposition matrices to Transformer layers, typically focusing on linear layers. During training, we will "freeze" the rest of the model and will only update the weights of those newly added adapters.
+LoRA는 Transformer의 선형 계층(linear layer)에 **랭크 분해(rank decomposition) 행렬 쌍을 추가**하는 방식으로 동작합니다. 학습 중에는 나머지 모델은 “고정(freeze)”하고, 새로 추가된 어댑터의 가중치만 업데이트합니다.
 
-By doing so, the number of **parameters** that we need to train drops considerably as we only need to update the adapter's weights.
+이렇게 하면 **훈련해야 할 파라미터의 수가 크게 감소**하며, 어댑터 가중치만 업데이트하면 됩니다.
 
-During inference, the input is passed into the adapter and the base model, or these adapter weights can be merged with the base model, resulting in no additional latency overhead.
+추론 시에는 입력이 어댑터와 기본 모델 모두를 통과하며, 또는 어댑터 가중치를 기본 모델과 병합할 수도 있습니다. 이 경우 **추가적인 지연(latency)** 없이 동작합니다.
 
-LoRA is particularly useful for adapting **large** language models to specific tasks or domains while keeping resource requirements manageable. This helps reduce the memory **required** to train a model.
+LoRA는 특히 **대규모 언어 모델을 특정 작업이나 도메인에 맞게 조정**할 때 유용합니다. 이 접근 방식은 모델 학습에 필요한 **메모리 사용량을 줄이는 데** 도움이 됩니다.
 
-If you want to learn more about how LoRA works, you should check out this [tutorial](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt).
+LoRA의 작동 방식에 대해 더 자세히 알고 싶다면 [이 튜토리얼](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt)을 참고하세요.
 
-## Fine-Tuning a Model for Function-Calling
+## 함수 호출을 위한 모델 미세조정[[fine-tuning-a-model-for-function-calling]]
 
-You can access the tutorial notebook 👉 [here](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb).
+튜토리얼 노트북은 👉 [여기](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb)에서 확인할 수 있습니다.
 
-Then, click on [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) to be able to run it in a Colab Notebook.
-
-
+그런 다음 아래 배지를 클릭하면 Colab 노트북에서 직접 실행할 수 있습니다.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb)
