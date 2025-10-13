@@ -1,0 +1,49 @@
+# 함수 호출(Function-Calling)을 위한 모델 미세 조정[[lets-fine-tune-your-model-for-function-calling]]
+
+이제 함수 호출을 위한 첫 번째 모델을 미세 조정할 준비가 되었습니다 🔥.
+
+## 함수 호출용 모델은 어떻게 학습하나요?[[how-do-we-train-our-model-for-function-calling]]
+
+> 답변: **데이터**가 필요합니다.
+
+모델 학습 과정은 세 단계로 나눌 수 있습니다.
+
+1. **모델은 대규모 데이터로 사전 학습(pre-training)** 됩니다. 이 단계의 결과물은 **사전 학습된 모델**입니다. 예를 들어 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b)는 **지시문을 따르는 능력이 강하지 않은, 다음 토큰을 예측하는 데 특화된 기본(base) 모델**입니다.
+2. 채팅 환경에서 유용하게 사용되기 위해서는 모델이 **명령어를 따르도록(fine-tuning)** 추가 학습이 필요합니다. 이 단계는 모델 개발자, 오픈소스 커뮤니티, 또는 여러분이 직접 수행할 수 있습니다. 예를 들어 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)은 Google의 Gemma 프로젝트 팀이 **지시문 기반 미세 조정(instruction-tuning)** 을 거친 모델입니다.
+3. 이후 모델은 개발자의 선호도에 맞게 **조정(alignment)** 될 수 있습니다. 예를 들어 고객 응대용 챗봇 모델은 어떤 상황에서도 고객에게 무례하게 응답하지 않도록 조정되어야 합니다.
+
+일반적으로 Gemini나 Mistral과 같은 완성된 제품은 **이 세 단계를 모두 거치지만**, Hugging Face에서 제공하는 모델들은 이 중 하나 이상의 단계를 완료한 상태로 공개되어 있습니다.
+
+이 튜토리얼에서는 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)을 기반으로 함수 호출 모델을 구축합니다.
+기본 모델 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b) 대신 **지시문을 기반으로 미세 조정된 모델** [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)을 사용하는 이유는, 해당 모델이 우리의 사용 목적에 더 최적화되어 있기 때문입니다.
+
+사전 학습된 모델로부터 시작한다면, **명령어 수행, 대화, 함수 호출을 학습하기 위해 훨씬 더 많은 훈련이 필요**합니다.
+
+반면, 지시문을 기반으로 미세 조정된 모델에서 시작하면 **모델이 새롭게 학습해야 할 정보의 양을 최소화**할 수 있습니다.
+
+
+## LoRA (대규모 언어 모델의 저차원 적응 기법) [[lora-low-rank-adaptation-of-large-language-models]]
+
+LoRA는 훈련해야 하는 **파라미터 수를 획기적으로 줄여주는**, 널리 사용되는 경량 학습 기법입니다.
+
+이 기법은 모델 내부에 **소량의 새로운 가중치를 어댑터 형태로 삽입해 학습**하도록 합니다. 이를 통해 LoRA 학습은 훨씬 빠르고, 메모리 효율적이며, 수백 MB 수준의 **작고 가벼운 가중치 파일**을 생성하여 저장 및 공유가 용이합니다.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
+
+LoRA는 Transformer의 선형 계층(linear layer)에 **랭크 분해(rank decomposition) 행렬 쌍을 추가**하는 방식으로 동작합니다. 학습 중에 나머지 모델은 “고정(freeze)”하고, 새로 추가된 어댑터의 가중치만 업데이트합니다.
+
+이렇게 하면 **훈련해야 할 파라미터의 수가 크게 감소**하며, 어댑터 가중치만 업데이트하면 됩니다.
+
+추론 단계에서는 입력이 어댑터와 기본 모델 모두를 통과하거나, 어댑터 가중치가 기본 모델에 병합되어 사용됩니다. 이 방식은 **추가적인 지연(latency)** 을 발생시키지 않습니다.
+
+LoRA는 특히 **대규모 언어 모델을 특정 작업이나 도메인에 맞게 조정**할 때 유용합니다. 이 접근 방식은 모델 학습에 필요한 **메모리 사용량을 줄이는 데** 도움이 됩니다.
+
+LoRA의 작동 방식에 대해 더 자세히 알고 싶다면 [이 튜토리얼](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt)을 참고하세요.
+
+
+## 함수 호출을 위한 모델 미세 조정[[fine-tuning-a-model-for-function-calling]]
+
+튜토리얼 노트북은 👉 [여기](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb)에서 확인할 수 있습니다.
+
+그런 다음 아래 배지를 클릭하면 Colab 노트북에서 직접 실행할 수 있습니다.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb)
