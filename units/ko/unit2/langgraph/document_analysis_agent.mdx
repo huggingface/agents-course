@@ -1,0 +1,267 @@
+# 문서 분석 그래프[[document-analysis-graph]]
+
+저 알프레드는 Mr.웨인님의 신뢰받는 집사로서, 그분의 다양한 문서 업무를 어떻게 지원할지 기록해두었습니다. 그가 밤 활동을 하러 나간 동안, 저는 모든 서류, 훈련 일정, 영양 계획을 분석하고 정리합니다.
+
+그분이 외출하기 전, 이번 주 훈련 프로그램이 적힌 쪽지를 남기셨습니다. 그 쪽지를 보고 저는 내일 식사를 위한 **메뉴**를 직접 짜기로 했죠.
+
+앞으로도 이런 일이 있을 때를 대비해, LangGraph를 활용해 웨인님을 위한 문서 분석 시스템을 만들어봅시다. 이 시스템은 다음을 수행 할 수 있습니다:
+
+1. 이미지 문서 처리
+2. 비전 모델(비전 언어 모델)로 텍스트 추출
+3. 필요시 계산 수행(일반 툴 시연)
+4. 내용 분석 및 요약 제공
+5. 문서 관련 특정 지시 실행
+
+## 집사의 워크플로우[[the-butlers-workflow]]
+
+만들 워크플로우의 구조는 다음과 같습니다:
+
+![집사의 문서 분석 워크플로우](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+<Tip>
+<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">이 노트북</a>을 따라가며 Google Colab에서 코드를 실행해볼 수 있습니다.
+</Tip>
+
+## 환경 설정[[setting-up-the-environment]]
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+임포트 :
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## 에이전트 상태 정의[[defining-agent's-state]]
+
+이 상태는 앞서 본 것보다 조금 더 복잡합니다.
+`AnyMessage`는 Langchain의 메시지 클래스이고, `add_messages`는 최신 메시지를 누적하는 연산자입니다.
+
+LangGraph에서는 상태에 연산자를 추가해 상호작용 방식을 정의할 수 있습니다.
+
+```python
+class AgentState(TypedDict):
+    # 제공된 문서
+    input_file: Optional[str]  # 파일 경로(PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## 툴 준비하기[[preparing-tools]]
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    멀티모달 모델로 이미지 파일에서 텍스트 추출
+    
+    Wayne 주인님은 종종 훈련 일정이나 식단이 적힌 쪽지를 남깁니다.
+    이 기능으로 내용을 제대로 분석할 수 있습니다.
+    """
+    all_text = ""
+    try:
+        # 이미지를 읽고 base64로 인코딩
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # base64 이미지 데이터를 포함한 프롬프트 준비
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "이 이미지에서 모든 텍스트를 추출하세요. 설명 없이 추출된 텍스트만 반환하세요."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # 비전 모델 호출
+        response = vision_llm.invoke(message)
+
+        # 추출된 텍스트 추가
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # 집사는 오류도 우아하게 처리해야 합니다
+        error_msg = f"텍스트 추출 오류: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """주인님의 계산 요청을 위한 나눗셈 함수"""
+    return a / b
+
+# 집사, 도구(tool) 장착
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## 노드[[the-nodes]]
+
+```python
+def assistant(state: AgentState):
+    # 시스템 메시지
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    멀티모달 모델로 이미지 파일에서 텍스트 추출
+
+    Args:
+        img_path: 로컬 이미지 파일 경로(문자열)
+
+    Returns:
+        각 이미지에서 추출된 텍스트를 합친 문자열
+divide(a: int, b: int) -> float:
+    a를 b로 나눔
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"당신은 Mr. Wayne과 배트맨을 섬기는 친절한 집사 알프레드입니다. 아래 도구로 문서를 분석하고 계산을 수행할 수 있습니다:\n{textual_description_of_tool} \n 현재 로드된 이미지는: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## ReAct 패턴: 집사의 지원 방식[[the-react-pattern-how-i-assist-mr-wayne]]
+
+이 에이전트는 ReAct 패턴(Reason-Act-Observe)을 따릅니다.
+
+1. 문서와 요청을 **이해(Reason)**
+2. 적절한 도구를 **실행(Act)**
+3. 결과를 **관찰(Observe)**
+4. 필요시 반복
+
+아주 간단한 LangGraph 에이전트 구현 예시입니다.
+
+```python
+# 그래프 생성
+builder = StateGraph(AgentState)
+
+# 노드 정의: 실제 작업을 수행
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# 엣지 정의: 제어 흐름 결정
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # 최신 메시지가 도구를 필요로 하면 tools로 라우팅
+    # 아니면 직접 응답
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# 집사의 사고 과정을 시각화
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+`tools` 노드는 도구 리스트를, `assistant` 노드는 도구가 바인딩된 모델을 의미합니다.
+그래프에는 `assistant`와 `tools` 노드가 있습니다.
+
+`tools_condition` 엣지는 모델이 도구를 호출하면 tools로, 아니면 End로 흐름을 보냅니다.
+
+이제 한 단계 더 추가합니다:
+
+`tools` 노드를 다시 `assistant`로 연결해 루프를 만듭니다.
+
+- `assistant` 노드 실행 후, `tools_condition`이 모델 출력이 도구 호출인지 확인합니다.
+- 도구 호출이면 흐름이 `tools` 노드로 이동합니다.
+- `tools` 노드는 다시 `assistant`로 연결됩니다.
+- 이 루프는 모델이 도구 호출을 결정하는 한 계속됩니다.
+- 모델 응답이 도구 호출이 아니면 흐름이 END로 이동해 프로세스가 종료됩니다.
+
+![ReAct 패턴](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## 집사의 실제 활용 예시[[the-butler-in-action]]
+
+### 예시 1: 간단한 계산[[example-1-simple-calculations]]
+
+아래는 LangGraph에서 도구를 사용하는 간단한 예시입니다.
+
+```python
+messages = [HumanMessage(content="6790을 5로 나눠줘")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# 메시지 출력
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+대화 예시:
+
+```
+Human: 6790을 5로 나눠줘
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: 6790을 5로 나누면 1358.0입니다.
+```
+
+### 예시 2: Wayne 주인님의 훈련 문서 분석[[example-2-analyzing-master-waynes-training-documents]]
+
+주인님이 훈련 및 식단 쪽지를 남겼을 때:
+
+```python
+messages = [HumanMessage(content="제공된 이미지에 있는 Wayne 주인님의 쪽지에 따라 저녁 메뉴에 필요한 재료 목록을 알려줘.")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+대화 예시:
+
+```
+Human: 제공된 이미지에 있는 Wayne 주인님의 쪽지에 따라 저녁 메뉴에 필요한 재료 목록을 알려줘.
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [훈련 일정 및 메뉴 세부 정보가 추출됨]
+
+Alfred: 저녁 메뉴를 위해 다음 재료를 구입하세요:
+
+1. 목초 사육 소고기 등심 스테이크
+2. 유기농 시금치
+3. 피키요 고추
+4. 감자(오븐에 구울 허브 감자용)
+5. 피쉬 오일(2그램)
+
+스테이크는 목초 사육, 시금치와 고추는 유기농으로 준비하면 최고의 식사가 됩니다.
+```
+
+## 핵심 요약[[key-takeaways]]
+
+나만의 문서 분석 집사를 만들고 싶다면 다음을 고려하세요:
+
+1. **문서 관련 작업별로 명확한 도구 정의**
+2. **도구 호출 간 맥락 유지를 위한 견고한 상태 추적기**
+3. **도구 실패 시 오류 처리 고려**
+4. **이전 상호작용 맥락 유지(add_messages 연산자 활용)**
+
+이 원칙을 따르면 Wayne 저택에 어울리는 문서 분석 서비스를 제공할 수 있습니다.
+
+*이 설명이 도움이 되었길 바랍니다. 이제 주인님의 망토를 다림질하러 가보겠습니다.*
