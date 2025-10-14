@@ -42,3 +42,5 @@
   sections:
   - local: bonus-unit1/introduction
     title: Introduction
+  - local: bonus-unit1/what-is-function-calling
+    title: What is Function Calling?
