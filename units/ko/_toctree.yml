@@ -42,3 +42,7 @@
   sections:
   - local: bonus-unit1/introduction
     title: Introduction
+- title: Bonus Unit 3. Agents in Games with Pokemon
+  sections:
+  - local: bonus-unit3/introduction
+    title: Introduction
