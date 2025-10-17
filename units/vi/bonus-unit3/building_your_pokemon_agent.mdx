@@ -1,0 +1,103 @@
+Bây giờ, bạn sẽ xây dựng một **AI Agent để chiến đấu kiểu Pokémon** bằng cách áp dụng mọi kiến thức đã học. Hệ thống gồm 4 thành phần chính:
+
+- **Poke-env:** Thư viện Python để huấn luyện bot Pokémon dựa trên luật hoặc học tăng cường
+- **Pokémon Showdown:** Trình mô phỏng chiến đấu trực tuyến
+- **LLMAgentBase:** Lớp Python kết nối LLM với môi trường chiến đấu
+- **TemplateAgent:** Mẫu agent để bạn hoàn thiện
+
+## 🧠 Poke-env
+![Battle gif](https://github.com/hsahovic/poke-env/raw/master/rl-gif.gif)
+
+[Poke-env](https://github.com/hsahovic/poke-env) là giao diện Python do [Haris Sahovic](https://huggingface.co/hsahovic) phát triển, được tối ưu cho Agentic AI. Agent của bạn sẽ kế thừa từ lớp `Player` để giao tiếp với giao diện trực quan.
+
+**Tài liệu**: [poke-env.readthedocs.io](https://poke-env.readthedocs.io/en/stable/)  
+**Kho mã nguồn**: [github.com/hsahovic/poke-env](https://github.com/hsahovic/poke-env)
+
+## ⚔️ Pokémon Showdown
+[Pokémon Showdown](https://pokemonshowdown.com/) là trình mô phỏng [mã nguồn mở](https://github.com/smogon/Pokemon-Showdown) nơi agent của bạn sẽ chiến đấu. Agent sẽ hoạt động như người chơi thực sự, đưa ra lựa chọn theo từng lượt.
+
+**Kho mã nguồn**: [github.com/smogon/Pokemon-Showdown](https://github.com/smogon/Pokemon-Showdown)  
+**Website**: [pokemonshowdown.com](https://pokemonshowdown.com/)
+
+## 🔌 LLMAgentBase
+Lớp `LLMAgentBase` kế thừa từ `Player` của **Poke-env**, kết nối **LLM** với **trình mô phỏng Pokémon**. Nó cung cấp các công cụ tương tác (định nghĩa trong `STANDARD_TOOL_SCHEMA`):
+- `choose_move`: Chọn đòn tấn công
+- `choose_switch`: Đổi Pokémon
+
+### 🧠 Logic chính
+- `choose_move(battle: Battle)`: Phương thức chính được gọi mỗi lượt, trả về hành động dạng chuỗi
+
+### 🔧 Phương thức nội bộ
+- `_format_battle_state(battle)`: Định dạng trạng thái trận đấu thành chuỗi
+- `_find_move_by_name(battle, move_name)`: Tìm đòn tấn công theo tên
+- `_find_pokemon_by_name(battle, pokemon_name)`: Tìm Pokémon để đổi
+- `_get_llm_decision(battle_state)`: Phương thức trừu tượng - bạn sẽ triển khai trong agent của mình
+
+```python
+STANDARD_TOOL_SCHEMA = {
+    "choose_move": {...},
+    "choose_switch": {...},
+}
+
+class LLMAgentBase(Player):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.standard_tools = STANDARD_TOOL_SCHEMA
+        self.battle_history = []
+
+    def _format_battle_state(self, battle: Battle) -> str:
+        # Định dạng thông tin Pokémon, đòn đánh, v.v.
+        ...
+
+    def _find_move_by_name(self, battle: Battle, move_name: str) -> Optional[Move]:
+        # Tìm đòn tấn công theo tên
+        ...
+
+    def _find_pokemon_by_name(self, battle: Battle, pokemon_name: str) -> Optional[Pokemon]:
+        # Tìm Pokémon theo tên
+        ...
+
+    async def choose_move(self, battle: Battle) -> str:
+        # Xử lý quyết định từ LLM
+        ...
+    
+    async def _get_llm_decision(self, battle_state: str) -> Dict[str, Any]:
+        raise NotImplementedError("Subclasses must implement _get_llm_decision")
+```
+
+**Mã nguồn đầy đủ**: [agents.py](https://huggingface.co/spaces/Jofthomas/twitch_streaming/blob/main/agents.py)
+
+## 🧪 TemplateAgent
+Đây là khuôn mẫu để bạn xây dựng agent của riêng mình. Chúng tôi cung cấp [ví dụ hoàn chỉnh](https://huggingface.co/spaces/Jofthomas/twitch_streaming/blob/main/agents.py) với **OpenAI**, **Mistral** và **Gemini**:
+
+```python
+class TemplateAgent(LLMAgentBase):
+    """Sử dụng API Template AI để đưa ra quyết định."""
+    def __init__(self, api_key: str = None, model: str = "model-name", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model = model
+        self.template_client = TemplateModelProvider(api_key=...)
+        self.template_tools = list(self.standard_tools.values())
+
+    async def _get_llm_decision(self, battle_state: str) -> Dict[str, Any]:
+        """Gửi trạng thái tới LLM và nhận quyết định dạng function call"""
+        system_prompt = "Bạn là ..."
+        user_prompt = f"..."
+
+        try:
+            response = await self.template_client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            message = response.choices[0].message
+            return {"decision": {"name": function_name, "arguments": arguments}}
+            
+        except Exception as e:
+            print(f"Lỗi không mong muốn: {e}")
+            return {"error": f"Lỗi không mong muốn: {e}"}
+```
+
+Hãy bắt đầu xây dựng agent cạnh tranh của bạn! 🔥
