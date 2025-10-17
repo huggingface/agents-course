@@ -1,0 +1,50 @@
+# Thực hành
+
+Giờ bạn đã sẵn sàng đi sâu vào việc tạo tác nhân cuối cùng, hãy xem cách nộp bài để được đánh giá.
+
+## Tập dữ liệu
+
+Tập dữ liệu dùng trong bảng xếp hạng này gồm 20 câu hỏi trích từ phần **kiểm định** cấp độ 1 của GAIA. Các câu hỏi được chọn dựa trên số lượng công cụ và bước cần thiết để trả lời.
+
+Dựa trên diện mạo hiện tại của benchmark GAIA, chúng tôi cho rằng mục tiêu đạt 30% câu hỏi cấp độ 1 là bài kiểm tra công bằng.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="Trạng thái hiện tại của GAIA!" />
+
+## Quy trình
+
+Câu hỏi lớn nhất trong tâm trí bạn có lẽ là: "Làm thế nào để tôi bắt đầu nộp bài?"
+
+Đối với chương này, chúng tôi đã tạo ra một API cho phép bạn lấy câu hỏi và gửi câu trả lời để đánh giá.
+Đây là tóm tắt các tuyến (xem [tài liệu trực tiếp](https://agents-course-unit4-scoring.hf.space/docs) để xem chi tiết):
+
+* **`GET /questions`**: Lấy danh sách đầy đủ các câu hỏi đánh giá đã lọc.
+* **`GET /random-question`**: Lấy một câu hỏi ngẫu nhiên từ danh sách.
+* **`GET /files/{task_id}`**: Tải xuống tệp cụ thể được liên kết với ID công việc đã cho.
+* **`POST /submit`**: Gửi câu trả lời của agent, tính điểm và cập nhật bảng xếp hạng.
+
+Hàm nộp sẽ so sánh câu trả lời với đáp án cơ bản (ground truth) theo cách **TRÙNG KHỚP CHÍNH XÁC**, vì vậy hãy prompt tốt! Đội GAIA đã chia sẻ một ví dụ về prompting cho agent của bạn [tại đây](https://huggingface.co/spaces/gaia-benchmark/leaderboard) (để đơn giản hóa khóa học, hãy đảm bảo không bao gồm văn bản "CÂU TRẢ LỜI CUỐI CÙNG" trong nộp, chỉ cần cho agent trả lời với câu trả lời và không có gì khác).
+
+🎨 **Làm Template Của Bạn!**
+
+Để minh họa quy trình tương tác với API, chúng tôi đã bao gồm một [template cơ bản](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) làm điểm khởi đầu.
+
+Vui lòng tự do -và chúng tôi **khuyến khích mạnh mẽ**- thay đổi, thêm yếu tố hoặc đảo lộn hoàn toàn. Thay đổi nó theo cách phù hợp với bạn và sáng tạo của bạn.
+
+Để gửi bằng template này, hãy tính toán 3 thứ cần thiết cho API:
+
+* **Tên người dùng (`Username`):** Tên người dùng của bạn trên Hugging Face (được lấy thông qua đăng nhập Gradio), được sử dụng để xác định gửi của bạn.
+* **Liên kết đến Code (`agent_code`):** URL liên kết đến code của Space của bạn trên Hugging Face (`.../tree/main`) để kiểm tra, vì vậy hãy giữ Space của bạn công khai.
+* **Câu trả lời (`answers`):** Danh sách câu trả lời (`{"task_id": ..., "submitted_answer": ...}`) được agent của bạn tạo ra cho điểm.
+
+Vì vậy, chúng tôi khuyến khích bạn bắt đầu bằng cách nhân bản [template này](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) trên tài khoản Hugging Face của bạn.
+
+🏆 Xem bảng xếp hạng [tại đây](https://huggingface.co/spaces/agents-course/Students_leaderboard)
+
+*Lưu ý thân thiện: Bảng xếp hạng này chỉ mang tính chất giải trí! Chúng tôi biết bạn có thể gửi điểm mà không cần xác minh đầy đủ. Nếu chúng tôi thấy quá nhiều điểm cao được đăng mà không có liên kết công khai để sao lưu, chúng tôi có thể cần xem xét, điều chỉnh hoặc xóa một số mục để bảng xếp hạng hữu ích.*
+Bảng xếp hạng sẽ hiển thị liên kết đến space code của bạn. Vì bảng xếp hạng này chỉ dành cho học sinh, vui lòng giữ space của bạn ở chế độ công khai nếu bạn đạt được điểm số mà bạn tự hào.
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>

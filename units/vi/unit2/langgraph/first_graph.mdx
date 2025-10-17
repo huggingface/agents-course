@@ -1,0 +1,444 @@
+# Xây Dựng LangGraph Đầu Tiên Của Bạn
+
+Giờ ta đã hiểu các thành phần cơ bản, hãy áp dụng chúng vào thực tế bằng cách xây dựng đồ thị chức năng đầu tiên. Ta sẽ triển khai hệ thống xử lý email của Alfred, nơi anh ấy cần:
+
+1. Đọc email đến
+2. Phân loại spam hoặc hợp lệ
+3. Soạn thảo phản hồi sơ bộ cho email hợp lệ
+4. Gửi thông tin cho ông Wayne khi hợp lệ (chỉ in ra)
+
+Ví dụ này minh họa cách cấu trúc một quy trình làm việc với LangGraph có liên quan đến việc ra quyết định dựa trên LLM. Dù đây chưa được coi là một Agent (tác nhân) vì không có công cụ nào được sử dụng, phần này tập trung vào việc học framework LangGraph hơn là về Agents.
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/mail_sorting.ipynb" target="_blank">notebook này</a> và chạy qua Google Colab.
+</Tip>
+
+## Quy Trình Làm Việc Của Chúng Ta
+
+Đây là quy trình ta sẽ xây dựng:
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/first_graph.png" alt="First LangGraph"/>
+
+## Thiết Lập Môi Trường
+
+Đầu tiên, cài đặt các gói cần thiết:
+
+```python
+%pip install langgraph langchain_openai
+```
+
+Nhập các module cần thiết:
+
+```python
+import os
+from typing import TypedDict, List, Dict, Any, Optional
+from langgraph.graph import StateGraph, END
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage
+```
+
+## Bước 1: Định Nghĩa Trạng Thái
+
+Hãy xác định thông tin Alfred cần theo dõi trong quy trình xử lý email:
+
+```python
+class EmailState(TypedDict):
+    # Email đang được xử lý
+    email: Dict[str, Any]  # Chứa subject, sender, body, v.v.
+    
+    # Phân tích và quyết định
+    is_spam: Optional[bool]
+    
+    # Tạo phản hồi
+    draft_response: Optional[str]
+    
+    # Metadata xử lý
+    messages: List[Dict[str, Any]]  # Theo dõi hội thoại với LLM để phân tích
+```
+
+> 💡 **Mẹo:** Thiết kế trạng thái đủ chi tiết để theo dõi mọi thông tin quan trọng, nhưng tránh làm phình to với các chi tiết không cần thiết.
+
+## Bước 2: Định Nghĩa Các Node
+
+Giờ hãy tạo các hàm xử lý sẽ tạo thành các node:
+
+```python
+# Khởi tạo LLM
+model = ChatOpenAI(temperature=0)
+
+def read_email(state: EmailState):
+    """Alfred đọc và ghi nhận email đến"""
+    email = state["email"]
+    
+    # Có thể thực hiện tiền xử lý ban đầu ở đây
+    print(f"Alfred đang xử lý email từ {email['sender']} với chủ đề: {email['subject']}")
+    
+    # Không cần thay đổi trạng thái ở đây
+    return {}
+
+def classify_email(state: EmailState):
+    """Alfred sử dụng LLM để xác định email là spam hay hợp lệ"""
+    email = state["email"]
+    
+    # Chuẩn bị prompt cho LLM
+    prompt = f"""
+    Với vai trò là quản gia Alfred, hãy phân tích email này và xác định xem nó là spam hay hợp lệ.
+    
+    Email:
+    Từ: {email['sender']}
+    Chủ đề: {email['subject']}
+    Nội dung: {email['body']}
+    
+    Đầu tiên, xác định xem email này có phải spam không. Nếu là spam, giải thích lý do.
+    Nếu hợp lệ, phân loại nó (hỏi đáp, khiếu nại, cảm ơn, v.v.).
+    """
+    
+    # Gọi LLM
+    messages = [HumanMessage(content=prompt)]
+    response = model.invoke(messages)
+    
+    # Logic đơn giản để phân tích phản hồi (trong ứng dụng thực tế cần phân tích kỹ hơn)
+    response_text = response.content.lower()
+    is_spam = "spam" in response_text and "not spam" not in response_text
+    
+    # Trích xuất lý do nếu là spam
+    spam_reason = None
+    if is_spam and "reason:" in response_text:
+        spam_reason = response_text.split("reason:")[1].strip()
+    
+    # Xác định loại email nếu hợp lệ
+    email_category = None
+    if not is_spam:
+        categories = ["inquiry", "complaint", "thank you", "request", "information"]
+        for category in categories:
+            if category in response_text:
+                email_category = category
+                break
+    
+    # Cập nhật messages để theo dõi
+    new_messages = state.get("messages", []) + [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": response.content}
+    ]
+    
+    # Trả về các thay đổi trạng thái
+    return {
+        "is_spam": is_spam,
+        "spam_reason": spam_reason,
+        "email_category": email_category,
+        "messages": new_messages
+    }
+
+def handle_spam(state: EmailState):
+    """Alfred loại bỏ email spam với ghi chú"""
+    print(f"Alfred đã đánh dấu email là spam. Lý do: {state['spam_reason']}")
+    print("Email đã được chuyển vào thư mục spam.")
+    
+    # Hoàn thành xử lý email này
+    return {}
+
+def draft_response(state: EmailState):
+    """Alfred soạn thảo phản hồi sơ bộ cho email hợp lệ"""
+    email = state["email"]
+    category = state["email_category"] or "general"
+    
+    # Chuẩn bị prompt cho LLM
+    prompt = f"""
+    Với vai trò là quản gia Alfred, hãy soạn thảo phản hồi lịch sự sơ bộ cho email này.
+    
+    Email:
+    Từ: {email['sender']}
+    Chủ đề: {email['subject']}
+    Nội dung: {email['body']}
+    
+    Email này đã được phân loại là: {category}
+    
+    Hãy soạn phản hồi ngắn gọn, chuyên nghiệp để ông Hugg có thể xem xét và cá nhân hóa trước khi gửi.
+    """
+    
+    # Gọi LLM
+    messages = [HumanMessage(content=prompt)]
+    response = model.invoke(messages)
+    
+    # Cập nhật messages để theo dõi
+    new_messages = state.get("messages", []) + [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": response.content}
+    ]
+    
+    # Trả về các thay đổi trạng thái
+    return {
+        "draft_response": response.content,
+        "messages": new_messages
+    }
+
+def notify_mr_hugg(state: EmailState):
+    """Alfred thông báo cho ông Hugg về email và trình bản nháp phản hồi"""
+    email = state["email"]
+    
+    print("\n" + "="*50)
+    print(f"Thưa ngài, ngài có email từ {email['sender']}.")
+    print(f"Chủ đề: {email['subject']}")
+    print(f"Phân loại: {state['email_category']}")
+    print("\nTôi đã chuẩn bị bản nháp phản hồi để ngài xem xét:")
+    print("-"*50)
+    print(state["draft_response"])
+    print("="*50 + "\n")
+    
+    # Hoàn thành xử lý email này
+    return {}
+```
+
+## Bước 3: Định Nghĩa Logic Định Tuyến
+
+Cần một hàm để xác định đường đi tiếp theo sau khi phân loại:
+
+```python
+def route_email(state: EmailState) -> str:
+    """Xác định bước tiếp theo dựa trên phân loại spam"""
+    if state["is_spam"]:
+        return "spam"
+    else:
+        return "legitimate"
+```
+
+> 💡 **Lưu ý:** Hàm định tuyến này được LangGraph gọi để xác định cạnh nào sẽ đi theo sau node phân loại. Giá trị trả về phải khớp với một trong các khóa trong ánh xạ cạnh điều kiện.
+
+## Bước 4: Tạo StateGraph và Định Nghĩa Các Cạnh
+
+Giờ ta kết nối mọi thứ lại:
+
+```python
+# Tạo đồ thị
+email_graph = StateGraph(EmailState)
+
+# Thêm các node
+email_graph.add_node("read_email", read_email)
+email_graph.add_node("classify_email", classify_email)
+email_graph.add_node("handle_spam", handle_spam)
+email_graph.add_node("draft_response", draft_response)
+email_graph.add_node("notify_mr_hugg", notify_mr_hugg)
+
+# Bắt đầu các cạnh
+email_graph.add_edge(START, "read_email")
+# Thêm cạnh - định nghĩa luồng
+email_graph.add_edge("read_email", "classify_email")
+
+# Thêm nhánh điều kiện từ classify_email
+email_graph.add_conditional_edges(
+    "classify_email",
+    route_email,
+    {
+        "spam": "handle_spam",
+        "legitimate": "draft_response"
+    }
+)
+
+# Thêm các cạnh cuối
+email_graph.add_edge("handle_spam", END)
+email_graph.add_edge("draft_response", "notify_mr_hugg")
+email_graph.add_edge("notify_mr_hugg", END)
+
+# Biên dịch đồ thị
+compiled_graph = email_graph.compile()
+```
+
+Lưu ý cách ta sử dụng node `END` đặc biệt của LangGraph. Đây chỉ các trạng thái kết thúc khi quy trình hoàn thành.
+
+## Bước 5: Chạy Ứng Dụng
+
+Hãy thử nghiệm đồ thị với email hợp lệ và email spam:
+
+```python
+# Email hợp lệ mẫu
+legitimate_email = {
+    "sender": "john.smith@example.com",
+    "subject": "Question about your services",
+    "body": "Dear Mr. Hugg, I was referred to you by a colleague and I'm interested in learning more about your consulting services. Could we schedule a call next week? Best regards, John Smith"
+}
+
+# Email spam mẫu
+spam_email = {
+    "sender": "winner@lottery-intl.com",
+    "subject": "YOU HAVE WON $5,000,000!!!",
+    "body": "CONGRATULATIONS! You have been selected as the winner of our international lottery! To claim your $5,000,000 prize, please send us your bank details and a processing fee of $100."
+}
+
+# Xử lý email hợp lệ
+print("\nProcessing legitimate email...")
+legitimate_result = compiled_graph.invoke({
+    "email": legitimate_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+
+# Xử lý email spam
+print("\nProcessing spam email...")
+spam_result = compiled_graph.invoke({
+    "email": spam_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+```
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+# Email hợp lệ mẫu
+legitimate_email = {
+    "sender": "john.smith@example.com",
+    "subject": "Câu hỏi về dịch vụ của bạn",
+    "body": "Kính gửi ông Hugg, tôi được đồng nghiệp giới thiệu và muốn tìm hiểu thêm về dịch vụ tư vấn của ông. Chúng ta có thể sắp xếp một cuộc gọi vào tuần tới được không? Trân trọng, John Smith"
+}
+
+# Email spam mẫu
+spam_email = {
+    "sender": "winner@lottery-intl.com",
+    "subject": "BẠN ĐÃ TRÚNG 5.000.000$!!!",
+    "body": "CHÚC MỪNG! Bạn đã trúng giải xổ số quốc tế của chúng tôi! Để nhận giải 5.000.000$, vui lòng gửi thông tin ngân hàng và phí xử lý 100$."
+}
+
+# Xử lý email hợp lệ
+print("\nĐang xử lý email hợp lệ...")
+legitimate_result = compiled_graph.invoke({
+    "email": legitimate_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+
+# Xử lý email spam
+print("\nĐang xử lý email spam...")
+spam_result = compiled_graph.invoke({
+    "email": spam_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+```
+</details>
+
+```python
+# Example legitimate email
+legitimate_email = {
+    "sender": "john.smith@example.com",
+    "subject": "Question about your services",
+    "body": "Dear Mr. Hugg, I was referred to you by a colleague and I'm interested in learning more about your consulting services. Could we schedule a call next week? Best regards, John Smith"
+}
+
+# Example spam email
+spam_email = {
+    "sender": "winner@lottery-intl.com",
+    "subject": "YOU HAVE WON $5,000,000!!!",
+    "body": "CONGRATULATIONS! You have been selected as the winner of our international lottery! To claim your $5,000,000 prize, please send us your bank details and a processing fee of $100."
+}
+
+# Process the legitimate email
+print("\nProcessing legitimate email...")
+legitimate_result = compiled_graph.invoke({
+    "email": legitimate_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+
+# Process the spam email
+print("\nProcessing spam email...")
+spam_result = compiled_graph.invoke({
+    "email": spam_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "draft_response": None,
+    "messages": []
+})
+```
+
+## Bước 6: Giám Sát Agent Phân Loại Thư Với Langfuse 📡
+
+Khi Alfred tinh chỉnh (fine-tuning) Agent Phân Loại Thư, anh ấy đang gặp khó khăn trong việc gỡ lỗi các lần chạy. Bản chất của Agents là khó dự đoán và kiểm tra. Nhưng vì mục tiêu xây dựng Agent Phát Hiện Spam tối ưu và triển khai production, anh ấy cần khả năng theo dõi mạnh mẽ cho giám sát và phân tích sau này.
+
+Để làm điều này, Alfred có thể sử dụng công cụ quan sát như [Langfuse](https://langfuse.com/) để theo dõi và giám sát agent.
+
+Đầu tiên, cài đặt Langfuse:  
+```python
+%pip install -q langfuse
+```
+
+Thêm API keys và địa chỉ host của Langfuse vào biến môi trường. Bạn có thể lấy credentials Langfuse bằng cách đăng ký [Langfuse Cloud](https://cloud.langfuse.com) hoặc [self-host Langfuse](https://langfuse.com/self-hosting). 
+
+```python
+import os
+ 
+# Lấy keys từ trang cài đặt dự án: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..."
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 Khu vực EU
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 Khu vực US
+```
+
+Sau đó cấu hình [Langfuse `callback_handler`](https://langfuse.com/docs/integrations/langchain/tracing#add-langfuse-to-your-langchain-application) và tích hợp agent bằng cách thêm `langfuse_callback` vào lệnh gọi đồ thị: `config={"callbacks": [langfuse_handler]}`.
+
+```python   
+from langfuse.callback import CallbackHandler
+
+# Khởi tạo Langfuse CallbackHandler cho LangGraph/Langchain (tracing)
+langfuse_handler = CallbackHandler()
+
+# Xử lý email hợp lệ
+legitimate_result = compiled_graph.invoke(
+    input={"email": legitimate_email, "is_spam": None, "spam_reason": None, "email_category": None, "draft_response": None, "messages": []},
+    config={"callbacks": [langfuse_handler]}
+)
+```
+
+Alfred đã kết nối thành công 🔌! Các lần chạy từ LangGraph đang được ghi nhận vào Langfuse, cho phép anh ấy quan sát toàn bộ hành vi của agent. Với thiết lập này, anh ấy có thể xem lại các lần chạy trước và cải thiện Agent Phân Loại Thư.  
+
+![Ví dụ trace trong Langfuse](https://langfuse.com/images/cookbook/huggingface-agent-course/langgraph-trace-legit.png)
+
+_[Liên kết công khai đến trace với email hợp lệ](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/f5d6d72e-20af-4357-b232-af44c3728a7b?timestamp=2025-03-17T10%3A13%3A28.413Z&observation=6997ba69-043f-4f77-9445-700a033afba1)_
+
+## Trực Quan Hóa Đồ Thị
+
+LangGraph cho phép ta trực quan hóa quy trình làm việc để hiểu và gỡ lỗi cấu trúc tốt hơn:
+
+```python
+compiled_graph.get_graph().draw_mermaid_png()
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/mail_flow.png" alt="Mail LangGraph"/>
+
+Điều này tạo ra biểu diễn trực quan cho thấy cách các node được kết nối và các đường đi có điều kiện.
+
+## Thành Quả Đạt Được
+
+Ta đã tạo ra một quy trình xử lý email hoàn chỉnh:
+
+1. Nhận email đến
+2. Sử dụng LLM để phân loại spam/hợp lệ
+3. Xử lý spam bằng cách loại bỏ
+4. Với email hợp lệ, soạn phản hồi và thông báo cho ông Hugg
+
+Điều này minh họa sức mạnh của LangGraph trong việc điều phối các quy trình phức tạp với LLM trong khi duy trì luồng làm việc rõ ràng.
+
+## Điểm Quan Trọng
+
+- **Quản Lý Trạng Thái**: Ta đã định nghĩa trạng thái toàn diện để theo dõi mọi khía cạnh xử lý email
+- **Triển Khai Node**: Ta đã tạo các node chức năng tương tác với LLM
+- **Định Tuyến Có Điều Kiện**: Ta đã triển khai logic phân nhánh dựa trên phân loại email
+- **Trạng Thái Kết Thúc**: Ta đã sử dụng node END để đánh dấu điểm hoàn thành quy trình
+
+## Bước Tiếp Theo?
+
+Trong phần tiếp theo, ta sẽ khám phá các tính năng nâng cao của LangGraph, bao gồm xử lý tương tác con người trong quy trình và triển khai logic phân nhánh phức tạp dựa trên nhiều điều kiện.

@@ -1,0 +1,269 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/tools.ipynb"},
+]} />
+
+# Công cụ  
+
+Như ta đã tìm hiểu ở [Chương 1](https://huggingface.co/learn/agents-course/unit1/tools), các Agent (tác nhân) sử dụng Tools (công cụ) để thực hiện nhiều hành động khác nhau. Trong `smolagents`, công cụ được xem như **các hàm mà LLM (mô hình ngôn ngữ lớn) có thể gọi trong hệ thống agent**. 
+
+Để tương tác với một công cụ, LLM cần **mô tả giao diện** với các thành phần chính:  
+
+- **Tên**: Tên gọi của công cụ  
+- **Mô tả công cụ**: Chức năng của công cụ  
+- **Kiểu và mô tả đầu vào**: Các tham số mà công cụ chấp nhận  
+- **Kiểu đầu ra**: Kết quả trả về của công cụ  
+
+Ví dụ, khi chuẩn bị cho một bữa tiệc tại Wayne Manor, Alfred cần nhiều công cụ khác nhau để thu thập thông tin - từ tìm kiếm dịch vụ catering đến ý tưởng chủ đề tiệc. Đây là cách một công cụ tìm kiếm đơn giản có thể trông như thế nào:
+
+- **Tên:** `web_search`  
+- **Mô tả công cụ:** Tìm kiếm trên web theo truy vấn cụ thể  
+- **Đầu vào:** `query` (chuỗi) - Từ khóa tìm kiếm  
+- **Đầu ra:** Chuỗi chứa kết quả tìm kiếm  
+
+Nhờ các công cụ này, Alfred có thể đưa ra quyết định sáng suốt và thu thập mọi thông tin cần thiết để lên kế hoạch cho bữa tiệc hoàn hảo.
+
+Dưới đây là minh họa cách một lệnh gọi công cụ được xử lý:
+
+![Agentic pipeline from https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/Agent_ManimCE.gif)
+
+## Cách tạo công cụ  
+
+Trong `smolagents`, ta có thể định nghĩa công cụ theo 2 cách:  
+1. **Sử dụng decorator `@tool`** cho các công cụ đơn giản dựa trên hàm  
+2. **Tạo lớp con kế thừa `Tool`** cho các chức năng phức tạp hơn    
+
+### Decorator `@tool`  
+
+Decorator `@tool` là **cách được khuyến nghị để định nghĩa các công cụ đơn giản**. Bên trong, smolagents sẽ tự động phân tích thông tin cơ bản về hàm từ Python. Vì vậy, nếu bạn đặt tên hàm rõ ràng và viết docstring tốt, LLM sẽ dễ sử dụng hơn. 
+
+Với cách tiếp cận này, ta định nghĩa một hàm với:  
+
+- **Tên hàm rõ ràng, mô tả đúng** để LLM hiểu được mục đích  
+- **Chú thích kiểu dữ liệu** cho cả đầu vào và đầu ra để đảm bảo sử dụng đúng  
+- **Mô tả chi tiết**, bao gồm phần `Args:` mô tả rõ từng tham số. Những mô tả này cung cấp ngữ cảnh quan trọng cho LLM, nên cần viết cẩn thận.  
+
+#### Tạo công cụ tìm dịch vụ catering được đánh giá cao nhất
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-catering.jpg" alt="Alfred Catering"/>
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb" target="_blank">notebook này</a> và chạy trên Google Colab.
+</Tip>
+
+Giả sử Alfred đã quyết định thực đơn cho bữa tiệc nhưng cần giúp chuẩn bị đồ ăn cho số lượng khách lớn. Để làm điều này, anh ấy muốn thuê dịch vụ catering và cần tìm những lựa chọn được đánh giá cao nhất. Alfred có thể sử dụng một công cụ để tìm kiếm các dịch vụ catering tốt nhất trong khu vực.
+
+Dưới đây là ví dụ cách Alfred dùng decorator `@tool` để thực hiện việc này:
+
+```python
+from smolagents import CodeAgent, HfApiModel, tool
+
+# Giả sử ta có hàm tìm dịch vụ catering được đánh giá cao nhất
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    Công cụ này trả về dịch vụ catering được đánh giá cao nhất tại Gotham City.
+    
+    Args:
+        query: Từ khóa tìm kiếm dịch vụ catering.
+    """
+    # Danh sách dịch vụ và điểm đánh giá
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+    
+    # Tìm dịch vụ có điểm cao nhất (mô phỏng lọc truy vấn tìm kiếm)
+    best_service = max(services, key=services.get)
+    
+    return best_service
+
+
+agent = CodeAgent(tools=[catering_service_tool], model=HfApiModel())
+
+# Chạy agent để tìm dịch vụ catering tốt nhất
+result = agent.run(
+    "Bạn có thể cho tôi tên dịch vụ catering được đánh giá cao nhất ở Gotham City không?"
+)
+
+print(result)   # Kết quả: Gotham Catering Co.
+```
+
+### Định nghĩa công cụ bằng lớp Python  
+
+Cách này liên quan đến việc tạo lớp con kế thừa từ [`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool). Với các công cụ phức tạp, ta có thể triển khai một lớp thay vì hàm. Lớp này bao bọc hàm cùng metadata giúp LLM hiểu cách sử dụng. Trong lớp này, ta định nghĩa:  
+
+- `name`: Tên công cụ  
+- `description`: Mô tả dùng để đưa vào system prompt của agent  
+- `inputs`: Từ điển với các key `type` và `description`, cung cấp thông tin giúp trình thông dịch Python xử lý đầu vào  
+- `output_type`: Chỉ định kiểu đầu ra mong đợi  
+- `forward`: Phương thức chứa logic inference để thực thi  
+
+Dưới đây là ví dụ về công cụ được xây dựng bằng `Tool` và cách tích hợp vào `CodeAgent`.
+
+#### Tạo công cụ sinh ý tưởng tiệc siêu anh hùng  
+
+Bữa tiệc tại dinh thự của Alfred có **chủ đề siêu anh hùng**, nhưng anh ấy cần ý tưởng sáng tạo để làm nó thực sự đặc biệt. Là một người tổ chức xuất sắc, Alfred muốn gây bất ngờ cho khách mời với chủ đề độc đáo. 
+
+Để làm điều này, anh ấy có thể dùng agent sinh ý tưởng chủ đề tiệc siêu anh hùng dựa trên thể loại cho trước. Nhờ vậy, Alfred có thể tìm được chủ đề hoàn hảo cho bữa tiệc.
+
+```python
+from smolagents import Tool, CodeAgent, HfApiModel
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    Công cụ đề xuất ý tưởng tiệc chủ đề siêu anh hùng sáng tạo dựa trên thể loại.
+    Trả về ý tưởng chủ đề tiệc độc đáo."""
+    
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "Thể loại tiệc siêu anh hùng (vd: 'anh hùng cổ điển', 'vũ hội mặt nạ phản diện', 'Gotham tương lai').",
+        }
+    }
+    
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "anh hùng cổ điển": "Dạ tiệc Justice League: Khách mời hóa thân thành các siêu anh hùng DC yêu thích với cocktail chủ đề như 'The Kryptonite Punch'.",
+            "vũ hội mặt nạ phản diện": "Dạ vũ Gotham Rogues: Vũ hội bí ẩn nơi khách mời hóa trang thành các phản diện Batman kinh điển.",
+            "Gotham tương lai": "Đêm Neo-Gotham: Tiệc phong cách cyberpunk lấy cảm hứng từ Batman Beyond, với trang trí neon và gadget tương lai."
+        }
+        
+        return themes.get(category.lower(), "Không tìm thấy ý tưởng. Hãy thử 'anh hùng cổ điển', 'vũ hội mặt nạ phản diện', hoặc 'Gotham tương lai'.")
+
+# Khởi tạo công cụ
+party_theme_tool = SuperheroPartyThemeTool()
+agent = CodeAgent(tools=[party_theme_tool], model=HfApiModel())
+
+# Chạy agent để sinh ý tưởng chủ đề tiệc
+result = agent.run(
+    "Ý tưởng tiệc siêu anh hùng hay cho chủ đề 'vũ hội mặt nạ phản diện' là gì?"
+)
+
+print(result)  # Kết quả: "Dạ vũ Gotham Rogues: Vũ hội bí ẩn nơi khách mời hóa trang thành các phản diện Batman kinh điển."
+```
+
+Với công cụ này, Alfred sẽ trở thành người tổ chức siêu đẳng, mang đến bữa tiệc siêu anh hùng đáng nhớ cho khách mời! 🦸‍♂️🦸‍♀️
+
+## Bộ công cụ mặc định  
+
+`smolagents` đi kèm với các công cụ được xây dựng sẵn có thể tích hợp trực tiếp vào agent của bạn. [Bộ công cụ mặc định](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) bao gồm:  
+
+- **PythonInterpreterTool**  
+- **FinalAnswerTool**  
+- **UserInputTool**  
+- **DuckDuckGoSearchTool**  
+- **GoogleSearchTool**  
+- **VisitWebpageTool**  
+
+Alfred có thể sử dụng nhiều công cụ để đảm bảo bữa tiệc tại Wayne Manor hoàn hảo:
+
+- Đầu tiên, dùng `DuckDuckGoSearchTool` để tìm ý tưởng tiệc siêu anh hùng sáng tạo  
+
+- Về catering, dùng `GoogleSearchTool` để tìm dịch vụ được đánh giá cao nhất ở Gotham  
+
+- Để sắp xếp chỗ ngồi, Alfred có thể chạy tính toán bằng `PythonInterpreterTool`  
+
+- Sau khi thu thập đủ thông tin, tổng hợp kế hoạch bằng `FinalAnswerTool`  
+
+Với những công cụ này, Alfred đảm bảo bữa tiệc vừa đặc biệt vừa trơn tru. 🦇💡
+
+## Chia sẻ và nhập công cụ  
+
+Một trong những tính năng mạnh mẽ nhất của **smolagents** là khả năng chia sẻ công cụ tùy chỉnh lên Hub và tích hợp liền mạch các công cụ từ cộng đồng. Điều này bao gồm kết nối với **HF Spaces** và **LangChain tools**, giúp Alfred nâng cao khả năng tổ chức những bữa tiệc đáng nhớ tại Wayne Manor. 🎭 
+
+Với các tích hợp này, Alfred có thể tận dụng các công cụ lập kế hoạch sự kiện tiên tiến - từ điều chỉnh ánh sáng tạo không khí hoàn hảo, lên playlist lý tưởng cho tiệc, đến phối hợp với các dịch vụ catering tốt nhất Gotham.  
+
+Dưới đây là các ví dụ minh họa cách những chức năng này nâng tầm trải nghiệm tiệc:
+
+### Chia sẻ công cụ lên Hub  
+
+Chia sẻ công cụ tùy chỉnh với cộng đồng rất dễ dàng! Chỉ cần tải lên tài khoản Hugging Face của bạn bằng phương thức `push_to_hub()`.
+
+Ví dụ, Alfred có thể chia sẻ `party_theme_tool` để giúp người khác tìm dịch vụ catering tốt nhất ở Gotham:
+
+```python
+party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HUGGINGFACEHUB_API_TOKEN>")
+```
+
+### Nhập công cụ từ Hub  
+
+Bạn có thể dễ dàng nhập công cụ từ người dùng khác bằng hàm `load_tool()`. Ví dụ, Alfred muốn tạo hình ảnh quảng bá cho bữa tiệc bằng AI. Thay vì xây từ đầu, anh ấy có thể sử dụng công cụ định nghĩa sẵn từ cộng đồng: 
+
+```python
+from smolagents import load_tool, CodeAgent, HfApiModel
+
+image_generation_tool = load_tool(
+    "m-ric/text-to-image",
+    trust_remote_code=True
+)
+
+agent = CodeAgent(
+    tools=[image_generation_tool],
+    model=HfApiModel()
+)
+
+agent.run("Tạo hình ảnh bữa tiệc siêu anh hùng sang trọng tại Wayne Manor với các siêu anh hùng hư cấu.")
+```
+
+### Nhập HF Space làm công cụ  
+
+Bạn cũng có thể nhập HF Space làm công cụ bằng `Tool.from_space()`. Điều này mở ra khả năng tích hợp với hàng ngàn spaces từ cộng đồng cho các tác vụ từ tạo ảnh đến phân tích dữ liệu. 
+
+Công cụ sẽ kết nối với backend Gradio của space thông qua `gradio_client`, nên hãy đảm bảo cài đặt nó qua `pip` nếu chưa có.
+
+Để chuẩn bị cho tiệc, Alfred có thể dùng một HF Space có sẵn để tạo ảnh AI cho thông báo (thay vì dùng công cụ xây sẵn như trước). Hãy xây dựng nó!
+
+```python
+from smolagents import CodeAgent, HfApiModel, Tool
+
+image_generation_tool = Tool.from_space(
+    "black-forest-labs/FLUX.1-schnell",
+    name="image_generator",
+    description="Tạo ảnh từ prompt"
+)
+
+model = HfApiModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+agent = CodeAgent(tools=[image_generation_tool], model=model)
+
+agent.run(
+    "Cải thiện prompt này rồi tạo ảnh từ nó.", 
+    additional_args={'user_prompt': 'Bữa tiệc siêu anh hùng hoành tráng tại Wayne Manor, với Alfred điều hành một dạ tiệc sang trọng'}
+)
+```
+
+### Nhập công cụ LangChain  
+
+Chúng ta sẽ thảo luận về framework `LangChain` trong các phần tiếp theo. Hiện tại, ta chỉ cần biết có thể tái sử dụng LangChain tools trong workflow smolagents!
+
+Bạn có thể dễ dàng tải LangChain tools bằng phương thức `Tool.from_langchain()`. Alfred, với tính cách cầu toàn, đang chuẩn bị cho một đêm siêu anh hùng ngoạn mục tại Wayne Manor khi gia đình Wayne đi vắng. Để đảm bảo mọi chi tiết vượt mong đợi, anh ấy sử dụng LangChain tools để tìm ý tưởng giải trí đỉnh cao.
+
+Bằng cách dùng `Tool.from_langchain()`, Alfred dễ dàng thêm chức năng tìm kiếm nâng cao vào smolagent của mình, cho phép anh ấy khám phá ý tưởng tiệc và dịch vụ độc quyền chỉ với vài lệnh.
+
+Cách thực hiện:
+
+```python
+from langchain.agents import load_tools
+from smolagents import CodeAgent, HfApiModel, Tool
+
+search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
+
+agent = CodeAgent(tools=[search_tool], model=model)
+
+agent.run("Tìm kiếm ý tưởng giải trí sang trọng cho sự kiện chủ đề siêu anh hùng, như biểu diễn trực tiếp và trải nghiệm tương tác.")
+```
+
+Với thiết lập này, Alfred có thể nhanh chóng tìm thấy các lựa chọn giải trí sang trọng, đảm bảo khách mời thượng lưu của Gotham có trải nghiệm khó quên. Công cụ này giúp anh ấy tạo nên sự kiện chủ đề siêu anh hùng hoàn hảo tại Wayne Manor! 🎉
+
+## Tài nguyên  
+
+- [Hướng dẫn về công cụ](https://huggingface.co/docs/smolagents/tutorials/tools) - Khám phá hướng dẫn này để học cách làm việc hiệu quả với công cụ  
+- [Tài liệu công cụ](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools) - Tài liệu tham khảo toàn diện về công cụ  
+- [Hướng dẫn từng bước về công cụ](https://huggingface.co/docs/smolagents/v1.8.1/en/guided_tour#tools) - Hướng dẫn từng bước giúp xây dựng và sử dụng công cụ hiệu quả  
+- [Xây dựng Agent hiệu quả](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - Hướng dẫn chi tiết về best practices để phát triển agent tùy chỉnh đáng tin cậy và hiệu suất cao

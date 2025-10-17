@@ -1,0 +1,429 @@
+# Xây dựng và Tích hợp Công cụ cho Tác nhân của Bạn
+
+Trong phần này, chúng ta sẽ cấp cho Alfred quyền truy cập web để anh ấy có thể tìm kiếm tin tức mới nhất và cập nhật toàn cầu.  
+Ngoài ra, anh ấy sẽ có quyền truy cập dữ liệu thời tiết và thống kê tải xuống model từ Hugging Face hub, giúp anh ấy có thể trò chuyện về các chủ đề nóng hổi.
+
+## Cấp cho Tác nhân Quyền Truy cập Web
+
+Hãy nhớ rằng chúng ta muốn Alfred thể hiện hình ảnh một chủ nhà đa tài với kiến thức sâu rộng về thế giới.  
+
+Để làm được điều này, ta cần đảm bảo Alfred có quyền truy cập tin tức và thông tin mới nhất về thế giới.  
+
+Hãy bắt đầu bằng cách tạo công cụ tìm kiếm web cho Alfred!
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+# Khởi tạo công cụ tìm kiếm DuckDuckGo
+search_tool = DuckDuckGoSearchTool()
+
+# Ví dụ sử dụng
+results = search_tool("Who's the current President of France?")
+print(results)
+```
+
+Kết quả mong đợi:
+
+```
+The current President of France in Emmanuel Macron.
+```
+
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.tools import FunctionTool
+
+# Initialize the DuckDuckGo search tool
+tool_spec = DuckDuckGoSearchToolSpec()
+
+search_tool = FunctionTool.from_defaults(tool_spec.duckduckgo_full_search)
+# Example usage
+response = search_tool("Who's the current President of France?")
+print(response.raw_output[-1]['body'])
+```
+
+Kết quả mong đợi:
+
+```
+The President of the French Republic is the head of state of France. The current President is Emmanuel Macron since 14 May 2017 defeating Marine Le Pen in the second round of the presidential election on 7 May 2017. List of French presidents (Fifth Republic) N° Portrait Name ...
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+search_tool = DuckDuckGoSearchRun()
+results = search_tool.invoke("Who's the current President of France?")
+print(results)
+```
+
+Kết quả mong đợi:
+
+```
+Emmanuel Macron (born December 21, 1977, Amiens, France) is a French banker and politician who was elected president of France in 2017...
+```
+
+</hfoption>
+</hfoptions>
+
+## Tạo Công cụ Tùy chỉnh để Lấy Thông tin Thời tiết cho Lịch Trình Bắn Pháo hoa
+
+Buổi tiệc gala hoàn hảo cần có pháo hoa trên bầu trời quang đãng, chúng ta phải đảm bảo pháo hoa không bị hủy do thời tiết xấu.
+
+Hãy tạo một công cụ tùy chỉnh để gọi API thời tiết bên ngoài và lấy thông tin thời tiết cho địa điểm cụ thể.
+
+<Tip>
+Để đơn giản, ta sử dụng API thời tiết ảo (dummy) cho ví dụ này. Nếu muốn dùng API thời tiết thật, bạn có thể triển khai công cụ sử dụng OpenWeatherMap API như trong <a href="../../unit1/tutorial">Chương 1</a>.
+</Tip>
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+import random
+
+class WeatherInfoTool(Tool):
+    name = "weather_info"
+    description = "Lấy thông tin thời tiết ảo cho địa điểm chỉ định."
+    inputs = {
+        "location": {
+            "type": "string",
+            "description": "Địa điểm cần lấy thông tin thời tiết."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, location: str):
+        # Dữ liệu thời tiết ảo
+        weather_conditions = [
+            {"condition": "Rainy", "temp_c": 15},
+            {"condition": "Clear", "temp_c": 25},
+            {"condition": "Windy", "temp_c": 20}
+        ]
+        # Chọn ngẫu nhiên điều kiện thời tiết
+        data = random.choice(weather_conditions)
+        return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Khởi tạo công cụ
+weather_info_tool = WeatherInfoTool()
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+
+def get_weather_info(location: str) -> str:
+    """Lấy thông tin thời tiết ảo cho địa điểm chỉ định."""
+    # Dữ liệu thời tiết ảo
+    weather_conditions = [
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20}
+    ]
+    # Chọn ngẫu nhiên điều kiện thời tiết
+    data = random.choice(weather_conditions)
+    return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Khởi tạo công cụ
+weather_info_tool = FunctionTool.from_defaults(get_weather_info)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain.tools import Tool
+import random
+
+def get_weather_info(location: str) -> str:
+    """Lấy thông tin thời tiết ảo cho địa điểm chỉ định."""
+    # Dữ liệu thời tiết ảo
+    weather_conditions = [
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20}
+    ]
+    # Chọn ngẫu nhiên điều kiện thời tiết
+    data = random.choice(weather_conditions)
+    return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Khởi tạo công cụ
+weather_info_tool = Tool(
+    name="get_weather_info",
+    func=get_weather_info,
+    description="Lấy thông tin thời tiết ảo cho địa điểm chỉ định."
+)
+```
+
+</hfoption>
+</hfoptions>
+
+## Tạo Công cụ Thống kê Hub cho Nhà Phát triển AI Có Tầm Ảnh Hưởng
+
+Tham dự buổi gala là những nhân vật hàng đầu trong giới phát triển AI. Alfred muốn gây ấn tượng bằng cách thảo luận về các mô hình, tập dữ liệu và Space phổ biến nhất của họ. Ta sẽ tạo công cụ lấy thống kê mô hình từ Hugging Face Hub dựa trên tên người dùng.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+from huggingface_hub import list_models
+
+class HubStatsTool(Tool):
+    name = "hub_stats"
+    description = "Lấy model được tải nhiều nhất từ tác giả cụ thể trên Hugging Face Hub."
+    inputs = {
+        "author": {
+            "type": "string",
+            "description": "Tên người dùng/tổ chức tác giả model cần tìm."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, author: str):
+        try:
+            # Liệt kê model từ tác giả chỉ định, sắp xếp theo lượt tải
+            models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+            
+            if models:
+                model = models[0]
+                return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+            else:
+                return f"No models found for author {author}."
+        except Exception as e:
+            return f"Error fetching models for {author}: {str(e)}"
+
+# Khởi tạo công cụ
+hub_stats_tool = HubStatsTool()
+
+# Ví dụ sử dụng
+print(hub_stats_tool("facebook")) # Ví dụ: Lấy model được tải nhiều nhất của Facebook
+```
+
+Kết quả mong đợi:
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 downloads.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Lấy model được tải nhiều nhất từ tác giả cụ thể trên Hugging Face Hub."""
+    try:
+        # Liệt kê model từ tác giả chỉ định, sắp xếp theo lượt tải
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+        else:
+            return f"No models found for author {author}."
+    except Exception as e:
+        return f"Error fetching models for {author}: {str(e)}"
+
+# Khởi tạo công cụ
+hub_stats_tool = FunctionTool.from_defaults(get_hub_stats)
+
+# Ví dụ sử dụng
+print(hub_stats_tool("facebook")) # Ví dụ: Lấy model được tải nhiều nhất của Facebook
+```
+
+Kết quả mong đợi:
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 downloads.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+
+```python
+from langchain.tools import Tool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Fetches the most downloaded model from a specific author on the Hugging Face Hub."""
+    try:
+        # List models from the specified author, sorted by downloads
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+        else:
+            return f"No models found for author {author}."
+    except Exception as e:
+        return f"Error fetching models for {author}: {str(e)}"
+
+# Initialize the tool
+hub_stats_tool = Tool(
+    name="get_hub_stats",
+    func=get_hub_stats,
+    description="Fetches the most downloaded model from a specific author on the Hugging Face Hub."
+)
+
+# Example usage
+print(hub_stats_tool("facebook")) # Example: Get the most downloaded model by Facebook
+```
+
+Kết quả mong đợi:
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 13,109,861 downloads.
+```
+
+</hfoption>
+</hfoptions>
+
+Với Công cụ Thống kê Hub, giờ đây Alfred có thể gây ấn tượng với các nhà xây dựng AI có ảnh hưởng bằng cách thảo luận về các mô hình phổ biến nhất của họ.
+
+## Tích hợp Công cụ với Alfred
+
+Giờ chúng ta đã có tất cả công cụ, hãy tích hợp chúng vào tác nhân Alfred:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Khởi tạo mô hình Hugging Face
+model = InferenceClientModel()
+
+# Tạo Alfred với tất cả công cụ
+alfred = CodeAgent(
+    tools=[search_tool, weather_info_tool, hub_stats_tool], 
+    model=model
+)
+
+# Truy vấn mẫu Alfred có thể nhận trong buổi tiệc
+response = alfred.run("What is Facebook and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Kết quả mong đợi: 
+
+```
+🎩 Alfred's Response:
+Facebook is a social networking website where users can connect, share information, and interact with others. The most downloaded model by Facebook on the Hugging Face Hub is ESMFold_v1.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Khởi tạo mô hình Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Tạo Alfred với tất cả công cụ
+alfred = AgentWorkflow.from_tools_or_functions(
+    [search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# Truy vấn mẫu Alfred có thể nhận trong buổi tiệc
+response = await alfred.run("What is Facebook and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Kết quả mong đợi: 
+
+```
+🎩 Alfred's Response:
+Facebook is a social networking service and technology company based in Menlo Park, California. It was founded by Mark Zuckerberg and allows people to create profiles, connect with friends and family, share photos and videos, and join groups based on shared interests. The most popular model by Facebook on the Hugging Face Hub is `facebook/esmfold_v1` with 13,109,861 downloads.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# Tạo giao diện chat, bao gồm các công cụ
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Tạo AgentState và đồ thị Agent
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## Đồ thị
+builder = StateGraph(AgentState)
+
+# Định nghĩa nút: thực hiện công việc
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Định nghĩa cạnh: xác định luồng điều khiển
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Nếu tin nhắn mới nhất yêu cầu công cụ, chuyển đến tools
+    # Ngược lại, trả lời trực tiếp
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Who is Facebook and what's their most popular model?")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+Kết quả mong đợi:
+
+```
+🎩 Alfred's Response:
+Facebook is a social media company known for its social networking site, Facebook, as well as other services like Instagram and WhatsApp. The most downloaded model by Facebook on the Hugging Face Hub is facebook/esmfold_v1 with 13,202,321 downloads.
+```
+</hfoption>
+</hfoptions>
+
+## Kết luận
+
+Bằng cách tích hợp các công cụ này, Alfred giờ đã được trang bị để xử lý nhiều tác vụ đa dạng, từ tìm kiếm web đến cập nhật thời tiết và thống kê mô hình. Điều này đảm bảo anh ấy luôn là
