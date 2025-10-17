@@ -69,7 +69,11 @@ Now, let's combine all these tools into a single agent:
 
 ```python
 # Initialize the Hugging Face model
-llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Check available providers: https://huggingface.co/inference/models
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="auto"
+)
 
 # Create Alfred with all the tools
 alfred = AgentWorkflow.from_tools_or_functions(
