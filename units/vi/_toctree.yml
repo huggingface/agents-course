@@ -114,14 +114,28 @@
     title: Giới thiệu các Use Case cho Agentic RAG
   - local: unit3/agentic-rag/agentic-rag
     title: Tìm kiếm và tạo câu trả lời mang tính tác nhân (RAG)
-  # - local: unit3/agentic-rag/invitees
-  #   title: Tạo ra công cụ RAG cho Thông tin Khách mời
-  # - local: unit3/agentic-rag/tools
-  #   title: Xây dựng và Tích hợp Công cụ cho Agent của Bạn
-  # - local: unit3/agentic-rag/agent
-  #   title: Tạo Agent Tổ Chức Gala Của Bạn
+  - local: unit3/agentic-rag/invitees
+    title: Tạo ra công cụ RAG cho Thông tin Khách mời
+  - local: unit3/agentic-rag/tools
+    title: Xây dựng và Tích hợp Công cụ cho Agent của Bạn
+  - local: unit3/agentic-rag/agent
+    title: Tạo Agent Tổ Chức Gala Của Bạn
   - local: unit3/agentic-rag/conclusion
     title: Kết luận
+- title: Chương 4. Dự án cuối - Tạo, Kiểm tra và Chứng nhận Agent của bạn
+  sections:
+  - local: unit4/introduction
+    title: Giới thiệu chương cuối
+  - local: unit4/what-is-gaia
+    title: GAIA là gì?
+  - local: unit4/hands-on
+    title: Thực hành cuối cùng
+  - local: unit4/get-your-certificate
+    title: Nhận chứng chỉ xuất sắc của bạn
+  - local: unit4/conclusion
+    title: Kết luận khóa học
+  - local: unit4/additional-readings
+    title: Bạn nên học gì tiếp theo?
 - title: Chương bổ trợ 1. Fine-tune LLM cho Function-calling
   sections:
   - local: bonus-unit1/introduction
@@ -132,10 +146,6 @@
     title: Hãy fine-tuning mô hình cho Function-calling
   - local: bonus-unit1/conclusion
     title: Kết luận
-- title: Khi nào các bước tiếp theo được công bố?
-  sections:
-  - local: communication/next-units
-    title: Các chương tiếp theo
 - title: Bonus Unit 2. Agent Observability and Evaluation
   sections:
   - local: bonus-unit2/introduction
@@ -146,6 +156,20 @@
     title: Giám sát và đánh giá agent
   - local: bonus-unit2/quiz
     title: Bài kiểm tra nhanh
+- title: Bonus Unit 3. Agent trong Game với Pokemon
+  sections:
+  - local: bonus-unit3/introduction
+    title: Giới thiệu
+  - local: bonus-unit3/state-of-art
+    title: Tình hình hiện tại trong việc sử dụng LLM trong Game
+  - local: bonus-unit3/from-llm-to-agents
+    title: Từ LLM đến AI Agent
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: Xây dựng Agent Pokemon Battle của bạn
+  - local: bonus-unit3/launching_agent_battle
+    title: Khởi chạy Agent Pokemon Battle của bạn
+  - local: bonus-unit3/conclusion
+    title: Kết luận
 - title: Khi nào các bước tiếp theo được công bố?
   sections:
   - local: communication/next-units
