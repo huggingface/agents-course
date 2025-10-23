@@ -1,0 +1,248 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord"
+ />
+
+# Construindo agentes que usam código
+
+Code agents são o tipo padrão no `smolagents`. Eles geram chamadas de ferramentas em Python para realizar ações, oferecendo representações eficientes, expressivas e precisas.
+
+Essa abordagem enxuta reduz o número de ações necessárias, simplifica operações complexas e permite reutilizar funções já existentes. O `smolagents` fornece um framework leve para construir code agents, implementado em cerca de 1.000 linhas de código.
+
+![Code vs JSON Actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)  
+Gráfico do artigo [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)
+
+> [!TIP]
+> Se quiser saber mais sobre por que code agents são eficazes, confira <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">este guia</a> na documentação do smolagents.
+
+## Por que usar code agents?
+
+Em um processo multi-etapas, o LLM escreve e executa ações, normalmente envolvendo chamadas a ferramentas externas. Abordagens tradicionais utilizam JSON para especificar nomes de ferramentas e argumentos como strings, **o que obriga o sistema a fazer parsing para decidir o que executar**.
+
+Pesquisas mostram, no entanto, que **LLMs se saem melhor chamando ferramentas diretamente via código**. Essa é a base do `smolagents`, como mostra o diagrama acima, extraído de [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030).
+
+Escrever ações em código, em vez de JSON, traz algumas vantagens principais:
+
+* **Composibilidade:** combinações e reutilização de ações se tornam naturais.  
+* **Manipulação de objetos:** é possível trabalhar diretamente com estruturas complexas (imagens, por exemplo).  
+* **Generalidade:** qualquer tarefa computacional pode ser expressa.  
+* **Natural para LLMs:** código de qualidade já aparece em grandes quantidades no treinamento dos modelos.
+
+## Como funciona um code agent?
+
+![From https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+O diagrama ilustra como `CodeAgent.run()` opera, seguindo o framework ReAct revisitado na Unidade 1. A abstração principal no `smolagents` é o `MultiStepAgent`, que atua como bloco de construção. `CodeAgent` é uma especialização de `MultiStepAgent`, como veremos no exemplo.
+
+Um `CodeAgent` executa ações em um ciclo, incorporando variáveis e conhecimento ao contexto do agente — mantido em um log de execução:
+
+1. O system prompt é armazenado em um `SystemPromptStep`, e a consulta do usuário aparece em um `TaskStep`.
+2. Em seguida, um laço `while` é executado:
+   2.1 `agent.write_memory_to_messages()` converte os logs em uma lista de [mensagens de chat](https://huggingface.co/docs/transformers/main/en/chat_templating) compreensíveis pelo LLM.  
+   2.2 As mensagens são enviadas a um `Model`, que gera a resposta.  
+   2.3 O resultado é analisado para extrair a ação — no nosso caso, um trecho de código.  
+   2.4 A ação é executada.  
+   2.5 Os resultados são registrados em memória por meio de um `ActionStep`.
+
+Ao final de cada etapa, se o agente incluir callbacks (`agent.step_callback`), eles são executados.
+
+## Vamos ver alguns exemplos
+
+> [!TIP]
+> Você pode acompanhar o código neste <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb" target="_blank">notebook</a>, com execução direta no Google Colab.
+
+Alfred está organizando uma festa na Mansão Wayne e precisa da sua ajuda para que tudo saia perfeito. Vamos aplicar o que aprendemos sobre o funcionamento de um `CodeAgent` multi-etapas.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-party.jpg" alt="Alfred Party"/>
+
+Se ainda não instalou o `smolagents`, execute:
+
+```bash
+pip install smolagents -U
+```
+
+Vamos também fazer login no Hugging Face Hub para acessar a Serverless Inference API.
+
+```python
+from huggingface_hub import login
+
+login()
+```
+
+### Escolhendo uma playlist para a festa com `smolagents`
+
+Música é essencial para o sucesso da festa! Alfred precisa de ajuda para escolher uma playlist. Podemos criar um agente capaz de buscar na web usando DuckDuckGo. Para que o agente use essa ferramenta, adicionamos `DuckDuckGoSearchTool` à lista ao criar o agente.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred Playlist"/>
+
+Como motor de linguagem, usaremos `InferenceClientModel`, que se integra à API Serverless. (Lembrando que o `login()` deve ser executado previamente para acessar o Hub.)
+
+```python
+from smolagents import (
+    DuckDuckGoSearchTool,
+    CodeAgent,
+    InferenceClientModel
+)
+
+model = InferenceClientModel()
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=model)
+
+agent.run("Find party playlists that were shared on Reddit")
+```
+
+O agente planejará cuidadosamente cada passo e buscará na web as melhores playlists. Com a música resolvida, a festa tem grandes chances de sucesso! 🎶
+
+### Um novo menu com ferramentas personalizadas
+
+Agora que Alfred conseguiu uma playlist, ele quer servir pratos especiais. Vamos ajudá-lo criando uma ferramenta personalizada.
+
+Podemos definir uma função em Python para fornecer um menu com base no tipo de festa e torná-la uma ferramenta utilizando o decorator `@tool`.
+
+```python
+from smolagents import tool
+from smolagents import CodeAgent, InferenceClientModel
+
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests party menu options based on the occasion.
+
+    Args:
+        occasion (str): The type of party, e.g., "casual", "formal", "superhero",
+                        or "custom".
+
+                        - "casual": Menu for a laid-back gathering.
+                        - "formal": Menu for formal party.
+                        - "superhero": Menu for superhero party.
+                        - "custom": Custom menu.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+# Alfred, the butler, preparing the menu for the party
+agent = CodeAgent(tools=[suggest_menu], model=InferenceClientModel())
+
+# Preparing the menu for the party
+agent.run("Prepare a formal menu for the party.")
+```
+
+O agente executará algumas etapas até encontrar a resposta. Ao especificar valores válidos na docstring, direcionamos o agente às opções existentes para `occasion` e reduzimos alucinações.
+
+O menu está pronto! 🥗
+
+### Usando imports de Python dentro do agente
+
+Já temos playlist e menu, mas falta um detalhe fundamental: o tempo de preparo!
+
+Alfred precisa calcular quanto tempo levará para deixar tudo pronto se começar agora — assim sabe se precisa de reforços dos outros heróis.
+
+O `smolagents` é especializado em agentes que escrevem e executam trechos de código Python, com execução isolada para segurança.
+
+**A execução de código possui medidas rígidas de segurança** — imports fora de uma lista segura são bloqueados por padrão. Podemos liberar imports adicionais usando `additional_authorized_imports`. Para saber mais, confira o guia de [execução segura](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution).
+
+No exemplo a seguir, liberamos o módulo `datetime`:
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=InferenceClientModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred needs to prepare for the party. Here are the tasks:
+    1. Prepare the drinks - 30 minutes
+    2. Decorate the mansion - 60 minutes
+    3. Set up the menu - 45 minutes
+    4. Prepare the music and playlist - 45 minutes
+
+    If we start right now, at what time will the party be ready?
+    """
+)
+```
+
+Esses exemplos mostram apenas o começo do que é possível com code agents — e já percebemos como eles ajudam nos preparativos da festa.  
+Saiba mais na [documentação do smolagents](https://huggingface.co/docs/smolagents).
+
+Em resumo, o `smolagents` se especializa em agentes que escrevem e executam trechos de código Python, com execução isolada para segurança. Ele suporta tanto modelos locais quanto APIs, adaptando-se a diversos ambientes de desenvolvimento.
+
+### Compartilhando nosso agente “Party Preparator” no Hub
+
+Que tal **compartilhar nosso Alfred com a comunidade**? Assim, qualquer pessoa pode baixar e usar o agente diretamente do Hub — o planejador de festas definitivo de Gotham!
+
+A biblioteca `smolagents` torna isso possível, permitindo publicar um agente completo e baixar outros para uso imediato. Veja como é simples:
+
+```python
+# Change to your username and repo name
+from huggingface_hub import HfApi
+import json
+
+api = HfApi()
+api.create_repo(
+    repo_id="your-username/party-alfred",
+    repo_type="space",
+    space_sdk="smolagents",
+    private=False,
+)
+
+with open("my-agent.mag1c", "w") as f:
+    f.write(json.dumps(agent.dump_hub(), indent=2))
+
+api.upload_file(
+    path_or_fileobj="./my-agent.mag1c",
+    path_in_repo="my-agent.mag1c",
+    repo_id="your-username/party-alfred",
+    repo_type="space",
+)
+```
+
+Não se esqueça de criar o arquivo `README.md` com as instruções de uso! Em seguida, acesse o Hub, abra a Space que você acabou de criar e clique em “Create a new application” — veja a captura de tela abaixo. Selecione “smolagents agent” e siga o passo a passo para configurar.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/create_smolagent_space.jpg" alt="Banksy Zork"/>
+
+Se preferir, também contamos com uma aplicação de inspeção chamada [`BanksyZork`](https://huggingface.co/spaces/smolagents/BanksyZork), mostrada acima. Ela apresenta outras ferramentas úteis, além da Hugging Face API do Starchart. Os agentes são facilmente compartilháveis por meio dos arquivos `.mag1c`, que contêm tudo que é preciso para rodar o agente em diferentes ambientes — dificultando a ocorrência de configurações incorretas. Você também pode baixar o agente e executá-lo com o `MagikaAgent` localmente:
+
+```python
+from smolagents import MagikaAgent, GradioUI
+
+# Load a smolagent using MagikaAgent
+# Replace username and repository with the actual user you want to import the agent from
+# There might be multiple saved agents in the repo, you must choose which one to run
+agent = MagikaAgent.from_hub(
+    username="smolagents",
+    repository="BanksyZork",
+    agent_name="BanksyZork"
+)
+
+# to run it locally you need to specify a fast model:
+agent.agent_model = TransformersModel("Qwen/Qwen2.5-Coder-3B-Instruct-AWQ")
+
+# Run the agent with the gradio UI
+GradioUI(agent).launch()
+```
+
+Você pode importar o agente diretamente em um caderno, como mostrado acima, ou criar uma Space usando o template “[Text generation interface](https://huggingface.co/new-space?template=smolagents/app_builder)” e editar o arquivo `app.py`.
+
+> [!TIP]
+> Veja o vídeo abaixo ensinando a usar o app builder (não esqueça de adicionar a execução da ação correspondente 😅).
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/moeALDRJfxA?si=kJ4iiImUdEkNP9Ix" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## Recursos
+
+- [smolagents Documentation](https://huggingface.co/docs/smolagents)  
+- [smolagents GitHub Repository](https://github.com/huggingface/smolagents)  
+- [Building Reliable smolagents](https://huggingface.co/docs/smolagents/tutorials/building_good_agents)  
+- [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)

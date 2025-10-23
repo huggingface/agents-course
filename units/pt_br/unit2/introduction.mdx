@@ -1,0 +1,40 @@
+# Introdução aos Frameworks Agênticos
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+Bem-vindo à segunda unidade, onde **vamos explorar diferentes frameworks agênticos** que ajudam a construir aplicações poderosas com agentes.
+
+Estudaremos:
+
+- Na Unidade 2.1: [smolagents](https://huggingface.co/docs/smolagents/en/index)  
+- Na Unidade 2.2: [LlamaIndex](https://www.llamaindex.ai/)  
+- Na Unidade 2.3: [LangGraph](https://www.langchain.com/langgraph)
+
+Vamos nessa! 🕵
+
+## Quando usar um framework agêntico?
+
+Um framework agêntico **nem sempre é necessário** ao construir uma aplicação com LLMs. Ele oferece flexibilidade para resolver tarefas de modo eficiente, mas pode ser dispensável em alguns cenários.
+
+Às vezes, **fluxos pré-definidos são suficientes** para atender aos usuários, e não há necessidade de um framework completo. Se a abordagem for simples, como uma cadeia de prompts, código direto pode bastar — com a vantagem de o desenvolvedor manter **total controle do sistema, sem camadas extras**.
+
+Por outro lado, quando o fluxo fica mais complexo — por exemplo, ao permitir que o LLM chame funções ou coordenar múltiplos agentes — essas abstrações passam a ser úteis.
+
+Com base nisso, já identificamos alguns requisitos comuns:
+
+* Um *motor de LLM* que impulsiona o sistema.  
+* Uma *lista de ferramentas* acessível ao agente.  
+* Um *parser* para extrair chamadas de ferramentas da saída do LLM.  
+* Um *system prompt* alinhado ao parser.  
+* Um *sistema de memória*.  
+* *Logs de erro e mecanismos de retry* para lidar com falhas do LLM.
+
+Veremos como esses pontos são tratados em frameworks como `smolagents`, `LlamaIndex` e `LangGraph`.
+
+## Unidades sobre Frameworks Agênticos
+
+| Framework  | Descrição | Autor da Unidade |
+|------------|-----------|------------------|
+| [smolagents](./smolagents/introduction) | Framework de agentes desenvolvido pela Hugging Face. | Sergio Paniego — [HF](https://huggingface.co/sergiopaniego) — [X](https://x.com/sergiopaniego) — [LinkedIn](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [LlamaIndex](./llama-index/introduction) | Ferramentas de ponta a ponta para levar agentes contextuais à produção. | David Berenstein — [HF](https://huggingface.co/davidberenstein1957) — [X](https://x.com/davidberenstei) — [LinkedIn](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | Framework para orquestração com estado entre agentes. | Joffrey Thomas — [HF](https://huggingface.co/Jofthomas) — [X](https://x.com/Jthmas404) — [LinkedIn](https://www.linkedin.com/in/joffrey-thomas) |
