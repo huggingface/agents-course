@@ -1,0 +1,140 @@
+# Criando uma ferramenta RAG para o livro de convidados
+
+Alfred, nosso agente de confiança, está preparando a gala mais sofisticada do século. Para garantir seu sucesso, ele precisa acessar rapidamente informações atualizadas sobre cada convidado. Vamos ajudá-lo montando uma ferramenta de Retrieval-Augmented Generation (RAG) com base em nosso dataset personalizado.
+
+## Por que usar RAG em uma festa?
+
+Imagine Alfred circulando entre os convidados, lembrando detalhes específicos instantaneamente. Um LLM puro pode não conseguir, porque:
+
+1. A lista de convidados é específica e não faz parte do treinamento do modelo.  
+2. Informações podem mudar com frequência.  
+3. Alfred precisa de detalhes precisos, como e-mails.
+
+Ao combinar um sistema de busca com um LLM, RAG permite respostas atualizadas sob demanda.
+
+> [!TIP]
+> Você pode usar qualquer framework estudado no curso. Escolha a aba de código correspondente.
+
+## Estrutura do projeto
+
+Usaremos uma Space do Hugging Face organizada em módulos:
+
+- `tools.py` – ferramentas auxiliares.  
+- `retriever.py` – funções de busca sobre a base de conhecimento.  
+- `app.py` – integração final (construída na última parte da unidade).  
+
+Há uma Space pronta em [agents-course/Unit_3_Agentic_RAG](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG). Sinta-se livre para clonar.
+
+Você também pode testar o agente aqui:
+
+<iframe src="https://agents-course-unit-3-agentic-rag.hf.space" frameborder="0" width="850" height="450"></iframe>
+
+## Dataset
+
+O conjunto [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) contém:
+
+- `name`: nome completo.  
+- `relation`: relação com o anfitrião.  
+- `description`: biografia/detalhes interessantes.  
+- `email`: contato para convites ou follow-up.
+
+<iframe src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train" frameborder="0" width="100%" height="560"></iframe>
+
+> [!TIP]
+> Em um cenário real você pode incluir preferências alimentares, tópicos sensíveis, interesses etc.
+
+## Construindo a ferramenta
+
+Vamos criar uma ferramenta que Alfred possa usar para consultar os convidados durante o evento.
+
+### Passo 1 – carregar e preparar os dados
+
+```python
+import datasets
+from langchain_core.documents import Document
+
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+```
+
+### Passo 2 – criar o retriever
+
+```python
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+
+class GuestInfoRetrieverTool(Tool):
+    name = "guest_info_retriever"
+    description = "Recupera informações detalhadas sobre os convidados da gala."
+    inputs = {"query": {"type": "string", "description": "Nome ou relação do convidado."}}
+    output_type = "string"
+
+    def __init__(self, docs):
+        self.retriever = BM25Retriever.from_documents(docs)
+
+    def forward(self, query: str):
+        results = self.retriever.get_relevant_documents(query)
+        if results:
+            return "\n\n".join(doc.page_content for doc in results[:3])
+        return "Nenhuma informação correspondente encontrada."
+
+guest_info_tool = GuestInfoRetrieverTool(docs)
+```
+
+### Passo 3 – integrar com Alfred
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+model = InferenceClientModel()
+alfred = CodeAgent(tools=[guest_info_tool], model=model)
+
+response = alfred.run("Tell me about 'Lady Ada Lovelace'.")
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+Saída esperada:
+
+```
+🎩 Resposta do Alfred:
+Lady Ada Lovelace é uma matemática renomada...
+```
+
+## Interação típica
+
+**Você:** “Alfred, quem está conversando com o embaixador?”  
+**Alfred:** “Dr. Nikola Tesla, antigo amigo da universidade. Recentemente patenteou um sistema de transmissão de energia sem fio. Ele adora pombos — ótimo assunto para quebrar o gelo.”
+
+```json
+{
+  "name": "Dr. Nikola Tesla",
+  "relation": "old friend from university days",
+  "description": "...",
+  "email": "nikola.tesla@gmail.com"
+}
+```
+
+## Próximos passos
+
+Agora que Alfred consegue recuperar dados, você pode:
+
+1. Usar retrievers baseados em embeddings (ex.: [sentence-transformers](https://www.sbert.net/)).  
+2. Implementar memória de conversação.  
+3. Combinar com busca na web para informações recentes.  
+4. Integrar múltiplos índices.
+
+> [!TIP]
+> Experimente estender a ferramenta para sugerir tópicos de conversa. Quando terminar, implemente-a em `retriever.py`.
