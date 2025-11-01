@@ -38,6 +38,10 @@
     title: Unit 1 Final Quiz
   - local: unit1/conclusion
     title: Conclusion
+- title: Unit 4. Final Project - Create, Test, and Certify Your Agent
+  sections:
+  - local: unit4/introduction
+    title: Introduction to the Final Unit
 - title: Bonus Unit 1. Fine-tuning an LLM for Function-calling
   sections:
   - local: bonus-unit1/introduction
