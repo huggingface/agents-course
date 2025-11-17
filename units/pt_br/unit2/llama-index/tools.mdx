@@ -1,0 +1,141 @@
+# Usando ferramentas no LlamaIndex
+
+**Definir um conjunto claro de ferramentas é crucial para o desempenho.** Como vimos na [Unidade 1](../../unit1/tools), interfaces bem descritas facilitam o uso pelos LLMs.  
+Assim como APIs ajudam engenheiros humanos, uma ferramenta bem documentada permite que o modelo aproveite melhor suas funções.
+
+Existem **quatro tipos principais de ferramentas no LlamaIndex**:
+
+![Tools](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1. `FunctionTool`: transforma qualquer função Python em ferramenta para o agente (detecta assinatura automaticamente).  
+2. `QueryEngineTool`: permite que agentes utilizem query engines; como agentes se apoiam em query engines, também podem consumir outros agentes como ferramentas.  
+3. `Toolspecs`: coleções de ferramentas criadas pela comunidade (por exemplo, integrações com Gmail).  
+4. `Utility Tools`: utilitários especiais que ajudam a lidar com grandes volumes de dados retornados por outras ferramentas.
+
+Vamos explorar cada uma em detalhes.
+
+## Creating a FunctionTool
+
+> [!TIP]
+> You can follow the code in <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">this notebook</a> that you can run using Google Colab.
+
+`FunctionTool` encapsula uma função Python e a disponibiliza ao agente.  
+Ele aceita funções síncronas ou assíncronas, além de parâmetros opcionais `name` e `description`.  
+Nome e descrição são fundamentais: orientam o agente sobre quando e como usar a ferramenta.
+
+Exemplo:
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Useful for getting the weather for a given location."""
+    print(f"Getting weather for {location}")
+    return f"The weather in {location} is sunny"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Useful for getting the weather for a given location.",
+)
+tool.call("New York")
+```
+
+> [!TIP]
+> Em cenários de function calling, o nome e a descrição influenciam diretamente qual ferramenta será escolhida e como os argumentos serão gerados. Saiba mais no <a href="https://docs.llamaindex.ai/en/stable/examples/workflow/function_calling_agent/">Function Calling Guide</a>.
+
+## Creating a QueryEngineTool
+
+O `QueryEngine` criado na unidade anterior pode virar ferramenta via `QueryEngineTool`. Veja:
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## Creating Toolspecs
+
+`ToolSpecs` são conjuntos de ferramentas que se complementam — como um kit profissional.  
+Um `ToolSpec` para contabilidade, por exemplo, pode combinar planilhas, e-mail e cálculos para lidar com tarefas financeiras.
+
+<details>
+<summary>Install the Google Toolspec</summary>
+As introduced in the <a href="./llama-hub">section on the LlamaHub</a>, we can install the Google toolspec with the following command:
+
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+Agora podemos carregar o ToolSpec e convertê-lo em uma lista de ferramentas:
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+```
+
+Para inspecionar cada ferramenta, examine o `metadata`:
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+### Model Context Protocol (MCP) in LlamaIndex
+
+O LlamaIndex também suporta ferramentas MCP por meio de um [ToolSpec no LlamaHub](https://llamahub.ai/l/tools/llama-index-tools-mcp?from=).  
+Basta executar um servidor MCP e utilizá-lo conforme o exemplo abaixo.
+
+Para se aprofundar em MCP, confira nosso [curso gratuito](https://huggingface.co/learn/mcp-course/).
+
+<details>
+<summary>Install the MCP Toolspec</summary>
+As introduced in the <a href="./llama-hub">section on the LlamaHub</a>, we can install the MCP toolspec with the following command:
+
+```python
+pip install llama-index-tools-mcp
+```
+</details>
+
+```python
+from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
+
+# We consider there is a mcp server running on 127.0.0.1:8000, or you can use the mcp client to connect to your own mcp server.
+mcp_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+mcp_tool = McpToolSpec(client=mcp_client)
+
+# get the agent
+agent = await get_agent(mcp_tool)
+
+# create the agent context
+agent_context = Context(agent)
+```
+
+## Utility Tools
+
+Muitas vezes, consultar uma API retorna **dados em excesso** — irrelevantes, longos demais ou caros em termos de tokens.  
+Duas ferramentas ajudam a lidar com isso:
+
+1. `OnDemandToolLoader`: transforma qualquer loader (`BaseReader`) em ferramenta. Durante a execução, carrega os dados, indexa (ex.: vetor store) e consulta “sob demanda” — tudo em uma única chamada.  
+2. `LoadAndSearchToolSpec`: recebe uma ferramenta existente e, ao chamar `to_tool_list`, devolve duas ferramentas: uma de carregamento (que chama a original e indexa o resultado) e outra de busca (que consulta o índice gerado).
+
+> [!TIP]
+> ToolSpecs e Utility Tools estão disponíveis no <a href="https://llamahub.ai/">LlamaHub</a>.
+
+Agora que entendemos agentes e ferramentas no LlamaIndex, vamos descobrir **como criar workflows configuráveis e fáceis de gerenciar!**

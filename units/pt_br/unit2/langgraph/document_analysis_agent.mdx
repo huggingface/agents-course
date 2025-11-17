@@ -1,0 +1,264 @@
+# Grafo de análise de documentos
+
+À disposição: Alfred, mordomo de confiança do Sr. Wayne. Enquanto ele cuida de… atividades noturnas, garanto que toda a papelada, cronogramas de treino e planos alimentares estejam organizados e analisados.
+
+Antes de sair, ele deixou um bilhete com o treino da semana. Tomei a liberdade de preparar um **menu** para as refeições de amanhã.
+
+Para agilizar futuros pedidos, vamos criar um sistema de análise de documentos com LangGraph que possa:
+
+1. Processar imagens de documentos;  
+2. Extrair texto usando modelos multimodais (Vision Language Models);  
+3. Realizar cálculos quando necessário;  
+4. Analisar o conteúdo e gerar resumos;  
+5. Executar instruções específicas relacionadas aos documentos.
+
+## Workflow do mordomo
+
+O fluxo seguirá a estrutura abaixo:
+
+![Butler's Document Analysis Workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+> [!TIP]
+> You can follow the code in <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">this notebook</a> that you can run using Google Colab.
+
+## Preparando o ambiente
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+and imports :
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## Definindo o estado do agente
+
+Este estado é um pouco mais complexo.  
+`AnyMessage` é uma classe do LangChain que representa mensagens, e `add_messages` é um operador que acrescenta novas mensagens em vez de sobrescrever o histórico.
+
+Esse é um conceito novo: podemos adicionar operadores ao estado para controlar como os dados se combinam.
+
+```python
+class AgentState(TypedDict):
+    # The document provided
+    input_file: Optional[str]  # Contains file path (PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## Preparando as ferramentas
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Extract text from an image file using a multimodal model.
+    
+    Master Wayne often leaves notes with his training regimen or meal plans.
+    This allows me to properly analyze the contents.
+    """
+    all_text = ""
+    try:
+        # Read image and encode as base64
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Prepare the prompt including the base64 image data
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all the text from this image. "
+                            "Return only the extracted text, no explanations."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # Call the vision-capable model
+        response = vision_llm.invoke(message)
+
+        # Append extracted text
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # A butler should handle errors gracefully
+        error_msg = f"Error extracting text: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Divide a and b - for Master Wayne's occasional calculations."""
+    return a / b
+
+# Equip the butler with tools
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## Os nós
+
+```python
+def assistant(state: AgentState):
+    # System message
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Extract text from an image file using a multimodal model.
+
+    Args:
+        img_path: A local image file path (strings).
+
+    Returns:
+        A single string containing the concatenated text extracted from each image.
+divide(a: int, b: int) -> float:
+    Divide a and b
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"You are a helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## Padrão ReAct: como assisto o Sr. Wayne
+
+Este agente segue o padrão ReAct (Reason-Act-Observe):
+
+1. **Reason** — raciocina sobre documentos e pedidos.  
+2. **Act** — usa as ferramentas adequadas.  
+3. **Observe** — verifica os resultados.  
+4. **Repeat** — repete até atender à solicitação.
+
+É uma implementação simples de agente no LangGraph.
+
+```python
+# The graph
+builder = StateGraph(AgentState)
+
+# Define nodes: these do the work
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Define edges: these determine how the control flow moves
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # If the latest message requires a tool, route to tools
+    # Otherwise, provide a direct response
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# Show the butler's thought process
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+Definimos um nó `tools` com a lista de ferramentas. O nó `assistant` é o modelo com as ferramentas vinculadas.
+
+Adicionamos uma aresta condicional `tools_condition`, que decide entre `END` ou `tools` conforme o `assistant` chame (ou não) uma ferramenta.
+
+Em seguida, conectamos `tools` de volta ao `assistant`, formando um loop:
+
+- Após executar, `tools_condition` verifica se houve chamada de ferramenta.  
+- Caso sim, direciona para `tools`.  
+- O nó `tools` retorna ao `assistant`.  
+- O ciclo continua enquanto o modelo decidir usar ferramentas.  
+- Se a resposta não for uma chamada de ferramenta, o fluxo segue para `END`.
+
+![ReAct Pattern](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## O mordomo em ação
+
+### Exemplo 1: cálculos simples
+
+Um exemplo rápido de agente usando ferramenta:
+
+```python
+messages = [HumanMessage(content="Divide 6790 by 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# Show the messages
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+A conversa ficaria:
+
+```
+Human: Divide 6790 by 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: The result of dividing 6790 by 5 is 1358.0.
+```
+
+### Exemplo 2: analisando o treino do Sr. Wayne
+
+Quando o Sr. Wayne deixa anotações de treino e refeição:
+
+```python
+messages = [HumanMessage(content="According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+Resultado:
+
+```
+Human: According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [Extracted text with training schedule and menu details]
+
+Alfred: For the dinner menu, you should buy the following items:
+
+1. Grass-fed local sirloin steak
+2. Organic spinach
+3. Piquillo peppers
+4. Potatoes (for oven-baked golden herb potato)
+5. Fish oil (2 grams)
+
+Ensure the steak is grass-fed and the spinach and peppers are organic for the best quality meal.
+```
+
+## Principais pontos
+
+Para criar seu próprio mordomo de análise de documentos:
+
+1. **Define clear tools** for specific document-related tasks
+2. **Create a robust state tracker** to maintain context between tool calls
+3. **Consider error handling** for tool failures
+4. **Maintain contextual awareness** of previous interactions (ensured by the operator `add_messages`)
+
+Com esses princípios, você também pode oferecer um serviço de análise digno da Mansão Wayne.
+
+*Espero ter sido claro. Agora, se me permite, preciso passar a capa do Sr. Wayne antes das atividades noturnas.*
