@@ -1,0 +1,126 @@
+# Các thành phần cơ bản của LangGraph
+
+Để xây dựng ứng dụng với LangGraph, ta cần hiểu các thành phần cơ bản của nó. Hãy cùng khám phá những yếu tố nền tảng tạo nên một ứng dụng LangGraph.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Building_blocks.png" alt="Building Blocks" width="70%"/>
+
+Một ứng dụng trong LangGraph bắt đầu từ **entrypoint** (điểm vào), và tùy vào quá trình thực thi, luồng có thể đi đến function này hoặc function khác cho đến khi đạt đến END.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/application.png" alt="Application"/>
+
+## 1. State (Trạng thái)
+
+**State** là khái niệm trung tâm trong LangGraph, đại diện cho mọi thông tin luân chuyển qua ứng dụng của bạn.
+
+```python
+from typing_extensions import TypedDict
+
+class State(TypedDict):
+    graph_state: str
+```
+
+State được **User defined** (định nghĩa bởi người dùng), do đó các trường dữ liệu cần được thiết kế cẩn thận để chứa mọi thông tin cần thiết cho quá trình ra quyết định!
+
+> 💡 **Mẹo:** Hãy cân nhắc kỹ về những thông tin ứng dụng cần theo dõi giữa các bước.
+
+## 2. Nodes (Nút)
+
+**Nodes** là các function Python. Mỗi node:
+- Nhận state làm đầu vào
+- Thực hiện các thao tác
+- Trả về các cập nhật cho state
+
+```python
+def node_1(state):
+    print("---Node 1---")
+    return {"graph_state": state['graph_state'] +" I am"}
+
+def node_2(state):
+    print("---Node 2---")
+    return {"graph_state": state['graph_state'] +" happy!"}
+
+def node_3(state):
+    print("---Node 3---")
+    return {"graph_state": state['graph_state'] +" sad!"}
+```
+
+Ví dụ, các Node có thể chứa:
+- **LLM calls**: Tạo văn bản hoặc đưa ra quyết định
+- **Tool calls**: Tương tác với hệ thống bên ngoài
+- **Conditional logic**: Xác định các bước tiếp theo
+- **Human intervention**: Nhận input từ người dùng
+
+> 💡 **Thông tin:** Một số node cần thiết cho toàn bộ workflow như START và END đã có sẵn trong LangGraph.
+
+## 3. Edges (Cạnh)
+
+**Edges** kết nối các node và xác định các đường đi có thể trong đồ thị:
+
+```python
+import random
+from typing import Literal
+
+def decide_mood(state) -> Literal["node_2", "node_3"]:
+    
+    # Thông thường, ta sẽ sử dụng state để quyết định node tiếp theo
+    user_input = state['graph_state'] 
+    
+    # Ở đây, ta chia tỷ lệ 50/50 giữa node 2 và 3
+    if random.random() < 0.5:
+
+        # 50% trường hợp trả về Node 2
+        return "node_2"
+    
+    # 50% trường hợp trả về Node 3
+    return "node_3"
+```
+
+Edges có thể là:
+- **Direct**: Luôn đi từ node A đến node B
+- **Conditional**: Chọn node tiếp theo dựa trên state hiện tại
+
+## 4. StateGraph (Đồ thị trạng thái)
+
+**StateGraph** là container chứa toàn bộ workflow của Agent:
+
+```python
+from IPython.display import Image, display
+from langgraph.graph import StateGraph, START, END
+
+# Xây dựng đồ thị
+builder = StateGraph(State)
+builder.add_node("node_1", node_1)
+builder.add_node("node_2", node_2)
+builder.add_node("node_3", node_3)
+
+# Logic
+builder.add_edge(START, "node_1")
+builder.add_conditional_edges("node_1", decide_mood)
+builder.add_edge("node_2", END)
+builder.add_edge("node_3", END)
+
+# Tổng hợp
+graph = builder.compile()
+```
+
+Có thể visualize đồ thị này!
+```python
+# Hiển thị
+display(Image(graph.get_graph().draw_mermaid_png()))
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/basic_graph.jpeg" alt="Graph Visualization"/>
+
+Nhưng quan trọng nhất là cách invoke:
+```python
+graph.invoke({"graph_state" : "Hi, this is Lance."})
+```
+output :
+```
+---Node 1---
+---Node 3---
+{'graph_state': 'Hi, this is Lance. I am sad!'}
+```
+
+## Bước tiếp theo là gì?
+
+Trong phần tiếp theo, chúng ta sẽ áp dụng các khái niệm này vào thực tế bằng cách xây dựng đồ thị đầu tiên. Đồ thị này cho phép Alfred tiếp nhận email, phân loại chúng và soạn câu trả lời sơ bộ nếu chúng là email thật.
