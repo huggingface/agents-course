@@ -1,0 +1,164 @@
+### S1: Bir Ajan Nedir?
+Aşağıdakilerden hangisi bir Yapay Zeka Ajanını en iyi şekilde tanımlar?
+
+<Question  
+choices={[  
+{  
+text: "Belirli bir hedefe ulaşmak için akıl yürütebilen, plan yapabilen ve araçlar kullanarak çevresiyle etkileşime geçebilen bir yapay zeka modeli.",  
+explain: "Bu tanım bir Ajanın temel özelliklerini doğru şekilde yansıtır.",  
+correct: true  
+},  
+{  
+text: "Yalnızca statik metinleri işleyen ve çevresiyle dinamik şekilde etkileşime geçme ya da anlamlı eylemler gerçekleştirme mekanizmasına sahip olmayan bir sistem.",  
+explain: "Bir Ajan, eylem alabilmeli ve çevresiyle etkileşim kurabilmelidir.",  
+},  
+{  
+text: "Sadece soruları yanıtlayan ve herhangi bir eylem gerçekleştirme veya harici sistemlerle etkileşim kurma yeteneği olmayan bir sohbet botu.",  
+explain: "Bu tür bir sohbet botu eylem alma yetisine sahip değildir ve bu yüzden bir Ajan sayılmaz.",  
+},  
+{  
+text: "Yalnızca statik içerik sunan ve görev yürütme veya kullanıcılarla aktif etkileşim kurma yeteneğine sahip olmayan bir çevrimiçi bilgi deposu.",  
+explain: "Bir Ajan yalnızca bilgi sunmaz; çevresiyle aktif olarak etkileşime girer.",  
+}  
+]}  
+/>
+
+---
+
+### S2: Planlamanın Ajandaki Rolü Nedir?
+Bir Ajan neden bir eylem gerçekleştirmeden önce plan yapmalıdır?
+
+<Question  
+choices={[  
+{  
+text: "Gelecekteki eylemleri planlamak yerine esas olarak geçmiş etkileşimleri depolamak ya da hatırlamak için.",  
+explain: "Planlama, geçmişi saklamakla değil, gelecekteki eylemleri belirlemekle ilgilidir.",  
+},  
+{  
+text: "Kullanıcının isteğini yerine getirmek için eylem sırasını belirlemek ve uygun araçları seçmek için.",  
+explain: "Planlama, bir görevi tamamlamak için en iyi adımları ve araçları belirlemeye yardımcı olur.",  
+correct: true  
+},  
+{  
+text: "Tanımlı bir strateji veya amaç olmadan rastgele ve uyumsuz eylemler dizisi gerçekleştirmek için.",  
+explain: "Planlama, Ajanın eylemlerinin rastgele değil, bilinçli olmasını sağlar.",  
+},  
+{  
+text: "Metni yalnızca dönüştürmek veya çevirmek için; kasıtlı bir eylem dizisi oluşturma veya stratejik akıl yürütme sürecine girmeden.",  
+explain: "Planlama, sadece metni dönüştürmekle değil, eylemleri yapılandırmakla ilgilidir.",  
+}  
+]}  
+/>
+
+---
+
+### S3: Araçlar Ajanın Yeteneklerini Nasıl Artırır?
+Araçlar bir Ajan için neden gereklidir?
+
+<Question  
+choices={[  
+{  
+text: "Araçların gerçek bir işlevi yoktur ve Ajanın metin üretiminin ötesinde eylemler gerçekleştirme yeteneğine katkı sağlamaz.",  
+explain: "Aksine, araçlar Ajanın metin üretimi dışında eylemler gerçekleştirmesini sağlar.",  
+},  
+{  
+text: "Araçlar yalnızca bellek depolamak için tasarlanmıştır; görevleri yürütme veya etkileşimli performansı artırma yeteneğinden yoksundur.",  
+explain: "Araçlar esas olarak eylem gerçekleştirmek için kullanılır, yalnızca veri depolamak için değil.",  
+},  
+{  
+text: "Araçlar, Ajanı yalnızca metin üretimiyle sınırlayarak daha geniş etkileşimli eylemlere katılımını engeller.",  
+explain: "Tam tersine, araçlar Ajanın metin temelli yanıtların ötesine geçmesini sağlar.",  
+},  
+{  
+text: "Araçlar, metin üretimi yapan bir modelin doğal olarak yapamayacağı kahve yapmak ya da görsel üretmek gibi eylemleri gerçekleştirme yeteneği kazandırır.",  
+explain: "Araçlar, Ajanın gerçek dünyayla etkileşime geçmesini ve görevleri tamamlamasını sağlar.",  
+correct: true  
+}  
+]}  
+/>
+
+---
+
+### S4: Eylemler ile Araçlar Arasındaki Fark Nedir?
+Eylemler ve Araçlar arasındaki temel fark nedir?
+
+<Question  
+choices={[  
+{  
+text: "Eylemler, Ajanın gerçekleştirdiği adımlardır; Araçlar ise bu eylemleri gerçekleştirmek için kullanabileceği harici kaynaklardır.",  
+explain: "Eylemler daha yüksek seviyeli hedeflerken, Araçlar bu hedefler için çağrılabilen özel işlevlerdir.",  
+correct: true  
+},  
+{  
+text: "Eylemler ve Araçlar tamamen özdeştir ve birbirlerinin yerine kullanılabilir; aralarında net bir fark yoktur.",  
+explain: "Hayır, Eylemler bir hedef ya da görevdir; Araçlar ise bu hedefe ulaşmak için kullanılan araçlardır.",  
+},  
+{  
+text: "Araçlar çok çeşitli işlevler sunan geniş kapsamlı yardımcılar olarak kabul edilirken, Eylemlerin yalnızca fiziksel etkileşimlerle sınırlı olduğu sanılır.",  
+explain: "Bu doğru değildir. Eylemler hem dijital hem de fiziksel görevleri içerebilir.",  
+},  
+{  
+text: "Eylemlerin belirlenmesi ve yürütülmesi için mutlaka LLM'lerin kullanılması gerekirken, Araçlar bu tür bir bağımlılıktan tamamen bağımsız olarak çalışmak üzere tasarlanmıştır.",  
+explain: "LLM'ler Eylemleri belirlemeye yardımcı olur ama Eylemler yalnızca LLM'lere bağlı değildir.",  
+}  
+]}  
+/>
+
+---
+
+### S5: Büyük Dil Modelleri (LLM'ler) Ajanda Nasıl Rol Oynar?
+LLM'ler bir Ajanın işlevselliğine nasıl katkıda bulunur?
+
+<Question  
+choices={[  
+{  
+text: "LLM'ler yalnızca bilgi depolayan pasif veri havuzları olarak işlev görür; girdileri aktif olarak işleyemez ya da dinamik yanıtlar üretemez.",  
+explain: "LLM'ler metin girdilerini aktif olarak işler ve yanıt üretir; sadece bilgi depolamazlar.",  
+},  
+{  
+text: "LLM'ler, Ajanın 'beyni' gibi işleyerek metin girdilerini işler, talimatları anlar ve eylemleri planlar.",  
+explain: "LLM'ler, Ajanın yorum yapmasına, plan kurmasına ve sonraki adımlara karar vermesine olanak tanır.",  
+correct: true  
+},  
+{  
+text: "LLM'lerin yalnızca görsel işlemeye yönelik olduğu sanılmaktadır; ancak asıl işlevleri metin işlemek ve üretmektir.",  
+explain: "LLM'ler esas olarak metinle çalışır; bazı durumlarda çok modlu girişlerle de etkileşebilir.",  
+},  
+{  
+text: "LLM'lerin AI Ajanların çalışmasıyla hiçbir ilgisi yoktur; pratik uygulamalarda tamamen gereksizdir.",  
+explain: "LLM'ler modern AI Ajanların temel bileşenidir.",  
+}  
+]}  
+/>
+
+---
+
+### S6: Aşağıdakilerden Hangisi Bir AI Ajanı En İyi Şekilde Gösterir?
+Gerçek dünyadan hangi örnek bir AI Ajanın nasıl çalıştığını en iyi şekilde açıklar?
+
+<Question  
+choices={[  
+{  
+text: "Kullanıcılara sabit bilgiler sunan, etkileşimli ya da dinamik yanıt verme yeteneği olmayan statik bir SSS (Sıkça Sorulan Sorular) sayfası.",  
+explain: "Statik bir SSS sayfası kullanıcıyla dinamik şekilde etkileşime girmez ve eylem gerçekleştirmez.",  
+},  
+{  
+text: "Sabit kurallara dayalı aritmetik işlemler yapan, akıl yürütme ya da planlama yeteneği olmayan basit bir hesap makinesi.",  
+explain: "Hesap makinesi akıl yürütme ya da planlama yapmaz, bu nedenle bir Ajan değildir.",  
+},  
+{  
+text: "Konuşma komutlarını anlayabilen, bu komutlar üzerinde akıl yürütebilen ve hatırlatıcı ayarlamak ya da mesaj göndermek gibi görevleri yerine getirebilen Siri veya Alexa gibi bir sanal asistan.",  
+explain: "Bu örnek akıl yürütme, planlama ve çevreyle etkileşimi içerdiği için gerçek bir Ajandır.",  
+correct: true  
+},  
+{  
+text: "Önceden tanımlanmış yanıt komutlarına göre hareket eden ve akıl yürütme, planlama ya da araç kullanma yeteneği olmayan bir video oyunu karakteri (NPC).",  
+explain: "NPC akıl yürütebiliyor, plan yapabiliyor ve araç kullanabiliyorsa Ajan sayılır; aksi halde sayılmaz.",  
+}  
+]}  
+/>
+
+---
+
+Bu sınavı tamamladığın için tebrikler 🥳!  
+Bazı konuları gözden geçirmek istersen, bölümü tekrar inceleyerek bilginizi pekiştirebilirsin. Sonraki aşamada Ajanın "beynine", yani LLM'lere dalıyoruz!
