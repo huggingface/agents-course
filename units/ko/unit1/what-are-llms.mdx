@@ -10,7 +10,7 @@
 
 ## 대규모 언어 모델 (LLM)이란? [[what-is-a-large-language-model]]
 
-LLM은 **사람의 언어를 이해하고 생성**하는 능력에 뛰어난 AI 모델입니다. 모델은 방대한 양의 텍스트 데이터를 학습하여 언어의 패턴, 구조, 뉘앙스를 익히며, 일반적으로 수백만 개에서 수십억 개의 매개변수를 가집니다.
+LLM은 **사람의 언어를 이해하고 생성**하는 능력이 뛰어난 AI 모델입니다. 모델은 방대한 양의 텍스트 데이터를 학습하여 언어의 패턴, 구조, 뉘앙스를 익히며, 일반적으로 수백만 개에서 수십억 개의 매개변수를 가집니다.
 
 대부분의 현대 LLM은 **트랜스포머(Transformer) 아키텍처**를 기반으로 합니다. 트랜스포머는 Google이 2018년에 발표한 BERT 이후로 크게 주목받고 있는 "어텐션(Attention)" 알고리즘을 사용한 딥러닝 아키텍처입니다.
 
@@ -92,7 +92,7 @@ LLM은 다양한 형태가 있지만, 일반적으로 LLM은 수십억 개의 �
       <td><strong>GPT4</strong></td>
       <td>OpenAI</td>
       <td><code>&lt;|endoftext|&gt;</code></td>
-      <td>메세지 텍스트의 끝</td>
+      <td>메시지 텍스트의 끝</td>
     </tr>
     <tr>
       <td><strong>Llama 3</strong></td>
@@ -104,13 +104,13 @@ LLM은 다양한 형태가 있지만, 일반적으로 LLM은 수십억 개의 �
       <td><strong>Deepseek-R1</strong></td>
       <td>DeepSeek</td>
       <td><code>&lt;|end_of_sentence|&gt;</code></td>
-      <td>메세지 텍스트의 끝</td>
+      <td>메시지 텍스트의 끝</td>
     </tr>
     <tr>
       <td><strong>SmolLM2</strong></td>
       <td>Hugging Face</td>
       <td><code>&lt;|im_end|&gt;</code></td>
-      <td>지시 / 메세지의 끝</td>
+      <td>지시 / 메시지의 끝</td>
     </tr>
     <tr>
       <td><strong>Gemma</strong></td>
@@ -126,7 +126,7 @@ LLM은 다양한 형태가 있지만, 일반적으로 LLM은 수십억 개의 �
 
 ## 다음 토큰 예측 [[understanding-next-token-prediction]]
 
-LLM은 **자기 회귀(autoregressive) ** 방식으로 작동합니다. 즉, **이전 출력이 다음 입력**이 되는 방식으로 동작하며, 이 과정이 반복됩니다. 모델이 다음 토큰을 EOS 토큰으로 예측하면, 텍스트 생성을 중단합니다.
+LLM은 **자기 회귀(autoregressive)** 방식으로 작동합니다. 즉, **이전 출력이 다음 입력**이 되는 방식으로 동작하며, 이 과정이 반복됩니다. 모델이 다음 토큰을 EOS 토큰으로 예측하면, 텍스트 생성을 중단합니다.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="Visual Gif of autoregressive decoding" width="60%">
 
@@ -180,13 +180,13 @@ LLM을 사용해 본 경험이 있으시다면, *컨텍스트 길이(context len
 
 LLM의 역할은 입력된 모든 토큰을 기반으로 다음 토큰을 예측하고, 어떤 토큰이 "중요한"지를 결정하는 것입니다. 따라서 입력하는 문장의 구성 방식이 매우 중요합니다.
 
-LLM에 제공하는 입력 시퀀스를 _프롬프트(prompt)_ 라고 합니다.**프롬프트를 신중하게 설계하면 원하는 출력**을 얻기 쉬워집니다.
+LLM에 제공하는 입력 시퀀스를 _프롬프트(prompt)_라고 합니다. **프롬프트를 신중하게 설계하면 원하는 출력**을 얻기 쉬워집니다.
 
 ## LLM은 어떻게 학습될까? [[how-are-llms-trained]]
 
 LLM은 방대한 텍스트 데이터셋을 학습하며, 자기지도 학습(self-supervised learning) 또는 마스킹 언어 모델링(masked language modeling)을 이용해 문장 내 다음 단어를 예측하는 방식으로 훈련됩니다.
 
-이러한 비지도 학습(unsupervised learning) 을 통해 모델은 언어의 구조와 **텍스트의 패턴**을 학습하여, 새로운 데이터에도 일반화(generalization) 할 수 있게 됩니다.
+이러한 비지도 학습(unsupervised learning)을 통해 모델은 언어의 구조와 **텍스트의 패턴**을 학습하여, 새로운 데이터에도 일반화(generalization)할 수 있게 됩니다.
 
 이 사전 학습(pre-training) 이후, LLM은 특정 작업을 수행하도록 지도 학습(supervised learning) 방식으로 미세 조정(fine-tuning)됩니다. 예를 들어, 일부 모델은 대화 구조나 도구 활용에 맞춰 훈련되며, 다른 모델들은 분류(classification)나 코드 생성(code generation)에 초점을 맞춰 학습됩니다.
 
@@ -194,7 +194,7 @@ LLM은 방대한 텍스트 데이터셋을 학습하며, 자기지도 학습(sel
 
 ## LLM을 어떻게 사용할 수 있을까? [[how-can-i-use-llms]]
 
-LLM을 사용하는 방법은 크게 두가지로 나뉩니다:
+LLM을 사용하는 방법은 크게 두 가지로 나뉩니다:
 
 1. **로컬에서 실행하기** (하드웨어 자원이 갖춰져 있는 경우)
 
@@ -206,9 +206,9 @@ LLM을 사용하는 방법은 크게 두가지로 나뉩니다:
 
 LLM은 AI 에이전트의 핵심 구성 요소로, 자연어를 이해하고 생성하는 역할을 합니다.
 
-LLM은 사용자 명령을 해석하고, 대화의 문맥을 유지하며, 계획을 세우고, 어떤 도구를 사용할 지 결정할 수 있습니다.
+LLM은 사용자 명령을 해석하고, 대화의 문맥을 유지하며, 계획을 세우고, 어떤 도구를 사용할지 결정할 수 있습니다.
 
-이 단계들에 대해 이번 단원에서 좀 더 자세히 살펴볼 예정이지만, 지금 알아야 할 가장 중요한 포인트는**LLM이 에이전트의 "두뇌"역할을 한다는 것**입니다!
+이 단계들에 대해 이번 단원에서 좀 더 자세히 살펴볼 예정이지만, 지금 알아야 할 가장 중요한 포인트는 **LLM이 에이전트의 "두뇌" 역할을 한다는 것**입니다!
 
 ---
  
@@ -218,8 +218,8 @@ LLM은 사용자 명령을 해석하고, 대화의 문맥을 유지하며, 계�
 
 이제 우리는 LLM이 어떻게 작동하는지에 대해 배웠으니, **LLM이 대화형 환경에서 어떻게 텍스트를 생성하는지** 살펴볼 차례입니다!
 
-<a href="https://huggingface.co/agents-course/notebooks/blob/main/dummy_agent_library.ipynb" target="_blank">이 노트북</a>을 실행하려면, **yHugging Face 토큰** 을 이곳에서  <a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a> 발급하세요!
+<a href="https://huggingface.co/agents-course/notebooks/blob/main/dummy_agent_library.ipynb" target="_blank">이 노트북</a>을 실행하려면, **Hugging Face 토큰** 을 이곳에서  <a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a> 발급하세요!
 
-Jupyter Notebook 실행 방법에 대한 자세한 내용은 <a href="https://huggingface.co/docs/hub/notebooks">Hugging Face Hub의 Jupyter Notebooks문서 </a>를 참고해주세요.
+Jupyter Notebook 실행 방법에 대한 자세한 내용은 <a href="https://huggingface.co/docs/hub/notebooks">Hugging Face Hub의 Jupyter Notebooks 문서</a>를 참고해주세요.
 
-또한, <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank"> Meta Llama 모델</a>에 대한 엑세스를 요청해야 합니다.
+또한, <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank"> Meta Llama 모델</a>에 대한 액세스를 요청해야 합니다.

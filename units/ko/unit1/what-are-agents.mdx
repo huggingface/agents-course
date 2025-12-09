@@ -2,7 +2,7 @@
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Unit 1 planning"/>
 
-이 섹션이 끝날 때 쯤이면, 여러분들은 에이전트의 개념과 AI에서의 응용 사례들을 이해하실 수 있을 것입니다.
+이 섹션이 끝날 때쯤이면, 여러분들은 에이전트의 개념과 AI에서의 응용 사례들을 이해하실 수 있을 것입니다.
 
 에이전트가 무엇인지, 한 예시를 들어 설명하겠습니다.
 
@@ -12,7 +12,7 @@
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="This is Alfred"/>
 
-알프레드는 **명령을 받습니다.** : "알프레드, 커피 한잔 부탁해요."
+알프레드는 **명령을 받습니다.** : "알프레드, 커피 한 잔 부탁해요."
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="I would like a coffee"/>
 
@@ -74,7 +74,7 @@
 
 LLMs는 뛰어난 모델이지만, **텍스트**만 생성할 수 있습니다. 
 
-그런데, 사용자가 HuggingChat이나 ChatGPT같은 유명 채팅 애플리케이션에서 이미지 생성을 요청하면, 요청대로 이미지를 생성해 줍니다! 이것이 어떻게 가능 할까요?
+그런데, 사용자가 HuggingChat이나 ChatGPT같은 유명 채팅 애플리케이션에서 이미지 생성을 요청하면, 요청대로 이미지를 생성해 줍니다! 이것이 어떻게 가능할까요?
 
 그 이유는 HuggingChat, ChatGPT의 개발자들이 **도구(Tools) 기능**을 추가했기 때문입니다. 이 도구를 사용하면 LLM이 이미지를 생성할 수 있습니다.
 
@@ -101,7 +101,7 @@ def send_message_to(recipient, message):
 LLM은 이 도구를 실행할 코드를 생성하여 요청된 작업을 완수할 수 있습니다.
 
 ```python
-send_message_to("Manager", "오늘 미팅을 연기할 수 있을 까요?")
+send_message_to("Manager", "오늘 미팅을 연기할 수 있을까요?")
 ```
 
 **도구 설계**는 에이전트의 성능에 큰 영향을 미칩니다. 일부 작업은 매우 구체적인 도구를 필요로 할 수 있으며, 다른 작업은 "웹 검색"과 같은 일반적인 도구로 해결할 수 있습니다.
