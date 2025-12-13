@@ -1,0 +1,507 @@
+# သင်၏ Gala Agent ကို ဖန်တီးခြင်း (Creating Your Gala Agent)
+
+Alfred အတွက် လိုအပ်တဲ့ အစိတ်အပိုင်းတွေ အားလုံးကို တည်ဆောက်ပြီးပြီဆိုတော့၊ အခုအခါမှာ ကျွန်တော်တို့ရဲ့ ခမ်းနားကြီးကျယ်တဲ့ Gala ပွဲကို ကူညီစီစဉ်ပေးမယ့် Agent အပြည့်အစုံတစ်ခုအဖြစ် အားလုံးကို ပေါင်းစပ်ဖို့ အချိန်တန်ပါပြီ။
+
+ဒီအပိုင်းမှာ ဧည့်သည်အချက်အလက် ရှာဖွေခြင်း၊ ဝက်ဘ်ရှာဖွေခြင်း၊ ရာသီဥတု အချက်အလက်နှင့် Hub Stats Tool များကို စွမ်းအားမြင့် Agent တစ်ခုတည်းအဖြစ် ပေါင်းစပ်သွားပါမယ်။
+
+## Alfred ကို စုစည်းခြင်း- Agent အပြည့်အစုံ (Assembling Alfred: The Complete Agent)
+
+အရင်အပိုင်းတွေမှာ ဖန်တီးခဲ့တဲ့ Tool တွေအားလုံးကို အစကနေ ပြန်လည်ရေးသားမယ့်အစား၊ ကျွန်တော်တို့ သိမ်းဆည်းထားတဲ့ `tools.py` နဲ့ `retriever.py` ဖိုင်တွေကနေ လိုအပ်တဲ့ Module တွေကို Import လုပ်ပြီး အသုံးပြုသွားပါမယ်။
+
+> [!TIP]
+> အကယ်၍ သင်ဟာ Tool တွေကို မဖန်တီးရသေးဘူးဆိုရင်၊ [tools](tools) နဲ့ [retriever](invitees) အပိုင်းတွေကို ပြန်သွားပြီး Tool တွေကို အကောင်အထည်ဖော်ကာ ၎င်းတို့ကို `tools.py` နဲ့ `retriever.py` ဖိုင်တွေထဲမှာ ထည့်သွင်းထားဖို့ လိုအပ်ပါတယ်။
+
+အရင်အပိုင်းတွေကနေ လိုအပ်တဲ့ Library တွေနဲ့ Tool တွေကို Import လုပ်ရအောင်။
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+# Import necessary libraries
+import random
+from smolagents import CodeAgent, InferenceClientModel
+
+# Import our custom tools from their modules
+from tools import DuckDuckGoSearchTool, WeatherInfoTool, HubStatsTool
+from retriever import load_guest_dataset
+```
+
+အခု၊ ဒီ Tool တွေအားလုံးကို Agent တစ်ခုတည်းအဖြစ် ပေါင်းစပ်လိုက်ရအောင်။
+
+```python
+# Hugging Face မော်ဒယ်ကို စတင်သတ်မှတ်ခြင်း
+model = InferenceClientModel()
+
+# ဝက်ဘ်ရှာဖွေရေး Tool ကို စတင်သတ်မှတ်ခြင်း
+search_tool = DuckDuckGoSearchTool()
+
+# ရာသီဥတု Tool ကို စတင်သတ်မှတ်ခြင်း
+weather_info_tool = WeatherInfoTool()
+
+# Hub Stats Tool ကို စတင်သတ်မှတ်ခြင်း
+hub_stats_tool = HubStatsTool()
+
+# ဧည့်သည်ဒေတာအစုအဝေးကို တင်ပြီး ဧည့်သည်အချက်အလက် Tool ကို စတင်သတ်မှတ်ခြင်း
+guest_info_tool = load_guest_dataset()
+
+# Tool များအားလုံးဖြင့် Alfred ကို ဖန်တီးခြင်း
+alfred = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool], 
+    model=model,
+    add_base_tools=True,  # အခြေခံ Tool များ ထပ်ထည့်ခြင်း
+    planning_interval=3   # ၃ ဆင့်တိုင်းတွင် စီမံကိန်းရေးဆွဲခြင်းကို ဖွင့်ခြင်း
+)
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+# Import necessary libraries
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+from tools import search_tool, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+```
+
+အခု၊ ဒီ Tool တွေအားလုံးကို Agent တစ်ခုတည်းအဖြစ် ပေါင်းစပ်လိုက်ရအောင်။
+
+```python
+# Hugging Face မော်ဒယ်ကို စတင်သတ်မှတ်ခြင်း
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Tool များအားလုံးဖြင့် Alfred ကို ဖန်တီးခြင်း
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm,
+)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+from tools import DuckDuckGoSearchRun, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+```
+
+အခု၊ ဒီ Tool တွေအားလုံးကို Agent တစ်ခုတည်းအဖြစ် ပေါင်းစပ်လိုက်ရအောင်။
+
+```python
+# ဝက်ဘ်ရှာဖွေရေး Tool ကို စတင်သတ်မှတ်ခြင်း
+search_tool = DuckDuckGoSearchRun()
+
+# Tool များပါဝင်သော Chat Interface ကို ဖန်တီးခြင်း
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# AgentState နှင့် Agent Graph ကို ဖန်တီးခြင်း
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## The graph
+builder = StateGraph(AgentState)
+
+# Node များကို သတ်မှတ်ခြင်း- ၎င်းတို့သည် အလုပ်များကို လုပ်ဆောင်သည်
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Edge များကို သတ်မှတ်ခြင်း- ၎င်းတို့သည် ထိန်းချုပ်မှု စီးဆင်းမှုကို ဆုံးဖြတ်သည်
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # နောက်ဆုံး Message က Tool လိုအပ်ပါက Tools သို့ လမ်းကြောင်းပြောင်းပါ
+    # မဟုတ်ပါက တိုက်ရိုက် တုံ့ပြန်မှု ပေးပါ
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+```
+</hfoption>
+</hfoptions>
+
+သင်၏ Agent သည် အသုံးပြုရန် အသင့်ဖြစ်ပါပြီ!
+
+## Alfred ကို အသုံးပြုခြင်း- အစမှအဆုံး ဥပမာများ (Using Alfred: End-to-End Examples)
+
+Alfred မှာ လိုအပ်တဲ့ Tool တွေ အားလုံး တပ်ဆင်ပြီးပြီဆိုတော့၊ Gala ပွဲအတွင်းမှာ သူက ဘယ်လို အလုပ်အမျိုးမျိုးကို ကူညီပေးနိုင်မလဲဆိုတာ ကြည့်လိုက်ရအောင်။
+
+### ဥပမာ ၁: ဧည့်သည် အချက်အလက် ရှာဖွေခြင်း
+
+ဧည့်သည် အချက်အလက်နဲ့ ပတ်သက်ပြီး Alfred က ဘယ်လို ကူညီပေးနိုင်မလဲ ကြည့်ရအောင်။
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "Tell me about 'Lady Ada Lovelace'"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+ကျွန်တော် ရှာဖွေရရှိခဲ့တဲ့ အချက်အလက်တွေအရ၊ Lady Ada Lovelace ဟာ ဂုဏ်သရေရှိ သင်္ချာပညာရှင်တစ်ဦးဖြစ်ပြီး မိတ်ဆွေဟောင်းတစ်ဦးလည်း ဖြစ်ပါတယ်။ သူမဟာ သင်္ချာနဲ့ ကွန်ပျူတာ နယ်ပယ်မှာ ရှေ့ဆောင်လမ်းပြ လုပ်ဆောင်ခဲ့တဲ့အတွက် နာမည်ကျော်ကြားပါတယ်။ Charles Babbage ရဲ့ Analytical Engine အတွက် သူမရဲ့ လုပ်ဆောင်ချက်တွေကြောင့် ပထမဆုံး ကွန်ပျူတာ ပရိုဂရမ်မာအဖြစ်လည်း ချီးကျူးခံရပါတယ်။ သူမရဲ့ Email လိပ်စာကတော့ ada.lovelace@example.com ဖြစ်ပါတယ်။
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "Tell me about Lady Ada Lovelace. What's her background?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response.response.blocks[0].text)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace ဟာ အင်္ဂလိပ် သင်္ချာပညာရှင်နဲ့ စာရေးဆရာတစ်ဦးဖြစ်ပြီး Charles Babbage ရဲ့ Analytical Engine အတွက် လုပ်ဆောင်ခဲ့တဲ့အတွက် အထူးလူသိများပါတယ်။ သူမဟာ စက်ကိရိယာကို ရိုးရှင်းတဲ့ တွက်ချက်မှုထက် ပိုမိုကျယ်ပြန့်တဲ့ အသုံးချမှုတွေအတွက် အသုံးပြုနိုင်တယ်ဆိုတာကို ပထမဆုံး အသိအမှတ်ပြုခဲ့သူ ဖြစ်ပါတယ်။
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "Tell me about 'Lady Ada Lovelace'"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Ada Lovelace ကို Augusta Ada King, Countess of Lovelace လို့လည်း သိကြပြီး အင်္ဂလိပ် သင်္ချာပညာရှင်နဲ့ စာရေးဆရာတစ်ဦး ဖြစ်ပါတယ်။ ၁၈၁၅ ခုနှစ် ဒီဇင်ဘာလ ၁၀ ရက်နေ့မှာ မွေးဖွားခဲ့ပြီး ၁၈၅၂ ခုနှစ် နိုဝင်ဘာလ ၂၇ ရက်နေ့မှာ ကွယ်လွန်ခဲ့ပါတယ်။ သူမဟာ စက်မှုဆိုင်ရာ ရည်ရွယ်ချက်အမျိုးမျိုးအတွက် အသုံးပြုနိုင်ဖို့ အဆိုပြုထားတဲ့ Charles Babbage ရဲ့ Analytical Engine အတွက် လုပ်ဆောင်ခဲ့တဲ့အတွက် နာမည်ကျော်ကြားပါတယ်။ Ada Lovelace ဟာ ၁၈၄၃ ခုနှစ်မှာ Analytical Engine အတွက် ပရိုဂရမ်တစ်ခုကို ဖန်တီးခဲ့တဲ့အတွက် ပထမဆုံး ကွန်ပျူတာ ပရိုဂရမ်မာတွေထဲက တစ်ဦးအဖြစ် ချီးကျူးခံရပါတယ်။ သူမဟာ အဲဒီစက်ကို ရိုးရှင်းတဲ့ တွက်ချက်မှုသက်သက်ထက် ပိုပြီး အသုံးပြုနိုင်တယ်ဆိုတာကို အဲဒီအချိန်က လူအနည်းငယ်သာ မြင်နိုင်တဲ့ ပုံစံမျိုးနဲ့ မြင်ခဲ့ပါတယ်။ ကွန်ပျူတာ သိပ္ပံနယ်ပယ်မှာ သူမရဲ့ ပံ့ပိုးမှုတွေဟာ အနာဂတ် ဖွံ့ဖြိုးတိုးတက်မှုတွေအတွက် အခြေခံအုတ်မြစ်ကို ချပေးခဲ့ပါတယ်။ အောက်တိုဘာလမှာ သတ်မှတ်ထားတဲ့ Ada Lovelace Day ဟာ Lovelace ရဲ့ ရှေ့ဆောင်လမ်းပြ လုပ်ဆောင်ချက်တွေကို စိတ်အားတက်ကြွမှုယူပြီး သိပ္ပံနဲ့ နည်းပညာနယ်ပယ်မှာ အမျိုးသမီးတွေရဲ့ ပံ့ပိုးမှုတွေကို ဂုဏ်ပြုတဲ့နေ့ ဖြစ်ပါတယ်။
+```
+
+</hfoption>
+</hfoptions>
+
+### ဥပမာ ၂: မီးရှူးမီးပန်းအတွက် ရာသီဥတု စစ်ဆေးခြင်း
+
+ရာသီဥတုနဲ့ ပတ်သက်ပြီး Alfred က ဘယ်လို ကူညီပေးနိုင်မလဲ ကြည့်ရအောင်။
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ် (ကျပန်းဖြစ်သောကြောင့် ကွဲပြားနိုင်သည်):
+```
+🎩 Alfred's Response:
+ကျွန်တော် ပါရီမြို့ရဲ့ ဒီည ရာသီဥတုကို စစ်ဆေးပြီးပါပြီ။ လက်ရှိမှာတော့ ကောင်းကင် ကြည်လင်နေပြီး အပူချိန် ၂၅°C ရှိပါတယ်။ ဒီအခြေအနေတွေဟာ ဒီည မီးရှူးမီးပန်းပွဲအတွက် အလွန်သင့်လျော်ပါတယ်။ ကောင်းကင် ကြည်လင်နေတာကြောင့် ခမ်းနားတဲ့ ရှိုးပွဲကို ကောင်းမွန်စွာ မြင်နိုင်မှာဖြစ်ပြီး၊ သက်သောင့်သက်သာရှိတဲ့ အပူချိန်က ဧည့်သည်တွေ အပြင်ပွဲကို အေးအေးဆေးဆေး ပျော်ရွှင်နိုင်စေမှာပါ။
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+ပါရီမြို့ရဲ့ ဒီည ရာသီဥတုက မိုးရွာနေပြီး အပူချိန် ၁၅°C ရှိပါတယ်။ မိုးရွာနေတာကြောင့် မီးရှူးမီးပန်းပွဲအတွက် သင့်လျော်မှာ မဟုတ်ပါဘူး။
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+ပါရီမြို့ရဲ့ ဒီည ရာသီဥတုက မိုးရွာနေပြီး အပူချိန် ၁၅°C ရှိပါတယ်။ ဒါကြောင့် သင့်ရဲ့ မီးရှူးမီးပန်းပွဲအတွက် သင့်လျော်မှာ မဟုတ်ပါဘူး။
+```
+</hfoption>
+</hfoptions>
+
+### ဥပမာ ၃: AI သုတေသီများကို အထင်ကြီးစေခြင်း
+
+AI သုတေသီများကို စကားပြောဆိုရာတွင် အထင်ကြီးစေဖို့ Alfred က ဘယ်လို ကူညီပေးနိုင်မလဲ ကြည့်ရအောင်။
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "One of our guests is from Qwen. What can you tell me about their most popular model?"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Qwen ရဲ့ လူကြိုက်အများဆုံး မော်ဒယ်ကတော့ Qwen/Qwen2.5-VL-7B-Instruct ဖြစ်ပြီး Downloads ပေါင်း ၃,၃၁၃,၃၄၅ ရှိပါတယ်။
+```
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "One of our guests is from Google. What can you tell me about their most popular model?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Hugging Face Hub မှာ Google ရဲ့ လူကြိုက်အများဆုံး မော်ဒယ်ကတော့ google/electra-base-discriminator ဖြစ်ပြီး Downloads ပေါင်း ၂၈,၅၄၆,၇၅၂ ရှိပါတယ်။
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "One of our guests is from Qwen. What can you tell me about their most popular model?"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Qwen မှ အများဆုံး Download လုပ်ထားသော မော်ဒယ်မှာ Qwen/Qwen2.5-VL-7B-Instruct ဖြစ်ပြီး Downloads ပေါင်း ၃,၃၁၃,၃၄၅ ရှိပါတယ်။
+```
+</hfoption>
+</hfoptions>
+
+### ဥပမာ ၄: Tool များစွာကို ပေါင်းစပ်အသုံးပြုခြင်း
+
+Dr. Nikola Tesla နဲ့ စကားပြောဖို့အတွက် Alfred က ဘယ်လို ကူညီပေးနိုင်မလဲ ကြည့်ရအောင်။
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "I need to speak with Dr. Nikola Tesla about recent advancements in wireless energy. Can you help me prepare for this conversation?"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Dr. Nikola Tesla နဲ့ စကားပြောဖို့အတွက် ပြင်ဆင်နိုင်အောင် ကျွန်တော် အချက်အလက်တွေ စုဆောင်းပေးထားပါတယ်။
+
+ဧည့်သည် အချက်အလက်:
+အမည်: Dr. Nikola Tesla
+ဆက်ဆံရေး: တက္ကသိုလ်တုန်းက မိတ်ဆွေဟောင်း
+ဖော်ပြချက်: Dr. Nikola Tesla ဟာ သင့်ရဲ့ တက္ကသိုလ်တုန်းက မိတ်ဆွေဟောင်းတစ်ဦးပါ။ သူဟာ မကြာသေးမီက Wireless Energy Transmission စနစ်အသစ်တစ်ခုကို မူပိုင်ခွင့် မှတ်ပုံတင်ထားပြီး၊ ဒီအကြောင်းကို သင့်နဲ့ ဆွေးနွေးရရင် ဝမ်းသာမှာပါ။ သူဟာ ခိုတွေကို စိတ်အားထက်သန်တယ်ဆိုတာကို သတိရပါ၊ ဒါက စကားစမြည်ပြောဖို့ ကောင်းမွန်တဲ့ အကြောင်းအရာ ဖြစ်နိုင်ပါတယ်။
+Email: nikola.tesla@gmail.com
+
+Wireless Energy နယ်ပယ်မှ မကြာသေးမီက တိုးတက်မှုများ:
+ကျွန်တော် ဝက်ဘ်ရှာဖွေမှုအရ၊ Wireless Energy Transmission မှာ မကြာသေးမီက ဖွံ့ဖြိုးတိုးတက်မှုများကတော့-
+၁။ သုတေသီတွေဟာ Focused Electromagnetic Waves တွေကို အသုံးပြုပြီး Long-range Wireless Power Transmission မှာ တိုးတက်မှုတွေ ရရှိခဲ့ပါတယ်။
+၂။ ကုမ္ပဏီများစွာဟာ Consumer Electronics တွေအတွက် Resonant Inductive Coupling နည်းပညာတွေကို တီထွင်နေကြပါတယ်။
+၃။ Physical Connection မပါဘဲ Electric Vehicle Charging အတွက် အသုံးချမှုအသစ်တွေ ရှိလာပါတယ်။
+
+စကားစမြည် စတင်ရန် အချက်များ:
+၁။ "ခင်ဗျားရဲ့ Wireless Energy Transmission မူပိုင်ခွင့်အသစ်အကြောင်းကို ကြားချင်ပါတယ်။ ကျွန်တော်တို့ တက္ကသိုလ်တုန်းက မူလ အယူအဆတွေနဲ့ ဘယ်လို ကွာခြားပါသလဲ?"
+၂။ "Consumer Electronics တွေအတွက် Resonant Inductive Coupling မှာ မကြာသေးမီက ဖွံ့ဖြိုးတိုးတက်မှုတွေကို ခင်ဗျား မြင်ဖူးပါသလား? သူတို့ရဲ့ ချဉ်းကပ်ပုံကို ဘယ်လိုထင်ပါသလဲ?"
+၃။ "ခင်ဗျားရဲ့ ခိုတွေ အခြေအနေ ဘယ်လိုရှိပါသလဲ? ခင်ဗျား ခိုတွေကို စိတ်ဝင်စားတာကို ကျွန်တော် မှတ်မိနေပါတယ်။"
+
+ဒီအချက်တွေက Dr. Tesla ရဲ့ စိတ်ဝင်စားမှုတွေနဲ့ သူ့နယ်ပယ်က မကြာသေးမီက တိုးတက်မှုတွေကို သင်သိကြောင်း ပြသရင်း စကားပြောဖို့အတွက် အကြောင်းအရာများစွာကို ပေးနိုင်ပါလိမ့်မယ်။
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "I need to speak with Dr. Nikola Tesla about recent advancements in wireless energy. Can you help me prepare for this conversation?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+Dr. Nikola Tesla နဲ့ စကားပြောဖို့အတွက် အသုံးဝင်မယ့် Wireless Energy နယ်ပယ်မှ မကြာသေးမီက တိုးတက်မှုများကတော့-
+
+၁။ **Wireless Power Transfer (WPT) ၏ တိုးတက်မှုများနှင့် စိန်ခေါ်မှုများ:** ဤဆောင်းပါးသည် Wireless Power Transfer (WPT) ၏ ရိုးရာ ဝါယာကြိုးသုံး နည်းလမ်းများမှသည် Solar Space Power Stations များအထိ ခေတ်မီ အသုံးချမှုများအထိ တိုးတက်ပြောင်းလဲလာပုံကို ဆွေးနွေးထားပါတယ်။ Microwave နည်းပညာအပေါ် အစောပိုင်း အာရုံစိုက်မှုနှင့် Electric Devices များ တိုးပွားလာမှုကြောင့် WPT အတွက် လက်ရှိ လိုအပ်ချက်ကို မီးမောင်းထိုးပြထားပါတယ်။
+
+၂။ **Body-Interfaced Electronics များအတွက် Wireless Energy Transfer နည်းပညာများ၏ မကြာသေးမီက တိုးတက်မှုများ:** ဤဆောင်းပါးသည် ဘက်ထရီ သို့မဟုတ် ဝါယာကြိုးများ မလိုအပ်ဘဲ ခန္ဓာကိုယ်နှင့် ချိတ်ဆက်ထားသော Electronics များကို ပါဝါပေးရန်အတွက် Wireless Energy Transfer (WET) ကို ဖြေရှင်းချက်အဖြစ် ရှာဖွေထားပါတယ်။ ဤ Context တွင် WET ၏ အားသာချက်များနှင့် ဖြစ်နိုင်ခြေရှိသော အသုံးချမှုများကို ဆွေးနွေးထားပါတယ်။
+
+၃။ **Wireless Power Transfer နှင့် Energy Harvesting: လက်ရှိ အခြေအနေနှင့် အနာဂတ် လမ်းကြောင်းများ:** ဤဆောင်းပါးသည် Energy Harvesting နှင့် Wireless Power Transfer အပါအဝင် Wireless Power Supply နည်းလမ်းများ၏ မကြာသေးမီက တိုးတက်မှုများကို ခြုံငုံသုံးသပ်ထားပါတယ်။ အလားအလာရှိသော အသုံးချမှုများစွာနှင့် နယ်ပယ်၏ အနာဂတ် လမ်းကြောင်းများကို ဆွေးနွေးထားပါတယ်။
+
+၄။ **Wireless Power Transfer: Applications, Challenges, Barriers, and the**
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages":"I need to speak with 'Dr. Nikola Tesla' about recent advancements in wireless energy. Can you help me prepare for this conversation?"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+မျှော်မှန်းထားသော ရလဒ်:
+
+```
+🎩 Alfred's Response:
+ပေးထားသော အချက်အလက်များအပေါ် အခြေခံ၍ Dr. Nikola Tesla နဲ့ Wireless Energy နယ်ပယ်မှ မကြာသေးမီက တိုးတက်မှုများအကြောင်း စကားပြောဖို့အတွက် ပြင်ဆင်ရန် အဓိက အချက်များကတော့-
+၁။ **Wireless Power Transmission (WPT):** WPT ဟာ ကြိုးများ မလိုအပ်ဘဲ စွမ်းအင်လွှဲပြောင်းမှုကို ဘယ်လို တော်လှန်ပြောင်းလဲစေသလဲ၊ Inductive နှင့် Resonant Coupling ကဲ့သို့သော ယန္တရားများကို ဘယ်လို အသုံးချသလဲဆိုတာကို ဆွေးနွေးပါ။
+၂။ **Wireless Charging ၏ တိုးတက်မှုများ:** စွမ်းဆောင်ရည် တိုးတက်မှုများ၊ ပိုမိုမြန်ဆန်သော အားသွင်းနှုန်းများနှင့် Qi/Qi2 Certified Wireless Charging Solutions များ ပေါ်ပေါက်လာခြင်းကို မီးမောင်းထိုးပြပါ။
+၃။ **5G-Advanced Innovations နှင့် NearLink Wireless Protocol:** ဤအရာများသည် Wireless Network များ၏ အမြန်နှုန်း၊ လုံခြုံရေးနှင့် စွမ်းဆောင်ရည်ကို မြှင့်တင်ပေးပြီး၊ Advanced Wireless Energy နည်းပညာများကို ပံ့ပိုးပေးနိုင်ကြောင်း ဖော်ပြပါ။
+၄။ **AI နှင့် ML at the Edge:** AI နှင့် Machine Learning တို့သည် Wireless Network များကို အားကိုးပြီး Smart Home နှင့် Buildings များတွင် Automation နှင့် Intelligence ကို မြှင့်တင်ပေးပုံကို ဆွေးနွေးပါ။
+၅။ **Matter, Thread, နှင့် Security Advancements:** ဤအရာများသည် IoT Devices နှင့် Systems များတွင် ချိတ်ဆက်မှု၊ စွမ်းဆောင်ရည်နှင့် လုံခြုံရေးကို မောင်းနှင်ပေးသော အဓိက တီထွင်ဆန်းသစ်မှုများအဖြစ် ဆွေးနွေးပါ။
+၆။ **Wireless Charging နည်းပညာတွင် ထူးခြားသော တိုးတက်မှုများ:** Wireless Charging ၏ တိုးတက်မှုများကို အတည်ပြုရန် Incheon National University မှ လေ့လာမှုကဲ့သို့သော မကြာသေးမီက ထူးခြားသော တိုးတက်မှုများ သို့မဟုတ် လေ့လာမှုများကို ထည့်သွင်းပါ။
+```
+</hfoption>
+</hfoptions>
+
+## အဆင့်မြင့် လုပ်ဆောင်ချက်များ- စကားပြော မှတ်ဉာဏ် (Conversation Memory)
+
+Gala ပွဲအတွင်းမှာ Alfred ကို ပိုမို အထောက်အကူပြုစေဖို့အတွက်၊ သူက အရင်က ပြောဆိုခဲ့တဲ့ အပြန်အလှန် ဆက်ဆံမှုတွေကို မှတ်မိနေစေဖို့ **Conversation Memory** ကို ဖွင့်ပေးနိုင်ပါတယ်။
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+# Conversation Memory ပါဝင်သော Alfred ကို ဖန်တီးခြင်း
+alfred_with_memory = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool], 
+    model=model,
+    add_base_tools=True,
+    planning_interval=3
+)
+
+# ပထမဆုံး အပြန်အလှန် ဆက်ဆံမှု
+response1 = alfred_with_memory.run("Tell me about Lady Ada Lovelace.")
+print("🎩 Alfred's First Response:")
+print(response1)
+
+# ဒုတိယ အပြန်အလှန် ဆက်ဆံမှု (ပထမအကြိမ်ကို ကိုးကားခြင်း)
+response2 = alfred_with_memory.run("What projects is she currently working on?", reset=False)
+print("🎩 Alfred's Second Response:")
+print(response2)
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.workflow import Context
+
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# State ကို မှတ်မိစေခြင်း
+ctx = Context(alfred)
+
+# ပထမဆုံး အပြန်အလှန် ဆက်ဆံမှု
+response1 = await alfred.run("Tell me about Lady Ada Lovelace.", ctx=ctx)
+print("🎩 Alfred's First Response:")
+print(response1)
+
+# ဒုတိယ အပြန်အလှန် ဆက်ဆံမှု (ပထမအကြိမ်ကို ကိုးကားခြင်း)
+response2 = await alfred.run("What projects is she currently working on?", ctx=ctx)
+print("🎩 Alfred's Second Response:")
+print(response2)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+# ပထမဆုံး အပြန်အလှန် ဆက်ဆံမှု
+response = alfred.invoke({"messages": [HumanMessage(content="Tell me about 'Lady Ada Lovelace'. What's her background and how is she related to me?")]})
+
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+print()
+
+# ဒုတိယ အပြန်အလှန် ဆက်ဆံမှု (ပထမအကြိမ်ကို ကိုးကားခြင်း)
+response = alfred.invoke({"messages": response["messages"] + [HumanMessage(content="What projects is she currently working on?")]})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+</hfoption>
+</hfoptions>
+
+ဒီ Agent နည်းလမ်း (၃) ခုစလုံးဟာ Memory ကို Agent နဲ့ တိုက်ရိုက် ချိတ်ဆက်ထားခြင်း မရှိဘူးဆိုတာ သတိထားမိပါသလား 🧐? ဒီလို ဒီဇိုင်းရွေးချယ်မှုအတွက် သီးခြား အကြောင်းပြချက် ရှိပါသလား?
+
+*   **smolagents:** Memory ကို မတူညီသော Execution Runs များတွင် ထိန်းသိမ်းထားခြင်း မရှိပါ။ `reset=False` ကို အသုံးပြု၍ ရှင်းရှင်းလင်းလင်း ဖော်ပြရပါမယ်။
+*   **LlamaIndex:** Run တစ်ခုအတွင်း Memory စီမံခန့်ခွဲမှုအတွက် Context Object ကို ရှင်းရှင်းလင်းလင်း ထည့်သွင်းရန် လိုအပ်ပါတယ်။
+*   **LangGraph:** ယခင် Messages များကို ပြန်လည်ရယူရန် သို့မဟုတ် သီးသန့် [MemorySaver](https://langchain-ai.github.io/langgraph/tutorials/introduction/#part-3-adding-memory-to-the-chatbot) Component ကို အသုံးပြုရန် ရွေးချယ်စရာများ ပေးထားပါတယ်။
+
+## နိဂုံးချုပ် (Conclusion)
+
+ဂုဏ်ယူပါတယ်! သင်ဟာ ရာစုနှစ်ရဲ့ အခမ်းနားဆုံး Gala ပွဲကို ကူညီစီစဉ်ပေးမယ့် Tool များစွာ တပ်ဆင်ထားတဲ့ အဆင့်မြင့် Agent တစ်ခုဖြစ်တဲ့ Alfred ကို အောင်မြင်စွာ တည်ဆောက်နိုင်ခဲ့ပါပြီ။ Alfred ဟာ အခုဆိုရင်-
+
+1.  ဧည့်သည်များအကြောင်း အသေးစိတ် အချက်အလက်များကို ရှာဖွေနိုင်ခြင်း
+2.  ပြင်ပလှုပ်ရှားမှုများ စီစဉ်ရန် ရာသီဥတု အခြေအနေများကို စစ်ဆေးနိုင်ခြင်း
+3.  ဩဇာရှိသော AI Builder များနှင့် ၎င်းတို့၏ မော်ဒယ်များအကြောင်း ထိုးထွင်းသိမြင်မှုများ ပေးနိုင်ခြင်း
+4.  နောက်ဆုံးပေါ် အချက်အလက်များအတွက် ဝက်ဘ်ကို ရှာဖွေနိုင်ခြင်း
+5.  စကားပြောဆိုမှု၏ Context ကို မှတ်ဉာဏ်ဖြင့် ထိန်းသိမ်းထားနိုင်ခြင်း
+
+ဒီစွမ်းရည်တွေနဲ့အတူ Alfred ဟာ သင့်ရဲ့ Gala ပွဲကို အောင်မြင်စေဖို့၊ ဧည့်သည်တွေကို ပုဂ္ဂိုလ်ရေးဆန်တဲ့ ဂရုစိုက်မှုနဲ့ နောက်ဆုံးပေါ် အချက်အလက်တွေနဲ့ အထင်ကြီးစေဖို့ အသင့်ဖြစ်နေပါပြီ။

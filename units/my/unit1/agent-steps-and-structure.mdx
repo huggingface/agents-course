@@ -1,0 +1,145 @@
+# Thought-Action-Observation Cycle မှတစ်ဆင့် AI Agent များကို နားလည်ခြင်း
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Unit 1 planning"/>
+
+အရင်အပိုင်းတွေမှာ ကျွန်တော်တို့ ဘာတွေ လေ့လာခဲ့ပြီးပြီလဲဆိုတော့-
+
+*   **Tool တွေကို System Prompt ထဲမှာ Agent အတွက် ဘယ်လို ရရှိနိုင်အောင် လုပ်ထားသလဲ။**
+*   **AI Agent တွေဟာ "ဆင်ခြင်သုံးသပ်နိုင်ခြင်း" (Reason)၊ စီမံခန့်ခွဲနိုင်ခြင်း (Plan) နဲ့ ပတ်ဝန်းကျင်နဲ့ ထိတွေ့ဆက်ဆံနိုင်ခြင်း (Interact) တို့ကို လုပ်ဆောင်နိုင်တဲ့ စနစ်တွေ ဖြစ်တယ်ဆိုတာကိုပါ။**
+
+ဒီအပိုင်းမှာတော့ **ပြည့်စုံတဲ့ AI Agent ရဲ့ လုပ်ငန်းအဆင့်ဆင့် (Workflow)** ကို လေ့လာသွားပါမယ်။ ဒီအဆင့်ဆင့်ကို ကျွန်တော်တို့က **Thought-Action-Observation (အတွေး-လုပ်ဆောင်ချက်-လေ့လာတွေ့ရှိချက်)** လို့ သတ်မှတ်ထားပါတယ်။
+
+ပြီးရင်တော့ ဒီအဆင့်တစ်ခုချင်းစီကို ပိုမိုနက်နဲစွာ လေ့လာသွားပါမယ်။
+
+## အဓိက အစိတ်အပိုင်းများ (The Core Components)
+
+Agent များရဲ့ အလုပ်လုပ်ပုံဟာ စဉ်ဆက်မပြတ် လည်ပတ်နေတဲ့ Cycle တစ်ခု ဖြစ်ပါတယ်။ အဲဒါကတော့ - **စဉ်းစားခြင်း (Thought) → လုပ်ဆောင်ခြင်း (Act) နှင့် လေ့လာခြင်း (Observe)** တို့ပဲ ဖြစ်ပါတယ်။
+
+ဒီလုပ်ဆောင်ချက်တွေကို အတူတူ ခွဲခြမ်းကြည့်ရအောင်။
+
+1.  **Thought (အတွေး):** Agent ရဲ့ LLM အပိုင်းက နောက်ထပ် ဘာအဆင့်ကို လုပ်ဆောင်ရမလဲဆိုတာကို ဆုံးဖြတ်ပါတယ်။
+2.  **Action (လုပ်ဆောင်ချက်):** Agent က သက်ဆိုင်ရာ Arguments တွေနဲ့ Tool တွေကို ခေါ်ဆိုခြင်းဖြင့် လုပ်ဆောင်ချက်တစ်ခုကို လုပ်ဆောင်ပါတယ်။
+3.  **Observation (လေ့လာတွေ့ရှိချက်):** Tool ဆီက ပြန်လာတဲ့ တုံ့ပြန်ချက် (Response) ကို မော်ဒယ်က ပြန်လည်သုံးသပ်ပါတယ်။
+
+## Thought-Action-Observation Cycle (အတွေး-လုပ်ဆောင်ချက်-လေ့လာတွေ့ရှိချက် လည်ပတ်မှု)
+
+ဒီအစိတ်အပိုင်း သုံးခုဟာ စဉ်ဆက်မပြတ် လည်ပတ်နေတဲ့ Loop တစ်ခုအဖြစ် အတူတကွ အလုပ်လုပ်ပါတယ်။ Programming ကနေ ဥပမာယူပြီး ပြောရရင်၊ Agent ဟာ **While Loop** ကို အသုံးပြုပါတယ်။ Agent ရဲ့ ရည်မှန်းချက် ပြည့်မြောက်တဲ့အထိ ဒီ Loop က ဆက်လက် လည်ပတ်နေမှာ ဖြစ်ပါတယ်။
+
+ပုံအရ ကြည့်မယ်ဆိုရင် ဒီလိုမျိုး မြင်ရပါမယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Think, Act, Observe cycle"/>
+
+Agent Framework အများစုမှာ **စည်းမျဉ်းများနှင့် လမ်းညွှန်ချက်များကို System Prompt ထဲမှာ တိုက်ရိုက် ထည့်သွင်းထားပါတယ်**။ ဒါက Cycle တိုင်းဟာ သတ်မှတ်ထားတဲ့ Logic ကို လိုက်နာဖို့ သေချာစေပါတယ်။
+
+ရိုးရှင်းတဲ့ ပုံစံနဲ့ဆိုရင်၊ ကျွန်တော်တို့ရဲ့ System Prompt က ဒီလိုမျိုး ဖြစ်နေနိုင်ပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Think, Act, Observe cycle"/>
+
+ဒီ System Message ထဲမှာ ကျွန်တော်တို့ ဘာတွေ သတ်မှတ်ထားလဲဆိုတာကို တွေ့ရပါမယ်။
+
+*   *Agent ရဲ့ အပြုအမူ (Behavior)*
+*   *Agent အသုံးပြုနိုင်တဲ့ Tool များ* (အရင်အပိုင်းမှာ ဖော်ပြခဲ့သလိုပါပဲ)
+*   *Thought-Action-Observation Cycle* ကို LLM ညွှန်ကြားချက်များထဲမှာ ထည့်သွင်းထားခြင်း။
+
+ဒီလုပ်ငန်းစဉ်တစ်ခုချင်းစီကို ပိုမိုနက်နဲစွာ မလေ့လာခင်မှာ၊ ရိုးရှင်းတဲ့ ဥပမာလေးတစ်ခုကို ကြည့်ပြီး နားလည်အောင် လုပ်ကြည့်ရအောင်။
+
+## Alfred၊ ရာသီဥတု Agent (Alfred, the weather Agent)
+
+ကျွန်တော်တို့ Alfred လို့ခေါ်တဲ့ ရာသီဥတု Agent တစ်ခုကို ဖန်တီးထားပါတယ်။
+
+အသုံးပြုသူတစ်ဦးက Alfred ကို "New York မှာ လက်ရှိ ရာသီဥတု ဘယ်လိုရှိလဲ" လို့ မေးပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Alfred Agent"/>
+
+Alfred ရဲ့ အလုပ်ကတော့ ရာသီဥတု API Tool ကို အသုံးပြုပြီး ဒီမေးခွန်းကို ဖြေဖို့ပါပဲ။
+
+Cycle က ဘယ်လို လည်ပတ်သွားလဲဆိုတာကို ကြည့်ရအောင်။
+
+### Thought (အတွေး)
+
+**အတွင်းပိုင်း ဆင်ခြင်သုံးသပ်မှု:**
+
+မေးခွန်းကို လက်ခံရရှိတဲ့အခါ Alfred ရဲ့ အတွင်းစိတ် ဆွေးနွေးမှုက ဒီလိုဖြစ်နိုင်ပါတယ်။
+
+*"အသုံးပြုသူက New York ရဲ့ လက်ရှိ ရာသီဥတု အချက်အလက်ကို လိုအပ်နေတယ်။ ငါ့မှာ ရာသီဥတု ဒေတာကို ရှာဖွေပေးနိုင်တဲ့ Tool တစ်ခုကို အသုံးပြုခွင့်ရှိတယ်။ ပထမဆုံးအနေနဲ့၊ နောက်ဆုံးပေါ် အချက်အလက်တွေ ရဖို့အတွက် ရာသီဥတု API ကို ခေါ်ဆိုဖို့ လိုတယ်။"*
+
+ဒီအဆင့်က Agent ဟာ ပြဿနာကို အဆင့်ဆင့် ခွဲခြမ်းပြီး၊ ပထမဆုံး လိုအပ်တဲ့ ဒေတာကို စုဆောင်းဖို့ စဉ်းစားပုံကို ပြသပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Alfred Agent"/>
+
+### Action (လုပ်ဆောင်ချက်)
+
+**Tool အသုံးပြုခြင်း:**
+
+Alfred ရဲ့ ဆင်ခြင်သုံးသပ်မှုနဲ့ `get_weather` Tool ကို သိရှိထားတဲ့အချက်အပေါ် အခြေခံပြီး၊ Alfred ဟာ ရာသီဥတု API Tool ကို ခေါ်ဆိုမယ့် JSON ပုံစံချထားတဲ့ Command တစ်ခုကို ပြင်ဆင်ပါတယ်။ ဥပမာအားဖြင့်၊ သူ့ရဲ့ ပထမဆုံး လုပ်ဆောင်ချက်က ဒီလိုဖြစ်နိုင်ပါတယ်။
+
+Thought: I need to check the current weather for New York.
+
+ ```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+ ```
+
+ဒီနေရာမှာ Action က ဘယ် Tool ကို ခေါ်ဆိုရမယ် (ဥပမာ - get_weather) နဲ့ ဘယ် Parameter ကို ပေးပို့ရမယ် ("location": "New York") ဆိုတာကို ရှင်းရှင်းလင်းလင်း သတ်မှတ်ထားပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
+
+### Observation (လေ့လာတွေ့ရှိချက်)
+
+**ပတ်ဝန်းကျင်မှ တုံ့ပြန်ချက်:**
+
+Tool ကို ခေါ်ဆိုပြီးနောက် Alfred ဟာ Observation (လေ့လာတွေ့ရှိချက်) ကို လက်ခံရရှိပါတယ်။ ဒါဟာ API ကနေ ရရှိတဲ့ ရာသီဥတု ဒေတာ အစိမ်း (Raw Data) ဖြစ်နိုင်ပါတယ်။ ဥပမာ-
+
+*"Current weather in New York: partly cloudy, 15°C, 60% humidity."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Alfred Agent"/>
+
+ဒီ Observation ကို Prompt ထဲမှာ နောက်ထပ် Context အဖြစ် ထည့်သွင်းလိုက်ပါတယ်။ ဒါဟာ လုပ်ဆောင်ချက် အောင်မြင်ခဲ့ခြင်း ရှိမရှိကို အတည်ပြုပေးပြီး လိုအပ်တဲ့ အသေးစိတ်အချက်အလက်တွေကို ပေးတဲ့ Real-world Feedback အဖြစ် လုပ်ဆောင်ပါတယ်။
+
+### Updated Thought (မွမ်းမံထားသော အတွေး)
+
+**ပြန်လည်သုံးသပ်ခြင်း:**
+
+Observation ကို လက်ခံရရှိပြီးနောက် Alfred ဟာ သူ့ရဲ့ အတွင်းပိုင်း ဆင်ခြင်သုံးသပ်မှုကို အပ်ဒိတ်လုပ်ပါတယ်။
+
+*"အခု New York ရဲ့ ရာသီဥတု ဒေတာကို ရရှိပြီဆိုတော့၊ အသုံးပြုသူအတွက် အဖြေတစ်ခုကို စုစည်းနိုင်ပြီ။"*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Alfred Agent"/>
+
+### Final Action (နောက်ဆုံး လုပ်ဆောင်ချက်)
+
+ပြီးရင် Alfred ဟာ ကျွန်တော်တို့ သတ်မှတ်ထားတဲ့ ပုံစံအတိုင်း နောက်ဆုံး တုံ့ပြန်မှုကို ထုတ်ပေးပါတယ်။
+
+Thought: I have the weather data now. The current weather in New York is partly cloudy with a temperature of 15°C and 60% humidity."
+
+Final answer : The current weather in New York is partly cloudy with a temperature of 15°C and 60% humidity.
+
+ဒီနောက်ဆုံး လုပ်ဆောင်ချက်က အဖြေကို အသုံးပြုသူဆီ ပြန်ပို့ပေးပြီး Loop ကို ပိတ်လိုက်ပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Alfred Agent"/>
+
+ဒီဥပမာမှာ ကျွန်တော်တို့ ဘာတွေ တွေ့ရလဲဆိုတော့-
+
+*   **Agent များသည် ရည်မှန်းချက် ပြည့်မြောက်သည်အထိ Loop ကို လည်ပတ်ခြင်း:**
+    
+    **Alfred ရဲ့ လုပ်ငန်းစဉ်ဟာ လည်ပတ်နေပါတယ်**။ အတွေးတစ်ခုနဲ့ စတင်ပြီး၊ Tool ကို ခေါ်ဆိုခြင်းဖြင့် လုပ်ဆောင်ကာ၊ နောက်ဆုံးမှာ ရလဒ်ကို လေ့လာပါတယ်။ အကယ်၍ Observation က အမှားအယွင်း သို့မဟုတ် မပြည့်စုံတဲ့ ဒေတာကို ပြသခဲ့မယ်ဆိုရင်၊ Alfred ဟာ သူ့ရဲ့ ချဉ်းကပ်ပုံကို ပြင်ဆင်ဖို့အတွက် Loop ထဲကို ပြန်ဝင်နိုင်ပါတယ်။
+    
+*   **Tool ပေါင်းစပ်မှု:**
+    
+    Tool တစ်ခု (ဥပမာ - ရာသီဥတု API) ကို ခေါ်ဆိုနိုင်စွမ်းက Alfred ကို **ရှိပြီးသား အသိပညာထက် ကျော်လွန်ပြီး Real-time ဒေတာများကို ရယူနိုင်စေပါတယ်**။ ဒါဟာ AI Agent များရဲ့ အဓိက အင်္ဂါရပ်တစ်ခု ဖြစ်ပါတယ်။
+    
+*   **ပြောင်းလဲနိုင်စွမ်း (Dynamic Adaptation):**
+    
+    Cycle တစ်ခုစီက Agent ကို အချက်အလက်အသစ်များ (Observations) ကို သူ့ရဲ့ ဆင်ခြင်သုံးသပ်မှု (Thought) ထဲမှာ ထည့်သွင်းနိုင်စေပြီး၊ နောက်ဆုံးအဖြေဟာ အချက်အလက်ပြည့်စုံပြီး တိကျစေဖို့ သေချာစေပါတယ်။
+    
+ဒီဥပမာက *ReAct Cycle* (နောက်အပိုင်းမှာ ဆက်လက်လေ့လာမယ့် အယူအဆ) ရဲ့ အဓိက သဘောတရားကို ပြသပါတယ်။ **Thought, Action, နှင့် Observation တို့ရဲ့ အပြန်အလှန် အကျိုးသက်ရောက်မှုက AI Agent တွေကို ရှုပ်ထွေးတဲ့ Tasks တွေကို အဆင့်ဆင့် ဖြေရှင်းနိုင်ဖို့ စွမ်းဆောင်ပေးပါတယ်**။
+
+ဒီအခြေခံမူတွေကို နားလည်ပြီး အသုံးချခြင်းအားဖြင့်၊ သင်ဟာ Tasks တွေကို ဆင်ခြင်သုံးသပ်ရုံသာမက၊ **ပြင်ပ Tool တွေကို ထိရောက်စွာ အသုံးပြုပြီး Tasks တွေကို ပြီးမြောက်စေနိုင်တဲ့** Agent တွေကို ဒီဇိုင်းဆွဲနိုင်မှာ ဖြစ်ပါတယ်။ ဒါ့အပြင် ပတ်ဝန်းကျင်ရဲ့ တုံ့ပြန်ချက်အပေါ် အခြေခံပြီး သူတို့ရဲ့ ရလဒ်ကို စဉ်ဆက်မပြတ် ပြန်လည်ပြုပြင်နိုင်မှာ ဖြစ်ပါတယ်။
+
+---
+
+ကဲ၊ အခုဆိုရင် လုပ်ငန်းစဉ်ရဲ့ တစ်ဦးချင်း အဆင့်များဖြစ်တဲ့ Thought, Action, Observation တွေကို ပိုမိုနက်နဲစွာ လေ့လာကြည့်ရအောင်။
