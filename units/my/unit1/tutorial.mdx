@@ -1,0 +1,239 @@
+# ကျွန်တော်တို့ရဲ့ ပထမဆုံး Agent ကို smolagents အသုံးပြုပြီး ဖန်တီးကြမယ်
+
+အရင်အပိုင်းမှာ၊ Python Code ကို အသုံးပြုပြီး Agent တွေကို အစကနေ ဘယ်လို ဖန်တီးရမလဲဆိုတာကို လေ့လာခဲ့ကြပြီးပါပြီ။ **အဲဒီ လုပ်ငန်းစဉ်က ဘယ်လောက် ပင်ပန်းနိုင်သလဲဆိုတာကိုလည်း မြင်ခဲ့ရပါတယ်**။ ကံကောင်းစွာနဲ့ပဲ၊ Agent Library အများစုဟာ **ခက်ခဲတဲ့ အလုပ်အများစုကို သူတို့ဘာသာ ကိုင်တွယ်ဖြေရှင်းပေးခြင်းဖြင့်** ဒီလုပ်ငန်းစဉ်ကို ရိုးရှင်းအောင် လုပ်ပေးထားပါတယ်။
+
+ဒီ Tutorial မှာတော့ **သင်ဟာ သင့်ရဲ့ ပထမဆုံး Agent ကို ဖန်တီးရမှာ ဖြစ်ပါတယ်**။ ဒီ Agent ဟာ ပုံရိပ်ဖန်တီးခြင်း၊ ဝက်ဘ်ရှာဖွေခြင်း၊ အချိန်ဇုန် စစ်ဆေးခြင်းနှင့် အခြားများစွာသော လုပ်ဆောင်ချက်များကို လုပ်ဆောင်နိုင်ပါလိမ့်မယ်။
+
+ဒါ့အပြင်၊ သင်ဖန်တီးထားတဲ့ Agent ကို **Hugging Face Space မှာ ထုတ်ဝေပြီး သူငယ်ချင်းတွေနဲ့ လုပ်ဖော်ကိုင်ဖက်တွေကို မျှဝေနိုင်မှာပါ**။
+
+ကဲ... စတင်လိုက်ရအောင်!
+
+## smolagents ဆိုတာ ဘာလဲ?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/smolagents.png" alt="smolagents"/>
+
+ဒီ Agent ကို ဖန်တီးဖို့အတွက် ကျွန်တော်တို့ဟာ **`smolagents`** ဆိုတဲ့ Library ကို အသုံးပြုသွားမှာ ဖြစ်ပါတယ်။ ဒီ Library ဟာ **သင့်ရဲ့ Agent တွေကို လွယ်ကူစွာ တည်ဆောက်နိုင်ဖို့အတွက် Framework တစ်ခုကို ပံ့ပိုးပေးပါတယ်**။
+
+ဒီ Lightweight Library ကို ရိုးရှင်းမှုအတွက် ရည်ရွယ်ပြီး ဒီဇိုင်းထုတ်ထားတာ ဖြစ်ပေမယ့်၊ Agent တစ်ခု တည်ဆောက်ရာမှာ ပါဝင်တဲ့ ရှုပ်ထွေးမှု အများစုကို ဖယ်ရှားပေးထားပါတယ်။ ဒါကြောင့် သင်ဟာ Agent ရဲ့ အပြုအမူ (Behavior) ကို ဒီဇိုင်းဆွဲရာမှာသာ အာရုံစိုက်နိုင်ပါလိမ့်မယ်။
+
+`smolagents` အကြောင်းကို နောက်အခန်းမှာ ပိုမိုနက်နက်နဲနဲ လေ့လာသွားပါမယ်။ အခုလောလောဆယ်မှာတော့ ဒီ [Blog Post](https://huggingface.co/blog/smolagents) သို့မဟုတ် Library ရဲ့ [GitHub Repo](https://github.com/huggingface/smolagents) ကိုလည်း လေ့လာကြည့်ရှုနိုင်ပါတယ်။
+
+အတိုချုပ်ပြောရရင်၊ `smolagents` ဟာ **CodeAgent** ကို အဓိကထားတဲ့ Library တစ်ခု ဖြစ်ပါတယ်။ CodeAgent ဆိုတာက **Code Block များမှတစ်ဆင့် "လုပ်ဆောင်ချက်များ (Actions)" ကို လုပ်ဆောင်ပြီး၊ ထို Code ကို လုပ်ဆောင်ခြင်းဖြင့် ရလဒ်များကို "လေ့လာမှတ်သားခြင်း (Observes)"** ဖြင့် အလုပ်လုပ်တဲ့ Agent အမျိုးအစားပဲ ဖြစ်ပါတယ်။
+
+ကျွန်တော်တို့ ဖန်တီးမယ့် ဥပမာကို ကြည့်လိုက်ရအောင်!
+
+ကျွန်တော်တို့ Agent ကို **Image Generation Tool** တစ်ခု ပေးထားပြီး၊ ကြောင်ပုံတစ်ပုံ ဖန်တီးပေးဖို့ တောင်းဆိုထားပါတယ်။
+
+`smolagents` အတွင်းက Agent ဟာ **ကျွန်တော်တို့ အရင်က ကိုယ်တိုင်တည်ဆောက်ခဲ့တဲ့ Agent နဲ့ အပြုအမူချင်း အတူတူပါပဲ**။ ၎င်းဟာ နောက်ဆုံးအဖြေကို မရမချင်း **စဉ်းစားခြင်း (Think)၊ လုပ်ဆောင်ခြင်း (Act) နှင့် လေ့လာမှတ်သားခြင်း (Observe)** စတဲ့ သံသရာအတိုင်း လည်ပတ်နေမှာ ဖြစ်ပါတယ်။
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+စိတ်လှုပ်ရှားစရာကောင်းတယ် မဟုတ်လား?
+
+## ကျွန်တော်တို့ရဲ့ Agent ကို စတင်တည်ဆောက်ကြမယ်!
+
+စတင်ဖို့အတွက်၊ ဒီ Space ကို Duplicate လုပ်လိုက်ပါ- [https://huggingface.co/spaces/agents-course/First_agent_template](https://huggingface.co/spaces/agents-course/First_agent_template)
+> ဒီ Template အတွက် [Aymeric](https://huggingface.co/m-ric) ကို ကျေးဇူးတင်ပါတယ်! 🙌
+
+Space ကို Duplicate လုပ်တယ်ဆိုတာက **သင့်ရဲ့ ကိုယ်ပိုင် Profile မှာ Local Copy တစ်ခု ဖန်တီးလိုက်တာ** ကို ဆိုလိုပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplicate"/>
+
+Space ကို Duplicate လုပ်ပြီးတဲ့အခါ၊ သင့် Agent က Model API ကို အသုံးပြုနိုင်ဖို့အတွက် Hugging Face API Token ကို ထည့်သွင်းဖို့ လိုအပ်ပါလိမ့်မယ်။
+
+1.  ပထမဆုံး၊ သင့်မှာ Inference ခွင့်ပြုချက်ပါတဲ့ Hugging Face Token မရှိသေးရင် [https://hf.co/settings/tokens](https://hf.co/settings/tokens) ကနေ ရယူပါ။
+2.  သင် Duplicate လုပ်ထားတဲ့ Space ကို သွားပြီး **Settings** Tab ကို နှိပ်ပါ။
+3.  **Variables and Secrets** ကဏ္ဍကို ဆင်းပြီး **New Secret** ကို နှိပ်ပါ။
+4.  `HF_TOKEN` အမည်နဲ့ Secret တစ်ခု ဖန်တီးပြီး၊ Token ကို Value အဖြစ် ထည့်သွင်းပါ။
+5.  သင့် Token ကို လုံခြုံစွာ သိမ်းဆည်းဖို့ **Save** ကို နှိပ်ပါ။
+
+ဒီသင်ခန်းစာတစ်လျှောက်လုံးမှာ သင် ပြင်ဆင်ဖို့ လိုအပ်မယ့် တစ်ခုတည်းသော ဖိုင်ကတော့ (လက်ရှိ မပြည့်စုံသေးတဲ့) **"app.py"** ပဲ ဖြစ်ပါတယ်။ Template ထဲက [မူရင်း app.py](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py) ကို ဒီမှာ ကြည့်နိုင်ပါတယ်။ သင့်ရဲ့ Copy ထဲမှာ ရှာဖို့အတွက်၊ Space ရဲ့ `Files` Tab ကို သွားပြီး Directory ထဲက `app.py` ကို နှိပ်ပါ။
+
+Code တွေကို အတူတူ ခွဲခြမ်းစိတ်ဖြာကြည့်ရအောင်။
+
+ဖိုင်ရဲ့ အစမှာ လိုအပ်တဲ့ Library Imports တွေ ပါဝင်ပါတယ်။
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+```
+
+အစောပိုင်းမှာ ဖော်ပြခဲ့တဲ့အတိုင်း၊ ကျွန်တော်တို့ဟာ **smolagents** ထဲက **CodeAgent** Class ကို တိုက်ရိုက် အသုံးပြုသွားမှာ ဖြစ်ပါတယ်။
+
+### Tool များ (The Tools)
+
+ကဲ... Tool တွေဆီ သွားကြရအောင်! Tool တွေအကြောင်း ပြန်လည်လေ့လာချင်ရင် Course ရဲ့ [Tools](tools) အပိုင်းကို ပြန်သွားနိုင်ပါတယ်။
+
+```python
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # return type ကို သတ်မှတ်ဖို့ အရေးကြီးပါတယ်
+    # Tool description / args description အတွက် ဒီပုံစံကို ထားရှိပါ၊ Tool ကိုတော့ ပြင်ဆင်နိုင်ပါတယ်
+    """A tool that does nothing yet 
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Create timezone object
+        tz = pytz.timezone(timezone)
+        # Get current time in that timezone
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+```
+
+ဒီအပိုင်းမှာ သင်ဖန်တီးဖို့ အားပေးထားတဲ့ Tool တွေပဲ ဖြစ်ပါတယ်။ ဥပမာနှစ်ခု ပေးထားပါတယ်။
+
+1.  **အလုပ်မလုပ်သေးသော Dummy Tool** တစ်ခု။ ဒါကို သင် အသုံးဝင်တဲ့ Tool တစ်ခုဖြစ်အောင် ပြင်ဆင်နိုင်ပါတယ်။
+2.  ကမ္ဘာပေါ်ရှိ နေရာတစ်ခု၏ လက်ရှိအချိန်ကို ရယူပေးသော **တကယ်အလုပ်လုပ်သည့် Tool** တစ်ခု။
+
+သင့်ရဲ့ Tool ကို သတ်မှတ်ဖို့အတွက် အောက်ပါအချက်များက အရေးကြီးပါတယ်။
+
+1.  `get_current_time_in_timezone(timezone: str) -> str:` မှာလိုမျိုး Function အတွက် Input နှင့် Output အမျိုးအစားများကို သတ်မှတ်ပေးရပါမယ်။
+2.  **ကောင်းမွန်စွာ ပုံစံချထားသော Docstring** တစ်ခု လိုအပ်ပါတယ်။ `smolagents` က Arguments အားလုံးအတွက် **စာသားဖော်ပြချက် (Textual Description)** ကို Docstring မှာ ပါဝင်ဖို့ မျှော်လင့်ထားပါတယ်။
+
+### Agent (The Agent)
+
+ဒီ Agent ဟာ LLM Engine အဖြစ် [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) ကို အသုံးပြုထားပါတယ်။ ဒါဟာ Serverless API မှတစ်ဆင့် ကျွန်တော်တို့ အသုံးပြုမယ့် စွမ်းဆောင်ရည်မြင့် Model တစ်ခု ဖြစ်ပါတယ်။
+
+```python
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+# We're creating our CodeAgent
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # add your tools here (don't remove final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates
+)
+
+GradioUI(agent).launch()
+```
+
+ဒီ Agent ဟာ အရင်အပိုင်းမှာ မြင်ခဲ့ရတဲ့ **InferenceClientModel** Class ရဲ့ နောက်ကွယ်မှာ **InferenceClient** ကိုပဲ ဆက်လက်အသုံးပြုနေတာ ဖြစ်ပါတယ်။
+
+Framework ကို Unit 2 မှာ မိတ်ဆက်တဲ့အခါ ပိုမိုနက်နဲတဲ့ ဥပမာတွေကို ပေးပါမယ်။ အခုလောလောဆယ်မှာတော့ သင်ဟာ Agent ရဲ့ `tools` Parameter ကို အသုံးပြုပြီး **Tool အသစ်တွေကို စာရင်းထဲ ထည့်သွင်းဖို့** ကိုသာ အာရုံစိုက်ဖို့ လိုပါတယ်။
+
+ဥပမာအားဖြင့်၊ Code ရဲ့ ပထမဆုံးစာကြောင်းမှာ Import လုပ်ထားတဲ့ `DuckDuckGoSearchTool` ကို အသုံးပြုနိုင်ပါတယ်၊ ဒါမှမဟုတ် Code ရဲ့ နောက်ပိုင်းမှာ Hub ကနေ Load လုပ်ထားတဲ့ `image_generation_tool` ကိုလည်း ထည့်သွင်းနိုင်ပါတယ်။
+
+**Tool များကို ထည့်သွင်းခြင်းက သင့် Agent ကို စွမ်းဆောင်ရည်အသစ်များ ပေးပါလိမ့်မယ်**။ ဒီနေရာမှာ တီထွင်ဖန်တီးနိုင်ဖို့ ကြိုးစားကြည့်ပါ။
+
+### System Prompt (စနစ် ညွှန်ကြားချက်)
+
+Agent ရဲ့ System Prompt ကို သီးခြား `prompts.yaml` ဖိုင်တစ်ခုမှာ သိမ်းဆည်းထားပါတယ်။ ဒီဖိုင်မှာ Agent ရဲ့ အပြုအမူကို လမ်းညွှန်ပေးမယ့် ကြိုတင်သတ်မှတ်ထားတဲ့ ညွှန်ကြားချက်များ ပါဝင်ပါတယ်။
+
+Prompt များကို YAML ဖိုင်မှာ သိမ်းဆည်းထားခြင်းက မတူညီတဲ့ Agent များ သို့မဟုတ် အသုံးချကိစ္စများအတွက် လွယ်ကူစွာ ပြင်ဆင်ပြီး ပြန်လည်အသုံးပြုနိုင်စေပါတယ်။
+
+`prompts.yaml` ဖိုင် ဘယ်နေရာမှာ ရှိသလဲ၊ Project အတွင်းမှာ ဘယ်လို စနစ်တကျ ဖွဲ့စည်းထားသလဲဆိုတာကို [Space ရဲ့ File Structure](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main) ကို စစ်ဆေးကြည့်ရှုနိုင်ပါတယ်။
+
+ပြည့်စုံသော "app.py" ဖိုင်မှာ အောက်ပါအတိုင်း ဖြစ်ပါတယ်။
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+from tools.final_answer import FinalAnswerTool
+
+from Gradio_UI import GradioUI
+
+# Below is an example of a tool that does nothing. Amaze us with your creativity!
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # it's important to specify the return type
+    # Keep this format for the tool description / args description but feel free to modify the tool
+    """A tool that does nothing yet 
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Create timezone object
+        tz = pytz.timezone(timezone)
+        # Get current time in that timezone
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+
+
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+
+# Import tool from Hub
+image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
+
+# Load system prompt from prompt.yaml file
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # add your tools here (don't remove final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates # Pass system prompt to CodeAgent
+)
+
+
+GradioUI(agent).launch()
+```
+
+သင့်ရဲ့ **ပန်းတိုင်** ကတော့ Space နဲ့ Agent ကို ရင်းနှီးကျွမ်းဝင်ဖို့ပဲ ဖြစ်ပါတယ်။
+
+လက်ရှိ Template ထဲက Agent ဟာ **မည်သည့် Tool ကိုမှ အသုံးမပြုသေးပါဘူး**။ ဒါကြောင့် ကြိုတင်ဖန်တီးထားတဲ့ Tool တွေထဲက တစ်ခုခုကို ထည့်သွင်းဖို့ ဒါမှမဟုတ် ကိုယ်ပိုင် Tool အသစ်တွေ ဖန်တီးဖို့ ကြိုးစားကြည့်ပါ!
+
+သင်ဖန်တီးထားတဲ့ အံ့သြဖွယ် Agent ရဲ့ ရလဒ်တွေကို **#agents-course-showcase** Discord Channel မှာ စောင့်မျှော်နေပါတယ်!
+
+---
+ဂုဏ်ယူပါတယ်၊ သင်ဟာ သင့်ရဲ့ ပထမဆုံး Agent ကို တည်ဆောက်ပြီးပါပြီ! သင့်ရဲ့ သူငယ်ချင်းတွေနဲ့ လုပ်ဖော်ကိုင်ဖက်တွေကို မျှဝေဖို့ မတွန့်ဆုတ်ပါနဲ့။
+
+ဒါဟာ သင့်ရဲ့ ပထမဆုံး စမ်းသပ်မှုဖြစ်တဲ့အတွက် အနည်းငယ် Bug ပါတာ ဒါမှမဟုတ် နှေးတာမျိုး ဖြစ်နေရင်လည်း ပုံမှန်ပါပဲ။ နောက်အခန်းတွေမှာ ပိုမိုကောင်းမွန်တဲ့ Agent တွေကို ဘယ်လိုတည်ဆောက်ရမလဲဆိုတာကို လေ့လာသွားပါမယ်။
+
+သင်ယူဖို့ အကောင်းဆုံးနည်းလမ်းက စမ်းသပ်ကြည့်ဖို့ပါပဲ။ ဒါကြောင့် Agent ကို Update လုပ်ဖို့၊ Tool တွေ ထပ်ထည့်ဖို့၊ တခြား Model တွေနဲ့ စမ်းသပ်ကြည့်ဖို့ မတွန့်ဆုတ်ပါနဲ့။
+
+နောက်အပိုင်းမှာတော့ နောက်ဆုံး Quiz ကို ဖြေဆိုပြီး Certificate ရယူရမှာ ဖြစ်ပါတယ်။

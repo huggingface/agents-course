@@ -1,0 +1,147 @@
+# LlamaIndex တွင် Tools များ အသုံးပြုခြင်း
+
+**Tools များကို ရှင်းလင်းပြတ်သားစွာ သတ်မှတ်ခြင်းသည် စွမ်းဆောင်ရည်အတွက် အလွန်အရေးကြီးပါတယ်။** [အခန်း ၁](../../unit1/tools) မှာ ဆွေးနွေးခဲ့သလိုပဲ၊ Tool Interface များ ရှင်းလင်းလေလေ၊ LLM များအတွက် အသုံးပြုရတာ ပိုမိုလွယ်ကူလေလေ ဖြစ်ပါတယ်။
+
+လူသား Engineer များအတွက် Software API Interface များလိုပါပဲ၊ Tool တစ်ခု ဘယ်လိုအလုပ်လုပ်တယ်ဆိုတာ နားလည်ရလွယ်ကူရင်၊ ၎င်း Tool ကနေ အကျိုးကျေးဇူး ပိုမိုရရှိနိုင်ပါတယ်။
+
+LlamaIndex မှာ အဓိကအားဖြင့် **Tool အမျိုးအစား (၄) မျိုး** ရှိပါတယ်။
+
+![Tools](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1.  `FunctionTool`: မည်သည့် Python Function ကိုမဆို Agent တစ်ခု အသုံးပြုနိုင်သော Tool အဖြစ် ပြောင်းလဲပေးပါတယ်။ Function ဘယ်လိုအလုပ်လုပ်တယ်ဆိုတာကို သူက အလိုအလျောက် သိရှိနိုင်ပါတယ်။
+2.  `QueryEngineTool`: Agent များအား Query Engine များကို အသုံးပြုနိုင်စေသော Tool ဖြစ်ပါတယ်။ Agent များသည် Query Engine များပေါ်တွင် တည်ဆောက်ထားသောကြောင့်၊ ၎င်းတို့သည် အခြား Agent များကိုလည်း Tool အဖြစ် အသုံးပြုနိုင်ပါတယ်။
+3.  `Toolspecs`: Community မှ ဖန်တီးထားသော Tool များ၏ စုစည်းမှုဖြစ်ပြီး၊ Gmail ကဲ့သို့သော သီးခြားဝန်ဆောင်မှုများအတွက် Tool များ ပါဝင်လေ့ရှိပါတယ်။
+4.  `Utility Tools`: အခြား Tool များမှ ရရှိလာသော ဒေတာအမြောက်အမြားကို ကိုင်တွယ်ရာတွင် အထောက်အကူပြုသော အထူး Tool များ ဖြစ်ပါတယ်။
+
+အောက်မှာ ဒီ Tool တစ်ခုချင်းစီအကြောင်းကို အသေးစိတ် လေ့လာသွားပါမယ်။
+
+## FunctionTool တစ်ခု ဖန်တီးခြင်း
+
+> [!TIP]
+> သင်သည် [ဤ Notebook](https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb) မှ Code များကို Google Colab ကို အသုံးပြု၍ လိုက်လံလုပ်ဆောင်နိုင်ပါတယ်။
+
+`FunctionTool` သည် မည်သည့် Python Function ကိုမဆို ရိုးရှင်းသော နည်းလမ်းဖြင့် ထုပ်ပိုးပြီး Agent တစ်ခုအတွက် အသုံးပြုနိုင်စေရန် ပြုလုပ်ပေးပါတယ်။
+
+သင်သည် Synchronous (တစ်ပြိုင်နက်တည်း လုပ်ဆောင်သော) သို့မဟုတ် Asynchronous (တစ်ပြိုင်နက်တည်း မဟုတ်ဘဲ အချိန်ယူ လုပ်ဆောင်သော) Function များကို Tool သို့ ပေးပို့နိုင်ပါတယ်။ `name` နှင့် `description` Parameter များသည် ရွေးချယ်နိုင်သော်လည်း အထူးအရေးကြီးပါတယ်။ ဘာကြောင့်လဲဆိုတော့ ၎င်းတို့က Agent ကို Tool ကို ဘယ်အချိန်မှာ ဘယ်လို ထိရောက်စွာ အသုံးပြုရမယ်ဆိုတာ နားလည်စေဖို့ ကူညီပေးလို့ပါပဲ။
+
+အောက်မှာ `FunctionTool` ကို ဘယ်လိုဖန်တီးပြီး ခေါ်ဆိုရမလဲဆိုတာကို ကြည့်ကြရအောင်။
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Useful for getting the weather for a given location."""
+    print(f"Getting weather for {location}")
+    return f"The weather in {location} is sunny"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Useful for getting the weather for a given location.",
+)
+tool.call("New York")
+```
+
+> [!TIP]
+> Function Calling ကို အသုံးပြုသော Agent သို့မဟုတ် LLM ကို အသုံးပြုသည့်အခါ၊ ရွေးချယ်ထားသော Tool (နှင့် ထို Tool အတွက် ရေးသားထားသော Arguments များ) သည် Tool ၏ နာမည်နှင့် ရည်ရွယ်ချက် ဖော်ပြချက် (Description) ပေါ်တွင် များစွာ မူတည်ပါတယ်။ Function Calling အကြောင်းကို [Function Calling Guide](https://docs.llamaindex.ai/en/stable/examples/workflow/function_calling_agent/) မှာ ပိုမိုလေ့လာနိုင်ပါတယ်။
+
+## QueryEngineTool တစ်ခု ဖန်တီးခြင်း
+
+ယခင်အခန်းမှာ ကျွန်တော်တို့ သတ်မှတ်ခဲ့တဲ့ `QueryEngine` ကို `QueryEngineTool` Class ကို အသုံးပြုပြီး Tool တစ်ခုအဖြစ် အလွယ်တကူ ပြောင်းလဲနိုင်ပါတယ်။
+
+အောက်ပါ ဥပမာမှာ `QueryEngine` မှ `QueryEngineTool` ကို ဘယ်လိုဖန်တီးရမလဲဆိုတာကို ကြည့်ကြရအောင်။
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## Toolspecs များ ဖန်တီးခြင်း
+
+`ToolSpecs` များကို သဟဇာတဖြစ်စွာ အတူတကွ အလုပ်လုပ်သော Tool များ၏ စုစည်းမှုအဖြစ် စဉ်းစားနိုင်ပါတယ်။ ဒါဟာ စနစ်တကျ စီစဉ်ထားတဲ့ Professional Toolkit တစ်ခုလိုပါပဲ။
+
+စက်ပြင်ဆရာတစ်ဦးရဲ့ Toolkit မှာ ကားပြင်ဆင်မှုအတွက် အတူတကွ အလုပ်လုပ်တဲ့ ဖြည့်စွက် Tool တွေ ပါဝင်သလိုမျိုး၊ `ToolSpec` ကလည်း သီးခြားရည်ရွယ်ချက်များအတွက် ဆက်စပ် Tool များကို ပေါင်းစပ်ပေးပါတယ်။ ဥပမာအားဖြင့်၊ စာရင်းကိုင် Agent တစ်ခုရဲ့ `ToolSpec` ဟာ ငွေကြေးဆိုင်ရာ လုပ်ငန်းများကို တိကျစွာ ကိုင်တွယ်နိုင်ဖို့အတွက် Spreadsheet စွမ်းရည်များ၊ Email လုပ်ဆောင်ချက်များနှင့် တွက်ချက်မှု Tool များကို စနစ်တကျ ပေါင်းစပ်ပေးနိုင်ပါတယ်။
+
+<details>
+<summary>Google Toolspec ကို Install လုပ်ခြင်း</summary>
+[LlamaHub အပိုင်း](./llama-hub) မှာ မိတ်ဆက်ခဲ့သလိုပဲ၊ Google Toolspec ကို အောက်ပါ Command ဖြင့် Install လုပ်နိုင်ပါတယ်။
+
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+အခု Toolspec ကို Load လုပ်ပြီး Tool List အဖြစ် ပြောင်းလဲနိုင်ပါပြီ။
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+```
+
+Tool များကို ပိုမိုအသေးစိတ် ကြည့်ရှုရန်အတွက် Tool တစ်ခုစီ၏ `metadata` ကို ကြည့်ရှုနိုင်ပါတယ်။
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+### LlamaIndex ရှိ Model Context Protocol (MCP)
+
+LlamaIndex သည် [LlamaHub ရှိ ToolSpec](https://llamahub.ai/l/tools/llama-index-tools-mcp?from=) မှတစ်ဆင့် MCP Tool များကို အသုံးပြုခွင့်ပေးပါတယ်။
+
+သင်သည် MCP Server တစ်ခုကို Run ပြီး အောက်ပါ Implementation မှတစ်ဆင့် စတင်အသုံးပြုနိုင်ပါတယ်။
+
+MCP အကြောင်းကို ပိုမိုနက်ရှိုင်းစွာ သိရှိလိုပါက၊ ကျွန်တော်တို့ရဲ့ [အခမဲ့ MCP Course](https://huggingface.co/learn/mcp-course/) ကို စစ်ဆေးကြည့်ရှုနိုင်ပါတယ်။
+
+<details>
+<summary>MCP Toolspec ကို Install လုပ်ခြင်း</summary>
+[LlamaHub အပိုင်း](./llama-hub) မှာ မိတ်ဆက်ခဲ့သလိုပဲ၊ MCP Toolspec ကို အောက်ပါ Command ဖြင့် Install လုပ်နိုင်ပါတယ်။
+
+```python
+pip install llama-index-tools-mcp
+```
+</details>
+
+```python
+from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
+
+# We consider there is a mcp server running on 127.0.0.1:8000, or you can use the mcp client to connect to your own mcp server.
+mcp_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+mcp_tool = McpToolSpec(client=mcp_client)
+
+# get the agent
+agent = await get_agent(mcp_tool)
+
+# create the agent context
+agent_context = Context(agent)
+```
+
+## Utility Tools များ
+
+များသောအားဖြင့်၊ API တစ်ခုကို တိုက်ရိုက် Query လုပ်ခြင်းသည် **အချက်အလက် အလွန်အကျွံ ပြန်ပေးနိုင်ပါတယ်**။ ထိုဒေတာများထဲမှ အချို့သည် မသက်ဆိုင်တာမျိုး၊ LLM ၏ Context Window ကို ပြည့်လျှံသွားတာမျိုး၊ သို့မဟုတ် သင်အသုံးပြုနေသော Token အရေအတွက်ကို မလိုအပ်ဘဲ တိုးလာစေတာမျိုး ဖြစ်နိုင်ပါတယ်။
+
+အောက်မှာ ကျွန်တော်တို့ရဲ့ အဓိက Utility Tool နှစ်ခုကို လေ့လာကြည့်ကြရအောင်။
+
+1.  `OnDemandToolLoader`: ဤ Tool သည် ရှိပြီးသား LlamaIndex Data Loader (BaseReader Class) ကို Agent တစ်ခု အသုံးပြုနိုင်သော Tool အဖြစ် ပြောင်းလဲပေးပါတယ်။ Tool ကို Data Loader မှ `load_data` ကို စတင်ရန် လိုအပ်သော Parameter များအားလုံးနှင့်အတူ Natural Language Query String တစ်ခုဖြင့် ခေါ်ဆိုနိုင်ပါတယ်။ လုပ်ဆောင်နေစဉ်အတွင်း၊ ကျွန်တော်တို့သည် Data Loader မှ ဒေတာကို ဦးစွာ Load လုပ်ခြင်း၊ Index လုပ်ခြင်း (ဥပမာ - Vector Store ဖြင့်)၊ ပြီးနောက် 'On-demand' Query လုပ်ခြင်းတို့ကို လုပ်ဆောင်ပါတယ်။ ဤအဆင့် (၃) ဆင့်လုံးသည် Tool Call တစ်ခုတည်းတွင် ဖြစ်ပေါ်ပါတယ်။
+2.  `LoadAndSearchToolSpec`: `LoadAndSearchToolSpec` သည် ရှိပြီးသား Tool တစ်ခုခုကို Input အဖြစ် လက်ခံပါတယ်။ Tool Spec တစ်ခုအနေဖြင့်၊ ၎င်းသည် `to_tool_list` ကို Implement လုပ်ပြီး ထို Function ကို ခေါ်ဆိုသောအခါ Tool နှစ်ခုကို ပြန်ပေးပါတယ်- Loading Tool တစ်ခုနှင့် Search Tool တစ်ခုတို့ ဖြစ်ပါတယ်။ Load Tool ကို လုပ်ဆောင်ခြင်းသည် အခြေခံ Tool ကို ခေါ်ဆိုပြီး ရလဒ်ကို Index လုပ်ပါမယ် (Default အားဖြင့် Vector Index ဖြင့်)။ Search Tool ကို လုပ်ဆောင်ခြင်းသည် Input အဖြစ် Query String တစ်ခုကို ယူပြီး အခြေခံ Index ကို ခေါ်ဆိုပါမယ်။
+
+> [!TIP]
+> Toolspecs များနှင့် Utility Tools များကို [LlamaHub](https://llamahub.ai/) တွင် ရှာဖွေနိုင်ပါတယ်။
+
+LlamaIndex မှာ Agent တွေနဲ့ Tool တွေရဲ့ အခြေခံတွေကို နားလည်ပြီးတဲ့နောက်၊ **Configurable ဖြစ်ပြီး စီမံခန့်ခွဲနိုင်တဲ့ Workflow တွေကို ဖန်တီးဖို့အတွက် LlamaIndex ကို ဘယ်လိုအသုံးပြုနိုင်မလဲ** ဆိုတာကို ကြည့်ကြရအောင်!
