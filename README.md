@@ -1,3 +1,4 @@
+[![Board Status](https://dev.azure.com/agencyLevelUp2025/354e2a86-3324-4c40-9ea3-dd08a6bcff8d/d28823c2-2bb6-41ea-8401-316c99b19899/_apis/work/boardbadge/b700c5e2-f2b2-4634-a67f-cb7278ea41ee)](https://dev.azure.com/agencyLevelUp2025/354e2a86-3324-4c40-9ea3-dd08a6bcff8d/_boards/board/t/d28823c2-2bb6-41ea-8401-316c99b19899/Microsoft.RequirementCategory)
 # <a href="https://hf.co/learn/agents-course" target="_blank">The Hugging Face Agents Course</a>
 
 If you like the course, **don't hesitate to ⭐ star this repository**. This helps us to **make the course more visible 🤗**.
