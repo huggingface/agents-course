@@ -364,42 +364,82 @@ from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 
-# Generate the chat interface, including the tools
 llm = HuggingFaceEndpoint(
     repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
     huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
 )
 
 chat = ChatHuggingFace(llm=llm, verbose=True)
-tools = [guest_info_tool]
-chat_with_tools = chat.bind_tools(tools)
 
-# Generate the AgentState and Agent graph
+# Tool schema for prompting
+tool_schema = {
+    "name": "guest_info_tool",
+    "description": "Retrieve information about a guest by their full name.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "guest_name": {
+                "type": "string",
+                "description": "The exact full name of the guest"
+            }
+        },
+        "required": ["guest_name"]
+    }
+}
+
+system_prompt = f"""You are Alfred, a helpful assistant.
+When you need guest information, respond with ONLY valid JSON matching this exact schema:
+
+{json.dumps(tool_schema, indent=2)}
+
+No extra text, no markdown, no explanation.
+If you have enough information or no tool is needed, respond normally."""
+
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
 
 def assistant(state: AgentState):
-    return {
-        "messages": [chat_with_tools.invoke(state["messages"])],
-    }
+    messages = state["messages"]
+    
+    # Inject system prompt once
+    if not messages or not isinstance(messages[0], SystemMessage):
+        full_messages = [SystemMessage(content=system_prompt)] + messages
+    else:
+        full_messages = messages
+    
+    response = chat.invoke(full_messages)
+    content = response.content.strip()
+    
+    # Attempt to parse JSON tool call
+    try:
+        tool_call = json.loads(content)
+        if tool_call.get("name") == "guest_info_tool":
+            guest_name = tool_call["parameters"].get("guest_name", "")
+            result = guest_info_tool.invoke(guest_name)  # Tool expects string
+            
+            return {
+                "messages": [
+                    AIMessage(content=content),
+                    ToolMessage(content=json.dumps(result), tool_call_id="call_1")
+                ]
+            }
+    except json.JSONDecodeError:
+        pass
+    
+    # Normal response
+    return {"messages": [response]}
 
-## The graph
+# Conditional routing
+def should_continue(state: AgentState):
+    last_msg = state["messages"][-1]
+    return "assistant" if isinstance(last_msg, ToolMessage) else END
+
+# Build graph
 builder = StateGraph(AgentState)
-
-# Define nodes: these do the work
 builder.add_node("assistant", assistant)
-builder.add_node("tools", ToolNode(tools))
-
-# Define edges: these determine how the control flow moves
 builder.add_edge(START, "assistant")
-builder.add_conditional_edges(
-    "assistant",
-    # If the latest message requires a tool, route to tools
-    # Otherwise, provide a direct response
-    tools_condition,
-)
-builder.add_edge("tools", "assistant")
-alfred = builder.compile()
+builder.add_conditional_edges("assistant", should_continue)
+graph = builder.compile()
 
 messages = [HumanMessage(content="Tell me about our guest named 'Lady Ada Lovelace'.")]
 response = alfred.invoke({"messages": messages})
