@@ -1,0 +1,393 @@
+## Code ကို အသုံးပြုသော Agent များ တည်ဆောက်ခြင်း
+
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord"
+ />
+
+# Code ကို အသုံးပြုသော Agent များ တည်ဆောက်ခြင်း
+
+`smolagents` မှာ Code Agent တွေဟာ မူရင်း Agent အမျိုးအစား ဖြစ်ပါတယ်။ ၎င်းတို့ဟာ လုပ်ဆောင်ချက်တွေကို လုပ်ဆောင်ဖို့အတွက် Python Tool Calls တွေကို ထုတ်ပေးပါတယ်။ ဒီလို Code ကို အသုံးပြုခြင်းက လုပ်ဆောင်ချက်တွေကို **ထိရောက်မှုရှိစေခြင်း၊ ဖော်ပြနိုင်စွမ်းရှိစေခြင်းနဲ့ တိကျမှုရှိစေခြင်း** တို့ကို ရရှိစေပါတယ်။
+
+ဒီလို စနစ်တကျ ချဉ်းကပ်မှုကြောင့် လိုအပ်တဲ့ လုပ်ဆောင်ချက် အဆင့်အရေအတွက်ကို လျှော့ချပေးနိုင်ပြီး၊ ရှုပ်ထွေးတဲ့ လုပ်ငန်းတွေကို ရိုးရှင်းစေကာ၊ ရှိပြီးသား Code Functions တွေကို ပြန်လည်အသုံးပြုနိုင်စေပါတယ်။ `smolagents` ဟာ Code Agent တွေ တည်ဆောက်ဖို့အတွက် လိုင်းပေါင်း ၁,၀၀၀ ခန့်သာရှိတဲ့ ပေါ့ပါးတဲ့ Framework တစ်ခုကို ပံ့ပိုးပေးထားပါတယ်။
+
+![Code vs JSON Actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+*ပုံကို [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030) စာတမ်းမှ ရယူထားပါသည်။*
+
+> [!TIP]
+> Code Agent တွေ ဘာကြောင့် ထိရောက်မှုရှိသလဲဆိုတာကို ပိုမိုသိရှိလိုပါက `smolagents` Documentation မှ <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">ဒီလမ်းညွှန်ချက်</a>ကို လေ့လာကြည့်ရှုနိုင်ပါတယ်။
+
+## Code Agent တွေ ဘာကြောင့် အရေးပါတာလဲ။
+
+အဆင့်များစွာပါဝင်တဲ့ Agent လုပ်ငန်းစဉ်တစ်ခုမှာ၊ LLM ဟာ ပြင်ပ Tool ခေါ်ဆိုမှုများ ပါဝင်တဲ့ လုပ်ဆောင်ချက်တွေကို ရေးသားပြီး လုပ်ဆောင်ပါတယ်။ ရိုးရာနည်းလမ်းတွေမှာ Tool နာမည်တွေနဲ့ Arguments တွေကို String အနေနဲ့ သတ်မှတ်ဖို့ JSON ပုံစံကို အသုံးပြုကြပြီး၊ **ဘယ် Tool ကို လုပ်ဆောင်ရမယ်ဆိုတာ ဆုံးဖြတ်ဖို့ စနစ်ကနေ စစ်ဆေးအတည်ပြု (Parse) ရပါတယ်**။
+
+ဒါပေမယ့်၊ သုတေသနတွေအရ **Tool-calling LLM တွေဟာ Code ကို တိုက်ရိုက်အသုံးပြုတဲ့အခါ ပိုမိုထိရောက်စွာ အလုပ်လုပ်နိုင်တယ်** ဆိုတာကို ပြသနေပါတယ်။ ဒါဟာ `smolagents` ရဲ့ အဓိက အခြေခံမူတစ်ခုဖြစ်ပြီး၊ အပေါ်က ပုံမှာ ပြထားတဲ့အတိုင်း [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030) စာတမ်းကနေ သိရှိနိုင်ပါတယ်။
+
+လုပ်ဆောင်ချက်တွေကို JSON အစား Code နဲ့ ရေးသားခြင်းက အဓိက အားသာချက်များစွာကို ပေးပါတယ်။
+
+*   **ပေါင်းစပ်နိုင်စွမ်း (Composability):** လုပ်ဆောင်ချက်တွေကို အလွယ်တကူ ပေါင်းစပ်ပြီး ပြန်လည်အသုံးပြုနိုင်ခြင်း။
+*   **Object စီမံခန့်ခွဲမှု (Object Management):** ပုံများကဲ့သို့ ရှုပ်ထွေးသော Structure များနှင့် တိုက်ရိုက် အလုပ်လုပ်နိုင်ခြင်း။
+*   **ယေဘုယျသဘော (Generality):** တွက်ချက်မှုအရ ဖြစ်နိုင်တဲ့ မည်သည့် Task ကိုမဆို ဖော်ပြနိုင်ခြင်း။
+*   **LLM များအတွက် သဘာဝကျခြင်း (Natural for LLMs):** အရည်အသွေးမြင့် Code များဟာ LLM ရဲ့ လေ့ကျင့်ရေး ဒေတာတွေမှာ ရှိပြီးသားဖြစ်လို့ Code ထုတ်ပေးဖို့ ပိုမိုလွယ်ကူခြင်း။
+
+## Code Agent တစ်ခု ဘယ်လို အလုပ်လုပ်သလဲ။
+
+![From https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+အပေါ်က ပုံမှာ `CodeAgent.run()` က Unit 1 မှာ ကျွန်တော်တို့ ပြောခဲ့တဲ့ ReAct Framework ကို လိုက်နာပြီး ဘယ်လို အလုပ်လုပ်တယ်ဆိုတာကို ဖော်ပြထားပါတယ်။ `smolagents` မှာ Agent တွေအတွက် အဓိက Abstraction ကတော့ `MultiStepAgent` ဖြစ်ပြီး၊ ဒါဟာ Core Building Block အဖြစ် ဆောင်ရွက်ပါတယ်။ `CodeAgent` ဟာ အောက်မှာ ဥပမာပြမယ့်အတိုင်း `MultiStepAgent` ရဲ့ အထူးအမျိုးအစားတစ်ခုပဲ ဖြစ်ပါတယ်။
+
+`CodeAgent` ဟာ အဆင့်များစွာပါဝင်တဲ့ Cycle တစ်ခုမှတစ်ဆင့် လုပ်ဆောင်ချက်တွေကို လုပ်ဆောင်ပါတယ်။ ရှိပြီးသား Variables တွေနဲ့ Knowledge တွေကို Agent ရဲ့ Context ထဲကို ထည့်သွင်းပြီး၊ ဒါတွေကို Execution Log မှာ သိမ်းဆည်းထားပါတယ်။
+
+၁။ System Prompt ကို `SystemPromptStep` မှာ သိမ်းဆည်းထားပြီး၊ User Query ကို `TaskStep` မှာ မှတ်တမ်းတင်ပါတယ်။
+
+၂။ ထို့နောက်၊ အောက်ပါ While Loop ကို လုပ်ဆောင်ပါတယ်။
+
+> ၂.၁။ `agent.write_memory_to_messages()` Method က Agent ရဲ့ Logs တွေကို LLM ဖတ်နိုင်တဲ့ [Chat Messages](https://huggingface.co/docs/transformers/main/en/chat_templating) စာရင်းထဲကို ရေးသားပါတယ်။
+>
+> ၂.၂။ ဒီ Messages တွေကို `Model` ဆီ ပို့ပြီး၊ Model က Completion (အဖြေ) ကို ထုတ်ပေးပါတယ်။
+>
+> ၂.၃။ ထုတ်ပေးလိုက်တဲ့ Completion ကို စစ်ဆေးအတည်ပြု (Parse) ပြီး Action ကို ထုတ်ယူပါတယ်။ ကျွန်တော်တို့ `CodeAgent` နဲ့ အလုပ်လုပ်နေတဲ့အတွက် ဒီ Action ဟာ Code Snippet တစ်ခု ဖြစ်ရပါမယ်။
+>
+> ၂.၄။ Action ကို လုပ်ဆောင်ပါတယ်။
+>
+> ၂.၅။ ရလဒ်တွေကို `ActionStep` မှာ Memory အဖြစ် မှတ်တမ်းတင်ပါတယ်။
+
+အဆင့်တိုင်းရဲ့ အဆုံးမှာ၊ Agent မှာ Function Calls များ ( `agent.step_callback` ထဲမှာ) ပါဝင်နေရင် ၎င်းတို့ကို လုပ်ဆောင်ပါတယ်။
+
+## ဥပမာအချို့ကို ကြည့်ကြရအောင်
+
+> [!TIP]
+> Google Colab ကို အသုံးပြုပြီး run နိုင်တဲ့ <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb" target="_blank">ဒီ Notebook</a> ထဲက Code တွေကို လိုက်နာကြည့်ရှုနိုင်ပါတယ်။
+
+Alfred ဟာ Wayne မိသားစုရဲ့ ကြီးမားတဲ့ အိမ်ကြီးမှာ ပါတီပွဲတစ်ခု စီစဉ်နေပြီး အရာအားလုံး အဆင်ပြေစေဖို့ သင့်ရဲ့ အကူအညီကို လိုအပ်နေပါတယ်။ သူ့ကို ကူညီဖို့အတွက် Multi-step `CodeAgent` တစ်ခု ဘယ်လို အလုပ်လုပ်တယ်ဆိုတဲ့ ကျွန်တော်တို့ လေ့လာခဲ့တာတွေကို အသုံးချသွားပါမယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-party.jpg" alt="Alfred Party"/>
+
+`smolagents` ကို မတပ်ဆင်ရသေးဘူးဆိုရင် အောက်ပါ Command ကို run ပြီး တပ်ဆင်နိုင်ပါတယ်။
+
+```bash
+pip install smolagents -U
+```
+
+Serverless Inference API ကို အသုံးပြုနိုင်ဖို့ Hugging Face Hub ကိုလည်း Login ဝင်လိုက်ရအောင်။
+
+```python
+from huggingface_hub import login
+
+login()
+```
+
+### `smolagents` ကို အသုံးပြုပြီး ပါတီအတွက် Playlist ရွေးချယ်ခြင်း
+
+ဂီတဟာ အောင်မြင်တဲ့ ပါတီတစ်ခုအတွက် မရှိမဖြစ် အစိတ်အပိုင်းတစ်ခုပါပဲ! Alfred ဟာ Playlist ရွေးချယ်ဖို့ အကူအညီ လိုအပ်နေပါတယ်။ ကံကောင်းစွာနဲ့ပဲ `smolagents` က ကျွန်တော်တို့ကို ကူညီပေးနိုင်ပါတယ်။ DuckDuckGo ကို အသုံးပြုပြီး ဝက်ဘ်ရှာဖွေနိုင်တဲ့ Agent တစ်ခုကို ကျွန်တော်တို့ တည်ဆောက်နိုင်ပါတယ်။ ဒီ Tool ကို Agent အသုံးပြုနိုင်ဖို့အတွက် Agent ကို ဖန်တီးတဲ့အခါ Tool List ထဲမှာ ထည့်သွင်းပေးရပါမယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred Playlist"/>
+
+Model အတွက် Hugging Face ရဲ့ [Serverless Inference API](https://huggingface.co/docs/api-inference/index) ကို အသုံးပြုနိုင်တဲ့ `InferenceClientModel` ကို အားကိုးပါမယ်။ Default Model ကတော့ `"Qwen/Qwen2.5-Coder-32B-Instruct"` ဖြစ်ပြီး၊ ဒါဟာ စွမ်းဆောင်ရည် ကောင်းမွန်ပြီး မြန်ဆန်တဲ့ Inference အတွက် အသုံးပြုနိုင်ပါတယ်။ ဒါပေမယ့် Hub ကနေ Compatible ဖြစ်တဲ့ မည်သည့် Model ကိုမဆို ရွေးချယ်နိုင်ပါတယ်။
+
+Agent တစ်ခုကို Run ဖို့က အတော်လေး ရိုးရှင်းပါတယ်။
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+ဒီဥပမာကို Run လိုက်တဲ့အခါ၊ ထွက်ရှိလာတဲ့ ရလဒ်မှာ **Workflow အဆင့်များ လုပ်ဆောင်နေပုံကို ပြသတဲ့ Trace** ကို မြင်ရပါမယ်။ ၎င်းသည် သက်ဆိုင်ရာ Python Code ကို အောက်ပါ Message ဖြင့်လည်း Print ထုတ်ပေးပါလိမ့်မယ်။
+
+```python
+ ─ Executing parsed code: ──────────────────────────────────────────────────────────────────────────────────────── 
+  results = web_search(query="best music for a Batman party")                                                      
+  print(results)                                                                                                   
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+```
+
+အဆင့်အနည်းငယ်ကြာပြီးနောက်၊ Alfred ပါတီအတွက် အသုံးပြုနိုင်မယ့် Playlist ကို မြင်ရပါလိမ့်မယ်။ 🎵
+
+### Custom Tool ကို အသုံးပြုပြီး Menu ပြင်ဆင်ခြင်း
+
+<img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/en/unit2/smolagents/alfred-menu.jpg" alt="Alfred Menu"/>
+
+Playlist ရွေးချယ်ပြီးပြီဆိုတော့ ဧည့်သည်တွေအတွက် Menu ကို စီစဉ်ဖို့ လိုပါတယ်။ ဒီတစ်ခါလည်း Alfred ဟာ `smolagents` ကို အသုံးပြုပြီး အကျိုးယူနိုင်ပါတယ်။ ဒီနေရာမှာ Custom Function တစ်ခုကို Tool အဖြစ် သတ်မှတ်ဖို့အတွက် `@tool` Decorator ကို အသုံးပြုပါမယ်။ Tool ဖန်တီးခြင်းအကြောင်းကို နောက်ပိုင်းမှာ ပိုမိုအသေးစိတ် လေ့လာသွားမှာဖြစ်လို့၊ အခုလောလောဆယ် Code ကို Run လိုက်ရုံနဲ့ ရပါပြီ။
+
+အောက်ပါ ဥပမာမှာ မြင်ရတဲ့အတိုင်း၊ `@tool` Decorator ကို အသုံးပြုပြီး Tool တစ်ခု ဖန်တီးကာ `tools` List ထဲမှာ ထည့်သွင်းပါမယ်။
+
+```python
+from smolagents import CodeAgent, tool, InferenceClientModel
+
+# Tool to suggest a menu based on the occasion
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion (str): The type of occasion for the party. Allowed values are:
+                        - "casual": Menu for casual party.
+                        - "formal": Menu for formal party.
+                        - "superhero": Menu for superhero party.
+                        - "custom": Custom menu.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+# Alfred, the butler, preparing the menu for the party
+agent = CodeAgent(tools=[suggest_menu], model=InferenceClientModel())
+
+# Preparing the menu for the party
+agent.run("Prepare a formal menu for the party.")
+```
+
+Agent ဟာ အဖြေကို ရှာတွေ့သည်အထိ အဆင့်အနည်းငယ် လုပ်ဆောင်သွားပါမယ်။ Docstring မှာ ခွင့်ပြုထားတဲ့ တန်ဖိုးတွေကို တိကျစွာ ဖော်ပြပေးခြင်းက Agent ကို ရှိပြီးသား `occasion` Argument တန်ဖိုးတွေဆီ ဦးတည်စေပြီး Hallucination (မှားယွင်းတဲ့ အချက်အလက် ထုတ်ပေးခြင်း) ကို ကန့်သတ်ပေးပါတယ်။
+
+Menu လည်း အဆင်သင့်ဖြစ်ပါပြီ! 🥗
+
+### Agent အတွင်း Python Imports များကို အသုံးပြုခြင်း
+
+Playlist နဲ့ Menu တွေ အဆင်သင့်ဖြစ်ပြီဆိုပေမယ့်၊ နောက်ထပ် အရေးကြီးတဲ့ အသေးစိတ်အချက်တစ်ခုကို စစ်ဆေးဖို့ လိုအပ်ပါသေးတယ်- ဒါကတော့ ပြင်ဆင်ချိန် (Preparation Time) ပါပဲ!
+
+Alfred ဟာ အခု စတင်ပြင်ဆင်မယ်ဆိုရင် အရာအားလုံး ဘယ်အချိန်မှာ အဆင်သင့်ဖြစ်မလဲဆိုတာကို တွက်ချက်ဖို့ လိုအပ်ပါတယ်။ ဒါမှ အခြား Superhero တွေရဲ့ အကူအညီ လိုအပ်မလားဆိုတာ သိနိုင်မှာပါ။
+
+`smolagents` ဟာ Python Code Snippet တွေကို ရေးသားပြီး လုပ်ဆောင်တဲ့ Agent တွေအတွက် အထူးပြုထားပြီး၊ လုံခြုံရေးအတွက် Sandboxed Execution ကို ပံ့ပိုးပေးပါတယ်။
+
+**Code လုပ်ဆောင်မှုမှာ တင်းကျပ်တဲ့ လုံခြုံရေး စည်းမျဉ်းများ ရှိပါတယ်**—ကြိုတင်သတ်မှတ်ထားတဲ့ Safe List ပြင်ပက Imports တွေကို Default အားဖြင့် ပိတ်ဆို့ထားပါတယ်။ ဒါပေမယ့်၊ `additional_authorized_imports` မှာ String အနေနဲ့ ပေးပို့ခြင်းဖြင့် နောက်ထပ် Imports တွေကို ခွင့်ပြုနိုင်ပါတယ်။ လုံခြုံတဲ့ Code လုပ်ဆောင်မှုအကြောင်း ပိုမိုသိရှိလိုပါက Official [Guide](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution) ကို ကြည့်ရှုနိုင်ပါတယ်။
+
+Agent ကို ဖန်တီးတဲ့အခါ `datetime` Module ကို Import လုပ်ဖို့ ခွင့်ပြုဖို့အတွက် `additional_authorized_imports` ကို အသုံးပြုပါမယ်။
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=InferenceClientModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred needs to prepare for the party. Here are the tasks:
+    1. Prepare the drinks - 30 minutes
+    2. Decorate the mansion - 60 minutes
+    3. Set up the menu - 45 minutes
+    4. Prepare the music and playlist - 45 minutes
+
+    If we start right now, at what time will the party be ready?
+    """
+)
+```
+
+ဒီဥပမာတွေဟာ Code Agent တွေနဲ့ သင်လုပ်ဆောင်နိုင်တဲ့ အရာတွေရဲ့ အစပဲ ရှိပါသေးတယ်။ ပါတီပြင်ဆင်ဖို့အတွက် ၎င်းတို့ရဲ့ အသုံးဝင်ပုံကို စတင်မြင်တွေ့နေရပါပြီ။ Code Agent တွေ ဘယ်လိုတည်ဆောက်ရမယ်ဆိုတာကို [smolagents documentation](https://huggingface.co/docs/smolagents) မှာ ပိုမိုလေ့လာနိုင်ပါတယ်။
+
+အချုပ်အားဖြင့်၊ `smolagents` ဟာ လုံခြုံရေးအတွက် Sandboxed Execution ကို ပံ့ပိုးပေးပြီး Python Code Snippet တွေကို ရေးသားပြီး လုပ်ဆောင်တဲ့ Agent တွေအတွက် အထူးပြုထားပါတယ်။ ၎င်းသည် Local နှင့် API-based Language Model နှစ်မျိုးလုံးကို ထောက်ပံ့ပေးထားတဲ့အတွက် မတူညီတဲ့ Development Environment တွေနဲ့ လိုက်လျောညီထွေ ဖြစ်စေပါတယ်။
+
+### ကျွန်တော်တို့ရဲ့ Custom Party Preparator Agent ကို Hub သို့ မျှဝေခြင်း
+
+ကျွန်တော်တို့ရဲ့ Alfred Agent ကို **Community နဲ့ မျှဝေနိုင်ရင် အရမ်းကောင်းမှာပဲနော်**? ဒီလိုလုပ်ခြင်းအားဖြင့်၊ ဘယ်သူမဆို Hub ကနေ Agent ကို အလွယ်တကူ Download လုပ်ပြီး ချက်ချင်း အသုံးပြုနိုင်မှာဖြစ်ပြီး Gotham ရဲ့ အကောင်းဆုံး Party Planner ကို သူတို့ရဲ့ လက်ချောင်းထိပ်မှာ ရရှိစေမှာပါ။ ဒါကို အကောင်အထည်ဖော်ကြည့်ရအောင်! 🎉
+
+`smolagents` Library က Agent တစ်ခုလုံးကို Community နဲ့ မျှဝေနိုင်စေပြီး၊ အခြားသူတွေရဲ့ Agent တွေကိုလည်း ချက်ချင်း အသုံးပြုနိုင်ဖို့ Download လုပ်နိုင်စေပါတယ်။ ဒါဟာ အောက်ပါအတိုင်း ရိုးရှင်းပါတယ်။
+
+```python
+# Change to your username and repo name
+agent.push_to_hub('sergiopaniego/AlfredAgent')
+```
+
+Agent ကို ပြန်လည် Download လုပ်ဖို့အတွက် အောက်ပါ Code ကို အသုံးပြုပါ။
+
+```python
+# Change to your username and repo name
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
+```
+
+စိတ်လှုပ်ရှားစရာကောင်းတာက မျှဝေထားတဲ့ Agent တွေဟာ Hugging Face Spaces အနေနဲ့ တိုက်ရိုက် ရရှိနိုင်ပြီး၊ Real-time မှာ ၎င်းတို့နဲ့ အပြန်အလှန် ဆက်သွယ်နိုင်ပါတယ်။ အခြား Agent တွေကို [ဒီနေရာမှာ](https://huggingface.co/spaces/davidberenstein1957/smolagents-and-tools) လေ့လာနိုင်ပါတယ်။
+
+ဥပမာအားဖြင့်၊ *AlfredAgent* ကို [ဒီနေရာမှာ](https://huggingface.co/spaces/sergiopaniego/AlfredAgent) ရရှိနိုင်ပါတယ်။ အောက်မှာ တိုက်ရိုက် စမ်းသပ်ကြည့်နိုင်ပါတယ်။
+
+<iframe
+	src="https://sergiopaniego-alfredagent.hf.space/"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Alfred ဟာ `smolagents` ကို အသုံးပြုပြီး ဒီလို Agent ကို ဘယ်လိုတည်ဆောက်ခဲ့သလဲလို့ သင်တွေးမိနိုင်ပါတယ်။ Tool များစွာကို ပေါင်းစပ်ခြင်းဖြင့် သူဟာ အောက်ပါအတိုင်း Agent တစ်ခုကို ဖန်တီးနိုင်ပါတယ်။ Tool တွေအကြောင်းကိုတော့ ဒီအခန်းရဲ့ နောက်ပိုင်းမှာ အသေးစိတ် လေ့လာသွားမှာဖြစ်လို့ အခုလောလောဆယ် စိတ်ပူစရာ မလိုပါဘူး။
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
+
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion: The type of occasion for the party.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    This tool returns the highest-rated catering service in Gotham City.
+    
+    Args:
+        query: A search term for finding catering services.
+    """
+    # Example list of catering services and their ratings
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+    
+    # Find the highest rated catering service (simulating search query filtering)
+    best_service = max(services, key=services.get)
+    
+    return best_service
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    This tool suggests creative superhero-themed party ideas based on a category.
+    It returns a unique party theme idea."""
+    
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
+        }
+    }
+    
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: Guests come dressed as their favorite DC heroes with themed cocktails like 'The Kryptonite Punch'.",
+            "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
+            "futuristic Gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
+        }
+        
+        return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
+
+
+# Alfred, the butler, preparing the menu for the party
+agent = CodeAgent(
+    tools=[
+        DuckDuckGoSearchTool(), 
+        VisitWebpageTool(),
+        suggest_menu,
+        catering_service_tool,
+        SuperheroPartyThemeTool(),
+	FinalAnswerTool()
+    ], 
+    model=InferenceClientModel(),
+    max_steps=10,
+    verbosity_level=2
+)
+
+agent.run("Give me the best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
+```
+
+မြင်တဲ့အတိုင်းပါပဲ၊ ကျွန်တော်တို့ဟာ Agent ရဲ့ လုပ်ဆောင်နိုင်စွမ်းကို မြှင့်တင်ပေးတဲ့ Tools များစွာနဲ့ `CodeAgent` တစ်ခုကို ဖန်တီးခဲ့ပြီး၊ Community နဲ့ မျှဝေဖို့ အသင့်ဖြစ်နေတဲ့ အကောင်းဆုံး Party Planner အဖြစ် ပြောင်းလဲလိုက်ပါပြီ! 🎉
+
+ကဲ၊ သင့်အလှည့်ပါပဲ- သင်ခုနက လေ့လာခဲ့တဲ့ အသိပညာတွေကို အသုံးပြုပြီး သင့်ကိုယ်ပိုင် Agent ကို တည်ဆောက်ကာ Community နဲ့ မျှဝေလိုက်ပါ! 🕵️‍♂️💡
+
+> [!TIP]
+> သင့်ရဲ့ Agent Project ကို မျှဝေချင်တယ်ဆိုရင် Hugging Face Hub မှာ Space တစ်ခု ဖန်တီးပြီး <a href="https://huggingface.co/agents-course">agents-course</a> ကို Tag လုပ်လိုက်ပါ။ သင်ဖန်တီးထားတာတွေကို မြင်တွေ့ရဖို့ ကျွန်တော်တို့ စိတ်အားထက်သန်နေပါတယ်။
+
+### OpenTelemetry နှင့် Langfuse ဖြင့် ကျွန်တော်တို့ရဲ့ Party Preparator Agent ကို စစ်ဆေးခြင်း 📡
+
+Alfred ဟာ Party Preparator Agent ကို Fine-tune လုပ်နေချိန်မှာ၊ Run နေတာတွေကို Debug လုပ်ရတာ ပင်ပန်းလာပါတယ်။ Agent တွေဟာ သဘာဝအားဖြင့် ခန့်မှန်းရခက်ပြီး စစ်ဆေးဖို့ ခက်ခဲပါတယ်။ ဒါပေမယ့် သူဟာ အကောင်းဆုံး Party Preparator Agent ကို တည်ဆောက်ပြီး Production မှာ အသုံးပြုဖို့ ရည်ရွယ်ထားတဲ့အတွက် အနာဂတ် Monitoring နဲ့ Analysis အတွက် ခိုင်မာတဲ့ Traceability (ခြေရာခံနိုင်မှု) လိုအပ်ပါတယ်။
+
+ဒီတစ်ခါလည်း `smolagents` က ကူညီပေးပါပြီ! ၎င်းသည် Agent Runs တွေကို Instrument လုပ်ဖို့အတွက် [OpenTelemetry](https://opentelemetry.io/) စံနှုန်းကို လက်ခံကျင့်သုံးထားပြီး၊ ချောမွေ့စွာ စစ်ဆေးခြင်းနှင့် Log မှတ်တမ်းတင်ခြင်းတို့ကို ခွင့်ပြုပါတယ်။ [Langfuse](https://langfuse.com/) နဲ့ `SmolagentsInstrumentor` ရဲ့ အကူအညီနဲ့ Alfred ဟာ သူ့ရဲ့ Agent ရဲ့ အပြုအမူကို အလွယ်တကူ ခြေရာခံပြီး ခွဲခြမ်းစိတ်ဖြာနိုင်ပါတယ်။
+
+ဒါကို Setup လုပ်ဖို့က ရိုးရှင်းပါတယ်။
+
+ပထမဆုံး၊ လိုအပ်တဲ့ Dependencies တွေကို Install လုပ်ဖို့ လိုပါတယ်။
+
+```bash
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents langfuse
+```
+
+နောက်တစ်ခုကတော့ Alfred ဟာ Langfuse မှာ Account ဖွင့်ထားပြီး API Key တွေ အဆင်သင့်ရှိနေပါပြီ။ သင်မလုပ်ရသေးဘူးဆိုရင် Langfuse Cloud မှာ [ဒီနေရာမှာ](https://cloud.langfuse.com/) Sign Up လုပ်နိုင်ပါတယ် သို့မဟုတ် [အခြားရွေးချယ်စရာများ](https://huggingface.co/docs/smolagents/tutorials/inspect_runs) ကို လေ့လာနိုင်ပါတယ်။
+
+API Key တွေ ရပြီဆိုရင် အောက်ပါအတိုင်း စနစ်တကျ Configure လုပ်ဖို့ လိုပါတယ်။
+
+```python
+import os
+
+# Get keys for your project from the project settings page: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..." 
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US region
+```
+
+Environment Variables တွေ သတ်မှတ်ပြီးတာနဲ့ Langfuse Client ကို Initialize လုပ်နိုင်ပါပြီ။ `get_client()` က Environment Variables မှာ ပေးထားတဲ့ Credentials တွေကို အသုံးပြုပြီး Langfuse Client ကို စတင်ပေးပါတယ်။
+
+```python
+from langfuse import get_client
+ 
+langfuse = get_client()
+ 
+# Verify connection
+if langfuse.auth_check():
+    print("Langfuse client is authenticated and ready!")
+else:
+    print("Authentication failed. Please check your credentials and host.")
+```
+
+နောက်ဆုံးအနေနဲ့ Alfred ဟာ `SmolagentsInstrumentor` ကို Initialize လုပ်ပြီး သူ့ရဲ့ Agent ရဲ့ စွမ်းဆောင်ရည်ကို စတင်ခြေရာခံဖို့ အသင့်ဖြစ်ပါပြီ။
+
+```python
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+
+SmolagentsInstrumentor().instrument()
+```
+
+Alfred အခု ချိတ်ဆက်ပြီးပါပြီ 🔌! `smolagents` ကနေ Run တဲ့ Logs တွေဟာ Langfuse မှာ မှတ်တမ်းတင်နေပြီး၊ သူ့ရဲ့ Agent ရဲ့ အပြုအမူကို အပြည့်အဝ မြင်နိုင်စွမ်း ပေးပါတယ်။ ဒီ Setup နဲ့ဆိုရင် သူဟာ ယခင် Runs တွေကို ပြန်လည်သုံးသပ်ပြီး Party Preparator Agent ကို ပိုမိုကောင်းမွန်အောင် ပြုပြင်နိုင်ပါပြီ။
+
+> [!TIP]
+> သင့် Agent တွေကို Trace လုပ်ခြင်းနဲ့ စုဆောင်းထားတဲ့ ဒေတာတွေကို အသုံးပြုပြီး စွမ်းဆောင်ရည်ကို အကဲဖြတ်ခြင်းအကြောင်း ပိုမိုသိရှိလိုပါက <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Bonus Unit 2</a> ကို လေ့လာကြည့်ရှုနိုင်ပါတယ်။
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+agent = CodeAgent(tools=[], model=InferenceClientModel())
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
+```
+
+Alfred ဟာ အခု [ဒီ Logs တွေကို ဒီနေရာမှာ](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z) ဝင်ရောက်ကြည့်ရှုပြီး ပြန်လည်သုံးသပ်နိုင်ပါပြီ။
+
+> [!TIP]
+> တကယ်တော့ လုပ်ဆောင်မှုအတွင်း အမှားသေးသေးလေးတစ်ခု ဖြစ်ခဲ့ပါတယ်။ Logs တွေထဲမှာ သင်ရှာတွေ့နိုင်မလား? Agent က အဲဒီအမှားကို ဘယ်လို ကိုင်တွယ်ပြီး မှန်ကန်တဲ့ အဖြေကို ပြန်ပေးခဲ့သလဲဆိုတာကို ခြေရာခံကြည့်ပါ။ သင့်အဖြေကို စစ်ဆေးချင်တယ်ဆိုရင် [ဒီနေရာမှာ](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52) Error ကို တိုက်ရိုက်ကြည့်ရှုနိုင်ပါတယ်။ (ဟုတ်ပါတယ်၊ အဲဒီ Error ကို အခုအချိန်မှာ ပြင်ဆင်ပြီးပါပြီ။ အသေးစိတ်ကို [ဒီ Issue](https://github.com/huggingface/smolagents/issues/838) မှာ ကြည့်ရှုနိုင်ပါတယ်။)
+
+တစ်ချိန်တည်းမှာပဲ၊ [အကြံပြုထားတဲ့ Playlist](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw) က ပါတီပြင်ဆင်မှုအတွက် အကောင်းဆုံး Vibe ကို ပေးနေပါတယ်။ မိုက်တယ်နော်? 🎶
+
+---
+
+ကျွန်တော်တို့ ပထမဆုံး Code Agent ကို ဖန်တီးပြီးပြီဆိုတော့၊ `smolagents` မှာ ရရှိနိုင်တဲ့ ဒုတိယ Agent အမျိုးအစားဖြစ်တဲ့ **Tool Calling Agent တွေကို ဘယ်လို ဖန်တီးရမလဲ** ဆိုတာကို လေ့လာကြပါစို့။
+
+## အရင်းအမြစ်များ (Resources)
+
+*   [smolagents Blog](https://huggingface.co/blog/smolagents) - smolagents နှင့် Code Interactions များ မိတ်ဆက်
+*   [smolagents: Building Good Agents](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - ယုံကြည်စိတ်ချရသော Agent များအတွက် အကောင်းဆုံး အလေ့အကျင့်များ
+*   [Building Effective Agents - Anthropic](https://www.anthropic.com/research/building-effective-agents) - Agent ဒီဇိုင်း အခြေခံမူများ
+*   [Sharing runs with OpenTelemetry](https://huggingface.co/docs/smolagents/tutorials/inspect_runs) - သင့် Agent များကို ခြေရာခံရန် OpenTelemetry ကို Setup လုပ်နည်း အသေးစိတ်

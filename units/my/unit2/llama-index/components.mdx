@@ -1,0 +1,250 @@
+# LlamaIndex မှာ ပါဝင်တဲ့ အစိတ်အပိုင်းတွေက ဘာတွေလဲ။
+
+Unit 1 မှာ ပါဝင်ခဲ့တဲ့ ကျွန်တော်တို့ရဲ့ အကူအညီပေးသူ Alfred ကို မှတ်မိကြဦးမလား။
+
+Alfred ဟာ ကျွန်တော်တို့ရဲ့ တောင်းဆိုမှုတွေကို ထိထိရောက်ရောက် ကူညီပေးနိုင်ဖို့အတွက်၊ ကျွန်တော်တို့ရဲ့ မေးခွန်းတွေကို နားလည်ပြီး **အလုပ်တွေကို ပြီးမြောက်အောင် ကူညီဖို့အတွက် သက်ဆိုင်ရာ အချက်အလက်တွေကို ပြင်ဆင်တာ၊ ရှာဖွေတာနဲ့ အသုံးပြုတာတွေ** လုပ်ဆောင်ဖို့ လိုအပ်ပါတယ်။
+
+ဒီနေရာမှာ LlamaIndex ရဲ့ အစိတ်အပိုင်းတွေ (Components) က ဝင်ရောက်လာပါတယ်။
+
+LlamaIndex မှာ အစိတ်အပိုင်းများစွာ ရှိပေမယ့်၊ ကျွန်တော်တို့ကတော့ **`QueryEngine` (မေးမြန်းမှု စက်) အစိတ်အပိုင်းကို အဓိကထားပြီး လေ့လာသွားပါမယ်။**
+
+ဘာကြောင့်လဲဆိုတော့၊ ဒီ `QueryEngine` ကို Agent တစ်ခုအတွက် **Retrieval-Augmented Generation (RAG) Tool** အဖြစ် အသုံးပြုနိုင်လို့ပါပဲ။
+
+ဒါဆို RAG ဆိုတာ ဘာလဲ? LLM (Large Language Models) တွေဟာ ယေဘုယျ အသိပညာတွေကို သင်ယူဖို့အတွက် ကြီးမားတဲ့ ဒေတာအစုအဝေးတွေနဲ့ လေ့ကျင့်ထားပါတယ်။ ဒါပေမယ့်၊ သူတို့ဟာ သင့်ရဲ့ သီးခြားဒေတာတွေနဲ့ နောက်ဆုံးပေါ် အချက်အလက်တွေနဲ့ လေ့ကျင့်ထားခြင်း မရှိနိုင်ပါဘူး။
+
+RAG က ဒီပြဿနာကို ဖြေရှင်းပေးပါတယ်။ RAG ဟာ သင့်ရဲ့ ဒေတာတွေထဲကနေ သက်ဆိုင်ရာ အချက်အလက်တွေကို ရှာဖွေပြီး ပြန်လည်ရယူကာ၊ အဲဒီအချက်အလက်တွေကို LLM ကို ပေးပို့ခြင်းဖြင့် ပိုမိုတိကျတဲ့ အဖြေတွေ ထုတ်ပေးနိုင်ပါတယ်။
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Alfred ဘယ်လို အလုပ်လုပ်လဲဆိုတာကို ပြန်စဉ်းစားကြည့်ရအောင်-
+
+1.  သင်က Alfred ကို ညစာစားပွဲ စီစဉ်ဖို့ အကူအညီတောင်းတယ်။
+2.  Alfred ဟာ သင့်ရဲ့ ပြက္ခဒိန်၊ အစားအသောက် နှစ်သက်မှုတွေနဲ့ အရင်က အောင်မြင်ခဲ့တဲ့ Menu တွေကို စစ်ဆေးဖို့ လိုအပ်တယ်။
+3.  ဒီ `QueryEngine` က Alfred ကို ဒီအချက်အလက်တွေကို ရှာဖွေပြီး ညစာစားပွဲ စီစဉ်ဖို့အတွက် အသုံးပြုနိုင်အောင် ကူညီပေးပါတယ်။
+
+ဒါကြောင့် `QueryEngine` ဟာ LlamaIndex မှာ **Agent ပုံစံ RAG လုပ်ငန်းအဆင့်ဆင့် (Workflows) တွေကို တည်ဆောက်ဖို့အတွက် အဓိက အစိတ်အပိုင်း** တစ်ခု ဖြစ်လာပါတယ်။ Alfred ဟာ အကူအညီပေးနိုင်ဖို့ သင့်အိမ်တွင်း အချက်အလက်တွေကို ရှာဖွေဖို့ လိုအပ်သလို၊ မည်သည့် Agent မဆို သက်ဆိုင်ရာ ဒေတာတွေကို ရှာဖွေပြီး နားလည်ဖို့ နည်းလမ်းတစ်ခု လိုအပ်ပါတယ်။ `QueryEngine` က ဒီစွမ်းဆောင်ရည်ကို အတိအကျ ပေးစွမ်းနိုင်ပါတယ်။
+
+ကဲ၊ အစိတ်အပိုင်းတွေထဲကို နည်းနည်း ပိုနက်နက်နဲနဲ လေ့လာကြည့်ပြီး **RAG Pipeline တစ်ခုကို ဖန်တီးဖို့အတွက် အစိတ်အပိုင်းတွေကို ဘယ်လို ပေါင်းစပ်နိုင်မလဲ** ဆိုတာကို ကြည့်လိုက်ရအောင်။
+
+## အစိတ်အပိုင်းများ အသုံးပြု၍ RAG Pipeline တစ်ခု ဖန်တီးခြင်း
+
+> [!TIP]
+> သင်ဟာ Google Colab ကို အသုံးပြုပြီး run နိုင်တဲ့ <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">ဒီ Notebook</a> ထဲက Code တွေကို လိုက်နာပြီး လေ့လာနိုင်ပါတယ်။
+
+RAG အတွင်းမှာ အဓိက အဆင့် (၅) ဆင့် ရှိပါတယ်။ ဒီအဆင့်တွေဟာ သင်တည်ဆောက်မယ့် ပိုကြီးမားတဲ့ Application အများစုရဲ့ အစိတ်အပိုင်းတွေ ဖြစ်လာပါလိမ့်မယ်။ ၎င်းတို့ကတော့-
+
+1.  **Loading (တင်သွင်းခြင်း):** ဒါက သင့်ရဲ့ ဒေတာတွေ ရှိတဲ့နေရာ (Text Files, PDF များ၊ အခြား Website များ၊ Database သို့မဟုတ် API) ကနေ သင့်ရဲ့ လုပ်ငန်းအဆင့်ဆင့်ထဲကို ဒေတာတွေကို ရယူခြင်းကို ဆိုလိုပါတယ်။ LlamaHub က ရွေးချယ်စရာ ရာပေါင်းများစွာသော ပေါင်းစပ်မှု (Integrations) တွေကို ပေးထားပါတယ်။
+2.  **Indexing (အညွှန်းပြုလုပ်ခြင်း):** ဒါက ဒေတာတွေကို မေးမြန်းနိုင်ဖို့အတွက် ဒေတာဖွဲ့စည်းပုံ (Data Structure) တစ်ခုကို ဖန်တီးခြင်းကို ဆိုလိုပါတယ်။ LLM တွေအတွက်ဆိုရင်၊ ဒါဟာ ဒေတာရဲ့ အဓိပ္ပာယ်ကို ဖော်ပြတဲ့ ကိန်းဂဏန်းဆိုင်ရာ ကိုယ်စားပြုမှုဖြစ်တဲ့ **Vector Embeddings** တွေကို ဖန်တီးခြင်းကို ဆိုလိုပါတယ်။ Indexing ဟာ သက်ဆိုင်ရာ ဒေတာတွေကို တိကျစွာ ရှာဖွေနိုင်ဖို့အတွက် အခြား Metadata နည်းဗျူဟာများစွာကိုလည်း ရည်ညွှန်းနိုင်ပါတယ်။
+3.  **Storing (သိမ်းဆည်းခြင်း):** သင့်ရဲ့ ဒေတာတွေကို Index လုပ်ပြီးတာနဲ့၊ Index ကို ပြန်လည်ပြုလုပ်စရာ မလိုအောင် သင့်ရဲ့ Index နဲ့ အခြား Metadata တွေကို သိမ်းဆည်းထားဖို့ လိုအပ်ပါတယ်။
+4.  **Querying (မေးမြန်းခြင်း):** မည်သည့် Indexing နည်းဗျူဟာအတွက်မဆို၊ Sub-queries, Multi-step queries နှင့် Hybrid နည်းဗျူဟာများ အပါအဝင် LLM များနှင့် LlamaIndex ဒေတာဖွဲ့စည်းပုံများကို အသုံးပြုပြီး မေးမြန်းနိုင်တဲ့ နည်းလမ်းများစွာ ရှိပါတယ်။
+5.  **Evaluation (အကဲဖြတ်ခြင်း):** မည်သည့် လုပ်ငန်းအဆင့်ဆင့်တွင်မဆို အရေးပါသော အဆင့်တစ်ခုကတော့ အခြား နည်းဗျူဟာများနှင့် နှိုင်းယှဉ်ပါက သို့မဟုတ် ပြောင်းလဲမှုများ ပြုလုပ်သည့်အခါ ၎င်း၏ ထိရောက်မှုကို စစ်ဆေးခြင်းပဲ ဖြစ်ပါတယ်။ Evaluation က သင့်ရဲ့ မေးမြန်းမှုများအပေါ် တုံ့ပြန်မှုများ ဘယ်လောက် တိကျတယ်၊ ယုံကြည်စိတ်ချရတယ်၊ မြန်ဆန်တယ်ဆိုတာကို ရည်ရွယ်ချက်ရှိရှိ တိုင်းတာပေးပါတယ်။
+
+နောက်တစ်ခုအနေနဲ့၊ ဒီအဆင့်တွေကို အစိတ်အပိုင်းများ အသုံးပြုပြီး ဘယ်လို ပြန်လည်ဖန်တီးနိုင်မလဲဆိုတာကို ကြည့်လိုက်ရအောင်။
+
+### Document များကို တင်သွင်းခြင်းနှင့် Embedding ပြုလုပ်ခြင်း
+
+အရင်က ပြောခဲ့သလိုပဲ၊ LlamaIndex ဟာ သင့်ရဲ့ ကိုယ်ပိုင်ဒေတာတွေပေါ်မှာ အလုပ်လုပ်နိုင်ပါတယ်။ ဒါပေမယ့် **ဒေတာတွေကို မရယူခင်မှာ၊ ကျွန်တော်တို့က အဲဒီဒေတာတွေကို တင်သွင်းဖို့ လိုအပ်ပါတယ်**။
+
+LlamaIndex ထဲကို ဒေတာတွေ တင်သွင်းဖို့အတွက် အဓိက နည်းလမ်း (၃) ခု ရှိပါတယ်။
+
+1.  `SimpleDirectoryReader`: Local Directory တစ်ခုမှ အမျိုးမျိုးသော File အမျိုးအစားများအတွက် Built-in Loader တစ်ခု။
+2.  `LlamaParse`: LlamaIndex ရဲ့ တရားဝင် PDF စစ်ဆေးရေး Tool ဖြစ်ပြီး Managed API အဖြစ် ရရှိနိုင်ပါတယ်။
+3.  `LlamaHub`: မည်သည့် ရင်းမြစ်မှမဆို ဒေတာများ ထည့်သွင်းရန်အတွက် ရာပေါင်းများစွာသော Data-loading Libraries များ၏ Registry တစ်ခု။
+
+> [!TIP]
+> ပိုမိုရှုပ်ထွေးသော ဒေတာရင်းမြစ်များအတွက် <a href="https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/">LlamaHub</a> Loaders များနှင့် <a href="https://github.com/run-llama/llama_cloud_services/blob/main/parse.md">LlamaParse</a> Parser များကို လေ့လာထားသင့်ပါတယ်။
+
+**ဒေတာ တင်သွင်းဖို့အတွက် အလွယ်ကူဆုံး နည်းလမ်းကတော့ `SimpleDirectoryReader` ကို အသုံးပြုခြင်းပဲ ဖြစ်ပါတယ်။**
+
+ဒီစွယ်စုံသုံး အစိတ်အပိုင်းဟာ Folder တစ်ခုထဲက အမျိုးမျိုးသော File အမျိုးအစားတွေကို တင်သွင်းနိုင်ပြီး၊ ၎င်းတို့ကို LlamaIndex က အလုပ်လုပ်နိုင်တဲ့ `Document` Object များအဖြစ် ပြောင်းလဲပေးပါတယ်။
+
+`SimpleDirectoryReader` ကို အသုံးပြုပြီး Folder တစ်ခုထဲက ဒေတာတွေကို ဘယ်လို တင်သွင်းနိုင်မလဲဆိုတာကို ကြည့်လိုက်ရအောင်။
+
+```python
+from llama_index.core import SimpleDirectoryReader
+
+reader = SimpleDirectoryReader(input_dir="path/to/directory")
+documents = reader.load_data()
+```
+
+ကျွန်တော်တို့ရဲ့ Document တွေကို တင်သွင်းပြီးနောက်၊ ၎င်းတို့ကို `Node` Object လို့ခေါ်တဲ့ ပိုမိုသေးငယ်တဲ့ အပိုင်းလေးတွေအဖြစ် ခွဲထုတ်ဖို့ လိုအပ်ပါတယ်။
+
+`Node` ဆိုတာက မူရင်း Document ထဲက စာသားအပိုင်းအစ (Chunk) တစ်ခုသာ ဖြစ်ပါတယ်။ ဒါက AI အတွက် အလုပ်လုပ်ရတာ ပိုမိုလွယ်ကူစေပြီး၊ မူရင်း `Document` Object ကိုလည်း ရည်ညွှန်းမှုတွေ ရှိနေပါသေးတယ်။
+
+`IngestionPipeline` က အဓိက ပြောင်းလဲမှု (၂) ခုမှတစ်ဆင့် ဒီ Node တွေကို ဖန်တီးဖို့ ကူညီပေးပါတယ်။
+
+1.  `SentenceSplitter` က Document တွေကို သဘာဝကျတဲ့ စာကြောင်း နယ်နိမိတ်တွေမှာ ခွဲထုတ်ခြင်းဖြင့် စီမံခန့်ခွဲနိုင်တဲ့ အပိုင်းအစတွေအဖြစ် ခွဲထုတ်ပေးပါတယ်။
+2.  `HuggingFaceEmbedding` က အပိုင်းအစတစ်ခုစီကို ကိန်းဂဏန်းဆိုင်ရာ Embeddings များအဖြစ် ပြောင်းလဲပေးပါတယ်။ ဒီ Vector ကိုယ်စားပြုမှုတွေက AI က ထိရောက်စွာ စီမံဆောင်ရွက်နိုင်တဲ့ ပုံစံနဲ့ အဓိပ္ပာယ်ကို ဖမ်းယူပေးပါတယ်။
+
+ဒီလုပ်ငန်းစဉ်က ကျွန်တော်တို့ရဲ့ Document တွေကို ရှာဖွေခြင်းနဲ့ ခွဲခြမ်းစိတ်ဖြာခြင်းအတွက် ပိုမိုအသုံးဝင်တဲ့ ပုံစံနဲ့ စနစ်တကျ စီစဉ်ပေးပါတယ်။
+
+```python
+from llama_index.core import Document
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.ingestion import IngestionPipeline
+
+# create the pipeline with transformations
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_overlap=0),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ]
+)
+
+nodes = await pipeline.arun(documents=[Document.example()])
+```
+
+### Document များကို သိမ်းဆည်းခြင်းနှင့် Indexing ပြုလုပ်ခြင်း
+
+ကျွန်တော်တို့ရဲ့ `Node` Object တွေကို ဖန်တီးပြီးနောက်၊ ၎င်းတို့ကို ရှာဖွေနိုင်ဖို့အတွက် Index လုပ်ဖို့ လိုအပ်ပါတယ်။ ဒါပေမယ့် အဲဒီလို မလုပ်ခင်မှာ၊ ကျွန်တော်တို့ရဲ့ ဒေတာတွေကို သိမ်းဆည်းဖို့ နေရာတစ်ခု လိုအပ်ပါတယ်။
+
+ကျွန်တော်တို့ Ingestion Pipeline ကို အသုံးပြုနေတဲ့အတွက်၊ Vector Store တစ်ခုကို Pipeline နဲ့ တိုက်ရိုက် ချိတ်ဆက်ပြီး ဒေတာတွေ ထည့်သွင်းနိုင်ပါတယ်။ ဒီနေရာမှာတော့ ကျွန်တော်တို့ရဲ့ Document တွေကို သိမ်းဆည်းဖို့အတွက် **`Chroma`** ကို အသုံးပြုပါမယ်။
+
+<details>
+<summary>ChromaDB ကို Install လုပ်ခြင်း</summary>
+
+<a href="./llama-hub">LlamaHub အပိုင်း</a> မှာ မိတ်ဆက်ပေးခဲ့သလိုပဲ၊ ChromaDB Vector Store ကို အောက်ပါ Command ဖြင့် Install လုပ်နိုင်ပါတယ်။
+
+```bash
+pip install llama-index-vector-stores-chroma
+```
+</details>
+
+```python
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_size=25, chunk_overlap=0),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ],
+    vector_store=vector_store,
+)
+```
+
+> [!TIP]
+> မတူညီတဲ့ Vector Store တွေရဲ့ ခြုံငုံသုံးသပ်ချက်ကို <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">LlamaIndex Documentation</a> မှာ ရှာဖွေနိုင်ပါတယ်။
+
+ဒီနေရာမှာ Vector Embeddings တွေက ဝင်ရောက်လာပါတယ်။ Query နဲ့ Node တွေကို တူညီတဲ့ Vector Space ထဲမှာ Embedding လုပ်ခြင်းဖြင့်၊ ကျွန်တော်တို့ဟာ သက်ဆိုင်ရာ ကိုက်ညီမှုတွေကို ရှာဖွေနိုင်ပါတယ်။
+
+`VectorStoreIndex` က ကျွန်တော်တို့အတွက် ဒီအလုပ်ကို လုပ်ဆောင်ပေးပါတယ်။ ၎င်းသည် Ingestion လုပ်စဉ်က အသုံးပြုခဲ့တဲ့ Embedding Model အတူတူကို အသုံးပြုပြီး တသမတ်တည်း ဖြစ်စေဖို့ သေချာစေပါတယ်။
+
+ကျွန်တော်တို့ရဲ့ Vector Store နဲ့ Embeddings တွေကနေ ဒီ Index ကို ဘယ်လို ဖန်တီးနိုင်မလဲဆိုတာကို ကြည့်လိုက်ရအောင်။
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
+embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+```
+
+အချက်အလက်အားလုံးကို `ChromaVectorStore` Object နဲ့ ပေးပို့ထားတဲ့ Directory Path အတွင်းမှာ အလိုအလျောက် သိမ်းဆည်းထားပါတယ်။
+
+ကောင်းပါပြီ! အခု ကျွန်တော်တို့ Index ကို အလွယ်တကူ သိမ်းဆည်းပြီး တင်သွင်းနိုင်ပြီဆိုတော့၊ ၎င်းကို မတူညီတဲ့ နည်းလမ်းတွေနဲ့ ဘယ်လို မေးမြန်းနိုင်မလဲဆိုတာကို လေ့လာကြည့်ရအောင်။
+
+### Prompts နှင့် LLM များဖြင့် VectorStoreIndex ကို မေးမြန်းခြင်း
+
+ကျွန်တော်တို့ Index ကို မေးမြန်းမှု Interface တစ်ခုအဖြစ် မပြောင်းခင်မှာ၊ အဲဒီလို ပြောင်းဖို့ လိုအပ်ပါတယ်။ အသုံးအများဆုံး ပြောင်းလဲမှု ရွေးချယ်စရာတွေကတော့-
+
+*   `as_retriever`: အခြေခံ Document ပြန်လည်ရယူခြင်းအတွက်၊ Similarity Score များပါဝင်တဲ့ `NodeWithScore` Object စာရင်းကို ပြန်ပေးပါတယ်။
+*   `as_query_engine`: တစ်ခုတည်းသော မေးခွန်း-အဖြေ ဆက်သွယ်မှုများအတွက်၊ စာဖြင့်ရေးသားထားသော တုံ့ပြန်မှုကို ပြန်ပေးပါတယ်။
+*   `as_chat_engine`: Message များစွာတွင် မှတ်ဉာဏ်ကို ထိန်းသိမ်းထားသော စကားပြောဆိုမှု ဆက်သွယ်မှုများအတွက်၊ Chat History နှင့် Index လုပ်ထားသော Context ကို အသုံးပြုပြီး စာဖြင့်ရေးသားထားသော တုံ့ပြန်မှုကို ပြန်ပေးပါတယ်။
+
+Agent ပုံစံ ဆက်သွယ်မှုများအတွက် ပိုမိုအသုံးများတဲ့ Query Engine ကို ကျွန်တော်တို့ အာရုံစိုက်ပါမယ်။
+
+တုံ့ပြန်မှုအတွက် အသုံးပြုဖို့ LLM တစ်ခုကိုလည်း Query Engine ထဲကို ထည့်သွင်းပေးရပါမယ်။
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(
+    llm=llm,
+    response_mode="tree_summarize",
+)
+query_engine.query("What is the meaning of life?")
+# The meaning of life is 42
+```
+
+### တုံ့ပြန်မှု စီမံဆောင်ရွက်ခြင်း (Response Processing)
+
+အတွင်းပိုင်းမှာ Query Engine ဟာ မေးခွန်းကို ဖြေဖို့အတွက် LLM ကိုသာ အသုံးပြုတာ မဟုတ်ပါဘူး။ တုံ့ပြန်မှုကို စီမံဆောင်ရွက်ဖို့အတွက် နည်းဗျူဟာတစ်ခုအနေနဲ့ `ResponseSynthesizer` ကိုလည်း အသုံးပြုပါတယ်။
+
+ဒါကိုလည်း လုံးဝ စိတ်ကြိုက်ပြင်ဆင်နိုင်ပေမယ့်၊ အောက်ပါ အဓိက နည်းဗျူဟာ (၃) ခုက အကောင်းဆုံး အလုပ်လုပ်ပါတယ်။
+
+*   `refine`: ပြန်လည်ရယူထားသော Text Chunk တစ်ခုစီကို အစဉ်လိုက် ဖြတ်သန်းပြီး အဖြေတစ်ခုကို ဖန်တီးကာ ချိန်ညှိပါတယ်။ ဒါက Node/Retrieved Chunk တစ်ခုစီအတွက် သီးခြား LLM Call တစ်ခုကို ပြုလုပ်စေပါတယ်။
+*   `compact` (Default): Refine လုပ်တာနဲ့ ဆင်တူပေမယ့် Chunks တွေကို ကြိုတင် ပေါင်းစပ်ထားတဲ့အတွက် LLM Call နည်းပါးစေပါတယ်။
+*   `tree_summarize`: ပြန်လည်ရယူထားသော Text Chunk တစ်ခုစီကို ဖြတ်သန်းပြီး အဖြေ၏ Tree Structure တစ်ခုကို ဖန်တီးခြင်းဖြင့် အသေးစိတ် အဖြေတစ်ခုကို ဖန်တီးပါတယ်။
+
+> [!TIP]
+> <a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">Low-level Composition API</a> ဖြင့် သင့်ရဲ့ Query Workflows တွေကို အသေးစိတ် ထိန်းချုပ်လိုက်ပါ။ ဒီ API က သင့်ရဲ့ လိုအပ်ချက်အတိုင်း Query လုပ်ငန်းစဉ်ရဲ့ အဆင့်တိုင်းကို စိတ်ကြိုက်ပြင်ဆင်ပြီး ချိန်ညှိနိုင်စေပါတယ်။ ဒါက <a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">Workflows</a> တွေနဲ့လည်း ကောင်းကောင်း တွဲဖက်အလုပ်လုပ်ပါတယ်။
+
+Language Model ဟာ အမြဲတမ်း ခန့်မှန်းနိုင်တဲ့ ပုံစံနဲ့ အလုပ်လုပ်မှာ မဟုတ်တဲ့အတွက်၊ ကျွန်တော်တို့ ရရှိတဲ့ အဖြေဟာ အမြဲတမ်း မှန်ကန်တယ်လို့ သေချာနိုင်မှာ မဟုတ်ပါဘူး။ ဒီပြဿနာကို **အဖြေရဲ့ အရည်အသွေးကို အကဲဖြတ်ခြင်း** ဖြင့် ဖြေရှင်းနိုင်ပါတယ်။
+
+### Evaluation နှင့် Observability (အကဲဖြတ်ခြင်းနှင့် စောင့်ကြည့်နိုင်မှု)
+
+LlamaIndex က **တုံ့ပြန်မှု အရည်အသွေးကို အကဲဖြတ်ဖို့အတွက် Built-in Evaluation Tools တွေကို ပေးထားပါတယ်။** ဒီ Evaluator တွေက မတူညီတဲ့ ရှုထောင့်တွေကနေ တုံ့ပြန်မှုတွေကို ခွဲခြမ်းစိတ်ဖြာဖို့ LLM တွေကို အသုံးပြုပါတယ်။ ရရှိနိုင်တဲ့ အဓိက Evaluator (၃) ခုကို ကြည့်လိုက်ရအောင်။
+
+*   `FaithfulnessEvaluator`: အဖြေသည် Context မှ ပံ့ပိုးထားခြင်း ရှိ၊ မရှိ စစ်ဆေးခြင်းဖြင့် အဖြေ၏ ယုံကြည်စိတ်ချရမှုကို အကဲဖြတ်ပါတယ်။
+*   `AnswerRelevancyEvaluator`: အဖြေသည် မေးခွန်းနှင့် သက်ဆိုင်မှု ရှိ၊ မရှိ စစ်ဆေးခြင်းဖြင့် အဖြေ၏ သက်ဆိုင်မှုကို အကဲဖြတ်ပါတယ်။
+*   `CorrectnessEvaluator`: အဖြေသည် မှန်ကန်မှု ရှိ၊ မရှိ စစ်ဆေးခြင်းဖြင့် အဖြေ၏ မှန်ကန်မှုကို အကဲဖြတ်ပါတယ်။
+
+> [!TIP]
+> Agent Observability နဲ့ Evaluation အကြောင်း ပိုမိုလေ့လာချင်ပါသလား? <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Bonus Unit 2</a> ဖြင့် သင့်ရဲ့ ခရီးကို ဆက်လက်လုပ်ဆောင်ပါ။
+
+```python
+from llama_index.core.evaluation import FaithfulnessEvaluator
+
+query_engine = # from the previous section
+llm = # from the previous section
+
+# query index
+evaluator = FaithfulnessEvaluator(llm=llm)
+response = query_engine.query(
+    "What battles took place in New York City in the American Revolution?"
+)
+eval_result = evaluator.evaluate_response(response=response)
+eval_result.passing
+```
+
+တိုက်ရိုက် Evaluation မရှိရင်တောင်မှ၊ ကျွန်တော်တို့ရဲ့ စနစ် ဘယ်လို အလုပ်လုပ်နေလဲဆိုတာကို **Observability (စောင့်ကြည့်နိုင်မှု)** မှတစ်ဆင့် ထိုးထွင်းသိမြင်နိုင်ပါတယ်။ ဒါက ပိုမိုရှုပ်ထွေးတဲ့ Workflows တွေကို တည်ဆောက်တဲ့အခါနဲ့ အစိတ်အပိုင်းတစ်ခုချင်းစီ ဘယ်လို အလုပ်လုပ်နေလဲဆိုတာကို နားလည်ချင်တဲ့အခါ အထူးအသုံးဝင်ပါတယ်။
+
+<details>
+<summary>LlamaTrace ကို Install လုပ်ခြင်း</summary>
+
+<a href="./llama-hub">LlamaHub အပိုင်း</a> မှာ မိတ်ဆက်ပေးခဲ့သလိုပဲ၊ Arize Phoenix မှ LlamaTrace Callback ကို အောက်ပါ Command ဖြင့် Install လုပ်နိုင်ပါတယ်။
+
+```bash
+pip install -U llama-index-callbacks-arize-phoenix
+```
+
+ထို့အပြင်၊ ကျွန်တော်တို့ရဲ့ LlamaTrace API Key ကို `PHOENIX_API_KEY` Environment Variable အဖြစ် သတ်မှတ်ဖို့ လိုအပ်ပါတယ်။ ဒါကို အောက်ပါအတိုင်း ရယူနိုင်ပါတယ်-
+- [LlamaTrace](https://llamatrace.com/login) မှာ Account တစ်ခု ဖန်တီးပါ။
+- သင့် Account Settings မှာ API Key တစ်ခု ထုတ်ပေးပါ။
+- Tracing ကို ဖွင့်ဖို့အတွက် အောက်ပါ Code မှာ API Key ကို အသုံးပြုပါ။
+
+</details>
+
+```python
+import llama_index
+import os
+
+PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
+llama_index.core.set_global_handler(
+    "arize_phoenix",
+    endpoint="https://llamatrace.com/v1/traces"
+)
+```
+
+> [!TIP]
+> Components တွေအကြောင်းနဲ့ ၎င်းတို့ကို ဘယ်လို အသုံးပြုရမယ်ဆိုတာကို ပိုမိုလေ့လာချင်ပါသလား? <a href="https://docs.llamaindex.ai/en/stable/module_guides/">Components Guides</a> သို့မဟုတ် <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">RAG Guide</a> ဖြင့် သင့်ရဲ့ ခရီးကို ဆက်လက်လုပ်ဆောင်ပါ။
+
+ကျွန်တော်တို့ဟာ `QueryEngine` တစ်ခုကို ဖန်တီးဖို့အတွက် Components တွေကို ဘယ်လို အသုံးပြုရမယ်ဆိုတာကို မြင်ခဲ့ရပါပြီ။ ကဲ၊ အခု **`QueryEngine` ကို Agent တစ်ခုအတွက် Tool အဖြစ် ဘယ်လို အသုံးပြုနိုင်မလဲ** ဆိုတာကို ကြည့်လိုက်ရအောင်!
