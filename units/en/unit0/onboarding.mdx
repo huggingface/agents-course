@@ -80,11 +80,22 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 
    To use `LiteLLMModel` module in `smolagents`, you may run `pip` command to install the module.
 
-``` bash
+    ``` bash
     pip install 'smolagents[litellm]'
-```
+    ```
+5.  **Create a model object in Python REPL**
 
-``` python
+    In your terminal:
+    ```bash
+    python # or python3 if that’s your setup
+    ```
+    You will see something like
+    ```bash
+    Python 3.11.x (...)
+    >>>
+    ```
+    Now paste this:
+    ``` python
     from smolagents import LiteLLMModel
 
     model = LiteLLMModel(
@@ -92,9 +103,12 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
         api_base="http://127.0.0.1:11434",  # Default Ollama local server
         num_ctx=8192,
     )
-```
-
-5. **Why this works?**
+    ```
+    Then exit with:
+    ```bash
+    exit()
+    ```
+6. **Why this works?**
 - Ollama serves models locally using an OpenAI-compatible API at `http://localhost:11434`.
 - `LiteLLMModel` is built to communicate with any model that supports the OpenAI chat/completion API format.
 - This means you can simply swap out `InferenceClientModel` for `LiteLLMModel` no other code changes required. It’s a seamless, plug-and-play solution.
