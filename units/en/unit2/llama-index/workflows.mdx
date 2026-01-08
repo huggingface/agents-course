@@ -201,7 +201,11 @@ def multiply(a: int, b: int) -> int:
     """Multiply two numbers."""
     return a * b
 
-llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Check available providers: https://huggingface.co/inference/models
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="auto"
+)
 
 # we can pass functions directly without FunctionTool -- the fn/docstring are parsed for the name/description
 multiply_agent = ReActAgent(
