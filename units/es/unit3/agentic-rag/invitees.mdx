@@ -253,7 +253,7 @@ Usaremos el `BM25Retriever` del módulo `langchain_community.retrievers` para cr
 
 ```python
 from langchain_community.retrievers import BM25Retriever
-from langchain.tools import Tool
+from langchain_core.tools import Tool
 
 bm25_retriever = BM25Retriever.from_documents(docs)
 

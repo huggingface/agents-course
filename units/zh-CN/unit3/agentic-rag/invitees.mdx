@@ -243,7 +243,7 @@ guest_info_tool = FunctionTool.from_defaults(get_guest_info_retriever)
 
 ```python
 from langchain_community.retrievers import BM25Retriever
-from langchain.tools import Tool
+from langchain_core.tools import Tool
 
 bm25_retriever = BM25Retriever.from_documents(docs)
 

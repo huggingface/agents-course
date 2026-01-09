@@ -1,0 +1,389 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord"
+ />
+
+# 코드를 사용하는 에이전트 만들기
+
+코드 에이전트는 `smolagents`의 기본 에이전트 유형입니다. 이들은 파이썬 도구 호출을 생성하여 작업을 수행하며, 효율적이고 표현력 있으며 정확한 액션 표현을 달성합니다.
+
+이러한 간소화된 접근 방식은 필요한 액션 수를 줄이고, 복잡한 작업을 단순화하며, 기존 코드 함수의 재사용을 가능하게 합니다. `smolagents`는 약 1,000줄의 코드로 구현된 경량 프레임워크를 제공합니다.
+
+![코드 vs JSON 액션](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+위 이미지는 논문 [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)에서 가져왔습니다.
+
+<Tip>
+코드 에이전트가 왜 효과적인지 더 알고 싶다면, smolagents 문서의 <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">이 가이드</a>를 참고하세요.
+</Tip>
+
+## 왜 코드 에이전트인가요?
+
+다단계 에이전트 프로세스에서 LLM은 일반적으로 외부 도구 호출을 포함하는 액션을 작성하고 실행합니다. 기존 방식은 도구 이름과 인자를 문자열로 지정하는 JSON 형식을 사용하며, **시스템이 어떤 도구를 실행할지 파싱해야 합니다**.
+
+하지만 연구 결과에 따르면, **도구 호출 LLM은 직접 코드를 사용할 때 더 효과적으로 작동합니다**. 이것이 `smolagents`의 핵심 원칙이며, 위의 논문 이미지에서도 확인할 수 있습니다.
+
+코드로 액션을 작성하면 다음과 같은 주요 장점이 있습니다:
+
+* **조합성**: 액션을 쉽게 결합하고 재사용할 수 있습니다.
+* **객체 관리**: 이미지와 같은 복잡한 구조를 직접 다룰 수 있습니다.
+* **범용성**: 계산적으로 가능한 모든 작업을 표현할 수 있습니다.
+* **LLM에 자연스러움**: 고품질 코드는 이미 LLM의 학습 데이터에 풍부하게 포함되어 있습니다.
+
+## 코드 에이전트는 어떻게 동작하나요?
+
+![https://huggingface.co/docs/smolagents/conceptual_guides/react에서 가져옴](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+위 다이어그램은 `CodeAgent.run()`이 어떻게 동작하는지 보여줍니다. 이는 1단원에서 언급한 ReAct 프레임워크를 따릅니다. `smolagents`에서 에이전트의 주요 추상화는 `MultiStepAgent`이며, 이는 핵심 빌딩 블록 역할을 합니다. `CodeAgent`는 특별한 종류의 `MultiStepAgent`입니다.
+
+`CodeAgent`는 다음과 같은 단계로 동작합니다. 기존 변수와 지식은 실행 로그에 저장되어 에이전트의 컨텍스트로 활용됩니다:
+
+1. 시스템 프롬프트는 `SystemPromptStep`에 저장되고, 사용자 쿼리는 `TaskStep`에 기록됩니다.
+
+2. 그 다음, 다음과 같은 while 루프가 실행됩니다:
+
+    2.1 `agent.write_memory_to_messages()` 메서드는 에이전트의 로그를 LLM이 읽을 수 있는 [채팅 메시지](https://huggingface.co/docs/transformers/main/en/chat_templating) 리스트로 변환합니다.
+    
+    2.2 이 메시지들은 `Model`로 전송되어 응답을 생성합니다.
+    
+    2.3 응답에서 액션을 추출하는데, 코드 에이전트이므로 파이썬 코드 조각이어야 합니다.
+    
+    2.4 액션이 실행됩니다.
+    
+    2.5 결과가 `ActionStep`에 메모리로 기록됩니다.
+
+각 단계가 끝날 때, 에이전트에 함수 호출(`agent.step_callback`)이 포함되어 있다면 실행됩니다.
+
+## 예시로 알아보기
+
+<Tip>
+<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb" target="_blank">이 노트북</a>을 따라가며 코드를 직접 실행해볼 수 있습니다.
+</Tip>
+
+Alfred는 웨인 가문의 저택에서 파티를 준비하고 있습니다. 모든 것이 순조롭게 진행되도록 여러분의 도움이 필요합니다. 지금까지 배운 다단계 `CodeAgent`의 동작 방식을 적용해봅시다.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-party.jpg" alt="Alfred Party"/>
+
+아직 `smolagents`를 설치하지 않았다면, 다음 명령어로 설치하세요:
+
+```bash
+pip install smolagents -U
+```
+
+Hugging Face Hub에 로그인하여 Serverless Inference API를 사용할 수 있도록 합니다.
+
+```python
+from huggingface_hub import login
+
+login()
+```
+
+### `smolagents`로 파티 플레이리스트 선택하기
+
+음악은 파티의 필수 요소입니다! Alfred는 플레이리스트를 고르는 데 도움이 필요합니다. 다행히도 `smolagents`를 사용하면 웹 검색 도구를 에이전트에 추가하여 이를 해결할 수 있습니다.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred Playlist"/>
+
+모델로는 Hugging Face의 [Serverless Inference API](https://huggingface.co/docs/api-inference/index)에 접근할 수 있는 `InferenceClientModel`을 사용합니다. 기본 모델은 "Qwen/Qwen2.5-Coder-32B-Instruct"이며, 빠른 추론이 가능합니다. 허브에서 호환되는 다른 모델도 선택할 수 있습니다.
+
+에이전트 실행은 매우 간단합니다:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+
+agent.run("웨인 저택에서 열리는 파티에 어울리는 최고의 음악 추천을 검색해줘.")
+```
+
+이 예시를 실행하면 **워크플로우 단계의 실행 추적**이 출력됩니다. 또한 다음과 같은 파이썬 코드가 표시됩니다:
+
+```python
+ ─ 실행된 파싱 코드: ─────────────────────────────────────────────────────────────── 
+  results = web_search(query="배트맨 파티에 어울리는 최고의 음악")                                                       
+  print(results)                                                                                                    
+ ───────────────────────────────────────────────────────────────────────────────────── 
+```
+
+몇 단계 후, Alfred가 사용할 수 있는 플레이리스트가 생성됩니다! 🎵
+
+### 맞춤형 도구로 메뉴 준비하기
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-menu.jpg" alt="Alfred Menu"/>
+
+플레이리스트를 골랐다면, 이제 손님을 위한 메뉴를 준비해야 합니다. Alfred는 여기서도 `smolagents`의 도움을 받을 수 있습니다. 아래 예시에서는 `@tool` 데코레이터를 사용해 맞춤형 함수를 도구로 등록합니다. 도구 생성에 대해서는 이후에 더 자세히 다루니, 지금은 코드를 실행해보세요.
+
+아래 예시처럼, `@tool` 데코레이터로 도구를 만들고 `tools` 리스트에 추가합니다.
+
+```python
+from smolagents import CodeAgent, tool, InferenceClientModel
+
+# 파티 상황에 맞는 메뉴를 추천하는 도구
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    상황에 따라 메뉴를 추천합니다.
+    Args:
+        occasion (str): 파티 유형. 허용 값:
+                        - "casual": 캐주얼 파티 메뉴
+                        - "formal": 포멀 파티 메뉴
+                        - "superhero": 슈퍼히어로 파티 메뉴
+                        - "custom": 맞춤 메뉴
+    """
+    if occasion == "casual":
+        return "피자, 스낵, 음료."
+    elif occasion == "formal":
+        return "3코스 디너, 와인, 디저트."
+    elif occasion == "superhero":
+        return "고에너지, 건강식 뷔페."
+    else:
+        return "집사만을 위한 맞춤 메뉴."
+
+# Alfred가 파티 메뉴를 준비합니다
+agent = CodeAgent(tools=[suggest_menu], model=InferenceClientModel())
+
+# 파티를 위한 포멀 메뉴 준비
+agent.run("파티를 위한 포멀 메뉴를 준비해줘.")
+```
+
+에이전트는 몇 단계 실행 후 답을 찾습니다. docstring에 허용 값을 명확히 적으면 에이전트가 `occasion` 인자 값을 올바르게 사용하도록 유도할 수 있습니다.
+
+메뉴 준비 완료! 🥗
+
+### 에이전트 내에서 파이썬 import 사용하기
+
+플레이리스트와 메뉴가 준비되었으니, 이제 남은 것은 준비 시간 계산입니다!
+
+Alfred는 모든 준비를 지금 시작하면 언제 파티가 준비될지 계산해야 합니다. 필요하다면 다른 슈퍼히어로의 도움도 받을 수 있겠죠.
+
+`smolagents`는 파이썬 코드 조각을 작성하고 실행하는 에이전트에 특화되어 있으며, 보안을 위해 샌드박스 실행을 제공합니다.
+
+**코드 실행에는 엄격한 보안 조치가 적용됩니다** — 기본적으로 허용된 목록 외의 import는 차단됩니다. 하지만 `additional_authorized_imports`에 문자열로 추가하면 import를 허용할 수 있습니다.
+자세한 보안 실행 방법은 공식 [가이드](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution)를 참고하세요.
+
+아래 예시에서는 `datetime` 모듈 import를 허용합니다.
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=InferenceClientModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred가 파티를 준비해야 합니다. 작업 목록:
+    1. 음료 준비 - 30분
+    2. 저택 장식 - 60분
+    3. 메뉴 세팅 - 45분
+    4. 음악 및 플레이리스트 준비 - 45분
+
+    지금 바로 시작하면 파티 준비가 언제 끝날까요?
+    """
+)
+```
+
+이 예시들은 코드 에이전트로 할 수 있는 일의 시작에 불과합니다. 더 많은 내용은 [smolagents 문서](https://huggingface.co/docs/smolagents)에서 확인하세요.
+
+요약하자면, `smolagents`는 파이썬 코드 조각을 작성하고 실행하는 에이전트에 특화되어 있으며, 보안 샌드박스 실행을 지원합니다. 로컬 및 API 기반 언어 모델 모두 지원하여 다양한 개발 환경에 적합합니다.
+
+### 우리만의 파티 준비 에이전트를 허브에 공유하기
+
+우리만의 Alfred 에이전트를 커뮤니티에 공유할 수 있다면 정말 멋지지 않을까요? 누구나 허브에서 쉽게 다운로드해 사용할 수 있습니다! `smolagents`는 완성된 에이전트를 커뮤니티에 공유하고, 다른 사람의 에이전트를 즉시 다운로드할 수 있도록 지원합니다. 방법은 다음과 같이 간단합니다:
+
+```python
+# 사용자명과 저장소명을 변경하세요
+agent.push_to_hub('sergiopaniego/AlfredAgent')
+```
+
+다시 다운로드하려면 아래 코드를 사용하세요:
+
+```python
+# 사용자명과 저장소명을 변경하세요
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+
+alfred_agent.run("웨인 저택에서 열리는 파티에 어울리는 최고의 플레이리스트를 추천해줘. 파티 테마는 '빌런 가면무도회'야")  
+```
+
+공유된 에이전트는 Hugging Face Spaces에서도 바로 사용할 수 있습니다. [여기](https://huggingface.co/spaces/davidberenstein1957/smolagents-and-tools)에서 다양한 에이전트를 탐색해보세요.
+
+예를 들어, _AlfredAgent_는 [여기](https://huggingface.co/spaces/sergiopaniego/AlfredAgent)에서 바로 사용할 수 있습니다. 아래에서 직접 체험해보세요:
+
+<iframe
+	src="https://sergiopaniego-alfredagent.hf.space/"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Alfred가 어떻게 이런 에이전트를 만들었는지 궁금하다면, 여러 도구를 통합해 아래와 같이 에이전트를 생성할 수 있습니다. 도구에 대해서는 이후에 자세히 다루니, 지금은 구조만 참고하세요:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
+
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    상황에 따라 메뉴를 추천합니다.
+    Args:
+        occasion: 파티 유형
+    """
+    if occasion == "casual":
+        return "피자, 스낵, 음료."
+    elif occasion == "formal":
+        return "3코스 디너, 와인, 디저트."
+    elif occasion == "superhero":
+        return "고에너지, 건강식 뷔페."
+    else:
+        return "집사만을 위한 맞춤 메뉴."
+
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    이 도구는 고담시에서 평점이 가장 높은 케이터링 서비스를 반환합니다.
+    
+    Args:
+        query: 케이터링 서비스 검색어
+    """
+    # 예시 케이터링 서비스와 평점
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+    
+    # 평점이 가장 높은 서비스 찾기(검색어 필터링 시뮬레이션)
+    best_service = max(services, key=services.get)
+    
+    return best_service
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    이 도구는 카테고리에 따라 창의적인 슈퍼히어로 테마 파티 아이디어를 제안합니다.
+    고유한 파티 테마 아이디어를 반환합니다."""
+    
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "슈퍼히어로 파티 유형(예: 'classic heroes', 'villain masquerade', 'futuristic Gotham')",
+        }
+    }
+    
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: 손님들이 DC 영웅으로 분장하고 '크립토나이트 펀치' 같은 테마 칵테일을 즐깁니다.",
+            "villain masquerade": "Gotham Rogues' Ball: 손님들이 배트맨 빌런으로 분장하는 신비로운 가면무도회.",
+            "futuristic Gotham": "Neo-Gotham Night: 배트맨 비욘드에서 영감을 받은 사이버펑크 스타일 파티, 네온 장식과 미래형 소품.",
+        }
+        
+        return themes.get(category.lower(), "테마 파티 아이디어를 찾을 수 없습니다. 'classic heroes', 'villain masquerade', 'futuristic Gotham' 중에서 시도해보세요.")
+
+
+# Alfred가 파티 메뉴를 준비합니다
+agent = CodeAgent(
+    tools=[
+        DuckDuckGoSearchTool(), 
+        VisitWebpageTool(),
+        suggest_menu,
+        catering_service_tool,
+        SuperheroPartyThemeTool(),
+	FinalAnswerTool()
+    ], 
+    model=InferenceClientModel(),
+    max_steps=10,
+    verbosity_level=2
+)
+
+agent.run("웨인 저택에서 열리는 파티에 어울리는 최고의 플레이리스트를 추천해줘. 파티 테마는 '빌런 가면무도회'야")
+```
+
+이처럼 여러 도구를 결합해 `CodeAgent`를 만들면, 커뮤니티와 공유할 수 있는 궁극의 파티 플래너가 완성됩니다! 🎉
+
+이제 여러분 차례입니다: 자신만의 에이전트를 만들어 허브에 공유해보세요! 🕵️‍♂️💡
+
+<Tip>
+여러분의 에이전트 프로젝트를 공유하고 싶다면, Hugging Face Hub에 space를 만들고 <a href="https://huggingface.co/agents-course">agents-course</a> 태그를 달아주세요. 여러분의 작품을 기다리고 있습니다!
+</Tip>
+
+### OpenTelemetry와 Langfuse로 파티 준비 에이전트 추적하기 📡
+
+Alfred는 파티 준비 에이전트를 다듬으면서 실행을 디버깅하는 데 지쳐가고 있습니다. 에이전트는 본질적으로 예측 불가능하고, 동작을 추적하기 어렵기 때문입니다. 하지만 궁극의 파티 준비 에이전트를 만들어 배포하려면, 미래의 모니터링과 분석을 위한 강력한 추적 기능이 필요합니다.
+
+여기서도 `smolagents`가 해결책을 제공합니다! [OpenTelemetry](https://opentelemetry.io/) 표준을 채택해 에이전트 실행을 계측하고, [Langfuse](https://langfuse.com/) 및 `SmolagentsInstrumentor`를 통해 동작을 쉽게 추적·분석할 수 있습니다.
+
+설정 방법은 다음과 같이 간단합니다!
+
+먼저, 필요한 의존성을 설치합니다:
+
+```bash
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+```
+
+Alfred는 이미 Langfuse 계정을 만들고 API 키를 준비했습니다. 아직 계정이 없다면 [여기](https://cloud.langfuse.com/)에서 가입하거나 [대안](https://huggingface.co/docs/smolagents/tutorials/inspect_runs)을 참고하세요.
+
+API 키를 아래와 같이 환경 변수로 설정합니다:
+
+```python
+import os
+import base64
+
+LANGFUSE_PUBLIC_KEY="pk-lf-..."
+LANGFUSE_SECRET_KEY="sk-lf-..."
+LANGFUSE_AUTH=base64.b64encode(f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()).decode()
+
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://cloud.langfuse.com/api/public/otel" # EU 데이터 리전
+# os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://us.cloud.langfuse.com/api/public/otel" # US 데이터 리전
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+```
+
+마지막으로, `SmolagentsInstrumentor`를 초기화해 추적을 시작합니다.
+
+```python
+from opentelemetry.sdk.trace import TracerProvider
+
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+
+trace_provider = TracerProvider()
+trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+
+SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+```
+
+이제 Alfred는 연결 완료! 🔌 `smolagents`의 실행이 Langfuse에 기록되어, 에이전트의 동작을 완벽하게 추적할 수 있습니다. 이 설정으로 이전 실행을 다시 확인하고, 파티 준비 에이전트를 더욱 개선할 수 있습니다.
+
+<Tip>에이전트 추적 및 평가 데이터 활용법은 <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">보너스 2단원</a>에서 더 자세히 다룹니다.</Tip>
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+agent = CodeAgent(tools=[], model=InferenceClientModel())
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+alfred_agent.run("웨인 저택에서 열리는 파티에 어울리는 최고의 플레이리스트를 추천해줘. 파티 테마는 '빌런 가면무도회'야")  
+```
+
+Alfred는 이제 [여기](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z)에서 로그를 확인하고 분석할 수 있습니다.
+
+<Tip>
+실행 중에 작은 오류가 발생했습니다. 로그에서 오류를 찾아볼 수 있나요? 에이전트가 어떻게 오류를 처리하고 유효한 답을 반환하는지 추적해보세요. <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">여기</a>에서 오류를 직접 확인할 수 있습니다. 물론 오류는 이미 수정되었으며, 자세한 내용은 <a href="https://github.com/huggingface/smolagents/issues/838">이 이슈</a>에서 확인할 수 있습니다.
+</Tip>
+
+한편, [추천 플레이리스트](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw)가 파티 준비 분위기를 완성해줍니다. 멋지죠? 🎶
+
+---
+
+이제 첫 번째 코드 에이전트를 만들었으니, **이제 smolagents에서 제공하는 두 번째 에이전트 유형인 Tool Calling Agent 만드는 법**을 배워봅시다.
+
+## 참고 자료
+
+- [smolagents 블로그](https://huggingface.co/blog/smolagents) - smolagents 및 코드 인터랙션 소개
+- [smolagents: 좋은 에이전트 만들기](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 신뢰성 높은 에이전트 구축을 위한 베스트 프랙티스
+- [Anthropic: 효과적인 에이전트 만들기](https://www.anthropic.com/research/building-effective-agents) - 에이전트 설계 원칙
+- [OpenTelemetry로 실행 공유하기](https://huggingface.co/docs/smolagents/tutorials/inspect_runs) - 에이전트 추적 설정 방법

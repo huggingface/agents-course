@@ -1,0 +1,118 @@
+# LangGraph 이해도 테스트 [[test-your-understanding-of-langgraph]]
+
+`LangGraph`에 대한 이해도를 간단한 퀴즈로 확인해보세요! 지금까지 배운 핵심 개념을 복습하는 데 도움이 됩니다.
+
+이 퀴즈는 선택 사항이며 채점되지 않습니다.
+
+### Q1: LangGraph의 주요 목적은 무엇인가요? [[q1-what-is-the-primary-purpose-of-langgraph]]
+LangGraph가 무엇을 위해 설계되었는지 가장 잘 설명하는 문장은?
+
+<Question
+choices={[
+  {
+    text: "LLM을 포함한 애플리케이션의 제어 흐름을 구축하기 위한 프레임워크",
+    explain: "LangGraph는 LLM을 사용하는 애플리케이션의 제어 흐름을 구축하고 관리하는 데 특화되어 있습니다.",
+    correct: true
+  },
+  {
+    text: "다양한 LLM 모델과 상호작용할 수 있는 인터페이스를 제공하는 라이브러리",
+    explain: "이 설명은 LangChain의 역할에 더 가깝습니다. LangChain은 모델과의 상호작용을 위한 표준 인터페이스를 제공하는 역할, LangGraph는 제어 흐름에 중점을 둡니다.",
+  },
+  {
+    text: "도구를 호출하기 위한 Agent 라이브러리",
+    explain: "LangGraph는 Agent와 함께 사용하는 것은 맞지만, LangGraph의 주요 목적은 '오케스트레이션(Orchestration)'입니다.",
+  }
+]}
+/>
+
+---
+
+### Q2: "제어 vs 자유" 관점에서 LangGraph는 어디에 속하나요? [[q2-in-the-context-of-the-control-vs-freedom-trade-off-where-does-langgraph-stand]]
+다음 중 LangGraph의 에이전트 설계 접근 방식을 가장 잘 설명한 문장은?
+
+<Question
+choices={[
+  {
+    text: "LangGraph는 LLM에게 자유도를 높게 주어 모든 결정을 독립적으로 내릴 수 있도록 합니다.",
+    explain: "LangGraph는 오히려 구조화된 워크플로우를 제공하여 LLM의 동작을 제어합니다.",
+  },
+  {
+    text: "LangGraph는 실행 흐름에 대한 강력한 제어를 제공하면서 동시에 의사결정을 위해 LLM 기능을 활용합니다",
+    explain: "LangGraph는 구조화된 워크플로우를 통해 에이전트의 실행을 예측 가능하게 하고, LLM의 결정을 활용할 수 있게 설계되어 있습니다.",
+    correct: true
+  }
+]}
+/>
+
+---
+
+### Q3: LangGraph에서 상태(State)의 역할은 무엇인가요? [[q3-what-role-does-state-play-in-langgraph]]
+다음 중 LangGraph에서 상태(State)에 대한 설명으로 가장 적절한 것은?
+
+<Question
+choices={[
+  {
+    text: "상태(State)는 LLM이 생성한 것 중 가장 최신 결과입니다.",
+    explain: "상태(State)는 LangGraph에서 사용자가 정의한 클래스로, LLM이 생성한 것이 아닙니다. 사용자가 필드를 정의하고 그 값은 LLM이 채울 수 있습니다",
+  },
+  {
+    text: "상태(State)는 실행 중 발생한 오류를 추적하는 데만 사용됩니다",
+    explain: "상태는 오류 추적 외에도 다양한 목적으로도 사용됩니다. 물론 오류 추적 또한 유용하게 사용되는 예시입니다.",
+  },
+  {
+    text: "상태(State)는 에이전트 어플리케이션을 통해 흐르는 정보를 나타냅니다",
+    explain: "상태(State)는 LangGraph의 핵심적인 역할을 하며, 각 노드 간 의사결정에 필요한 모든 정보를 담고 있습니다. 사용자가 필요한 필드를 정의하면, 노드가 필드 값을 변경하며 흐름을 결정합니다.",
+    correct: true
+  },
+  {
+    text: "상태(State)는 외부 API와 작업할 때만 관련이 있습니다",
+    explain: "상태(State)는 외부 API와 작업하는 어플리케이션뿐만 아니라 모든 LangGraph 어플리케이션의 필수 요소입니다.",
+  }
+]}
+/>
+
+### Q4: LangGraph에서 조건부 엣지(Conditional Edge)란 무엇인가요? [[q4-what-is-a-conditional-edge-in-langgraph]]
+조건부 엣지에 대한 설명으로 가장 적절한 것은?
+
+<Question
+choices={[
+    {
+    text: "조건을 평가하여 다음에 실행할 노드를 결정하는 엣지",
+    explain: "조건부 엣지는 현재 상태(State)를 기반으로 그래프가 동적 라우팅을 수행하여 워크플로우에 분기 로직을 만듭니다.",
+    correct: true
+  },
+  {
+    text: "특정 조건이 발생할 때만 따라가는 엣지",
+    explain: "조건부 엣지는 어플리케이션의 입력이 아닌 출력을 기반으로 흐름을 제어합니다.",
+  },
+  {
+    text: "진행 전에 사용자 확인이 필요한 엣지",
+    explain: "조건부 엣지는 사용자 상호작용이 아닌, 프로그래밍 조건에 따라 동작합니다.",
+  }
+]}
+/>
+
+---
+
+### Q5: LangGraph는 LLM의 환각(hallucination) 문제를 어떻게 해결하는 데 도움이 되나요? [[q5-how-does-langgraph-help-address-the-hallucination-problem-in-llms]]
+환각에 대한 설명으로 가장 적절한 것은?
+
+<Question
+choices={[
+  {
+    text: "LangGraph는 LLM 응답을 제한하여 환각을 완전히 제거합니다",
+    explain: "어떤 프레임워크도 LLM의 환각을 완전히 제거할 수 없으며, LangGraph도 예외는 아닙니다.",
+  },
+  {
+    text: "LangGraph는 LLM 출력을 검증하고 확인할 수 있는 구조화된 워크플로우를 제공합니다",
+    explain: "LangGraph는 검증 단계, 확인 노드, 오류 처리 경로 등을 구조화한 워크플로우를 통해 환각의 영향을 줄이는데 도움을 줍니다.",
+    correct: true
+  },
+  {
+    text: "LangGraph는 환각에 영향을 주지 않습니다",
+    explain: "LangGraph는 구조화된 워크플로우를 통해, 속도를 희생하더라도 환각 완화에 효과적입니다.",
+  }
+]}
+/>
+
+축하합니다! 🎉 틀린 문제가 있다면, 앞에서 다룬 내용들을 다시 검토해보세요. 이제 LangGraph의 더 심화 기능을 알아보고, 더 복잡한 에이전트 워크플로우를 구축하는 방법을 배워봅시다.

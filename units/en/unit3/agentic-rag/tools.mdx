@@ -143,7 +143,7 @@ weather_info_tool = FunctionTool.from_defaults(get_weather_info)
 <hfoption id="langgraph">
 
 ```python
-from langchain.tools import Tool
+from langchain_core.tools import Tool
 import random
 
 def get_weather_info(location: str) -> str:
@@ -256,7 +256,7 @@ The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 dow
 <hfoption id="langgraph">
 
 ```python
-from langchain.tools import Tool
+from langchain_core.tools import Tool
 from huggingface_hub import list_models
 
 def get_hub_stats(author: str) -> str:

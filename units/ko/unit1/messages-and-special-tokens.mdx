@@ -1,15 +1,15 @@
-# 메세지와 특수 토큰 [[messages-and-special-tokens]]
+# 메시지와 특수 토큰 [[messages-and-special-tokens]]
 
 이제 LLM이 어떻게 동작하는지 이해했으니, **채팅 템플릿을 통해 생성 결과를 구조화**하는 방법을 살펴보겠습니다.
 
-예로 ChatGPT를 떠올려봅시다. 사용자는 에이전트(Agent)와 상호작용 할 때 채팅 인터페이스를 사용합니다. 따라서 LLM이 어떻게 채팅을 관리하는지 이해하는 것은 중요합니다.
+예로 ChatGPT를 떠올려봅시다. 사용자는 에이전트(Agent)와 상호작용할 때 채팅 인터페이스를 사용합니다. 따라서 LLM이 어떻게 채팅을 관리하는지 이해하는 것은 중요합니다.
 
-> **Q**: 하지만 ... 저는 ChatGPT/Hugging Chat을 사용할 때 프롬프트가 아니라 메세지로 대화를 주고 받는 데요?
+> **Q**: 하지만 ... 저는 ChatGPT/HuggingChat을 사용할 때 프롬프트가 아니라 메시지로 대화를 주고받는데요?
 >
-> **A**: 맞습니다! 하지만 사실 그 메세지는 UI의 추상화일 뿐입니다.
+> **A**: 맞습니다! 하지만 사실 그 메시지는 UI의 추상화일 뿐입니다.
  실제로는 모든 대화 메시지가 하나의 프롬프트로 연결되어 LLM에 입력됩니다. LLM은 이전 대화를 "기억"하는 것이 아니라, 매번 대화를 전체적으로 읽는 방식으로 동작합니다.
 
-지금까지 우리는 프롬프트를 모델에 입력되는 토큰의 시퀀스로 설명했습니다. 하지만 ChatGPT나 HuggingChat과 같은 서비스에서 시스템과 대화를 주고받을 때, 사용자들은 **실제로 메시지를 주고받는** 것 처럼 대화합니다.사실 내부에서 메세지는 **모델이 이해할 수 있도록 연결되어 프롬프트에 구조화**되고 있답니다.
+지금까지 우리는 프롬프트를 모델에 입력되는 토큰의 시퀀스로 설명했습니다. 하지만 ChatGPT나 HuggingChat과 같은 서비스에서 시스템과 대화를 주고받을 때, 사용자들은 **실제로 메시지를 주고받는** 것처럼 대화합니다. 사실 내부에서 메시지는 **모델이 이해할 수 있도록 연결되어 프롬프트에 구조화**되고 있답니다.
 
 <figure>
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
@@ -21,8 +21,8 @@
 
 여기서 다시 특수 토큰(Special Tokens) 개념이 등장합니다. 특수 토큰은 모델이 사용자(User)와 어시스턴트(Assistant)의 메시지 시작과 끝을 구분하는 데 사용됩니다. 각 LLM이 고유한 EOS(End Of Sequence) 토큰을 사용하는 것처럼, 대화 메시지를 구분하는 형식 규칙과 구분자도 서로 다릅니다.
 
-## 메세지: LLM의 근본적인 시스템 [[messages-the-underlying-system-of-llms]]
-### 시스템 메세지(시스템 프롬프트) [[system-messages]]
+## 메시지: LLM의 근본적인 시스템 [[messages-the-underlying-system-of-llms]]
+### 시스템 메시지(시스템 프롬프트) [[system-messages]]
 
 시스템 메시지(또는 시스템 프롬프트) 는 **모델의 행동 방식**을 가이드해주는 지침서입니다. 이는 **지속적인 안내서** 역할을 하며, 이후 모든 상호작용을 안내합니다.
 
@@ -35,11 +35,11 @@ system_message = {
 }
 ```
 
-이러한 시스템 메세지가 주어지면, AI 에이전트 알프레드는 공손하고 도움을 주는 방식으로 답변합니다:
+이러한 시스템 메시지가 주어지면, AI 에이전트 알프레드는 공손하고 도움을 주는 방식으로 답변합니다:
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Polite alfred"/>
 
-하지만 다음과 같이 시스템 메세지를 변경하면 : 
+하지만 다음과 같이 시스템 메시지를 변경하면 : 
 
 ```python
 system_message = {
@@ -52,16 +52,16 @@ system_message = {
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Rebel Alfred"/>
 
-에이전트를 사용할 때, 시스템 메세지는 **사용가능한 도구에 대한 정보, 모델이 수행할 행동(Action)의 형식, 사고 과정(Thought)을 분할하는 방법**을 지정하는 역할도 합니다.
+에이전트를 사용할 때, 시스템 메시지는 **사용 가능한 도구에 대한 정보, 모델이 수행할 행동(Action)의 형식, 사고 과정(Thought)을 분할하는 방법**을 지정하는 역할도 합니다.
 
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred System Prompt"/>
 
-### 대화: 사용자와 어시스턴트 메세지 [[conversations-user-and-assistant-messages]]
+### 대화: 사용자와 어시스턴트 메시지 [[conversations-user-and-assistant-messages]]
 
-대화는 사용자(user)과 어시스턴트(LLM)간의 메세지로 이루어집니다.
+대화는 사용자(user)와 어시스턴트(LLM) 간의 메시지로 이루어집니다.
 
-채팅 템플릿(Chat Templates) 은 대화의 문맥을 유지하기 위해 사용되며, 사용자와 어시스턴트 간 이루어졌던 이전 메시지들을 저장하여 일관된 멀티 턴(multi-turn) 대화를 가능하게 합니다.
+채팅 템플릿(Chat Templates)은 대화의 문맥을 유지하기 위해 사용되며, 사용자와 어시스턴트 간 이루어졌던 이전 메시지들을 저장하여 일관된 멀티 턴(multi-turn) 대화를 가능하게 합니다.
 
 예제:
 
@@ -74,8 +74,8 @@ conversation = [
 ```
 
 이 대화에서 사용자는 주문 관련 도움을 요청했으며, LLM 어시스턴트는 주문 번호를 물었습니다. 
-이후 사용자가 주문 번호를 제공하면, 전체 대화의 모든 메세지들은 단일 시퀀스로 변환되어 LLM에 입력됩니다.
-채팅 템플릿은 이 파이썬 리스트 안에 있는 모든 메세지를 프롬프트(string)로 변환합니다. 
+이후 사용자가 주문 번호를 제공하면, 전체 대화의 모든 메시지들은 단일 시퀀스로 변환되어 LLM에 입력됩니다.
+채팅 템플릿은 이 파이썬 리스트 안에 있는 모든 메시지를 프롬프트(string)로 변환합니다. 
 
 예를 들어, SmolLM2 채팅 템플릿은 다음과 같이 메시지를 변환합니다:
 
@@ -114,38 +114,38 @@ Today Date: 10 Feb 2025
 messages = [
     {"role": "system", "content": "너는 수학 선생님이야."},
     {"role": "user", "content": "미적분학이 뭐야?"},
-    {"role": "assistant", "content": "미적분학은 수학의 한 분야로...""},
-    {"role": "user", "content": "예시을 들어줘."},
+    {"role": "assistant", "content": "미적분학은 수학의 한 분야로..."},
+    {"role": "user", "content": "예시를 들어줘."},
 ]
 ```
 
 ## 채팅 템플릿(Chat-Templates) [[chat-templates]]
 
-채팅 템플릿은 **언어 모델과 사용자의 대화를 특정 형식으로 구조화**하는 역할을 합니다. 즉, 메세지를 프롬프트로 변환하는 방법을 가르쳐주죠.
+채팅 템플릿은 **언어 모델과 사용자의 대화를 특정 형식으로 구조화**하는 역할을 합니다. 즉, 메시지를 프롬프트로 변환하는 방법을 가르쳐주죠.
 
 ### 베이스 모델(Base Models) vs. 인스트럭트 모델(Instruct Models) [[base-models-vs-instruct-models]]
 
-또다른 중요한 부분은 베이스 모델 vs 인스트럭트 모델의 차이점을 이해하는 것 입니다 :
+또 다른 중요한 부분은 베이스 모델 vs 인스트럭트 모델의 차이점을 이해하는 것입니다:
 
 - *베이스 모델(Base Model)* 은 미가공 텍스트 데이터(raw data)로 학습해 다음 토큰을 예측합니다.
 
-- *인스트럭트 모델(Instruct Model)* 은 주어진 지시를 따라 대화할 수 있도록 추가로 미세 조정된 모델 예를 들어, `SmolLM2-135M`은 베이스 모델, `SmolLM2-135M-Instruct`은 인스트럭트 모델입니다.
+- *인스트럭트 모델(Instruct Model)* 은 주어진 지시를 따라 대화할 수 있도록 추가로 미세 조정된 모델입니다. 예를 들어, `SmolLM2-135M`은 베이스 모델, `SmolLM2-135M-Instruct`은 인스트럭트 모델입니다.
 
-베이스 모델을 인스트럭트 모델처럼 동작하게 하려면, **프롬프트 형식을 일관되게**맞춰야 합니다. 여기서 채팅 템플릿이 등장합니다.
+베이스 모델을 인스트럭트 모델처럼 동작하게 하려면, **프롬프트 형식을 일관되게** 맞춰야 합니다. 여기서 채팅 템플릿이 등장합니다.
 
 *ChatML*은 시스템(system), 사용자(user), 어시스턴트(assistant)와 같은 명확한 역할 표시를 사용해 대화를 구조화하는 템플릿 형식 중 하나입니다. 여러분이 최신 AI API를 사용해 본 경험이 있으시다면, 이것이 표준 방식이라는 것을 알 것입니다.
 
-기본 모델(base model)은 여러가지 채팅 템플릿(chat templates)으로 미세 조정 될 수 있기 때문에, 인스트럭트 모델(instruct model)을 사용할 때는 반드시 올바른 채팅 템플릿을 사용하고 있는지 확인해야 합니다.
+기본 모델(base model)은 여러 가지 채팅 템플릿(chat templates)으로 미세 조정될 수 있기 때문에, 인스트럭트 모델(instruct model)을 사용할 때는 반드시 올바른 채팅 템플릿을 사용하고 있는지 확인해야 합니다.
 
 ### 채팅 템플릿(Chat Templates) 이해하기 [[understanding-chat-templates]]
 
-각 인스트럭트 모델 마다 다른 대화 형식과 특수 토큰을 사용하기 때문에, 각 모델에 맞는 프롬프트 형식으로 채팅 템플릿이 구현됩니다.
+각 인스트럭트 모델마다 다른 대화 형식과 특수 토큰을 사용하기 때문에, 각 모델에 맞는 프롬프트 형식으로 채팅 템플릿이 구현됩니다.
 
-`transformers` 라이브러리에서는 채팅 템플릿에 [Jinja2 코드](https://jinja.palletsprojects.com/en/stable/) 를 포함하고 있습니다. 이는 위의 예제와 같이 JSON 형태 메세지의 ChatML 목록을 시스템 레벨의 지시문(instruction) 텍스트로 나타내주는데, 이는 모델이 이해 할 수 있는 사용자 메세지-어시스턴트 응답 형태로 이루어져 있습니다.
+`transformers` 라이브러리에서는 채팅 템플릿에 [Jinja2 코드](https://jinja.palletsprojects.com/en/stable/) 를 포함하고 있습니다. 이는 위의 예제와 같이 JSON 형태 메시지의 ChatML 목록을 시스템 레벨의 지시문(instruction) 텍스트로 나타내주는데, 이는 모델이 이해할 수 있는 사용자 메시지-어시스턴트 응답 형태로 이루어져 있습니다.
 
 이 구조는 모델이 대화 중 **일관성을 유지하고, 다양한 유형의 입력에 적절하게 응답**할 수 있게 합니다.
 
-아래는 `SmolLM2-135M-Instruct`채팅 템플릿의 간소화 버전입니다:
+아래는 `SmolLM2-135M-Instruct` 채팅 템플릿의 간소화 버전입니다:
 
 ```jinja2
 {% for message in messages %}
@@ -158,9 +158,9 @@ messages = [
 {{ message['content'] }}<|im_end|>
 {% endfor %}
 ```
-위 코드와 같이, 채팅 템플릿은 메세지 리스트의 형식을 정의합니다.
+위 코드와 같이, 채팅 템플릿은 메시지 리스트의 형식을 정의합니다.
 
-다음과 같은 메세지 목록이 주어진 경우:
+다음과 같은 메시지 목록이 주어진 경우:
 
 ```python
 messages = [
@@ -184,7 +184,7 @@ messages = [
 어떻게 사용하는지 알려줘<|im_end|>
 ```
 
-`transformers`라이브러리는 토큰화 과정에서 채팅 템플릿을 처리합니다. `transformers`가 어떻게 채팅 템플릿을 사용하는 지 더 알고 싶으시다면 <a href="https://huggingface.co/docs/transformers/en/chat_templating#how-do-i-use-chat-templates" target="_blank">여기</a>를 참고하세요! 우리가 할 것은 메세지를 올바른 형식으로 구조화 해주는 것 뿐, 나머지 작업은 토크나이저가 처리합니다.
+`transformers`라이브러리는 토큰화 과정에서 채팅 템플릿을 처리합니다. `transformers`가 어떻게 채팅 템플릿을 사용하는지 더 알고 싶으시다면 <a href="https://huggingface.co/docs/transformers/en/chat_templating#how-do-i-use-chat-templates" target="_blank">여기</a>를 참고하세요! 우리가 할 것은 메시지를 올바른 형식으로 구조화해 주는 것뿐, 나머지 작업은 토크나이저가 처리합니다.
 
 아래 Space를 통해 동일한 대화가 다양한 모델별 채팅 템플릿에 따라 어떻게 형식화 되는지 실습해 볼 수 있습니다:
 
@@ -196,7 +196,7 @@ messages = [
 ></iframe>
 
 
-### 메세지를 프롬프트로 변환하기 [[messages-to-prompt]]
+### 메시지를 프롬프트로 변환하기 [[messages-to-prompt]]
 
 LLM이 올바른 형식을 갖춘 대화를 수신하도록 하는 방법은, 모델의 토크나이저가 제공하는 `chat_template`를 사용하는 것입니다.
 
@@ -217,15 +217,15 @@ tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
 rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 ```
 
-이 함수가 리턴하는 `rendered_prompt` 은 선택한 모델에 대한 입력으로 바로 사용 가능합니다!
+이 함수가 리턴하는 `rendered_prompt`는 선택한 모델에 대한 입력으로 바로 사용 가능합니다!
 
-> `apply_chat_template()`함수는 ChatML 형식의 메세지를 처리할 때 API의 백엔드에서 사용됩니다.
+> `apply_chat_template()`함수는 ChatML 형식의 메시지를 처리할 때 API의 백엔드에서 사용됩니다.
 
 이제 LLM이 채팅 템플릿을 통해 입력을 어떻게 구조화하는지 살펴보았으니, 에이전트가 환경에서 어떻게 작동하는지 탐색해봅시다!
 
-에이전트가 이를 수행하는 주요 방법 중 하나는 **도구(Tools)**를 사용하는 것 입니다. 도구는 AI모델의 기능을 단순 텍스트 생성 이상으로 확장할 수 있게 해줍니다.
+에이전트가 이를 수행하는 주요 방법 중 하나는 **도구(Tools)**를 사용하는 것입니다. 도구는 AI모델의 기능을 단순 텍스트 생성 이상으로 확장할 수 있게 해줍니다.
 
-이후 새로운 유닛에서 메세지에 대해 더 다룰 예정이지만, 지금 더 깊이 탐구하고 싶으시다면 다음 문서를 참고하세요:
+이후 새로운 유닛에서 메시지에 대해 더 다룰 예정이지만, 지금 더 깊이 탐구하고 싶으시다면 다음 문서를 참고하세요:
 
-- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face 채팅 템플릿 가이드/a>
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face 채팅 템플릿 가이드</a>
 - <a href="https://huggingface.co/docs/transformers" target="_blank">Transformers 문서</a>
