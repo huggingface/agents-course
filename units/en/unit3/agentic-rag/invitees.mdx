@@ -195,7 +195,7 @@ class GuestInfoRetrieverTool(Tool):
         self.retriever = BM25Retriever.from_documents(docs)
 
     def forward(self, query: str):
-        results = self.retriever.get_relevant_documents(query)
+        results = self.retriever.invoke(query)
         if results:
             return "\n\n".join([doc.page_content for doc in results[:3]])
         else:
