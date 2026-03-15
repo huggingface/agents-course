@@ -62,7 +62,7 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 3. **Start Ollama in the background (In one terminal)**
     ``` bash
     ollama serve
-    ``` 
+    ```
 
     If you run into the error "listen tcp 127.0.0.1:11434: bind: address already in use", you can use command `sudo lsof -i :11434` to identify the process
     ID (PID) that is currently using this port. If the process is `ollama`, it is likely that the installation script above has started ollama
@@ -73,7 +73,7 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
    To use `LiteLLMModel` module in `smolagents`, you may run `pip` command to install the module.
 
 ``` bash
-    pip install 'smolagents[litellm]'
+    pip install ‘smolagents[litellm]’
 ```
 
 ``` python
@@ -91,6 +91,34 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 - `LiteLLMModel` is built to communicate with any model that supports the OpenAI chat/completion API format.
 - This means you can simply swap out `InferenceClientModel` for `LiteLLMModel` no other code changes required. It’s a seamless, plug-and-play solution.
 
-Congratulations! 🎉 **You've completed the onboarding process**! You're now ready to start learning about AI Agents. Have fun!
+### Step 6: Using Cloud LLM Providers with `OpenAIServerModel`
+
+Besides the Hugging Face serverless API and local models, you can use any cloud LLM provider that offers an **OpenAI-compatible API** with `smolagents`. This is done through the `OpenAIServerModel` class, which connects to any service exposing the OpenAI chat completions interface.
+
+For example, to use <a href="https://www.minimaxi.com" target="_blank">MiniMax</a> models (which offer up to 204K context length):
+
+1. **Get your API key** from the MiniMax platform
+
+2. **Set the API key as an environment variable**
+
+    ```bash
+    export MINIMAX_API_KEY="your-minimax-api-key"
+    ```
+
+3. **Use `OpenAIServerModel` with MiniMax**
+
+    ```python
+    from smolagents import OpenAIServerModel
+
+    model = OpenAIServerModel(
+        model_id="MiniMax-M2.5",
+        api_base="https://api.minimax.io/v1",
+        api_key=os.environ["MINIMAX_API_KEY"],
+    )
+    ```
+
+This same pattern works with any OpenAI-compatible provider — just change the `model_id`, `api_base`, and `api_key` accordingly. This flexibility lets you experiment with different models and providers without changing the rest of your agent code.
+
+Congratulations! 🎉 **You’ve completed the onboarding process**! You’re now ready to start learning about AI Agents. Have fun!
 
 Keep Learning, stay awesome 🤗
