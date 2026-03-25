@@ -60,7 +60,7 @@ It decides **which Actions to take based on the situation**.
 
 This part represents **everything the Agent is equipped to do**.
 
-The **scope of possible actions** depends on what the agent **has been equipped with**. For example, because humans lack wings, they can't perform the "fly" **Action**, but they can execute **Actions** like "walk", "run" ,"jump", "grab", and so on.
+The **scope of possible actions** depends on what the agent **has been equipped with**. For example, because humans lack wings, they can't perform the "fly" **Action**, but they can execute **Actions** like "walk", "run","jump", "grab", and so on.
 
 ### The spectrum of "Agency"
 
@@ -81,7 +81,7 @@ Table from [smolagents conceptual guide](https://huggingface.co/docs/smolagents/
 
 The most common AI model found in Agents is an LLM (Large Language Model), which  takes **Text** as an input and outputs **Text** as well.
 
-Well known examples are **GPT4** from **OpenAI**, **LLama** from **Meta**, **Gemini** from **Google**, etc. These models have been trained on a vast amount of text and are able to generalize well. We will learn more about LLMs in the [next section](what-are-llms).
+Well known examples are **GPT-4** from **OpenAI**, **Llama** from **Meta**, **Gemini** from **Google**, etc. These models have been trained on a vast amount of text and are able to generalize well. We will learn more about LLMs in the [next section](what-are-llms).
 
 > [!TIP]
 > It's also possible to use models that accept other inputs as the Agent's core model. For example, a Vision Language Model (VLM), which is like an LLM but also understands images as input. We'll focus on LLMs for now and will discuss other options later.
@@ -120,7 +120,7 @@ The LLM, as we'll see, will generate code to run the tool when it needs to, and 
 send_message_to("Manager", "Can we postpone today's meeting?")
 ```
 
-The **design of the Tools is very important and has a great impact on the quality of your Agent**. Some tasks will require very specific Tools to be crafted, while others may be solved with general purpose tools like "web_search".
+The **design of the Tools is very important and has a great impact on the quality of your Agent**. Some tasks will require very specific Tools to be crafted, while others may be solved with general-purpose tools like "web_search".
 
 > Note that **Actions are not the same as Tools**. An Action, for instance, can involve the use of multiple Tools to complete.
 
