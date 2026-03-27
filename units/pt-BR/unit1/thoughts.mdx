@@ -1,0 +1,87 @@
+# Pensamento (Thought): Raciocínio Interno e a Abordagem ReAct
+
+> [!TIP]
+> Nesta seção, vamos mergulhar no funcionamento interno de um agente de IA — sua capacidade de raciocinar e planejar. Exploraremos como o agente utiliza seu diálogo interno para analisar informações, quebrar problemas complexos em passos gerenciáveis e decidir qual ação tomar em seguida.
+>
+> Adicionalmente, também introduziremos a abordagem ReAct, uma técnica de prompting que incentiva o modelo a pensar “passo a passo” antes de agir.
+
+Os Pensamentos (*Thoughts*) representam os **processos de raciocínio e planejamento interno do Agente** para resolver uma tarefa.
+
+O agente utiliza a capacidade do seu Grande Modelo de Linguagem (LLM) **para analisar informações quando apresentadas em seu prompt** — essencialmente, seu monólogo interno enquanto trabalha na resolução de um problema.
+
+Os pensamentos do Agente o ajudam a avaliar as observações atuais e a decidir quais devem ser as próximas ações. Por meio desse processo, o agente é capaz de **dividir problemas complexos em etapas menores e mais gerenciáveis**, refletir sobre experiências passadas e ajustar continuamente seus planos com base em novas informações.
+
+
+## 🧠 Exemplos de Tipos de Pensamentos Comuns
+
+| Tipo de Pensamento | Exemplo |
+|--------------------|-------------------------------------------------------------------------|
+| Planejamento | "Eu preciso dividir esta tarefa em três etapas: 1) coletar dados, 2) analisar tendências, 3) gerar relatório" |
+| Análise | "Com base na mensagem de erro, o problema parece estar nos parâmetros de conexão com o banco de dados" |
+| Tomada de Decisão | "Dadas as restrições de orçamento do usuário, eu devo recomendar a opção intermediária" |
+| Resolução de Problemas | "Para otimizar este código, primeiro devo criar um perfil (*profile*) dele para identificar gargalos" |
+| Integração de Memória | "O usuário mencionou sua preferência por Python anteriormente, então vou fornecer exemplos em Python" |
+| Autorreflexão | "Minha última abordagem não funcionou bem, devo tentar uma estratégia diferente" |
+| Definição de Metas | "Para concluir esta tarefa, eu preciso primeiro estabelecer os critérios de aceitação" |
+| Priorização | "A vulnerabilidade de segurança deve ser resolvida antes de adicionar novos recursos" |
+
+> **Nota:** No caso de LLMs que passaram por fine-tuning (foram ajustados) para usar chamadas de função (*function-calling*), o processo de pensamento é opcional. Abordaremos mais detalhes sobre isso na seção de Ações.
+
+
+## 🔗 Cadeia de Pensamento (Chain-of-Thought - CoT)
+
+A **Cadeia de Pensamento (Chain-of-Thought - CoT)** é uma técnica de prompting que orienta um modelo a **pensar na resolução de um problema passo a passo antes de produzir uma resposta final.**
+
+Geralmente começa com uma frase como:  
+> *"Vamos pensar passo a passo."* (*Let's think step by step.*)
+
+Essa abordagem ajuda o modelo a **raciocinar internamente**, especialmente em tarefas lógicas ou matemáticas, **sem interagir com ferramentas externas**.
+
+### ✅ Exemplo (CoT)
+```text
+Question: Quanto é 15% de 200?
+Thought: Vamos pensar passo a passo. 10% de 200 é 20, e 5% de 200 é 10, então 15% é 30.
+Answer: 30
+```
+
+
+## ⚙️ ReAct: *Reasoning* (Raciocinar) + *Acting* (Agir)
+
+Um método fundamental é a **abordagem ReAct**, que combina o ato de "Raciocinar" com o ato de "Agir". 
+
+ReAct é uma técnica de prompting que incentiva o modelo a pensar passo a passo e a intercalar ações (como o uso de ferramentas) entre os passos de raciocínio.
+
+Isso possibilita ao agente resolver tarefas complexas e baseadas em múltiplas etapas, alternando entre:
+- Pensamento (*Thought*): raciocínio interno
+- Ação (*Action*): uso de ferramenta
+- Observação (*Observation*): receber a saída da ferramenta
+
+### 🔄 Exemplo (ReAct)
+```text
+Thought: Eu preciso descobrir a previsão do tempo mais recente em Paris.
+Action: Search["clima em Paris"]
+Observation: Faz 18°C e está nublado.
+Thought: Agora que já sei como está o clima...
+Action: Finish["Faz 18°C e está nublado em Paris."]
+```
+
+<figure>
+  <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+  <figcaption>
+    (d) é um exemplo da abordagem ReAct, onde incluímos o prompt "Let's think step by step" (Vamos pensar passo a passo), e o modelo age entre os pensamentos.
+  </figcaption>
+</figure>
+
+
+## 🔁 Comparação: ReAct vs. CoT
+
+| Característica | Chain-of-Thought (CoT) | ReAct |
+|----------------------|-----------------------------|-------------------------------------|
+| Lógica passo a passo | ✅ Sim | ✅ Sim |
+| Ferramentas externas | ❌ Não | ✅ Sim (Ações + Observações) |
+| Mais adequado para | Lógica, matemática, tarefas internas | Busca de informações, tarefas dinâmicas de múltiplos passos |
+
+> [!TIP]
+> Modelos recentes como o **Deepseek R1** ou o **o1 da OpenAI** foram treinados (*fine-tuned*) para *pensar antes de responder*. Eles utilizam tokens estruturados como `<think>` e `</think>` para separar de forma explícita a fase de raciocínio da resposta final.
+>
+> Diferente do ReAct ou da CoT — que são estratégias de prompting — isso já é uma **técnica a nível de treinamento**, em que o modelo aprende a pensar por meio de exemplos.
