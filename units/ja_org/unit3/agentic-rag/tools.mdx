@@ -1,0 +1,432 @@
+# エージェント用ツールの構築と統合
+
+このセクションでは、Alfred にウェブへのアクセス権を付与し、最新のニュースやグローバルな情報を取得できるようにします。
+さらに、天気データや Hugging Face Hub のモデルダウンロード統計にもアクセスできるようにすることで、新鮮なトピックについて適切な会話ができるようにします。
+
+## エージェントにウェブアクセスを付与する
+
+Alfred を真のルネサンス的ホストとして確立し、世界に関する深い知識を持たせたいということを思い出してください。
+
+そのためには、Alfred が世界の最新ニュースや情報にアクセスできるようにする必要があります。
+
+まず、Alfred 用のウェブ検索ツールを作成しましょう！
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+# DuckDuckGo 検索ツールを初期化
+search_tool = DuckDuckGoSearchTool()
+
+# 使用例
+results = search_tool("Who's the current President of France?")
+print(results)
+```
+
+期待される出力：
+
+```
+The current President of France in Emmanuel Macron.
+```
+
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.tools import FunctionTool
+
+# DuckDuckGo 検索ツールを初期化
+tool_spec = DuckDuckGoSearchToolSpec()
+
+search_tool = FunctionTool.from_defaults(tool_spec.duckduckgo_full_search)
+# 使用例
+response = search_tool("Who's the current President of France?")
+print(response.raw_output[-1]['body'])
+```
+
+期待される出力：
+
+```
+The President of the French Republic is the head of state of France. The current President is Emmanuel Macron since 14 May 2017 defeating Marine Le Pen in the second round of the presidential election on 7 May 2017. List of French presidents (Fifth Republic) N° Portrait Name ...
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+search_tool = DuckDuckGoSearchRun()
+results = search_tool.invoke("Who's the current President of France?")
+print(results)
+```
+
+期待される出力：
+
+```
+Emmanuel Macron (born December 21, 1977, Amiens, France) is a French banker and politician who was elected president of France in 2017...
+```
+
+</hfoption>
+</hfoptions>
+
+## 花火のスケジュール調整のためのカスタム天気ツールの作成
+
+完璧なガラパーティーには澄み切った空の下での花火が欠かせません。悪天候で花火が中止にならないよう確認する必要があります。
+
+外部の天気 API を呼び出して、指定した場所の天気情報を取得するカスタムツールを作成しましょう。
+
+> [!TIP]
+> この例では、簡略化のためにダミーの天気 API を使用しています。実際の天気 API を使用したい場合は、<a href="../../unit1/tutorial">Unit 1</a> のように OpenWeatherMap API を使った天気ツールを実装できます。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+import random
+
+class WeatherInfoTool(Tool):
+    name = "weather_info"
+    description = "Fetches dummy weather information for a given location."
+    inputs = {
+        "location": {
+            "type": "string",
+            "description": "The location to get weather information for."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, location: str):
+        # ダミーの天気データ
+        weather_conditions = [
+            {"condition": "Rainy", "temp_c": 15},
+            {"condition": "Clear", "temp_c": 25},
+            {"condition": "Windy", "temp_c": 20}
+        ]
+        # ランダムに天気条件を選択
+        data = random.choice(weather_conditions)
+        return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# ツールを初期化
+weather_info_tool = WeatherInfoTool()
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+
+def get_weather_info(location: str) -> str:
+    """Fetches dummy weather information for a given location."""
+    # ダミーの天気データ
+    weather_conditions = [
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20}
+    ]
+    # ランダムに天気条件を選択
+    data = random.choice(weather_conditions)
+    return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# ツールを初期化
+weather_info_tool = FunctionTool.from_defaults(get_weather_info)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_core.tools import Tool
+import random
+
+def get_weather_info(location: str) -> str:
+    """Fetches dummy weather information for a given location."""
+    # ダミーの天気データ
+    weather_conditions = [
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20}
+    ]
+    # ランダムに天気条件を選択
+    data = random.choice(weather_conditions)
+    return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# ツールを初期化
+weather_info_tool = Tool(
+    name="get_weather_info",
+    func=get_weather_info,
+    description="Fetches dummy weather information for a given location."
+)
+```
+
+</hfoption>
+</hfoptions>
+
+## 影響力のある AI ビルダー向けの Hub Stats ツールの作成
+
+ガラパーティーには AI ビルダーの著名人たちが出席しています。Alfred は、彼らの最も人気のあるモデル、データセット、Space について話すことで印象を与えたいと考えています。ユーザー名に基づいて Hugging Face Hub からモデル統計を取得するツールを作成しましょう。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+from huggingface_hub import list_models
+
+class HubStatsTool(Tool):
+    name = "hub_stats"
+    description = "Fetches the most downloaded model from a specific author on the Hugging Face Hub."
+    inputs = {
+        "author": {
+            "type": "string",
+            "description": "The username of the model author/organization to find models from."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, author: str):
+        try:
+            # 指定された作者のモデルをダウンロード数順にリスト取得
+            models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+            
+            if models:
+                model = models[0]
+                return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+            else:
+                return f"No models found for author {author}."
+        except Exception as e:
+            return f"Error fetching models for {author}: {str(e)}"
+
+# ツールを初期化
+hub_stats_tool = HubStatsTool()
+
+# 使用例
+print(hub_stats_tool("facebook")) # 例: Facebook の最もダウンロードされたモデルを取得
+```
+
+期待される出力：
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 downloads.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Fetches the most downloaded model from a specific author on the Hugging Face Hub."""
+    try:
+        # 指定された作者のモデルをダウンロード数順にリスト取得
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+        else:
+            return f"No models found for author {author}."
+    except Exception as e:
+        return f"Error fetching models for {author}: {str(e)}"
+
+# ツールを初期化
+hub_stats_tool = FunctionTool.from_defaults(get_hub_stats)
+
+# 使用例
+print(hub_stats_tool("facebook")) # 例: Facebook の最もダウンロードされたモデルを取得
+```
+
+期待される出力：
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 downloads.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_core.tools import Tool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Fetches the most downloaded model from a specific author on the Hugging Face Hub."""
+    try:
+        # 指定された作者のモデルをダウンロード数順にリスト取得
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+        else:
+            return f"No models found for author {author}."
+    except Exception as e:
+        return f"Error fetching models for {author}: {str(e)}"
+
+# ツールを初期化
+hub_stats_tool = Tool(
+    name="get_hub_stats",
+    func=get_hub_stats,
+    description="Fetches the most downloaded model from a specific author on the Hugging Face Hub."
+)
+
+# 使用例
+print(hub_stats_tool.invoke("facebook")) # 例: Facebook の最もダウンロードされたモデルを取得
+```
+
+期待される出力：
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 13,109,861 downloads.
+```
+
+</hfoption>
+</hfoptions>
+
+Hub Stats ツールにより、Alfred は影響力のある AI ビルダーたちの最も人気のあるモデルについて話し、彼らに好印象を与えることができるようになりました。
+
+## Alfred へのツール統合
+
+すべてのツールが揃ったので、Alfred のエージェントに統合しましょう：
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Hugging Face モデルを初期化
+model = InferenceClientModel()
+
+# すべてのツールを備えた Alfred を作成
+alfred = CodeAgent(
+    tools=[search_tool, weather_info_tool, hub_stats_tool], 
+    model=model
+)
+
+# ガラパーティー中に Alfred が受け取る可能性のあるクエリの例
+response = alfred.run("What is Facebook and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+期待される出力：
+
+```
+🎩 Alfred's Response:
+Facebook is a social networking website where users can connect, share information, and interact with others. The most downloaded model by Facebook on the Hugging Face Hub is ESMFold_v1.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Hugging Face モデルを初期化
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# すべてのツールを備えた Alfred を作成
+alfred = AgentWorkflow.from_tools_or_functions(
+    [search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# ガラパーティー中に Alfred が受け取る可能性のあるクエリの例
+response = await alfred.run("What is Facebook and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+期待される出力：
+
+```
+🎩 Alfred's Response:
+Facebook is a social networking service and technology company based in Menlo Park, California. It was founded by Mark Zuckerberg and allows people to create profiles, connect with friends and family, share photos and videos, and join groups based on shared interests. The most popular model by Facebook on the Hugging Face Hub is `facebook/esmfold_v1` with 13,109,861 downloads.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# ツールを含むチャットインターフェースを生成
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# AgentState と Agent グラフを生成
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## グラフ
+builder = StateGraph(AgentState)
+
+# ノードを定義：実際の処理を行う
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# エッジを定義：制御フローの移動方法を決定する
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # 最新のメッセージがツールを必要とする場合、ツールにルーティング
+    # そうでなければ、直接応答を返す
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Who is Facebook and what's their most popular model?")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+期待される出力：
+
+```
+🎩 Alfred's Response:
+Facebook is a social media company known for its social networking site, Facebook, as well as other services like Instagram and WhatsApp. The most downloaded model by Facebook on the Hugging Face Hub is facebook/esmfold_v1 with 13,202,321 downloads.
+```
+</hfoption>
+</hfoptions>
+
+## まとめ
+
+これらのツールを統合することで、Alfred はウェブ検索から天気の更新、モデル統計まで、さまざまなタスクを処理できるようになりました。これにより、ガラパーティーで最も知識豊富で魅力的なホストであり続けることができます。
+
+> [!TIP]
+> 特定のトピックに関する最新ニュースを取得するツールの実装に挑戦してみましょう。
+>
+> 完了したら、カスタムツールを <code>tools.py</code> ファイルに実装してください。

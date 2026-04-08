@@ -1,0 +1,282 @@
+---
+# LlamaIndex でエージェントワークフローを作成する
+
+LlamaIndex のワークフローは、コードを順序立てた管理しやすいステップに整理するための構造化された方法を提供します。
+
+このようなワークフローは、`Events` によってトリガーされる `Steps` を定義し、それらのステップ自体がさらなるステップをトリガーする `Events` を発行することで作成されます。
+Alfred が RAG タスクのための LlamaIndex ワークフローを示している例を見てみましょう。
+
+![ワークフローの概略図](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflows.png)
+
+**ワークフローにはいくつかの重要な利点があります：**
+
+- コードを個別のステップに明確に整理できる
+- イベント駆動アーキテクチャによる柔軟な制御フロー
+- ステップ間の型安全な通信
+- 組み込みの状態管理
+- シンプルなものから複雑なものまで、Agent のインタラクションに対応
+
+お察しの通り、**ワークフローは Agent の自律性を維持しつつ、全体的なワークフローの制御を保つ優れたバランスを実現しています。**
+
+それでは、ワークフローの作成方法を学んでいきましょう！
+
+## ワークフローの作成
+
+> [!TIP]
+> <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">こちらのノートブック</a>のコードに沿って進めることができます。Google Colab で実行可能です。
+
+### 基本的なワークフローの作成
+
+<details>
+<summary>Workflow パッケージのインストール</summary>
+<a href="./llama-hub">LlamaHub のセクション</a>で紹介したように、以下のコマンドで Workflow パッケージをインストールできます：
+
+```python
+pip install llama-index-utils-workflow
+```
+</details>
+
+`Workflow` を継承したクラスを定義し、関数に `@step` デコレータを付けることで、単一ステップのワークフローを作成できます。
+また、ワークフローの開始と終了を示す特別なイベントである `StartEvent` と `StopEvent` を追加する必要があります。
+
+```python
+from llama_index.core.workflow import StartEvent, StopEvent, Workflow, step
+
+class MyWorkflow(Workflow):
+    @step
+    async def my_step(self, ev: StartEvent) -> StopEvent:
+        # ここで何らかの処理を行う
+        return StopEvent(result="Hello, world!")
+
+
+w = MyWorkflow(timeout=10, verbose=False)
+result = await w.run()
+```
+
+ご覧の通り、`w.run()` を呼び出すことでワークフローを実行できます。
+
+### 複数ステップの接続
+
+複数のステップを接続するには、**ステップ間でデータを運ぶカスタムイベントを作成します。**
+そのためには、ステップ間で渡される `Event` を追加し、最初のステップの出力を次のステップに転送する必要があります。
+
+```python
+from llama_index.core.workflow import Event
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent) -> ProcessingEvent:
+        # 初期データを処理
+        return ProcessingEvent(intermediate_result="Step 1 complete")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # 中間結果を使用
+        final_result = f"Finished processing: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+w = MultiStepWorkflow(timeout=10, verbose=False)
+result = await w.run()
+result
+```
+
+ここでは型ヒントが重要で、ワークフローが正しく実行されることを保証します。もう少し複雑にしてみましょう！
+
+### ループと分岐
+
+型ヒントはワークフローの最も強力な部分であり、分岐、ループ、結合を作成してより複雑なワークフローを構築できます。
+
+ユニオン演算子 `|` を使って**ループを作成する**例を見てみましょう。
+以下の例では、`LoopEvent` がステップの入力として受け取られ、出力としても返すことができることがわかります。
+
+```python
+from llama_index.core.workflow import Event
+import random
+
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+
+class LoopEvent(Event):
+    loop_output: str
+
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent | LoopEvent) -> ProcessingEvent | LoopEvent:
+        if random.randint(0, 1) == 0:
+            print("Bad thing happened")
+            return LoopEvent(loop_output="Back to step one.")
+        else:
+            print("Good thing happened")
+            return ProcessingEvent(intermediate_result="First step complete.")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # 中間結果を使用
+        final_result = f"Finished processing: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+
+w = MultiStepWorkflow(verbose=False)
+result = await w.run()
+result
+```
+
+### ワークフローの描画
+
+ワークフローを図として描画することもできます。`draw_all_possible_flows` 関数を使ってワークフローを描画してみましょう。これはワークフローを HTML ファイルとして保存します。
+
+```python
+from llama_index.utils.workflow import draw_all_possible_flows
+
+w = ... # 前のセクションで定義したもの
+draw_all_possible_flows(w, "flow.html")
+```
+
+![ワークフローの描画](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflow-draw.png)
+
+このコースで最後にもう一つ紹介したい便利な機能があります。それはワークフローに状態を追加する機能です。
+
+### 状態管理
+
+状態管理は、ワークフローの状態を追跡し、すべてのステップが同じ状態にアクセスできるようにしたい場合に便利です。
+これは、ステップ関数のパラメータに `Context` 型ヒントを使用することで実現できます。
+
+```python
+from llama_index.core.workflow import Context, StartEvent, StopEvent
+
+
+@step
+async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
+    # コンテキストにクエリを保存
+    await ctx.store.set("query", "What is the capital of France?")
+
+    # コンテキストとイベントを使って何らかの処理を行う
+    val = ...
+
+    # コンテキストからクエリを取得
+    query = await ctx.store.get("query")
+
+    return StopEvent(result=val)
+```
+
+素晴らしいですね！これで LlamaIndex での基本的なワークフローの作成方法がわかりました！
+
+> [!TIP]
+> ワークフローにはさらに複雑なニュアンスがあります。詳細は <a href="https://docs.llamaindex.ai/en/stable/understanding/workflows/">LlamaIndex のドキュメント</a>で学ぶことができます。
+
+ただし、ワークフローを作成するもう一つの方法として、`AgentWorkflow` クラスを使用する方法があります。これを使ってマルチエージェントワークフローを作成する方法を見ていきましょう。
+
+## マルチエージェントワークフローによるワークフローの自動化
+
+手動でワークフローを作成する代わりに、**`AgentWorkflow` クラスを使ってマルチエージェントワークフローを作成**できます。
+`AgentWorkflow` は Workflow Agent を使用して、1つ以上の Agent が協力し合い、それぞれの専門的な能力に基づいてタスクを引き継ぐシステムを構築できます。
+これにより、異なる Agent がタスクの異なる側面を処理する複雑な Agent システムを構築できます。
+`llama_index.core.agent` からクラスをインポートする代わりに、`llama_index.core.agent.workflow` から Agent クラスをインポートします。
+`AgentWorkflow` のコンストラクタで、1つの Agent をルートエージェントとして指定する必要があります。
+ユーザーメッセージが入力されると、最初にルートエージェントにルーティングされます。
+
+各 Agent は以下のことができます：
+
+- 自身のツールを使ってリクエストを直接処理する
+- タスクにより適した別の Agent にハンドオフする
+- ユーザーにレスポンスを返す
+
+マルチエージェントワークフローの作成方法を見てみましょう。
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow, ReActAgent
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# ツールを定義
+def add(a: int, b: int) -> int:
+    """2つの数値を加算する。"""
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    """2つの数値を乗算する。"""
+    return a * b
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# FunctionTool を使わずに関数を直接渡すことができる -- 関数名と docstring から名前と説明が解析される
+multiply_agent = ReActAgent(
+    name="multiply_agent",
+    description="Is able to multiply two integers",
+    system_prompt="A helpful assistant that can use a tool to multiply numbers.",
+    tools=[multiply],
+    llm=llm,
+)
+
+addition_agent = ReActAgent(
+    name="add_agent",
+    description="Is able to add two integers",
+    system_prompt="A helpful assistant that can use a tool to add numbers.",
+    tools=[add],
+    llm=llm,
+)
+
+# ワークフローを作成
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+)
+
+# システムを実行
+response = await workflow.run(user_msg="Can you add 5 and 3?")
+```
+
+Agent のツールは、先ほど説明したワークフローの状態を変更することもできます。ワークフローを開始する前に、すべての Agent が利用できる初期状態の辞書を提供できます。
+状態はワークフローコンテキストの state キーに保存されます。これは各新しいユーザーメッセージを補強する state_prompt に注入されます。
+
+先ほどの例を修正して、関数呼び出しをカウントするカウンターを注入してみましょう：
+
+```python
+from llama_index.core.workflow import Context
+
+# ツールを定義
+async def add(ctx: Context, a: int, b: int) -> int:
+    """2つの数値を加算する。"""
+    # カウントを更新
+    cur_state = await ctx.store.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.store.set("state", cur_state)
+
+    return a + b
+
+async def multiply(ctx: Context, a: int, b: int) -> int:
+    """2つの数値を乗算する。"""
+    # カウントを更新
+    cur_state = await ctx.store.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.store.set("state", cur_state)
+
+    return a * b
+
+...
+
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+    initial_state={"num_fn_calls": 0},
+    state_prompt="Current state: {state}. User message: {msg}",
+)
+
+# コンテキスト付きでワークフローを実行
+ctx = Context(workflow)
+response = await workflow.run(user_msg="Can you add 5 and 3?", ctx=ctx)
+
+# 状態を取り出して確認
+state = await ctx.store.get("state")
+print(state["num_fn_calls"])
+```
+
+おめでとうございます！これで LlamaIndex における Agent の基本をマスターしました！🎉
+
+最後のクイズに進んで、知識を定着させましょう！🚀
+---

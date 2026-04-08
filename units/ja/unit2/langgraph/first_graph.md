@@ -1,0 +1,382 @@
+
+
+# 初めての LangGraph を構築する
+
+ビルディングブロックを理解したところで、最初の実用的なグラフを構築して実践してみましょう。Alfred のメール処理システムを実装します。Alfred は以下のことを行う必要があります：
+
+1. 受信メールを読む
+2. スパムか正当なメールかを分類する
+3. 正当なメールに対して予備的な返信を下書きする
+4. 正当なメールの場合、Wayne 氏に情報を送信する（表示のみ）
+
+この例では、LLM ベースの意思決定を含むワークフローを LangGraph でどのように構造化するかを示します。Tool が関与していないため Agent とは言えませんが、このセクションでは Agent よりも LangGraph フレームワークの習得に重点を置いています。
+
+> [!TIP]
+> Google Colab で実行できる<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/mail_sorting.ipynb" target="_blank">こちらのノートブック</a>でコードを追うことができます。
+
+## ワークフロー
+
+構築するワークフローは以下の通りです：
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/first_graph.png" alt="First LangGraph"/>
+
+## 環境のセットアップ
+
+まず、必要なパッケージをインストールしましょう：
+
+```python
+%pip install langgraph langchain_openai
+```
+
+次に、必要なモジュールをインポートします：
+
+```python
+import os
+from typing import TypedDict, List, Dict, Any, Optional
+from langgraph.graph import StateGraph, START, END
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+```
+
+## ステップ 1：State を定義する
+
+メール処理ワークフロー中に Alfred が追跡する必要のある情報を定義しましょう：
+
+```python
+class EmailState(TypedDict):
+    # 処理中のメール
+    email: Dict[str, Any]  # subject、sender、body などを含む
+
+    # メールのカテゴリ（問い合わせ、苦情など）
+    email_category: Optional[str]
+
+    # メールがスパムと判定された理由
+    spam_reason: Optional[str]
+
+    # 分析と判定
+    is_spam: Optional[bool]
+    
+    # 返信の生成
+    email_draft: Optional[str]
+    
+    # 処理メタデータ
+    messages: List[Dict[str, Any]]  # 分析のための LLM との会話を追跡
+```
+
+> 💡 **ヒント：** State は重要な情報をすべて追跡できるだけの包括性を持たせつつ、不必要な詳細で肥大化させないようにしましょう。
+
+## ステップ 2：Node を定義する
+
+次に、Node となる処理関数を作成しましょう：
+
+```python
+# LLM を初期化
+model = ChatOpenAI(temperature=0)
+
+def read_email(state: EmailState):
+    """Alfred が受信メールを読み取り、記録する"""
+    email = state["email"]
+    
+    # ここで初期の前処理を行う場合がある
+    print(f"Alfred is processing an email from {email['sender']} with subject: {email['subject']}")
+    
+    # ここでは State の変更は不要
+    return {}
+
+def classify_email(state: EmailState):
+    """Alfred が LLM を使用してメールがスパムか正当かを判定する"""
+    email = state["email"]
+    
+    # LLM 用のプロンプトを準備
+    prompt = f"""
+    As Alfred the butler, analyze this email and determine if it is spam or legitimate.
+    
+    Email:
+    From: {email['sender']}
+    Subject: {email['subject']}
+    Body: {email['body']}
+    
+    First, determine if this email is spam. If it is spam, explain why.
+    If it is legitimate, categorize it (inquiry, complaint, thank you, etc.).
+    """
+    
+    # LLM を呼び出す
+    messages = [HumanMessage(content=prompt)]
+    response = model.invoke(messages)
+    
+    # レスポンスを解析するシンプルなロジック（実際のアプリではより堅牢な解析が必要）
+    response_text = response.content.lower()
+    is_spam = "spam" in response_text and "not spam" not in response_text
+    
+    # スパムの場合は理由を抽出
+    spam_reason = None
+    if is_spam and "reason:" in response_text:
+        spam_reason = response_text.split("reason:")[1].strip()
+    
+    # 正当なメールの場合はカテゴリを判定
+    email_category = None
+    if not is_spam:
+        categories = ["inquiry", "complaint", "thank you", "request", "information"]
+        for category in categories:
+            if category in response_text:
+                email_category = category
+                break
+    
+    # 追跡用にメッセージを更新
+    new_messages = state.get("messages", []) + [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": response.content}
+    ]
+    
+    # State の更新を返す
+    return {
+        "is_spam": is_spam,
+        "spam_reason": spam_reason,
+        "email_category": email_category,
+        "messages": new_messages
+    }
+
+def handle_spam(state: EmailState):
+    """Alfred がスパムメールをメモ付きで破棄する"""
+    print(f"Alfred has marked the email as spam. Reason: {state['spam_reason']}")
+    print("The email has been moved to the spam folder.")
+    
+    # このメールの処理は完了
+    return {}
+
+def draft_response(state: EmailState):
+    """Alfred が正当なメールに対する予備的な返信を下書きする"""
+    email = state["email"]
+    category = state["email_category"] or "general"
+    
+    # LLM 用のプロンプトを準備
+    prompt = f"""
+    As Alfred the butler, draft a polite preliminary response to this email.
+    
+    Email:
+    From: {email['sender']}
+    Subject: {email['subject']}
+    Body: {email['body']}
+    
+    This email has been categorized as: {category}
+    
+    Draft a brief, professional response that Mr. Hugg can review and personalize before sending.
+    """
+    
+    # LLM を呼び出す
+    messages = [HumanMessage(content=prompt)]
+    response = model.invoke(messages)
+    
+    # 追跡用にメッセージを更新
+    new_messages = state.get("messages", []) + [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": response.content}
+    ]
+    
+    # State の更新を返す
+    return {
+        "email_draft": response.content,
+        "messages": new_messages
+    }
+
+def notify_mr_hugg(state: EmailState):
+    """Alfred が Hugg 氏にメールについて通知し、下書きした返信を提示する"""
+    email = state["email"]
+    
+    print("\n" + "="*50)
+    print(f"Sir, you've received an email from {email['sender']}.")
+    print(f"Subject: {email['subject']}")
+    print(f"Category: {state['email_category']}")
+    print("\nI've prepared a draft response for your review:")
+    print("-"*50)
+    print(state["email_draft"])
+    print("="*50 + "\n")
+    
+    # このメールの処理は完了
+    return {}
+```
+
+## ステップ 3：ルーティングロジックを定義する
+
+分類後にどのパスを取るかを決定する関数が必要です：
+
+```python
+def route_email(state: EmailState) -> str:
+    """スパム分類に基づいて次のステップを決定する"""
+    if state["is_spam"]:
+        return "spam"
+    else:
+        return "legitimate"
+```
+
+> 💡 **注意：** このルーティング関数は、分類 Node の後にどの Edge を辿るかを決定するために LangGraph によって呼び出されます。戻り値は、条件付き Edge のマッピングのキーのいずれかと一致する必要があります。
+
+## ステップ 4：StateGraph を作成し Edge を定義する
+
+すべてを接続しましょう：
+
+```python
+# グラフを作成
+email_graph = StateGraph(EmailState)
+
+# Node を追加
+email_graph.add_node("read_email", read_email)
+email_graph.add_node("classify_email", classify_email)
+email_graph.add_node("handle_spam", handle_spam)
+email_graph.add_node("draft_response", draft_response)
+email_graph.add_node("notify_mr_hugg", notify_mr_hugg)
+
+# Edge を開始
+email_graph.add_edge(START, "read_email")
+# Edge を追加 - フローを定義
+email_graph.add_edge("read_email", "classify_email")
+
+# classify_email から条件分岐を追加
+email_graph.add_conditional_edges(
+    "classify_email",
+    route_email,
+    {
+        "spam": "handle_spam",
+        "legitimate": "draft_response"
+    }
+)
+
+# 最終的な Edge を追加
+email_graph.add_edge("handle_spam", END)
+email_graph.add_edge("draft_response", "notify_mr_hugg")
+email_graph.add_edge("notify_mr_hugg", END)
+
+# グラフをコンパイル
+compiled_graph = email_graph.compile()
+```
+
+LangGraph が提供する特別な `END` Node の使い方に注目してください。これはワークフローが完了する終端状態を示します。
+
+## ステップ 5：アプリケーションを実行する
+
+正当なメールとスパムメールでグラフをテストしましょう：
+
+```python
+# 正当なメールの例
+legitimate_email = {
+    "sender": "john.smith@example.com",
+    "subject": "Question about your services",
+    "body": "Dear Mr. Hugg, I was referred to you by a colleague and I'm interested in learning more about your consulting services. Could we schedule a call next week? Best regards, John Smith"
+}
+
+# スパムメールの例
+spam_email = {
+    "sender": "winner@lottery-intl.com",
+    "subject": "YOU HAVE WON $5,000,000!!!",
+    "body": "CONGRATULATIONS! You have been selected as the winner of our international lottery! To claim your $5,000,000 prize, please send us your bank details and a processing fee of $100."
+}
+
+# 正当なメールを処理
+print("\nProcessing legitimate email...")
+legitimate_result = compiled_graph.invoke({
+    "email": legitimate_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "email_draft": None,
+    "messages": []
+})
+
+# スパムメールを処理
+print("\nProcessing spam email...")
+spam_result = compiled_graph.invoke({
+    "email": spam_email,
+    "is_spam": None,
+    "spam_reason": None,
+    "email_category": None,
+    "email_draft": None,
+    "messages": []
+})
+```
+
+## ステップ 6：Langfuse でメール仕分け Agent を検査する 📡
+
+Alfred がメール仕分け Agent を微調整していく中で、実行結果のデバッグに疲れてきています。Agent は本質的に予測不可能で検査が困難です。しかし、究極のスパム検出 Agent を構築して本番環境にデプロイすることを目指しているため、将来のモニタリングと分析のための堅牢なトレーサビリティが必要です。
+
+これを実現するために、Alfred は [Langfuse](https://langfuse.com/) などのオブザーバビリティツールを使用して Agent をトレースおよびモニタリングできます。
+
+まず、Langfuse を pip インストールします：
+```python
+%pip install -q langfuse
+```
+
+次に、Langchain を pip インストールします（LangFuse を使用するため LangChain が必要です）：
+```python
+%pip install langchain
+```
+
+次に、Langfuse の API キーとホストアドレスを環境変数として追加します。Langfuse の認証情報は、[Langfuse Cloud](https://cloud.langfuse.com) にサインアップするか、[Langfuse をセルフホスト](https://langfuse.com/self-hosting)することで取得できます。
+
+```python
+import os
+ 
+# プロジェクト設定ページからキーを取得: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..."
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU リージョン
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US リージョン
+```
+
+次に、[Langfuse の `callback_handler`](https://langfuse.com/docs/integrations/langchain/tracing#add-langfuse-to-your-langchain-application) を設定し、グラフの呼び出しに `langfuse_callback` を追加して Agent を計装します：`config={"callbacks": [langfuse_handler]}`。
+
+```python   
+from langfuse.langchain import CallbackHandler
+
+# LangGraph/Langchain 用の Langfuse CallbackHandler を初期化（トレーシング）
+langfuse_handler = CallbackHandler()
+
+# 正当なメールを処理
+legitimate_result = compiled_graph.invoke(
+    input={"email": legitimate_email, "is_spam": None, "spam_reason": None, "email_category": None, "draft_response": None, "messages": []},
+    config={"callbacks": [langfuse_handler]}
+)
+```
+
+Alfred の接続が完了しました 🔌！LangGraph からの実行結果が Langfuse に記録されるようになり、Agent の動作を完全に可視化できます。このセットアップにより、過去の実行を振り返り、メール仕分け Agent をさらに改善する準備が整いました。
+
+![Langfuse でのトレース例](https://langfuse.com/images/cookbook/huggingface-agent-course/langgraph-trace-legit.png)
+
+_[正当なメールのトレースへのパブリックリンク](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/f5d6d72e-20af-4357-b232-af44c3728a7b?timestamp=2025-03-17T10%3A13%3A28.413Z&observation=6997ba69-043f-4f77-9445-700a033afba1)_
+
+## グラフの可視化
+
+LangGraph では、ワークフローを可視化して構造をより理解しやすくし、デバッグに役立てることができます：
+
+```python
+compiled_graph.get_graph().draw_mermaid_png()
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/mail_flow.png" alt="Mail LangGraph"/>
+
+これにより、Node がどのように接続されているか、また取りうる条件付きパスを示す視覚的な表現が生成されます。
+
+## 構築したもの
+
+以下の機能を持つ完全なメール処理ワークフローを作成しました：
+
+1. 受信メールを受け取る
+2. LLM を使用してスパムか正当かを分類する
+3. スパムを破棄して処理する
+4. 正当なメールに対しては返信を下書きし、Hugg 氏に通知する
+
+これは、明確で構造化されたフローを維持しながら、LLM を使った複雑なワークフローをオーケストレーションする LangGraph の力を示しています。
+
+## 重要なポイント
+
+- **State 管理**：メール処理のあらゆる側面を追跡するための包括的な State を定義しました
+- **Node の実装**：LLM と連携する機能的な Node を作成しました
+- **条件付きルーティング**：メール分類に基づく分岐ロジックを実装しました
+- **終端状態**：ワークフローの完了点を示すために END Node を使用しました
+
+## 次のステップ
+
+次のセクションでは、ワークフローにおける人間とのインタラクションの処理や、複数の条件に基づくより複雑な分岐ロジックの実装など、LangGraph のより高度な機能を探っていきます。
+
+---
+
+<!-- nav -->
+
+[⬅️ 前へ: LangGraph の構成要素](building_blocks.md) | [📚 目次](../../README.md) | [次へ: ドキュメント分析 ➡️](document_analysis_agent.md)

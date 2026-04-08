@@ -1,0 +1,275 @@
+---
+# ドキュメント分析グラフ
+
+アルフレッドがお仕えいたします。ウェイン様の信頼する執事として、ご主人様のさまざまな文書関連のニーズをどのようにお手伝いしているか、僭越ながら記録させていただきました。ご主人様が夜間の...活動にお出かけの間、書類、トレーニングスケジュール、栄養プランのすべてを適切に分析・整理しております。
+
+お出かけ前に、ご主人様は今週のトレーニングプログラムを書いたメモを残されました。そこで私が責任をもって、明日の食事の**メニュー**を考案いたしました。
+
+今後このようなことがあった際のために、LangGraphを使ってウェイン様のニーズに応えるドキュメント分析システムを構築しましょう。このシステムでは以下のことが可能です：
+
+1. 画像ドキュメントの処理
+2. ビジョンモデル（Vision Language Model）を使用したテキスト抽出
+3. 必要に応じた計算の実行（通常のツールのデモンストレーション用）
+4. コンテンツの分析と簡潔な要約の提供
+5. ドキュメントに関連する特定の指示の実行
+
+## 執事のワークフロー
+
+構築するワークフローは、以下の構造化されたスキーマに従います：
+
+![執事のドキュメント分析ワークフロー](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+> [!TIP]
+> コードは<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">このノートブック</a>で確認でき、Google Colabを使って実行できます。
+
+## 環境のセットアップ
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+インポート：
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## エージェントの State の定義
+
+この State は、これまで見てきたものよりも少し複雑です。
+`AnyMessage` はメッセージを定義する Langchain のクラスで、`add_messages` は最新の状態で上書きするのではなく、最新のメッセージを追加するオペレーターです。
+
+これは LangGraph の新しい概念で、State にオペレーターを追加することで、状態同士がどのように相互作用するかを定義できます。
+
+```python
+class AgentState(TypedDict):
+    # 提供されたドキュメント
+    input_file: Optional[str]  # ファイルパス（PDF/PNG）を含む
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## ツールの準備
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    マルチモーダルモデルを使用して画像ファイルからテキストを抽出します。
+    
+    ウェイン様はよくトレーニングメニューや食事プランを書いたメモを残されます。
+    これにより、その内容を適切に分析できるようになります。
+    """
+    all_text = ""
+    try:
+        # 画像を読み込み、base64にエンコード
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # base64画像データを含むプロンプトを準備
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all the text from this image. "
+                            "Return only the extracted text, no explanations."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # ビジョン対応モデルを呼び出し
+        response = vision_llm.invoke(message)
+
+        # 抽出したテキストを追加
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # 執事たるもの、エラーも優雅に処理すべきです
+        error_msg = f"Error extracting text: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """a と b を割り算します - ウェイン様の計算が必要な場面に。"""
+    return a / b
+
+# 執事にツールを装備
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## ノード
+
+```python
+def assistant(state: AgentState):
+    # システムメッセージ
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    マルチモーダルモデルを使用して画像ファイルからテキストを抽出します。
+
+    引数:
+        img_path: ローカル画像ファイルのパス（文字列）。
+
+    戻り値:
+        各画像から抽出されたテキストを連結した単一の文字列。
+divide(a: int, b: int) -> float:
+    a と b を割り算します
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"You are a helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## ReAct パターン：ウェイン様をお手伝いする方法
+
+このエージェントのアプローチについてご説明いたします。エージェントは ReAct パターン（Reason-Act-Observe、推論-行動-観察）と呼ばれるものに従います。
+
+1. ご主人様のドキュメントやリクエストについて**推論（Reason）**する
+2. 適切なツールを使って**行動（Act）**する
+3. 結果を**観察（Observe）**する
+4. ご主人様のニーズに完全に対応するまで**繰り返す（Repeat）**
+
+これは LangGraph を使ったエージェントのシンプルな実装です。
+
+```python
+# グラフ
+builder = StateGraph(AgentState)
+
+# ノードを定義：これらが実際の処理を行います
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# エッジを定義：これらが制御フローの流れを決定します
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # 最新のメッセージがツールを必要とする場合、toolsにルーティング
+    # そうでなければ、直接応答を提供
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# 執事の思考プロセスを表示
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+ツールのリストを持つ `tools` ノードを定義します。`assistant` ノードは、ツールがバインドされたモデルそのものです。
+`assistant` と `tools` ノードを持つグラフを作成します。
+
+`tools_condition` エッジを追加します。これは `assistant` がツールを呼び出すかどうかに基づいて、`End` または `tools` にルーティングします。
+
+ここで新しいステップを追加します：
+
+`tools` ノードを `assistant` に接続し、ループを形成します。
+
+- `assistant` ノードの実行後、`tools_condition` がモデルの出力がツール呼び出しかどうかを確認します。
+- ツール呼び出しの場合、フローは `tools` ノードに向かいます。
+- `tools` ノードは `assistant` に接続し直します。
+- このループは、モデルがツールを呼び出すことを決定する限り続きます。
+- モデルの応答がツール呼び出しでない場合、フローは END に向かい、プロセスが終了します。
+
+![ReAct パターン](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## 執事の実演
+
+### 例1：簡単な計算
+
+LangGraph でツールを使用するエージェントのシンプルなユースケースを示す例です。
+
+```python
+messages = [HumanMessage(content="Divide 6790 by 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# メッセージを表示
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+会話は次のように進みます：
+
+```
+Human: Divide 6790 by 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: 6790 を 5 で割った結果は 1358.0 です。
+```
+
+### 例2：ウェイン様のトレーニングドキュメントの分析
+
+ウェイン様がトレーニングと食事のメモを残された場合：
+
+```python
+messages = [HumanMessage(content="According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+やり取りは次のように進みます：
+
+```
+Human: According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [トレーニングスケジュールとメニューの詳細が含まれた抽出テキスト]
+
+Alfred: ディナーメニューのために、以下の食材を購入する必要があります：
+
+1. グラスフェッドの地元産サーロインステーキ
+2. オーガニックほうれん草
+3. ピキージョペッパー
+4. じゃがいも（オーブン焼きゴールデンハーブポテト用）
+5. フィッシュオイル（2グラム）
+
+最高品質の食事のために、ステーキはグラスフェッド、ほうれん草とペッパーはオーガニックのものをお選びください。
+```
+
+## 重要なポイント
+
+独自のドキュメント分析執事を作成したい場合、以下の点を考慮してください：
+
+1. **明確なツールを定義**し、特定のドキュメント関連タスクに対応させる
+2. **堅牢な State トラッカーを作成**し、ツール呼び出し間のコンテキストを維持する
+3. **エラーハンドリングを考慮**し、ツールの失敗に備える
+4. **コンテキストの認識を維持**し、以前のやり取りを把握する（`add_messages` オペレーターによって保証されます）
+
+これらの原則に従えば、ウェイン邸にふさわしい模範的なドキュメント分析サービスを提供できるでしょう。
+
+*このご説明でご満足いただけたことを願っております。それでは失礼いたします。今夜の活動に備えて、ご主人様のケープにアイロンをかけなければなりませんので。*
+---
+
+---
+
+<!-- nav -->
+
+[⬅️ 前へ: 初めての LangGraph](first_graph.md) | [📚 目次](../../README.md) | [次へ: LangGraph: テスト ➡️](quiz1.md)

@@ -1,0 +1,43 @@
+
+
+---
+# Agentic フレームワーク入門
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+この第2ユニットへようこそ。ここでは、強力なエージェントアプリケーションを構築するために使用できる**さまざまな Agentic フレームワークを探求**していきます。
+
+学習する内容：
+
+- ユニット 2.1: [smolagents](https://huggingface.co/docs/smolagents/en/index)  
+- ユニット 2.2: [LlamaIndex](https://www.llamaindex.ai/)
+- ユニット 2.3: [LangGraph](https://www.langchain.com/langgraph)
+
+さっそく始めましょう！🕵
+
+## Agentic フレームワークを使うべきタイミング
+
+Agentic フレームワークは、**LLM を活用したアプリケーションを構築する際に常に必要というわけではありません**。特定のタスクを効率的に解決するためのワークフローに柔軟性を提供しますが、必ずしも必要ではないのです。
+
+**あらかじめ定義されたワークフローで十分**にユーザーのリクエストに対応できる場合もあり、Agentic フレームワークを使う必要がないこともあります。プロンプトの連鎖のように、エージェント構築のアプローチがシンプルな場合は、素のコードで十分かもしれません。その利点は、開発者が**抽象化なしにシステムを完全に制御・理解できる**ことです。
+
+しかし、LLM に関数を呼び出させたり、複数のエージェントを使用したりするなど、ワークフローが複雑になると、こうした抽象化が役立ち始めます。
+
+これらの考えを踏まえると、いくつかの機能が必要であることがすでに見えてきます：
+
+* システムを駆動する *LLM エンジン*
+* エージェントがアクセスできる *ツールのリスト*
+* LLM の出力から Tool 呼び出しを抽出する *パーサー*
+* パーサーと同期した *システムプロンプト*
+* *メモリシステム*
+* LLM のミスを制御するための *エラーログとリトライの仕組み*
+
+`smolagents`、`LlamaIndex`、`LangGraph` を含むさまざまなフレームワークで、これらのトピックがどのように解決されているかを探っていきます。
+
+## Agentic フレームワークのユニット
+
+| フレームワーク | 説明 | ユニット著者 |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introduction) | Hugging Face が開発した Agent フレームワーク | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | コンテキスト拡張型 AI エージェントを本番環境にデプロイするためのエンドツーエンドのツール群 | David Berenstein - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | エージェントのステートフルなオーケストレーションを可能にする Agent フレームワーク | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |

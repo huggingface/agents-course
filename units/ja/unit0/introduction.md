@@ -1,0 +1,167 @@
+
+
+# 🤗 AI エージェントコースへようこそ [[introduction]]
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/thumbnail.jpg" alt="AI Agents Course thumbnail" width="100%"/>
+<figcaption>画像の背景は <a href="https://scenario.com/">Scenario.com</a> を使用して生成されました
+</figcaption>
+</figure>
+
+
+今日のAI分野で最もエキサイティングなトピック、**エージェント（Agent）**のコースへようこそ！
+
+この無料コースでは、AIエージェントの理解・活用・構築について、**初心者からエキスパートまで**の道のりをご案内します。
+
+この最初のユニットでは、以下の内容でオンボーディングを行います：
+
+- コースの**シラバス**を確認する。
+- 進める**パスを選択**する（自己学習または認定プロセス）。
+- **認定プロセスに関する詳細情報**を確認する。
+- コースを支えるチームを知る。
+- **Hugging Face アカウント**を作成する。
+- **Discord サーバーに参加**して、クラスメイトや私たちと交流する。
+
+さあ、始めましょう！
+
+## このコースで何が学べるか？ [[expect]]
+
+このコースでは、以下のことを行います：
+
+- 📖 AIエージェントを**理論、設計、実践**の観点から学ぶ。
+- 🧑‍💻 [smolagents](https://huggingface.co/docs/smolagents/en/index)、[LlamaIndex](https://www.llamaindex.ai/)、[LangGraph](https://langchain-ai.github.io/langgraph/) などの**確立されたAIエージェントライブラリの使い方**を学ぶ。
+- 💾 Hugging Face Hub で**エージェントを共有**し、コミュニティが作成したエージェントを探索する。
+- 🏆 **他の受講生のエージェントと比較評価する**チャレンジに参加する。
+- 🎓 課題を完了して**修了証明書を取得**する。
+
+その他にも盛りだくさんです！
+
+このコースを終える頃には、**エージェントの仕組みを理解し、最新のライブラリやツールを使って独自のエージェントを構築する方法**を身につけているでしょう。
+
+**<a href="https://bit.ly/hf-learn-agents">コースへの登録</a>**をお忘れなく！
+
+（プライバシーを尊重しています。メールアドレスは、**各ユニット公開時のリンク送信やチャレンジ・更新情報のお知らせ**のために収集します）。
+
+## コースの構成は？ [[course-look-like]]
+
+コースは以下で構成されています：
+
+- *基礎ユニット*：エージェントの**概念を理論的に**学びます。
+- *ハンズオン*：**確立されたAIエージェントライブラリを使用**して、独自の環境でエージェントをトレーニングする方法を学びます。これらのハンズオンセクションは、事前設定された環境を持つ **Hugging Face Spaces** です。
+- *ユースケース課題*：学んだ概念を応用して、自分で選んだ実世界の問題を解決します。
+- *チャレンジ*：他のエージェントと競い合うチャレンジにエージェントを参加させます。エージェントのパフォーマンスを比較するための[リーダーボード](https://huggingface.co/spaces/agents-course/Students_leaderboard)も用意されています。
+
+この**コースは生きたプロジェクトであり、あなたのフィードバックや貢献によって進化します！** [GitHub で Issue や PR を作成](https://github.com/huggingface/agents-course)したり、Discord サーバーでディスカッションに参加してください。
+
+コースを修了した後は、[👉 こちらのフォーム](https://docs.google.com/forms/d/e/1FAIpQLSe9VaONn0eglax0uTwi29rIn4tM7H2sYmmybmG5jJNlE5v0xA/viewform?usp=dialog)からフィードバックをお寄せいただけます。
+
+## シラバスは？ [[syllabus]]
+
+以下がコースの**全体的なシラバス**です。より詳細なトピックリストは各ユニットと共に公開されます。
+
+| チャプター | トピック | 説明 |
+| :---- | :---- | :---- |
+| 0 | オンボーディング | 使用するツールとプラットフォームのセットアップを行います。 |
+| 1 | Agent の基礎 | Tool、Thought、Action、Observation とそのフォーマットについて説明します。LLM、メッセージ、特殊トークン、チャットテンプレートについて説明します。Python 関数を Tool として使用するシンプルなユースケースを紹介します。 |
+| 2 | フレームワーク | 基礎概念が主要なライブラリ（smolagents、LangGraph、LlamaIndex）でどのように実装されているかを理解します。 |
+| 3 | ユースケース | 実際のユースケースを構築しましょう（経験豊富な Agent ビルダーからの PR 歓迎 🤗） |
+| 4 | 最終課題 | 選択したベンチマーク向けの Agent を構築し、学生リーダーボードで Agent に関する理解を証明しましょう 🚀 |
+
+メインのシラバスに加えて、3つのボーナスユニットがあります：
+- *ボーナスユニット 1*：Function Calling 向けの LLM ファインチューニング
+- *ボーナスユニット 2*：Agent のオブザーバビリティと評価
+- *ボーナスユニット 3*：ポケモンを使った Agent in Games
+
+例えば、ボーナスユニット 3 では、ポケモンバトルをプレイする Agent の構築を学びます 🥊。
+
+## 前提条件は？
+
+このコースを受講するには、以下の知識が必要です：
+
+- Python の基本知識
+- LLM の基本知識（ユニット 1 に LLM の復習セクションがあります）
+
+
+## 必要なツールは？ [[tools]]
+
+必要なものは2つだけです：
+
+- インターネット接続のある*コンピュータ*。
+- *Hugging Face アカウント*：モデルやエージェントのプッシュ・ロード、Spaces の作成に使用します。アカウントをまだお持ちでない場合は、**[こちら](https://hf.co/join)**で作成できます（無料です）。
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/tools.jpg" alt="Course tools needed" width="100%"/>
+
+## 認定プロセス [[certification-process]]
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/three-paths.jpg" alt="Two paths" width="100%"/>
+
+このコースは*聴講モード*で受講することも、アクティビティに取り組んで*発行される2種類の証明書のいずれかを取得*することもできます。
+
+聴講モードの場合、すべてのチャレンジに参加し、希望すれば課題に取り組むことができます。**こちらへの連絡は不要です**。
+
+認定プロセスは**完全無料**です：
+
+- *基礎の認定を取得するには*：コースのユニット 1 を完了する必要があります。これは、Agent の最新トレンドを把握したい受講生向けです。
+- *修了証明書を取得するには*：ユニット 1、コース中に提案されるユースケース課題の1つ、そして最終チャレンジを完了する必要があります。
+
+認定プロセスに**期限はありません**。
+
+## 推奨ペースは？ [[recommended-pace]]
+
+各チャプターは、**1週間で完了できるように設計されており、週あたり約3〜4時間の学習時間**を想定しています。
+
+推奨ペースを提供します：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/recommended-pace.jpg" alt="Recommended Pace" width="100%"/>
+
+## コースを最大限に活用するには？ [[advice]]
+
+コースを最大限に活用するために、いくつかのアドバイスがあります：
+
+1. <a href="https://discord.gg/UrrTSsSyjb">Discord でスタディグループに参加する</a>：グループで学ぶ方が常に効果的です。参加するには、Discord サーバーに参加し、Hugging Face アカウントを認証する必要があります。
+2. **クイズと課題に取り組む**：学ぶ最良の方法は、ハンズオンの実践と自己評価です。
+3. **スケジュールを決めてペースを維持する**：以下の推奨ペーススケジュールを使用するか、独自のスケジュールを作成できます。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/advice.jpg" alt="Course advice" width="100%"/>
+
+## 私たちについて [[who-are-we]]
+
+このコースは [Ben Burtenshaw](https://huggingface.co/burtenshaw) と [Sergio Paniego](https://huggingface.co/sergiopaniego) によって管理されています。ご質問がありましたら、Hub でお気軽にお問い合わせください！
+
+## 謝辞
+
+このコースへの貴重な貢献に対して、以下の方々に感謝の意を表します：
+
+- **[Joffrey Thomas](https://huggingface.co/Jofthomas)** – コースの執筆・開発。
+- **[Thomas Simonini](https://huggingface.co/ThomasSimonini)** – コースの執筆・開発。
+- **[Pedro Cuenca](https://huggingface.co/pcuenq)** – コースのガイダンスとフィードバック。
+- **[Aymeric Roucher](https://huggingface.co/m-ric)** – 素晴らしいデモスペース（デコーディングと最終エージェント）、および smolagents パートへの支援。
+- **[Joshua Lochner](https://huggingface.co/Xenova)** – トークナイゼーションに関する素晴らしいデモスペース。
+- **[Quentin Gallouédec](https://huggingface.co/qgallouedec)** – コースコンテンツへの支援。
+- **[David Berenstein](https://huggingface.co/davidberenstein1957)** – コースコンテンツとモデレーションへの支援。
+- **[XiaXiao (ShawnSiao)](https://huggingface.co/SSSSSSSiao)** – コースの中国語翻訳。
+- **[Jiaming Huang](https://huggingface.co/nordicsushi)** – コースの中国語翻訳。
+- **[Kim Noel](https://github.com/knoel99)** - コースのフランス語翻訳。
+- **[Loïck Bourdois](https://huggingface.co/lbourdois)** - [CATIE](https://www.catie.fr/) からのコースのフランス語翻訳。
+
+
+## バグを見つけた、またはコースを改善したい場合 [[contribute]]
+
+貢献は**大歓迎**です 🤗
+
+- *ノートブックでバグ 🐛 を見つけた場合*は、<a href="https://github.com/huggingface/agents-course/issues">Issue を作成</a>して**問題を説明してください**。
+- *コースを改善したい場合*は、<a href="https://github.com/huggingface/agents-course/pulls">Pull Request を作成</a>できます。
+- *セクション全体や新しいユニットを追加したい場合*は、<a href="https://github.com/huggingface/agents-course/issues">Issue を作成</a>して、**執筆を始める前に追加したいコンテンツについて説明してください。ガイドいたします**。
+
+## まだ質問がある場合 [[questions]]
+
+<a href="https://discord.gg/UrrTSsSyjb">Discord サーバーの #agents-course-questions</a> で質問してください。
+
+必要な情報はすべて揃いました。さあ、出発しましょう ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Time to Onboard" width="100%"/>
+
+---
+
+<!-- nav -->
+
+[📚 目次](../README.md) | [次へ: オンボーディング ➡️](onboarding.md)

@@ -1,0 +1,27 @@
+# まとめ
+
+このUnit 2の`LangGraph`モジュールを完了おめでとうございます！🥳
+
+これで、LangGraphを使った構造化ワークフロー構築の基礎を習得し、本番環境にデプロイできるようになりました。
+
+このモジュールは、LangGraphの旅の始まりに過ぎません。より高度なトピックについては、以下をおすすめします：
+
+- [LangGraph公式ドキュメント](https://github.com/langchain-ai/langgraph)を探索する
+- LangChain Academyの包括的な[Introduction to LangGraph](https://academy.langchain.com/courses/intro-to-langgraph)コースを受講する
+- 自分自身で何かを作ってみる！
+
+次のUnitでは、実際のユースケースを探索します。理論を離れて、実践に入る時です！
+
+**コースに対するご意見や改善のご提案**をいただけると大変ありがたいです。フィードバックがありましたら、👉 [こちらのフォーム](https://docs.google.com/forms/d/e/1FAIpQLSe9VaONn0eglax0uTwi29rIn4tM7H2sYmmybmG5jJNlE5v0xA/viewform?usp=dialog)にご記入ください。
+
+### 学び続けよう、最高であり続けよう！🤗
+
+紳士淑女の皆様へ！🎩🦇
+
+-Alfred-
+
+---
+
+<!-- nav -->
+
+[⬅️ 前へ: LangGraph: テスト](quiz1.md) | [📚 目次](../../README.md) | [次へ: Agentic RAG 入門 ➡️](../../unit3/agentic-rag/introduction.md)

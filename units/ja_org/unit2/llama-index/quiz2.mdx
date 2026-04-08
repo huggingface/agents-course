@@ -1,0 +1,115 @@
+
+
+---
+# 簡単なセルフチェック（採点なし） [[quiz2]]
+
+またクイズ？と思いますよね... 😅 でもこの短い採点なしのクイズは、**学んだばかりの重要な概念を定着させるため**のものです。
+
+このクイズでは、エージェントのワークフローとインタラクションについて扱います。これらは効果的なAIエージェントを構築するための重要な要素です。
+
+### Q1: LlamaIndexにおけるAgentWorkflowの目的は何ですか？
+
+<Question
+choices={[
+{
+text: "1つ以上のエージェントをツールと共に実行すること",
+explain: "はい、AgentWorkflowは1つ以上のエージェントからなるシステムを素早く作成するための主要な方法です。",
+correct: true
+},
+{
+text: "メモリなしでデータを検索できる単一のエージェントを作成すること",
+explain: "いいえ、AgentWorkflowはそれ以上の機能を持っています。データに対する単純なクエリにはQueryEngineを使用します。",
+},
+{
+text: "エージェント用のツールを自動的に構築すること",
+explain: "AgentWorkflowはツールを構築しません。それは開発者の役割です。",
+},
+{
+text: "エージェントのメモリと状態を管理すること",
+explain: "メモリと状態の管理はAgentWorkflowの主な目的ではありません。",
+}
+]}
+/>
+
+---
+
+### Q2: ワークフローの状態を追跡するために使用されるオブジェクトは何ですか？
+
+<Question
+choices={[
+{
+text: "State",
+explain: "Stateはワークフローの状態管理に使用される正しいオブジェクトではありません。",
+},
+{
+text: "Context",
+explain: "Contextはワークフローの状態を追跡するために使用される正しいオブジェクトです。",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowStateは正しいオブジェクトではありません。",
+},
+{
+text: "Management",
+explain: "Managementはワークフローの状態に使用される有効なオブジェクトではありません。",
+}
+]}
+/>
+
+---
+
+### Q3: エージェントに以前のインタラクションを記憶させたい場合、どのメソッドを使用すべきですか？
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str)は会話履歴を保持しません。",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat()はワークフローで有効なメソッドではありません。",
+},
+{
+text: "interact(query_str)",
+explain: "interact()はエージェントのインタラクションに有効なメソッドではありません。",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "コンテキストを渡して維持することで、状態を保持できます！",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4: Agentic RAGの主な特徴は何ですか？
+
+<Question
+choices={[
+{
+text: "RAGワークフローで質問に答えるために、ドキュメントベースのツールのみ使用できる",
+explain: "Agentic RAGはドキュメントベースのツールを含む、さまざまなツールを使用できます。",
+},
+{
+text: "チャットボットのように、ツールなしで自動的に質問に答える",
+explain: "Agentic RAGは質問に答えるためにツールを使用します。",
+},
+{
+text: "RAGツールを含む任意のツールを使って質問に答えることを判断できる",
+explain: "Agentic RAGは質問に答えるためにさまざまなツールを柔軟に使用できます。",
+correct: true
+},
+{
+text: "Function Calling Agentでのみ動作する",
+explain: "Agentic RAGはFunction Calling Agentに限定されません。",
+}
+]}
+/>
+
+---
+
+
+理解できましたか？素晴らしい！それでは、**このユニットの簡単な振り返り**をしましょう！

@@ -1,0 +1,321 @@
+---
+# Tool
+
+[ユニット1](https://huggingface.co/learn/agents-course/unit1/tools)で学んだように、エージェント（Agent）はさまざまなアクションを実行するために Tool を使用します。`smolagents` では、Tool は**エージェントシステム内で LLM が呼び出せる関数**として扱われます。
+
+Tool とやり取りするために、LLM には以下の主要コンポーネントを含む**インターフェースの説明**が必要です：
+
+- **名前（Name）**：Tool の名称
+- **Tool の説明（Tool description）**：Tool が何をするか
+- **入力の型と説明（Input types and descriptions）**：Tool が受け取る引数
+- **出力の型（Output type）**：Tool が返すもの
+
+例えば、ウェイン邸でのパーティーの準備中、アルフレッドはケータリングサービスの検索からパーティーのテーマのアイデア探しまで、情報を収集するためにさまざまな Tool が必要です。シンプルな検索 Tool のインターフェースは以下のようになります：
+
+- **名前：** `web_search`
+- **Tool の説明：** 特定のクエリでウェブ検索を行う
+- **入力：** `query`（文字列）- 検索するキーワード
+- **出力：** 検索結果を含む文字列
+
+これらの Tool を使うことで、アルフレッドは十分な情報に基づいた判断を下し、完璧なパーティーの計画に必要なすべての情報を集めることができます。
+
+以下は、Tool 呼び出しがどのように管理されるかを示すアニメーションです：
+
+![Agentic pipeline from https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/Agent_ManimCE.gif)
+
+## Tool の作成方法
+
+`smolagents` では、Tool を2つの方法で定義できます：
+1. **`@tool` デコレーターを使用する方法** — シンプルな関数ベースの Tool 向け
+2. **`Tool` のサブクラスを作成する方法** — より複雑な機能向け
+
+### `@tool` デコレーター
+
+`@tool` デコレーターは、**シンプルな Tool を定義する際に推奨される方法**です。内部では、smolagents が Python の関数から基本的な情報を解析します。そのため、関数名を明確に付け、良いドキュメント文字列を書けば、LLM がより使いやすくなります。
+
+このアプローチでは、以下の要素を持つ関数を定義します：
+
+- **明確で説明的な関数名** — LLM が目的を理解しやすくするため。
+- **入力と出力の両方に型ヒント** — 正しい使用を保証するため。
+- **詳細な説明** — 各引数が明示的に記述された `Args:` セクションを含む。これらの説明は LLM に貴重なコンテキストを提供するため、丁寧に書くことが重要です。
+
+#### 最高評価のケータリングを取得する Tool の作成
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-catering.jpg" alt="Alfred Catering"/>
+
+> [!TIP]
+> コードは Google Colab で実行できる<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb" target="_blank">こちらのノートブック</a>で追うことができます。
+
+アルフレッドはパーティーのメニューをすでに決めていますが、大勢のゲストのために料理を準備する手助けが必要です。そのために、ケータリングサービスを利用したいと考えており、利用可能な最高評価のサービスを特定する必要があります。アルフレッドは Tool を活用して、自分のエリアで最高のケータリングサービスを検索できます。
+
+以下は、アルフレッドが `@tool` デコレーターを使ってこれを実現する例です：
+
+```python
+from smolagents import CodeAgent, InferenceClientModel, tool
+
+# 最高評価のケータリングサービスを取得する関数があると仮定しましょう。
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    This tool returns the highest-rated catering service in Gotham City.
+
+    Args:
+        query: A search term for finding catering services.
+    """
+    # ケータリングサービスとその評価のサンプルリスト
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+
+    # 最高評価のケータリングサービスを見つける（検索クエリのフィルタリングをシミュレーション）
+    best_service = max(services, key=services.get)
+
+    return best_service
+
+
+agent = CodeAgent(tools=[catering_service_tool], model=InferenceClientModel())
+
+# エージェントを実行して最高のケータリングサービスを見つける
+result = agent.run(
+    "Can you give me the name of the highest-rated catering service in Gotham City?"
+)
+
+print(result)   # 出力: Gotham Catering Co.
+```
+
+### Python クラスとして Tool を定義する
+
+このアプローチでは、[`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool) のサブクラスを作成します。複雑な Tool の場合、Python 関数の代わりにクラスとして実装できます。このクラスは、LLM が効果的に使用方法を理解するのに役立つメタデータで関数をラップします。このクラスでは以下を定義します：
+
+- `name`：Tool の名前。
+- `description`：エージェントのシステムプロンプトに含まれる説明。
+- `inputs`：`type` と `description` をキーとする辞書。Python インタープリターが入力を処理するための情報を提供します。
+- `output_type`：期待される出力の型を指定します。
+- `forward`：実行する推論ロジックを含むメソッド。
+
+以下は、`Tool` を使って構築した Tool と、それを `CodeAgent` に統合する方法の例です。
+
+#### スーパーヒーローテーマのパーティーのアイデアを生成する Tool の作成
+
+ウェイン邸でのアルフレッドのパーティーは**スーパーヒーローテーマのイベント**ですが、本当に特別なものにするためにクリエイティブなアイデアが必要です。素晴らしいホストとして、ユニークなテーマでゲストを驚かせたいと考えています。
+
+そのために、指定されたカテゴリーに基づいてスーパーヒーローテーマのパーティーアイデアを生成するエージェントを使用できます。これにより、アルフレッドはゲストを感動させる完璧なパーティーテーマを見つけることができます。
+
+```python
+from smolagents import Tool, CodeAgent, InferenceClientModel
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    This tool suggests creative superhero-themed party ideas based on a category.
+    It returns a unique party theme idea."""
+
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
+        }
+    }
+
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: Guests come dressed as their favorite DC heroes with themed cocktails like 'The Kryptonite Punch'.",
+            "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
+            "futuristic Gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
+        }
+
+        return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
+
+# Tool をインスタンス化
+party_theme_tool = SuperheroPartyThemeTool()
+agent = CodeAgent(tools=[party_theme_tool], model=InferenceClientModel())
+
+# エージェントを実行してパーティーテーマのアイデアを生成
+result = agent.run(
+    "What would be a good superhero party idea for a 'villain masquerade' theme?"
+)
+
+print(result)  # 出力: "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains."
+```
+
+この Tool があれば、アルフレッドは究極のスーパーホストとして、ゲストが忘れられないスーパーヒーローテーマのパーティーで感動させることができるでしょう！🦸‍♂️🦸‍♀️
+
+## デフォルトツールボックス
+
+`smolagents` には、エージェントに直接組み込めるビルド済み Tool のセットが付属しています。[デフォルトツールボックス](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox)には以下が含まれます：
+
+- **PythonInterpreterTool**
+- **FinalAnswerTool**
+- **UserInputTool**
+- **DuckDuckGoSearchTool**
+- **GoogleSearchTool**
+- **VisitWebpageTool**
+
+アルフレッドはウェイン邸での完璧なパーティーを実現するために、さまざまな Tool を使用できます：
+
+- まず、`DuckDuckGoSearchTool` を使って、クリエイティブなスーパーヒーローテーマのパーティーアイデアを検索できます。
+
+- ケータリングについては、`GoogleSearchTool` を使ってゴッサムで最高評価のサービスを見つけられます。
+
+- 座席の配置を管理するために、`PythonInterpreterTool` で計算を実行できます。
+
+- すべての情報が集まったら、`FinalAnswerTool` を使って計画をまとめられます。
+
+これらの Tool を使えば、アルフレッドはパーティーを卓越したシームレスなものにできます。🦇💡
+
+## Tool の共有とインポート
+
+**smolagents** の最も強力な機能の1つは、カスタム Tool を Hub で共有し、コミュニティが作成した Tool をシームレスに統合できることです。これには **HF Spaces** や **LangChain ツール** との接続も含まれており、ウェイン邸での忘れられないパーティーをオーケストレーションするアルフレッドの能力を大幅に強化します。🎭
+
+これらの統合により、アルフレッドは高度なイベント企画 Tool を活用できます — 完璧な雰囲気のための照明調整、パーティーにぴったりのプレイリストの選曲、ゴッサム最高のケータリングとの連携など。
+
+以下は、これらの機能がパーティー体験をどのように向上させるかを示す例です：
+
+### Hub に Tool を共有する
+
+カスタム Tool をコミュニティと共有するのは簡単です！`push_to_hub()` メソッドを使って、Hugging Face アカウントにアップロードするだけです。
+
+例えば、アルフレッドは `party_theme_tool` を共有して、他の人がゴッサムで最高のケータリングサービスを見つける手助けができます。方法は以下の通りです：
+
+```python
+party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HUGGINGFACEHUB_API_TOKEN>")
+```
+
+### Hub から Tool をインポートする
+
+`load_tool()` 関数を使って、他のユーザーが作成した Tool を簡単にインポートできます。例えば、アルフレッドはパーティーのプロモーション画像を AI で生成したいかもしれません。ゼロから Tool を構築する代わりに、コミュニティの既存のものを活用できます：
+
+```python
+from smolagents import load_tool, CodeAgent, InferenceClientModel
+
+image_generation_tool = load_tool(
+    "m-ric/text-to-image",
+    trust_remote_code=True
+)
+
+agent = CodeAgent(
+    tools=[image_generation_tool],
+    model=InferenceClientModel()
+)
+
+agent.run("Generate an image of a luxurious superhero-themed party at Wayne Manor with made-up superheros.")
+```
+
+### Hugging Face Space を Tool としてインポートする
+
+`Tool.from_space()` を使って HF Space を Tool としてインポートすることもできます。これにより、画像生成からデータ分析まで、コミュニティの何千もの Space と統合する可能性が広がります。
+
+この Tool は Spaces の Gradio バックエンドに `gradio_client` を使って接続するため、まだインストールしていない場合は `pip` でインストールしてください。
+
+パーティーのために、アルフレッドは既存の HF Space を使って、告知用の AI 生成画像を作成できます（先ほど紹介したビルド済み Tool の代わりに）。作ってみましょう！
+
+```python
+from smolagents import CodeAgent, InferenceClientModel, Tool
+
+image_generation_tool = Tool.from_space(
+    "black-forest-labs/FLUX.1-schnell",
+    name="image_generator",
+    description="Generate an image from a prompt"
+)
+
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+agent = CodeAgent(tools=[image_generation_tool], model=model)
+
+agent.run(
+    "Improve this prompt, then generate an image of it.",
+    additional_args={'user_prompt': 'A grand superhero-themed party at Wayne Manor, with Alfred overseeing a luxurious gala'}
+)
+```
+
+### LangChain の Tool をインポートする
+
+`LangChain` フレームワークについては後のセクションで詳しく説明します。ここでは、LangChain の Tool を smolagents のワークフローで再利用できることだけ触れておきます！
+
+`Tool.from_langchain()` メソッドを使って、LangChain の Tool を簡単にロードできます。完璧主義者のアルフレッドは、ウェイン家が不在の間にウェイン邸で壮大なスーパーヒーローナイトを準備しています。すべての細部が期待を超えるものになるよう、LangChain の Tool を活用して最高級のエンターテインメントアイデアを見つけます。
+
+`Tool.from_langchain()` を使うことで、アルフレッドは高度な検索機能を smolagent にスムーズに追加し、わずかなコマンドで独占的なパーティーアイデアやサービスを発見できるようになります。
+
+その方法は以下の通りです：
+
+まず、`smolagents` 用の `langchain` インテグレーションをインストールする必要があります。
+
+```bash
+pip install -U langchain-community
+```
+
+langchain インテグレーションをインストールした後、SerpAPI キーを設定してください。
+これは `SerpAPITool` などの検索ベースの Tool に必要です：
+
+```python
+os.environ['SERPAPI_API_KEY'] = '...'
+```
+
+SerpAPI キーは[こちら](https://serpapi.com/)で作成できます。
+
+```python
+from langchain.agents import load_tools
+from smolagents import CodeAgent, InferenceClientModel, Tool
+
+search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
+
+agent = CodeAgent(tools=[search_tool], model=model)
+
+agent.run("Search for luxury entertainment ideas for a superhero-themed event, such as live performances and interactive experiences.")
+```
+
+### 任意の MCP サーバーから Tool コレクションをインポートする
+
+`smolagents` では、[glama.ai](https://glama.ai/mcp/servers) や [smithery.ai](https://smithery.ai) で利用可能な数百の MCP サーバーから Tool をインポートすることもできます。MCP についてより深く学びたい場合は、[無料の MCP コース](https://huggingface.co/learn/mcp-course/)をご覧ください。
+
+<details>
+<summary>MCP クライアントのインストール</summary>
+
+まず、`smolagents` 用の `mcp` インテグレーションをインストールする必要があります。
+
+```bash
+pip install "smolagents[mcp]"
+```
+</details>
+
+MCP サーバーの Tool は、以下のように ToolCollection オブジェクトにロードできます：
+
+```python
+import os
+from smolagents import ToolCollection, CodeAgent
+from mcp import StdioServerParameters
+from smolagents import InferenceClientModel
+
+
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+
+server_parameters = StdioServerParameters(
+    command="uvx",
+    args=["--quiet", "pubmedmcp@0.1.3"],
+    env={"UV_PYTHON": "3.12", **os.environ},
+)
+
+with ToolCollection.from_mcp(server_parameters, trust_remote_code=True) as tool_collection:
+    agent = CodeAgent(tools=[*tool_collection.tools], model=model, add_base_tools=True)
+    agent.run("Please find a remedy for hangover.")
+```
+
+このセットアップにより、アルフレッドは豪華なエンターテインメントオプションをすばやく見つけ、ゴッサムのエリートゲストに忘れられない体験を提供できます。この Tool は、ウェイン邸での完璧なスーパーヒーローテーマのイベントをキュレーションする手助けをします！🎉
+
+## リソース
+
+- [Tool チュートリアル](https://huggingface.co/docs/smolagents/tutorials/tools) - Tool を効果的に扱う方法を学ぶチュートリアルです。
+- [Tool ドキュメント](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools) - Tool に関する包括的なリファレンスドキュメントです。
+- [Tool ガイドツアー](https://huggingface.co/docs/smolagents/v1.8.1/en/guided_tour#tools) - Tool の構築と活用を効率的に行うためのステップバイステップのガイドツアーです。
+- [効果的なエージェントの構築](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 信頼性が高くハイパフォーマンスなカスタム関数エージェントを開発するためのベストプラクティスの詳細ガイドです。
+
+---
+
+<!-- nav -->
+
+[⬅️ 前へ: smolagents を使う理由](why_use_smolagents.md) | [📚 目次](../../README.md) | [次へ: smolagents: 小テスト 1 ➡️](quiz1.md)

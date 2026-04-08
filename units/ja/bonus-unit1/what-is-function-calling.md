@@ -1,0 +1,85 @@
+
+
+# Function Calling とは？
+
+Function Calling は、**LLM が環境に対してアクションを実行するための方法**です。[GPT-4 で初めて導入](https://openai.com/index/function-calling-and-other-api-updates/)され、その後他のモデルでも再現されました。
+
+エージェント（Agent）の Tool と同様に、Function Calling はモデルに**環境に対してアクションを実行する能力**を与えます。ただし、Function Calling の能力は**モデルによって学習されたもの**であり、他のエージェント技術と比べて**プロンプトへの依存度が低い**という特徴があります。
+
+Unit 1 では、エージェントは **Tool の使い方を学習したわけではなく**、単にリストを提供し、モデルが**それらの Tool を使った計画の定義を汎化できること**に頼っていました。
+
+一方ここでは、**Function Calling により、エージェントは Tool を使うようにファインチューニング（訓練）されています**。
+
+## モデルはどのようにしてアクションの実行を「学習」するのか？
+
+Unit 1 では、エージェントの一般的なワークフローを探りました。ユーザーがエージェントにいくつかの Tool を与え、クエリでプロンプトすると、モデルは以下のサイクルを繰り返します：
+
+1. *Think（思考）*：目的を達成するためにどのアクションを取る必要があるか。
+2. *Act（行動）*：正しいパラメータでアクションをフォーマットし、生成を停止する。
+3. *Observe（観察）*：実行結果を取得する。
+
+API を通じたモデルとの「典型的な」会話では、ユーザーとアシスタントのメッセージが以下のように交互に並びます：
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+Function Calling は**会話に新しいロールをもたらします**！
+
+1. **Action（アクション）** のための新しいロール
+2. **Observation（観察）** のための新しいロール
+
+[Mistral API](https://docs.mistral.ai/capabilities/function_calling/) を例にとると、以下のようになります：
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "What's the status of my transaction T1001?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Your transaction T1001 has been successfully paid."
+    }
+]
+```
+
+> ...しかし、Function Call 用の新しいロールがあると言いましたよね？
+
+**はい、でもいいえ**。この場合や他の多くの API では、モデルは実行するアクションを「assistant」メッセージとしてフォーマットします。チャットテンプレートはこれを Function Calling 用の**特殊トークン**として表現します。
+
+- `[AVAILABLE_TOOLS]` – 利用可能な Tool のリストの開始
+- `[/AVAILABLE_TOOLS]` – 利用可能な Tool のリストの終了
+- `[TOOL_CALLS]` – Tool の呼び出し（つまり「Action」の実行）
+- `[TOOL_RESULTS]` – アクションの結果を「Observe（観察）」する
+- `[/TOOL_RESULTS]` – 観察の終了（つまり、モデルが再びデコードできる）
+
+このコースでは Function Calling について再度取り上げますが、より深く知りたい場合は[こちらの優れたドキュメントセクション](https://docs.mistral.ai/capabilities/function_calling/)をご確認ください。
+
+---
+Function Calling とは何か、そしてどのように機能するかを学んだところで、次は**まだその能力を持たないモデル** [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) に、新しい特殊トークンを追加して **Function Calling の機能を付与**してみましょう。
+
+これを実現するためには、**まずファインチューニングと LoRA を理解する必要があります**。
+
+---
+
+<!-- nav -->
+
+[⬅️ 前へ: Bonus 1: イントロ](introduction.md) | [📚 目次](../README.md) | [次へ: ファインチューニング ➡️](fine-tuning.md)

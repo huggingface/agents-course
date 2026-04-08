@@ -1,0 +1,223 @@
+
+
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# smolagents によるビジョン Agent
+
+> [!WARNING]
+> このセクションの例では、強力な VLM モデルへのアクセスが必要です。テストには GPT-4o API を使用しました。
+> ただし、<a href="./why_use_smolagents">Why use smolagents</a> では、smolagents と Hugging Face がサポートする代替ソリューションについて説明しています。他の選択肢を検討したい場合は、そちらのセクションを確認してください。
+
+Agent に視覚能力を持たせることは、テキスト処理を超えたタスクを解決するために不可欠です。ウェブブラウジングやドキュメント理解など、多くの現実世界の課題では、リッチな視覚コンテンツの分析が求められます。幸いなことに、`smolagents` はビジョン言語モデル（VLM）の組み込みサポートを提供しており、Agent が画像を効果的に処理・解釈できるようになっています。
+
+この例では、ウェイン邸の執事アルフレッドが、パーティーに出席するゲストの身元確認を任されている場面を想像してみましょう。ご想像の通り、アルフレッドは到着するすべての人物を知っているわけではありません。そこで、VLM を使って外見に関する視覚情報を検索し、身元を確認する Agent を使ってアルフレッドを支援します。これにより、アルフレッドは誰を入場させるべきかについて、十分な情報に基づいた判断を下せるようになります。この例を構築していきましょう！
+
+
+## Agent の実行開始時に画像を提供する
+
+> [!TIP]
+> <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb" target="_blank">このノートブック</a>のコードに沿って進めることができます。Google Colab で実行可能です。
+
+このアプローチでは、Agent の開始時に画像が渡され、タスクプロンプトとともに `task_images` として保存されます。その後、Agent は実行全体を通じてこれらの画像を処理します。
+
+アルフレッドがパーティーに出席するスーパーヒーローの身元を確認したいケースを考えてみましょう。アルフレッドは、過去のパーティーのゲスト名付き画像データセットをすでに持っています。新しい訪問者の画像が与えられると、Agent は既存のデータセットと比較し、入場を許可するかどうかを判断できます。
+
+今回のケースでは、あるゲストが入場しようとしており、アルフレッドはこの訪問者がワンダーウーマンに変装したジョーカーではないかと疑っています。アルフレッドは望ましくない人物の入場を防ぐために、身元を確認する必要があります。
+
+例を構築していきましょう。まず、画像を読み込みます。この例では、最小限に保つために Wikipedia の画像を使用していますが、考えられるユースケースを想像してみてください！
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg", # ジョーカーの画像
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg" # ジョーカーの画像
+]
+
+images = []
+for url in image_urls:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" 
+    }
+    response = requests.get(url,headers=headers)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+画像が用意できたので、Agent がゲストが実際にスーパーヒーロー（ワンダーウーマン）なのか、ヴィラン（ジョーカー）なのかを教えてくれます。
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+# Agent のインスタンス化
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Describe the costume and makeup that the comic character in these photos is wearing and return the description.
+    Tell me if the guest is The Joker or Wonder Woman.
+    """,
+    images=images
+)
+```
+
+私の実行では以下のような出力が得られましたが、すでに説明した通り、結果は異なる場合があります：
+
+```python
+    {
+        'Costume and Makeup - First Image': (
+            'Purple coat and a purple silk-like cravat or tie over a mustard-yellow shirt.',
+            'White face paint with exaggerated features, dark eyebrows, blue eye makeup, red lips forming a wide smile.'
+        ),
+        'Costume and Makeup - Second Image': (
+            'Dark suit with a flower on the lapel, holding a playing card.',
+            'Pale skin, green hair, very red lips with an exaggerated grin.'
+        ),
+        'Character Identity': 'This character resembles known depictions of The Joker from comic book media.'
+    }
+```
+
+この場合、出力からその人物が別人になりすましていることが明らかになったため、ジョーカーのパーティーへの入場を阻止できます！
+
+## 動的な画像取得による画像提供
+
+> [!TIP]
+> <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py" target="_blank">この Python ファイル</a>のコードに沿って進めることができます。
+
+前のアプローチは有用で、多くの潜在的なユースケースがあります。しかし、ゲストがデータベースに存在しない場合、別の方法で身元を確認する必要があります。考えられる解決策の一つは、ウェブで詳細情報をブラウジングするなど、外部ソースから画像や情報を動的に取得することです。
+
+このアプローチでは、Agent の実行中にメモリに動的に画像が追加されます。`smolagents` の Agent は `MultiStepAgent` クラスに基づいており、これは ReAct フレームワークの抽象化です。このクラスは、さまざまな変数と知識が異なる段階で記録される構造化されたサイクルで動作します：
+
+1. **SystemPromptStep:** システムプロンプトを保存します。
+2. **TaskStep:** ユーザーのクエリと提供された入力を記録します。
+3. **ActionStep:** Agent のアクションと結果からのログをキャプチャします。
+
+この構造化されたアプローチにより、Agent は視覚情報を動的に取り込み、変化するタスクに適応的に対応できます。以下は、すでに見たダイアグラムで、動的なワークフロープロセスと、Agent のライフサイクル内でさまざまなステップがどのように統合されるかを示しています。ブラウジング時に、Agent はスクリーンショットを撮影し、`ActionStep` の `observation_images` として保存できます。
+
+![動的な画像取得](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/smolagents-can-see/diagram_adding_vlms_smolagents.png)
+
+必要性を理解したところで、完全な例を構築しましょう。このケースでは、アルフレッドはゲスト確認プロセスを完全にコントロールしたいと考えているため、詳細情報のブラウジングが有効な解決策となります。この例を完成させるには、Agent 用の新しいツールセットが必要です。さらに、ブラウザ自動化ツールである Selenium と Helium を使用します。これにより、ウェブを探索し、潜在的なゲストに関する詳細を検索して確認情報を取得する Agent を構築できます。必要なツールをインストールしましょう：
+
+```bash
+pip install "smolagents[all]" helium selenium python-dotenv
+```
+
+`search_item_ctrl_f`、`go_back`、`close_popups` など、ブラウジング専用に設計された Agent ツールのセットが必要です。これらのツールにより、Agent はウェブをナビゲートする人間のように動作できます。
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Ctrl + F で現在のページ上のテキストを検索し、n番目の出現箇所にジャンプします。
+    Args:
+        text: 検索するテキスト
+        nth_result: ジャンプする出現箇所の番号（デフォルト: 1）
+    """
+    elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{text}')]")
+    if nth_result > len(elements):
+        raise Exception(f"Match n°{nth_result} not found (only {len(elements)} matches found)")
+    result = f"Found {len(elements)} matches for '{text}'."
+    elem = elements[nth_result - 1]
+    driver.execute_script("arguments[0].scrollIntoView(true);", elem)
+    result += f"Focused on element {nth_result} of {len(elements)}"
+    return result
+
+
+@tool
+def go_back() -> None:
+    """前のページに戻ります。"""
+    driver.back()
+
+
+@tool
+def close_popups() -> str:
+    """
+    ページ上の表示されているモーダルやポップアップを閉じます。ポップアップウィンドウを閉じるために使用してください！Cookie 同意バナーには機能しません。
+    """
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+```
+
+また、スクリーンショットの保存機能も必要です。これは VLM Agent がタスクを完了するために使用する重要な部分です。この機能はスクリーンショットをキャプチャし、`step_log.observations_images = [image.copy()]` に保存することで、Agent がナビゲーション中に動的に画像を保存・処理できるようにします。
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)  # スクリーンショットを撮る前に JavaScript アニメーションが完了するのを待つ
+    driver = helium.get_driver()
+    current_step = step_log.step_number
+    if driver is not None:
+        for step_logs in agent.logs:  # 効率的な処理のために以前のスクリーンショットをログから削除
+            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+                step_logs.observations_images = None
+        png_bytes = driver.get_screenshot_as_png()
+        image = Image.open(BytesIO(png_bytes))
+        print(f"Captured a browser screenshot: {image.size} pixels")
+        step_log.observations_images = [image.copy()]  # 永続化を確実にするためにコピーを作成（重要！）
+
+    # 現在の URL で observations を更新
+    url_info = f"Current url: {driver.current_url}"
+    step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
+    return
+```
+
+この関数は `step_callback` として Agent に渡されます。Agent の実行中、各ステップの終了時にトリガーされるためです。これにより、Agent はプロセス全体を通じて動的にスクリーンショットをキャプチャし保存できます。
+
+これで、ウェブブラウジング用のビジョン Agent を生成できます。作成したツールと、ウェブを探索するための `DuckDuckGoSearchTool` を提供します。このツールにより、Agent は視覚的な手がかりに基づいてゲストの身元確認に必要な情報を取得できます。
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+これで、アルフレッドはゲストの身元を確認し、パーティーへの入場を許可するかどうかについて十分な情報に基づいた判断を下す準備が整いました：
+
+```python
+agent.run("""
+I am Alfred, the butler of Wayne Manor, responsible for verifying the identity of guests at party. A superhero has arrived at the entrance claiming to be Wonder Woman, but I need to confirm if she is who she says she is.
+
+Please search for images of Wonder Woman and generate a detailed visual description based on those images. Additionally, navigate to Wikipedia to gather key details about her appearance. With this information, I can determine whether to grant her access to the event.
+""" + helium_instructions)
+```
+
+タスクの一部として `helium_instructions` を含めていることに注目してください。この特別なプロンプトは Agent のナビゲーションを制御し、ウェブブラウジング中に正しい手順に従うようにするためのものです。
+
+以下の動画でこの動作を確認できます：
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+最終的な出力は以下の通りです：
+
+```python
+Final answer: Wonder Woman is typically depicted wearing a red and gold bustier, blue shorts or skirt with white stars, a golden tiara, silver bracelets, and a golden Lasso of Truth. She is Princess Diana of Themyscira, known as Diana Prince in the world of men.
+```
+
+以上で、パーティーの身元確認システムを無事に構築できました！アルフレッドは、正しいゲストだけを通過させるために必要なツールを手に入れました。ウェイン邸で楽しい時間を過ごす準備は万端です！
+
+
+## 参考文献
+
+- [We just gave sight to smolagents](https://huggingface.co/blog/smolagents-can-see) - ビジョン Agent 機能について説明したブログ記事。
+- [Web Browser Automation with Agents 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - ビジョン Agent を使用したウェブブラウジングの例。
+- [Web Browser Vision Agent Example](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - ビジョン Agent を使用したウェブブラウジングの例。
