@@ -1,0 +1,166 @@
+# O que são componentes no LlamaIndex?
+
+Lembra do Alfred, o mordomo atencioso da Unidade 1?  
+Para nos ajudar de verdade, ele precisa entender nossos pedidos e **preparar, localizar e usar informações relevantes**.  
+É aqui que entram os componentes do LlamaIndex.
+
+O LlamaIndex possui diversos componentes, mas **vamos focar no `QueryEngine`**.  
+Por quê? Porque ele pode funcionar como uma ferramenta de Retrieval-Augmented Generation (RAG) para um agente.
+
+RAG (Retrieval-Augmented Generation) resolve a limitação dos LLMs — que, apesar de treinados em grandes coleções de dados, podem não ter informações específicas ou atualizadas — ao **buscar conteúdos relevantes nos seus próprios dados** e fornecer esse contexto ao modelo.
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Pense no fluxo do Alfred:
+
+1. Você pede ajuda para planejar um jantar.  
+2. Ele verifica sua agenda, preferências alimentares e menus passados.  
+3. O `QueryEngine` encontra essas informações e as usa para montar o plano.
+
+Ou seja, o `QueryEngine` é **peça fundamental para construir workflows de RAG agênticos** no LlamaIndex. Assim como Alfred vasculha o histórico da casa, qualquer agente precisa encontrar e interpretar dados relevantes. O `QueryEngine` oferece exatamente isso.
+
+Agora, vamos mergulhar nos componentes e aprender a **combinar peças para criar um pipeline de RAG**.
+
+## Construindo um pipeline RAG com componentes
+
+> [!TIP]
+> O código desta seção está disponível <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">neste notebook</a>, executável no Google Colab.
+
+Um pipeline RAG geralmente passa por cinco estágios principais:
+
+1. **Loading (Carregamento)**: trazer os dados de onde estão — arquivos, PDFs, sites, bancos de dados ou APIs — para o fluxo. O LlamaHub oferece centenas de conectores para isso.  
+2. **Indexing (Indexação)**: criar estruturas que permitam consultar os dados. Em LLMs, isso normalmente significa gerar embeddings vetoriais (representações numéricas do significado). Indexação também inclui estratégias de metadados.  
+3. **Storing (Armazenamento)**: guardar índices e metadados para evitar reprocessamentos.  
+4. **Querying (Consulta)**: utilizar LLMs e as estruturas do LlamaIndex em consultas simples, multi-etapas, híbridas etc.  
+5. **Evaluation (Avaliação)**: verificar se o fluxo está funcionando bem, especialmente após ajustes. Mede precisão, fidelidade e velocidade das respostas.
+
+Vamos reproduzir essas etapas usando componentes.
+
+### Carregando e gerando embeddings dos documentos
+
+Antes de acessar os dados, precisamos carregá-los. Existem três meios principais:
+
+1. `SimpleDirectoryReader`: leitor nativo para vários formatos em diretórios locais.  
+2. `LlamaParse`: serviço oficial para parsing de PDFs, oferecido como API gerenciada.  
+3. `LlamaHub`: marketplace de conectores para praticamente qualquer origem de dados.
+
+> [!TIP]
+> Explore os loaders do <a href="https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/">LlamaHub</a> e o parser <a href="https://github.com/run-llama/llama_cloud_services/blob/main/parse.md">LlamaParse</a> para fontes complexas.
+
+A maneira mais simples é usar `SimpleDirectoryReader`, que converte arquivos em objetos `Document`:
+
+```python
+from llama_index.core import SimpleDirectoryReader
+
+reader = SimpleDirectoryReader(input_dir="path/to/directory")
+documents = reader.load_data()
+```
+
+Depois, dividimos os documentos em pedaços menores, chamados `Node`.  
+Cada `Node` é um trecho do texto original, fácil de manipular e vinculado ao `Document` de origem.
+
+A `IngestionPipeline` ajuda a criar esses nodes com duas transformações:
+
+1. `SentenceSplitter`: corta o texto em blocos, respeitando fronteiras naturais de frases.  
+2. `HuggingFaceEmbedding`: converte cada bloco em embeddings — vetores que capturam o significado.
+
+```python
+from llama_index.core import Document, StorageContext, VectorStoreIndex
+from llama_index.core.ingestion import IngestionPipeline
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_size=384, chunk_overlap=50),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ],
+    vector_store=ChromaVectorStore(
+        collection_name="party_planning",
+        persist_directory="./chroma_db",
+    ),
+)
+
+nodes = pipeline.run(documents=documents)
+```
+
+Assim, garantimos documentos indexados de forma eficiente, prontos para compor um fluxo RAG, e um repositório vetorial persistente para o modelo.
+
+### Consultando o VectorStore com prompts e LLMs
+
+Com os dados indexados, podemos recuperá-los. Para isso, convertemos o índice em uma interface de consulta. As opções mais comuns são:
+
+- `as_retriever`: retorna uma lista de `NodeWithScore`, útil para recuperação direta.  
+- `as_query_engine`: responde a perguntas pontuais, retornando texto.  
+- `as_chat_engine`: mantém histórico e gera respostas conversacionais.
+
+Focaremos no `query_engine`, formato mais próximo de interações agênticas:
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(
+    llm=llm,
+    response_mode="tree_summarize",
+)
+response = query_engine.query("What is the meaning of life?")
+# The meaning of life is 42
+```
+
+### Processamento da resposta
+
+Internamente, o query engine utiliza um `ResponseSynthesizer` para definir a estratégia de síntese. Três modos se destacam:
+
+- `refine`: percorre cada chunk sequencialmente, refinando a resposta (uma chamada ao LLM por node).  
+- `compact` (padrão): junta os chunks antes de chamar o LLM, economizando requisições.  
+- `tree_summarize`: constrói uma resposta detalhada em forma de árvore.
+
+> [!TIP]
+> Para controle total do fluxo de consulta, use a <a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">Low-Level Composition API</a> — em conjunto com <a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">Workflows</a>.
+
+### Avaliação e observabilidade
+
+Mesmo com uma boa estratégia, o LLM pode falhar. Por isso, é importante **avaliar a qualidade da resposta**. O LlamaIndex oferece avaliadores integrados:
+
+- `FaithfulnessEvaluator`: verifica se a resposta está suportada pelo contexto.  
+- `AnswerRelevancyEvaluator`: mede se a resposta é relevante para a pergunta.  
+- `CorrectnessEvaluator`: checa a exatidão.
+
+> [!TIP]
+> Para se aprofundar em observabilidade e avaliação, confira a <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Unidade Bônus 2</a>.
+
+```python
+from llama_index.core.evaluation import FaithfulnessEvaluator
+
+evaluator = FaithfulnessEvaluator(llm=llm)
+response = query_engine.query(
+    "What battles took place in New York City in the American Revolution?"
+)
+eval_result = evaluator.evaluate_response(response=response)
+eval_result.passing
+```
+
+Para entender o comportamento do sistema — especialmente em workflows complexos — podemos habilitar observabilidade com o LlamaTrace:
+
+```bash
+pip install -U llama-index-callbacks-arize-phoenix
+```
+
+```python
+import llama_index
+import os
+
+PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
+llama_index.core.set_global_handler(
+    "arize_phoenix",
+    endpoint="https://llamatrace.com/v1/traces"
+)
+```
+
+> [!TIP]
+> Saiba mais nos <a href="https://docs.llamaindex.ai/en/stable/module_guides/">Guias de Componentes</a> ou no <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">Guia de RAG</a>.
+
+Vimos como construir um `QueryEngine` com componentes. Agora, vamos aprender a **usar esse `QueryEngine` como ferramenta de um agente!**

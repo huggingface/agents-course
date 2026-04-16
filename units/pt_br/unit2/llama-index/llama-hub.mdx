@@ -1,0 +1,56 @@
+# Introdução ao LlamaHub
+
+**LlamaHub é um repositório com centenas de integrações, agentes e ferramentas que você pode usar dentro do LlamaIndex.**
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+Ao longo do curso utilizaremos várias integrações, então vale conhecer o LlamaHub e como ele pode nos ajudar.
+
+Vamos aprender a localizar e instalar as dependências necessárias para os componentes.
+
+## Instalação
+
+As instruções de instalação do LlamaIndex estão reunidas em um **guia organizado no [LlamaHub](https://llamahub.ai/)**.
+Pode parecer muita informação de início, mas a maioria dos **comandos segue um formato fácil de lembrar**:
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+
+Vamos instalar dependências para um LLM e um componente de embeddings usando a [integração com a API de inferência da Hugging Face](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms).
+
+```bash
+pip install llama-index-llms-huggingface-api llama-index-embeddings-huggingface
+```
+
+## Uso
+
+Depois da instalação, observamos como utilizar os componentes. Repare que os caminhos de importação combinam com o comando de instalação.
+Abaixo está um exemplo de uso da **API de inferência da Hugging Face para um componente LLM**.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+import os
+from dotenv import load_dotenv
+
+# Load the .env file
+load_dotenv()
+
+# Retrieve HF_TOKEN from the environment variables
+hf_token = os.getenv("HF_TOKEN")
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token=hf_token,
+    provider="auto"
+)
+
+response = llm.complete("Hello, how are you?")
+print(response)
+# I am good, how can I help you today?
+```
+
+Perfeito! Agora sabemos localizar, instalar e utilizar as integrações necessárias.
+**Vamos nos aprofundar nos componentes** e entender como aproveitá-los na construção de agentes.
