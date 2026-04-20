@@ -325,7 +325,7 @@ from llama_index.core.agent.workflow import AgentWorkflow
 from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
 
 # Initialize the Hugging Face model
-llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen3-Coder-30B-A3B-Instruct")
 
 # Create Alfred, our gala agent, with the guest info tool
 alfred = AgentWorkflow.from_tools_or_functions(
