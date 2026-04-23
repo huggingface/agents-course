@@ -1,0 +1,319 @@
+# Tool များဆိုသည်မှာ ဘာလဲ?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Unit 1 planning"/>
+
+AI Agent များရဲ့ အရေးကြီးဆုံး အခန်းကဏ္ဍတစ်ခုကတော့ **လုပ်ဆောင်ချက်များ (Actions)** ကို လုပ်ဆောင်နိုင်ခြင်းပဲ ဖြစ်ပါတယ်။ ကျွန်တော်တို့ မြင်ခဲ့ရတဲ့အတိုင်း၊ ဒီလုပ်ဆောင်ချက်တွေဟာ **Tool များ** ကို အသုံးပြုခြင်းအားဖြင့် ဖြစ်ပေါ်လာတာပါ။
+
+ဒီအပိုင်းမှာတော့ Tool များဆိုတာ ဘာလဲ၊ သူတို့ကို ဘယ်လို ထိရောက်စွာ ဒီဇိုင်းဆွဲရမလဲ၊ ပြီးတော့ System Message မှတစ်ဆင့် သင့် Agent ထဲကို ဘယ်လို ပေါင်းစပ်ထည့်သွင်းရမလဲဆိုတာကို လေ့လာသွားပါမယ်။
+
+သင့် Agent ကို မှန်ကန်တဲ့ Tool တွေ ပေးခြင်းနဲ့၊ အဲဒီ Tool တွေ ဘယ်လို အလုပ်လုပ်တယ်ဆိုတာကို ရှင်းရှင်းလင်းလင်း ဖော်ပြပေးခြင်းအားဖြင့်၊ သင့် AI လုပ်ဆောင်နိုင်တဲ့ အရာတွေကို သိသိသာသာ တိုးမြှင့်ပေးနိုင်မှာပါ။ စတင်လေ့လာလိုက်ရအောင်!
+
+## AI Tool များဆိုသည်မှာ ဘာလဲ?
+
+**Tool ဆိုတာ LLM ကို ပေးထားတဲ့ Function တစ်ခု** ဖြစ်ပါတယ်။ ဒီ Function ဟာ **ရှင်းလင်းတဲ့ ရည်ရွယ်ချက်တစ်ခု** ကို ပြီးမြောက်အောင် လုပ်ဆောင်ပေးရပါမယ်။
+
+AI Agent များမှာ အသုံးများတဲ့ Tool ဥပမာအချို့ကို အောက်မှာ ဖော်ပြထားပါတယ်။
+
+| Tool | ဖော်ပြချက် |
+| :--- | :--- |
+| **Web Search** | Agent ကို အင်တာနက်မှ နောက်ဆုံးပေါ် အချက်အလက်များ ရှာဖွေနိုင်စေခြင်း။ |
+| **Image Generation** | စာသား ဖော်ပြချက်များအပေါ် အခြေခံပြီး ပုံများ ဖန်တီးပေးခြင်း။ |
+| **Retrieval** | ပြင်ပ အရင်းအမြစ်တစ်ခုမှ အချက်အလက်များ ပြန်လည်ရယူခြင်း။ |
+| **API Interface** | ပြင်ပ API (GitHub, YouTube, Spotify, စသည်) များနှင့် ဆက်သွယ်ဆောင်ရွက်ခြင်း။ |
+
+ဒါတွေဟာ ဥပမာတွေသာ ဖြစ်ပြီး၊ တကယ်တမ်းမှာတော့ သင်ဟာ မည်သည့် အသုံးချကိစ္စရပ်အတွက်မဆို Tool တစ်ခုကို ဖန်တီးနိုင်ပါတယ်။
+
+ကောင်းမွန်တဲ့ Tool တစ်ခုဟာ **LLM ရဲ့ စွမ်းဆောင်ရည်ကို ဖြည့်ဆည်းပေးနိုင်တဲ့** အရာတစ်ခု ဖြစ်သင့်ပါတယ်။
+
+ဥပမာအားဖြင့်၊ သင်က ဂဏန်းသင်္ချာ တွက်ချက်မှုတစ်ခု လုပ်ဆောင်ဖို့ လိုအပ်တယ်ဆိုရင်၊ သင့် LLM ကို **ဂဏန်းတွက်စက် Tool** တစ်ခု ပေးလိုက်ခြင်းက မော်ဒယ်ရဲ့ မူရင်းစွမ်းရည်ကို အားကိုးတာထက် ပိုမိုကောင်းမွန်တဲ့ ရလဒ်တွေကို ပေးပါလိမ့်မယ်။
+
+ဒါ့အပြင်၊ **LLM များဟာ ၎င်းတို့ရဲ့ လေ့ကျင့်ရေး ဒေတာများအပေါ် အခြေခံပြီး Prompt ရဲ့ ပြီးဆုံးမှုကို ခန့်မှန်းတာ** ဖြစ်တဲ့အတွက်၊ ၎င်းတို့ရဲ့ အတွင်းပိုင်း အသိပညာမှာ လေ့ကျင့်ခဲ့တဲ့ အချိန်မတိုင်မီက အဖြစ်အပျက်များသာ ပါဝင်ပါတယ်။ ဒါကြောင့် သင့် Agent ဟာ နောက်ဆုံးပေါ် ဒေတာတွေ လိုအပ်တယ်ဆိုရင်၊ Tool တစ်ခုခုကနေတစ်ဆင့် ပေးပို့ရပါမယ်။
+
+ဥပမာအားဖြင့်၊ သင်က LLM ကို တိုက်ရိုက် (Search Tool မပါဘဲ) ဒီနေ့ ရာသီဥတုကို မေးလိုက်ရင်၊ LLM ဟာ ကျပန်း ရာသီဥတု အချက်အလက်တွေကို **Hallucinate (မှားယွင်းစွာ ဖန်တီး)** နိုင်ပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Weather"/>
+
+*   Tool တစ်ခုတွင် အောက်ပါအချက်များ ပါဝင်သင့်ပါတယ်-
+    *   **Function က ဘာလုပ်တယ်ဆိုတဲ့ စာသား ဖော်ပြချက်**။
+    *   *Callable* (လုပ်ဆောင်ချက်တစ်ခုကို လုပ်ဆောင်နိုင်တဲ့ အရာ)။
+    *   Typing များပါဝင်သော *Arguments* (ထည့်သွင်းမှုများ)။
+    *   (ရွေးချယ်နိုင်သော) Typing များပါဝင်သော *Outputs* (ထွက်ရှိရလဒ်များ)။
+
+## Tool များ ဘယ်လို အလုပ်လုပ်သလဲ?
+
+ကျွန်တော်တို့ မြင်ခဲ့ရတဲ့အတိုင်း LLM များဟာ စာသား ထည့်သွင်းမှုများကိုသာ လက်ခံနိုင်ပြီး စာသား ထွက်ရှိမှုများကိုသာ ထုတ်ပေးနိုင်ပါတယ်။ ၎င်းတို့မှာ Tool များကို ကိုယ်တိုင် ခေါ်ဆိုနိုင်တဲ့ နည်းလမ်းမရှိပါဘူး။ Agent တစ်ခုကို Tool များ ပေးအပ်တယ်လို့ ပြောတဲ့အခါ၊ ကျွန်တော်တို့ ဆိုလိုတာက LLM ကို ဒီ Tool တွေရဲ့ တည်ရှိမှုအကြောင်း သင်ကြားပေးပြီး လိုအပ်တဲ့အခါ စာသားအခြေခံ Tool ခေါ်ဆိုမှုများကို ထုတ်ပေးဖို့ ညွှန်ကြားခြင်းပဲ ဖြစ်ပါတယ်။
+
+ဥပမာအားဖြင့်၊ ကျွန်တော်တို့က အင်တာနက်ကနေ နေရာတစ်ခုရဲ့ ရာသီဥတုကို စစ်ဆေးနိုင်တဲ့ Tool တစ်ခု ပေးလိုက်ပြီး၊ LLM ကို ပဲရစ်မြို့ရဲ့ ရာသီဥတုအကြောင်း မေးလိုက်တယ်ဆိုပါစို့။ LLM ဟာ ဒါဟာ "weather" Tool ကို အသုံးပြုဖို့ အခွင့်အရေးပဲလို့ သိရှိပါလိမ့်မယ်။ LLM ဟာ ရာသီဥတု ဒေတာကို ကိုယ်တိုင် ပြန်ယူမယ့်အစား၊ `call weather_tool('Paris')` ကဲ့သို့သော Tool ခေါ်ဆိုမှုကို ကိုယ်စားပြုတဲ့ စာသားကို ထုတ်ပေးပါလိမ့်မယ်။
+
+အဲဒီအခါ **Agent** က ဒီတုံ့ပြန်မှုကို ဖတ်ရှုပြီး Tool ခေါ်ဆိုမှု လိုအပ်ကြောင်း သိရှိကာ၊ LLM ကိုယ်စား Tool ကို လုပ်ဆောင်ပေးပြီး တကယ့် ရာသီဥတု ဒေတာကို ပြန်လည်ရယူပါတယ်။
+
+Tool ခေါ်ဆိုမှု အဆင့်များကို အသုံးပြုသူကို များသောအားဖြင့် ပြသလေ့မရှိပါဘူး။ Agent က ၎င်းတို့ကို Message အသစ်တစ်ခုအဖြစ် ထည့်သွင်းပြီးမှ ပြန်လည်မွမ်းမံထားသော စကားဝိုင်းကို LLM သို့ ထပ်မံ ပေးပို့ပါတယ်။ ထို့နောက် LLM သည် ဤနောက်ထပ် Context ကို စီမံဆောင်ရွက်ပြီး အသုံးပြုသူအတွက် သဘာဝကျသော တုံ့ပြန်မှုကို ထုတ်ပေးပါတယ်။ အသုံးပြုသူရဲ့ ရှုထောင့်ကကြည့်ရင် LLM က Tool နဲ့ တိုက်ရိုက် ဆက်သွယ်ခဲ့သလို ထင်ရပေမယ့်၊ တကယ်တမ်းမှာတော့ နောက်ကွယ်က လုပ်ဆောင်မှု အားလုံးကို Agent က ကိုင်တွယ်ခဲ့တာ ဖြစ်ပါတယ်။
+
+ဒီလုပ်ငန်းစဉ်အကြောင်းကို နောင်လာမယ့် Session တွေမှာ ပိုပြီး အသေးစိတ် ဆွေးနွေးသွားပါမယ်။
+
+## LLM ကို Tool များ ဘယ်လို ပေးအပ်မလဲ?
+
+အဖြေအပြည့်အစုံက ရှုပ်ထွေးနိုင်ပေမယ့်၊ ကျွန်တော်တို့ဟာ မော်ဒယ်ကို ရရှိနိုင်တဲ့ Tool တွေရဲ့ စာသား ဖော်ပြချက်များကို ပေးအပ်ဖို့အတွက် **System Prompt** ကို အသုံးပြုပါတယ်-
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="System prompt for tools"/>
+
+ဒီလို အလုပ်လုပ်ဖို့အတွက် ကျွန်တော်တို့ဟာ အောက်ပါအချက်တွေကို အလွန်တိကျပြီး မှန်ကန်အောင် ဖော်ပြရပါမယ်။
+
+1.  **Tool က ဘာလုပ်သလဲ**
+2.  **ဘယ်လို ထည့်သွင်းမှုများကို အတိအကျ မျှော်လင့်သလဲ**
+
+ဒါကြောင့် Tool ဖော်ပြချက်များကို ကွန်ပျူတာ ဘာသာစကားများ သို့မဟုတ် JSON ကဲ့သို့သော တိကျပြတ်သားတဲ့ ပုံစံများဖြင့် ပေးအပ်လေ့ရှိပါတယ်။ ဒီလို လုပ်ဖို့ *မလိုအပ်* ပေမယ့်၊ တိကျပြီး စနစ်တကျရှိတဲ့ မည်သည့် ပုံစံမဆို အလုပ်ဖြစ်ပါတယ်။
+
+ဒါတွေက သီအိုရီဆန်တယ်လို့ ထင်ရရင်၊ လက်တွေ့ကျတဲ့ ဥပမာတစ်ခုနဲ့ နားလည်အောင် ကြိုးစားကြည့်ရအောင်။
+
+ကျွန်တော်တို့ဟာ ဂဏန်းနှစ်လုံးကို မြှောက်ရုံသာ လုပ်ဆောင်မယ့် ရိုးရှင်းတဲ့ **ဂဏန်းတွက်စက် Tool** တစ်ခုကို အကောင်အထည်ဖော်ပါမယ်။ ဒါဟာ ကျွန်တော်တို့ရဲ့ Python Implementation ဖြစ်နိုင်ပါတယ်။
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+```
+
+ဒါဆိုရင် ကျွန်တော်တို့ရဲ့ Tool ကို `calculator` လို့ ခေါ်ပြီး၊ ၎င်းဟာ **ဂဏန်းနှစ်လုံးကို မြှောက်ပေးပါတယ်**၊ ပြီးတော့ အောက်ပါ ထည့်သွင်းမှုများ လိုအပ်ပါတယ်-
+
+*   **`a`** (*int*): ဂဏန်းတစ်ခု။
+*   **`b`** (*int*): နောက်ထပ် ဂဏန်းတစ်ခု။
+
+Tool ရဲ့ ထွက်ရှိရလဒ်ကတော့ အခြား ဂဏန်းတစ်ခုဖြစ်ပြီး၊ အောက်ပါအတိုင်း ဖော်ပြနိုင်ပါတယ်-
+
+*   (*int*): `a` နှင့် `b` ကို မြှောက်ထားသော ရလဒ်။
+
+ဒီအသေးစိတ်အချက်အလက်တွေ အားလုံးဟာ အရေးကြီးပါတယ်။ LLM နားလည်နိုင်ဖို့အတွက် ကျွန်တော်တို့ရဲ့ Tool ကို ဖော်ပြတဲ့ စာသား String တစ်ခုထဲမှာ အားလုံးကို ပေါင်းစပ်လိုက်ရအောင်။
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+> **သတိပေးချက်:** ဒီစာသား ဖော်ပြချက်ဟာ **LLM ကို Tool အကြောင်း ဘာတွေ သိစေချင်သလဲ** ဆိုတာပဲ ဖြစ်ပါတယ်။
+
+ဒီ String ကို LLM ရဲ့ ထည့်သွင်းမှု (Input) အစိတ်အပိုင်းအဖြစ် ပေးပို့တဲ့အခါ၊ မော်ဒယ်ဟာ ၎င်းကို Tool တစ်ခုအဖြစ် အသိအမှတ်ပြုပြီး၊ ဘယ်အရာတွေကို ထည့်သွင်းမှုအဖြစ် ပေးပို့ရမယ်၊ ထွက်ရှိရလဒ်က ဘာဖြစ်မယ်ဆိုတာကို သိရှိပါလိမ့်မယ်။
+
+နောက်ထပ် Tool တွေ ထပ်ပေးချင်တယ်ဆိုရင်၊ ကျွန်တော်တို့ဟာ ပုံစံတူကို အမြဲတမ်း အသုံးပြုရပါမယ်။ ဒီလုပ်ငန်းစဉ်က အမှားအယွင်း ဖြစ်နိုင်ပြီး၊ ကျွန်တော်တို့ဟာ အသေးစိတ်အချက်အလက်အချို့ကို မတော်တဆ လျစ်လျူရှုမိနိုင်ပါတယ်။
+
+ပိုကောင်းတဲ့ နည်းလမ်းရှိပါသလား?
+
+### Tool အပိုင်းများကို အလိုအလျောက် ပုံစံချခြင်း (Auto-formatting Tool sections)
+
+ကျွန်တော်တို့ရဲ့ Tool ကို Python နဲ့ ရေးထားပြီး၊ Implementation မှာ လိုအပ်တဲ့ အချက်အလက်အားလုံး ပါဝင်ပြီးသား ဖြစ်ပါတယ်-
+
+*   ဘာလုပ်တယ်ဆိုတဲ့ ဖော်ပြချက် နာမည်- `calculator`
+*   Function ရဲ့ Docstring Comment မှ ပိုရှည်တဲ့ ဖော်ပြချက်- `Multiply two integers.`
+*   ထည့်သွင်းမှုများနှင့် ၎င်းတို့၏ အမျိုးအစား- Function က `int` နှစ်ခုကို မျှော်လင့်ကြောင်း ရှင်းရှင်းလင်းလင်း ဖော်ပြထားခြင်း။
+*   ထွက်ရှိရလဒ်၏ အမျိုးအစား။
+
+လူတွေ Programming Language တွေကို အသုံးပြုရတဲ့ အကြောင်းရင်းရှိပါတယ်။ ၎င်းတို့ဟာ ဖော်ပြနိုင်စွမ်းရှိတယ်၊ ကျစ်လျစ်တယ်၊ ပြီးတော့ တိကျပါတယ်။
+
+ကျွန်တော်တို့ဟာ Python Source Code ကို Tool ရဲ့ *Specification* အဖြစ် LLM ကို ပေးနိုင်ပေမယ့်၊ Tool ကို ဘယ်လို အကောင်အထည်ဖော်ထားတယ်ဆိုတာက အရေးမကြီးပါဘူး။ အရေးကြီးတာက ၎င်းရဲ့ နာမည်၊ ဘာလုပ်တယ်၊ ဘယ်လို ထည့်သွင်းမှုတွေ မျှော်လင့်တယ်၊ ပြီးတော့ ဘာတွေ ထုတ်ပေးတယ်ဆိုတာပဲ ဖြစ်ပါတယ်။
+
+ကျွန်တော်တို့ဟာ Source Code ကို အသုံးပြုပြီး Tool ဖော်ပြချက်ကို အလိုအလျောက် တည်ဆောက်နိုင်ဖို့ Python ရဲ့ Introspection Feature များကို အသုံးချပါမယ်။ ကျွန်တော်တို့ လိုအပ်တာက Tool Implementation မှာ Type Hints, Docstrings နဲ့ သင့်လျော်တဲ့ Function Name တွေကို အသုံးပြုဖို့ပါပဲ။ Source Code မှ သက်ဆိုင်ရာ အစိတ်အပိုင်းများကို ထုတ်ယူဖို့ Code အချို့ကို ရေးသားပါမယ်။
+
+ပြီးသွားတဲ့အခါ၊ `calculator` Function ဟာ Tool တစ်ခုဖြစ်ကြောင်း ညွှန်ပြဖို့အတွက် Python Decorator တစ်ခုကိုသာ အသုံးပြုဖို့ လိုအပ်ပါလိမ့်မယ်။
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Function Definition ရဲ့ ရှေ့မှာ `@tool` Decorator ကို သတိပြုပါ။
+
+ကျွန်တော်တို့ နောက်မှာ မြင်တွေ့ရမယ့် Implementation နဲ့ဆိုရင်၊ `to_string()` Function မှတစ်ဆင့် Source Code ကနေ အောက်ပါ စာသားကို အလိုအလျောက် ပြန်လည်ရယူနိုင်ပါလိမ့်မယ်။
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+သင်မြင်တဲ့အတိုင်း၊ ဒါဟာ ကျွန်တော်တို့ လက်နဲ့ ရေးခဲ့တဲ့ အရာနဲ့ အတူတူပါပဲ!
+
+### Generic Tool Implementation
+
+ကျွန်တော်တို့ Tool တစ်ခု အသုံးပြုဖို့ လိုအပ်တဲ့အခါတိုင်း ပြန်လည်အသုံးပြုနိုင်မယ့် Generic `Tool` Class တစ်ခုကို ဖန်တီးပါမယ်။
+
+> **ရှင်းလင်းချက်:** ဒီဥပမာ Implementation ဟာ စိတ်ကူးယဉ်ဖြစ်ပေမယ့်၊ Library အများစုရှိ လက်တွေ့ Implementation များနှင့် ဆင်တူပါတယ်။
+
+```python
+from typing import Callable
+
+
+class Tool:
+    """
+    A class representing a reusable piece of code (Tool).
+
+    Attributes:
+        name (str): Name of the tool.
+        description (str): A textual description of what the tool does.
+        func (callable): The function this tool wraps.
+        arguments (list): A list of arguments.
+        outputs (str or list): The return type(s) of the wrapped function.
+    """
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: Callable,
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Return a string representation of the tool,
+        including its name, description, arguments, and outputs.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoke the underlying function (callable) with provided arguments.
+        """
+        return self.func(*args, **kwargs)
+```
+
+ဒါက ရှုပ်ထွေးတယ်လို့ ထင်ရပေမယ့်၊ ဖြည်းဖြည်းချင်း ကြည့်မယ်ဆိုရင် ဘာတွေ လုပ်ဆောင်တယ်ဆိုတာ မြင်နိုင်ပါတယ်။ ကျွန်တော်တို့ဟာ အောက်ပါအချက်များ ပါဝင်တဲ့ **`Tool`** Class ကို သတ်မှတ်ပါတယ်-
+
+*   **`name`** (*str*): Tool ရဲ့ နာမည်။
+*   **`description`** (*str*): Tool က ဘာလုပ်တယ်ဆိုတဲ့ အတိုချုပ် ဖော်ပြချက်။
+*   **`function`** (*callable*): Tool က လုပ်ဆောင်မယ့် Function။
+*   **`arguments`** (*list*): မျှော်လင့်ထားတဲ့ ထည့်သွင်း Parameter များ။
+*   **`outputs`** (*str* သို့မဟုတ် *list*): Tool ရဲ့ မျှော်လင့်ထားတဲ့ ထွက်ရှိရလဒ်များ။
+*   **`__call__()`**: Tool Instance ကို ခေါ်ဆိုတဲ့အခါ Function ကို ခေါ်ဆိုခြင်း။
+*   **`to_string()`**: Tool ရဲ့ Attributes များကို စာသား ဖော်ပြချက်အဖြစ် ပြောင်းလဲခြင်း။
+
+အောက်ပါ Code ကဲ့သို့သော Class ကို အသုံးပြုပြီး Tool တစ်ခုကို ဖန်တီးနိုင်ပါတယ်။
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # name
+    "Multiply two integers.",       # description
+    calculator,                     # function to call
+    [("a", "int"), ("b", "int")],   # inputs (names and types)
+    "int",                          # output
+)
+```
+
+ဒါပေမယ့် ကျွန်တော်တို့ဟာ Python ရဲ့ `inspect` Module ကို အသုံးပြုပြီး အချက်အလက်အားလုံးကို အလိုအလျောက် ပြန်လည်ရယူနိုင်ပါတယ်။ ဒါဟာ `@tool` Decorator က လုပ်ဆောင်ပေးတဲ့ အရာပဲ ဖြစ်ပါတယ်။
+
+> သင် စိတ်ဝင်စားတယ်ဆိုရင်၊ Decorator Implementation ကို ကြည့်ရှုဖို့ အောက်ပါ အပိုင်းကို ဖွင့်ကြည့်နိုင်ပါတယ်။
+
+<details>
+<summary> Decorator Code</summary>
+
+```python
+import inspect
+
+def tool(func):
+    """
+    A decorator that creates a Tool instance from the given function.
+    """
+    # Get the function signature
+    signature = inspect.signature(func)
+
+    # Extract (param_name, param_annotation) pairs for inputs
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+
+    # Determine the return annotation
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "No return annotation"
+    else:
+        outputs = (
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
+            else str(return_annotation)
+        )
+
+    # Use the function's docstring as the description (default if None)
+    description = func.__doc__ or "No description provided."
+
+    # The function name becomes the Tool name
+    name = func.__name__
+
+    # Return a new Tool instance
+    return Tool(
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
+        outputs=outputs
+    )
+```
+
+</details>
+
+ထပ်မံပြောရရင်၊ ဒီ Decorator ကို အသုံးပြုပြီး ကျွန်တော်တို့ရဲ့ Tool ကို အောက်ပါအတိုင်း အကောင်အထည်ဖော်နိုင်ပါတယ်။
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+ပြီးတော့ `Tool` ရဲ့ `to_string` Method ကို အသုံးပြုပြီး LLM အတွက် Tool ဖော်ပြချက်အဖြစ် အသုံးပြုရန် သင့်လျော်သော စာသားကို အလိုအလျောက် ပြန်လည်ရယူနိုင်ပါတယ်။
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+ဒီဖော်ပြချက်ကို System Prompt ထဲမှာ **ထည့်သွင်း** လိုက်ပါတယ်။ ဒီအပိုင်းကို စတင်ခဲ့တဲ့ ဥပမာကို ကြည့်မယ်ဆိုရင်၊ `tools_description` ကို အစားထိုးပြီးနောက် အောက်ပါအတိုင်း ဖြစ်ပါလိမ့်မယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="System prompt for tools"/>
+
+[Actions](actions) အပိုင်းမှာ၊ ကျွန်တော်တို့ ဖန်တီးလိုက်တဲ့ ဒီ Tool ကို Agent တစ်ခုက ဘယ်လို **ခေါ်ဆိုနိုင်သလဲ** ဆိုတာကို ပိုမိုလေ့လာသွားပါမယ်။
+
+### Model Context Protocol (MCP): စုစည်းထားသော Tool Interface
+
+Model Context Protocol (MCP) ဆိုတာဟာ Application တွေက **LLM တွေကို Tool တွေ ဘယ်လို ပေးအပ်ရမယ်ဆိုတာကို စံသတ်မှတ်ထားတဲ့ Open Protocol** တစ်ခု ဖြစ်ပါတယ်။
+
+MCP က အောက်ပါအချက်တွေကို ပေးအပ်ပါတယ်-
+
+*   သင့် LLM က တိုက်ရိုက် ပေါင်းစပ်နိုင်တဲ့ ကြိုတင်တည်ဆောက်ထားသော Integration များစွာ။
+*   LLM Provider များနှင့် Vendor များအကြား ပြောင်းလဲနိုင်သော ပြောင်းလွယ်ပြင်လွယ်မှု။
+*   သင့် Infrastructure အတွင်း ဒေတာများကို လုံခြုံအောင် ထိန်းသိမ်းရန် အကောင်းဆုံး လုပ်ဆောင်မှုများ။
+
+ဆိုလိုတာက **MCP ကို အကောင်အထည်ဖော်တဲ့ မည်သည့် Framework မဆို Protocol အတွင်း သတ်မှတ်ထားတဲ့ Tool များကို အသုံးချနိုင်ခြင်း** ဖြစ်ပြီး၊ Framework တစ်ခုစီအတွက် တူညီတဲ့ Tool Interface ကို ပြန်လည် အကောင်အထည်ဖော်ရန် မလိုအပ်တော့ပါဘူး။
+
+MCP အကြောင်း ပိုမိုနက်ရှိုင်းစွာ လေ့လာလိုပါက၊ ကျွန်တော်တို့ရဲ့ <a href="https://huggingface.co/learn/mcp-course/" target="_blank">အခမဲ့ MCP Course</a> ကို စစ်ဆေးကြည့်ရှုနိုင်ပါတယ်။
+
+---
+
+Tool များဟာ AI Agent များရဲ့ စွမ်းဆောင်ရည်ကို မြှင့်တင်ရာမှာ အရေးပါတဲ့ အခန်းကဏ္ဍကနေ ပါဝင်ပါတယ်။
+
+အနှစ်ချုပ်ရရင်၊ ကျွန်တော်တို့ လေ့လာခဲ့တာတွေကတော့-
+
+*   *Tool များဆိုသည်မှာ ဘာလဲ*: LLM များကို တွက်ချက်မှုများ လုပ်ဆောင်ခြင်း သို့မဟုတ် ပြင်ပဒေတာများ ရယူခြင်းကဲ့သို့သော အပိုစွမ်းဆောင်ရည်များ ပေးအပ်သည့် Function များ။
+*   *Tool တစ်ခုကို ဘယ်လို သတ်မှတ်မလဲ*: ရှင်းလင်းသော စာသား ဖော်ပြချက်၊ ထည့်သွင်းမှုများ၊ ထွက်ရှိရလဒ်များနှင့် ခေါ်ဆိုနိုင်သော Function တစ်ခုကို ပေးအပ်ခြင်းဖြင့်။
+*   *Tool များ ဘာကြောင့် အရေးပါသလဲ*: ၎င်းတို့သည် Agent များကို Static Model Training ၏ ကန့်သတ်ချက်များကို ကျော်လွှားနိုင်စေခြင်း၊ Real-time Tasks များကို ကိုင်တွယ်နိုင်စေခြင်းနှင့် အထူးပြု လုပ်ဆောင်ချက်များကို လုပ်ဆောင်နိုင်စေခြင်း။
+
+အခုဆိုရင်၊ Agent တစ်ခုက ဘယ်လို စောင့်ကြည့်လေ့လာတယ်၊ တွေးခေါ်တယ်၊ ပြီးတော့ လုပ်ဆောင်တယ်ဆိုတာကို မြင်တွေ့ရမယ့် [Agent Workflow](agent-steps-and-structure) အပိုင်းကို ဆက်သွားနိုင်ပါပြီ။ ဒါဟာ **ကျွန်တော်တို့ အခုထိ လေ့လာခဲ့သမျှ အားလုံးကို ပေါင်းစပ်ပေးမှာ** ဖြစ်ပြီး၊ သင့်ကိုယ်ပိုင် အပြည့်အဝ လုပ်ဆောင်နိုင်တဲ့ AI Agent ကို ဖန်တီးဖို့အတွက် အခြေခံအုတ်မြစ်ကို ချပေးပါလိမ့်မယ်။
+
+ဒါပေမယ့် အဲဒီမတိုင်ခင်မှာ၊ နောက်ထပ် Quiz အတိုလေး ဖြေဖို့ အချိန်တန်ပါပြီ!

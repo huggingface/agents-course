@@ -1,0 +1,72 @@
+![smolagents banner](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/license_to_call.png)
+
+# `smolagents` ကို ဘာကြောင့် အသုံးပြုသင့်သလဲ
+
+ဒီ Module မှာတော့ ကျွန်တော်တို့ဟာ **`smolagents`** Framework ကို အသုံးပြုခြင်းရဲ့ အားသာချက်တွေနဲ့ အားနည်းချက်တွေကို လေ့လာသွားပါမယ်။ ဒါမှ သင့်ရဲ့ လိုအပ်ချက်တွေအတွက် ဒီ Framework ဟာ သင့်တော်ရဲ့လားဆိုတာကို ဆုံးဖြတ်နိုင်မှာ ဖြစ်ပါတယ်။
+
+## `smolagents` ဆိုတာ ဘာလဲ?
+
+`smolagents` ဟာ AI Agent တွေကို တည်ဆောက်ဖို့အတွက် ရိုးရှင်းပြီး စွမ်းအားရှိတဲ့ Framework တစ်ခု ဖြစ်ပါတယ်။ ၎င်းဟာ LLM (Large Language Model) တွေကို အင်တာနက် ရှာဖွေတာ ဒါမှမဟုတ် ပုံတွေ ဖန်တီးတာမျိုးလိုမျိုး **ပြင်ပကမ္ဘာနဲ့ ထိတွေ့ဆက်ဆံနိုင်တဲ့ စွမ်းရည် (Agency)** ကို ပေးအပ်ပါတယ်။
+
+Unit 1 မှာ ကျွန်တော်တို့ လေ့လာခဲ့ရသလိုပဲ၊ AI Agent တွေဆိုတာဟာ **'Observations' (လေ့လာတွေ့ရှိချက်များ)** ကို အခြေခံပြီး **'Thoughts' (စဉ်းစားသုံးသပ်ချက်များ)** ကို ထုတ်ပေးကာ **'Actions' (လုပ်ဆောင်ချက်များ)** ကို လုပ်ဆောင်ဖို့အတွက် LLM တွေကို အသုံးပြုတဲ့ Program တွေပဲ ဖြစ်ပါတယ်။ `smolagents` မှာ ဒါတွေကို ဘယ်လို အကောင်အထည်ဖော်ထားသလဲဆိုတာကို လေ့လာကြည့်ရအောင်။
+
+### `smolagents` ရဲ့ အဓိက အားသာချက်များ
+
+*   **ရိုးရှင်းမှု (Simplicity):** Code ရဲ့ ရှုပ်ထွေးမှုနဲ့ Abstractions တွေကို အနည်းဆုံးဖြစ်အောင် လျှော့ချထားပါတယ်။ ဒါကြောင့် Framework ကို နားလည်ရလွယ်ကူပြီး၊ အသုံးပြုရတာ၊ ချဲ့ထွင်ရတာ လွယ်ကူပါတယ်။
+*   **ပြောင်းလွယ်ပြင်လွယ်ရှိသော LLM ပံ့ပိုးမှု (Flexible LLM Support):** Hugging Face Tools တွေနဲ့ ပြင်ပ API တွေနဲ့ ပေါင်းစပ်ထားတဲ့အတွက် မည်သည့် LLM နဲ့မဆို အလုပ်လုပ်နိုင်ပါတယ်။
+*   **Code-First ချဉ်းကပ်မှု (Code-First Approach):** Code Agent တွေအတွက် အဓိက ပံ့ပိုးပေးထားပါတယ်။ ၎င်းတို့ဟာ လုပ်ဆောင်ချက်တွေကို Code နဲ့ တိုက်ရိုက်ရေးသားတဲ့အတွက် JSON ကို စစ်ဆေးအတည်ပြု (Parsing) ရန် မလိုအပ်တော့ဘဲ Tool ခေါ်ဆိုမှုကို ရိုးရှင်းစေပါတယ်။
+*   **HF Hub ပေါင်းစပ်မှု (HF Hub Integration):** Hugging Face Hub နဲ့ ချောမွေ့စွာ ပေါင်းစပ်ထားတဲ့အတွက် Gradio Spaces တွေကို Tool အဖြစ် အသုံးပြုနိုင်ပါတယ်။
+
+### `smolagents` ကို ဘယ်အချိန်မှာ အသုံးပြုသင့်သလဲ?
+
+ဒီအားသာချက်တွေကို စဉ်းစားပြီးရင်၊ တခြား Framework တွေထက် `smolagents` ကို ဘယ်အချိန်မှာ အသုံးပြုသင့်သလဲ?
+
+`smolagents` ဟာ အောက်ပါအခြေအနေတွေအတွက် အကောင်းဆုံး ဖြစ်ပါတယ်-
+
+*   **ပေါ့ပါးပြီး အနည်းဆုံး Solution** ကို လိုအပ်တဲ့အခါ။
+*   ရှုပ်ထွေးတဲ့ Configuration တွေမပါဘဲ **လျင်မြန်စွာ စမ်းသပ်လိုတဲ့အခါ**။
+*   သင့်ရဲ့ **Application Logic က ရိုးရှင်းတဲ့အခါ**။
+
+### Code Actions နှင့် JSON Actions တို့၏ ကွာခြားချက်
+
+အခြား Framework များတွင် Agent များက Actions များကို JSON ဖြင့် ရေးသားလေ့ရှိသော်လည်း၊ `smolagents` သည် **Code အတွင်းရှိ Tool ခေါ်ဆိုမှုများ** ကို အဓိကထား အာရုံစိုက်ပါတယ်။ ဒါက လုပ်ဆောင်ချက်ကို ပိုမိုရိုးရှင်းစေပါတယ်။ ဘာကြောင့်လဲဆိုတော့ Tool တွေကို ခေါ်ဆိုမယ့် Code ကို တည်ဆောက်ဖို့အတွက် JSON ကို စစ်ဆေးအတည်ပြုဖို့ မလိုအပ်တော့ပါဘူး—ထုတ်ပေးလိုက်တဲ့ Code ကို တိုက်ရိုက် လုပ်ဆောင်နိုင်လို့ပဲ ဖြစ်ပါတယ်။
+
+အောက်ပါ ပုံတွင် Code Actions နှင့် JSON Actions တို့၏ ကွာခြားချက်ကို ရှင်းလင်းစွာ ဖော်ပြထားပါတယ်။
+
+![Code vs. JSON actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+Code Actions နှင့် JSON Actions တို့၏ ကွာခြားချက်ကို ပြန်လည်သုံးသပ်လိုပါက [Unit 1 ရှိ Actions အပိုင်း](https://huggingface.co/learn/agents-course/unit1/actions#actions-enabling-the-agent-to-engage-with-its-environment) ကို ပြန်လည်လေ့လာနိုင်ပါတယ်။
+
+### `smolagents` ရှိ Agent အမျိုးအစားများ
+
+`smolagents` အတွင်းရှိ Agent များသည် **အဆင့်များစွာ လုပ်ဆောင်နိုင်သော Agent များ (Multi-step Agents)** အဖြစ် လုပ်ဆောင်ပါတယ်။
+
+[`MultiStepAgent`](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.MultiStepAgent) တစ်ခုစီသည် အောက်ပါတို့ကို လုပ်ဆောင်ပါတယ်-
+
+*   စဉ်းစားသုံးသပ်ချက် (Thought) တစ်ခု၊
+*   Tool ခေါ်ဆိုမှုနှင့် လုပ်ဆောင်ချက် (Tool call and execution) တစ်ခု။
+
+**[CodeAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.CodeAgent)** ကို အဓိက Agent အမျိုးအစားအဖြစ် အသုံးပြုခြင်းအပြင်၊ `smolagents` သည် **[ToolCallingAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.ToolCallingAgent)** ကိုလည်း ပံ့ပိုးပေးပါတယ်။ ၎င်းသည် Tool ခေါ်ဆိုမှုများကို JSON ဖြင့် ရေးသားပါတယ်။
+
+နောက်လာမည့် အပိုင်းများတွင် Agent အမျိုးအစားတစ်ခုချင်းစီကို ပိုမိုအသေးစိတ် လေ့လာသွားပါမယ်။
+
+> [!TIP]
+> `smolagents` မှာ Tool တွေကို Python Function တွေကို <code>@tool</code> decorator နဲ့ ထုပ်ပိုးခြင်း (Wrapping) သို့မဟုတ် <code>Tool</code> Class ကို အသုံးပြုခြင်းဖြင့် သတ်မှတ်နိုင်ပါတယ်။
+
+### `smolagents` တွင် Model ပေါင်းစပ်မှု
+
+`smolagents` သည် ပြောင်းလွယ်ပြင်လွယ်ရှိသော LLM ပေါင်းစပ်မှုကို ပံ့ပိုးပေးပြီး [သတ်မှတ်ထားသော စံနှုန်းများ](https://huggingface.co/docs/smolagents/main/en/reference/models) နှင့် ကိုက်ညီသော မည်သည့် Callable Model ကိုမဆို အသုံးပြုနိုင်ပါတယ်။ Framework သည် Model ချိတ်ဆက်မှုများကို ရိုးရှင်းစေရန် ကြိုတင်သတ်မှတ်ထားသော Class များစွာကို ပေးထားပါတယ်-
+
+*   **[TransformersModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.TransformersModel):** ချောမွေ့စွာ ပေါင်းစပ်နိုင်ရန် Local `transformers` Pipeline ကို အကောင်အထည်ဖော်ထားပါတယ်။
+*   **[InferenceClientModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.InferenceClientModel):** [Hugging Face ရဲ့ Infrastructure](https://huggingface.co/docs/api-inference/index) မှတစ်ဆင့် [Serverless Inference](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference) ခေါ်ဆိုမှုများကို ပံ့ပိုးပေးပါတယ်။ ဒါ့အပြင် [တတိယပါတီ Inference Providers](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks) များစွာမှတစ်ဆင့်လည်း အသုံးပြုနိုင်ပါတယ်။
+*   **[LiteLLMModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.LiteLLMModel):** ပေါ့ပါးသော Model ထိတွေ့ဆက်ဆံမှုများအတွက် [LiteLLM](https://www.litellm.ai/) ကို အသုံးပြုပါတယ်။
+*   **[OpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.OpenAIServerModel):** OpenAI API Interface ကို ပေးသော မည်သည့် Service နှင့်မဆို ချိတ်ဆက်နိုင်ပါတယ်။
+*   **[AzureOpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.AzureOpenAIServerModel):** မည်သည့် Azure OpenAI Deployment နှင့်မဆို ပေါင်းစပ်မှုကို ပံ့ပိုးပေးပါတယ်။
+
+ဒီလို ပြောင်းလွယ်ပြင်လွယ်ရှိမှုက Developer တွေအနေနဲ့ သူတို့ရဲ့ သီးခြား Use Case တွေအတွက် အသင့်တော်ဆုံး Model နဲ့ Service ကို ရွေးချယ်နိုင်စေပြီး၊ စမ်းသပ်မှုတွေကို လွယ်ကူစွာ လုပ်ဆောင်နိုင်စေပါတယ်။
+
+`smolagents` ကို ဘာကြောင့်နဲ့ ဘယ်အချိန်မှာ အသုံးပြုသင့်တယ်ဆိုတာ နားလည်ပြီးတဲ့နောက်၊ ဒီစွမ်းအားရှိတဲ့ Library ကို ပိုမိုနက်ရှိုင်းစွာ လေ့လာကြည့်ရအောင်!
+
+## အရင်းအမြစ်များ (Resources)
+
+*   [smolagents Blog](https://huggingface.co/blog/smolagents) - smolagents နှင့် Code ထိတွေ့ဆက်ဆံမှုများ မိတ်ဆက်

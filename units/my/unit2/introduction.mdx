@@ -1,0 +1,42 @@
+# Agentic Frameworks များ မိတ်ဆက်
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+ဒီဒုတိယအခန်းကို ကြိုဆိုပါတယ်။ ဒီအခန်းမှာတော့ စွမ်းအားမြင့် Agentic Application တွေကို တည်ဆောက်ဖို့အတွက် အသုံးပြုနိုင်တဲ့ **Agentic Framework အမျိုးမျိုး** ကို လေ့လာသွားကြမှာ ဖြစ်ပါတယ်။
+
+ကျွန်တော်တို့ ဘာတွေ လေ့လာသွားမလဲဆိုရင်-
+
+*   အခန်း ၂.၁ မှာ [smolagents](https://huggingface.co/docs/smolagents/en/index) ကို လေ့လာပါမယ်။
+*   အခန်း ၂.၂ မှာ [LlamaIndex](https://www.llamaindex.ai/) ကို လေ့လာပါမယ်။
+*   အခန်း ၂.၃ မှာ [LangGraph](https://www.langchain.com/langgraph) ကို လေ့လာပါမယ်။
+
+စတင်လေ့လာလိုက်ရအောင်! 🕵
+
+## Agentic Framework ကို ဘယ်အချိန်မှာ အသုံးပြုသင့်သလဲ
+
+LLM (Large Language Model) များကို အခြေခံပြီး Application တစ်ခု တည်ဆောက်တဲ့အခါတိုင်း **Agentic Framework တစ်ခု အမြဲတမ်း လိုအပ်တာတော့ မဟုတ်ပါဘူး**။ Framework တွေက သတ်မှတ်ထားတဲ့ Task တစ်ခုကို ထိထိရောက်ရောက် ဖြေရှင်းနိုင်ဖို့အတွက် လုပ်ငန်းအဆင့်ဆင့် (Workflow) မှာ ပြောင်းလွယ်ပြင်လွယ်ရှိအောင် ပံ့ပိုးပေးပါတယ်။ ဒါပေမယ့် အမြဲတမ်းတော့ မလိုအပ်ပါဘူး။
+
+တစ်ခါတလေမှာ၊ အသုံးပြုသူရဲ့ တောင်းဆိုချက်တွေကို ဖြည့်ဆည်းပေးဖို့အတွက် **ကြိုတင်သတ်မှတ်ထားတဲ့ လုပ်ငန်းအဆင့်ဆင့် (Predefined Workflows)** တွေကပဲ လုံလောက်နေနိုင်ပါတယ်။ ဒီလိုအခြေအနေမျိုးမှာ Agentic Framework ကို တကယ်တမ်း အသုံးပြုဖို့ မလိုအပ်ပါဘူး။ ဥပမာအားဖြင့်၊ Agent တစ်ခု တည်ဆောက်မယ့် နည်းလမ်းက ရိုးရှင်းပြီး Prompt တွေရဲ့ ကွင်းဆက် (Chain of Prompts) လိုမျိုးပဲဆိုရင်၊ ရိုးရိုး Code ကိုပဲ အသုံးပြုတာက လုံလောက်ပါတယ်။ ဒီလိုလုပ်ဆောင်ခြင်းရဲ့ အားသာချက်ကတော့ Developer အနေနဲ့ **ကြားခံ Abstraction တွေ မပါဘဲ သူတို့ရဲ့ System ကို အပြည့်အဝ ထိန်းချုပ်နိုင်ပြီး နားလည်နိုင်ခြင်း** ပဲ ဖြစ်ပါတယ်။
+
+ဒါပေမယ့်၊ လုပ်ငန်းအဆင့်ဆင့် (Workflow) က ပိုပြီး ရှုပ်ထွေးလာတဲ့အခါ၊ ဥပမာအားဖြင့် LLM ကို Function တွေ ခေါ်ဆိုခွင့်ပေးတာမျိုး၊ ဒါမှမဟုတ် Agent အများအပြားကို အသုံးပြုတာမျိုးတွေ လုပ်ဆောင်လာတဲ့အခါမှာတော့ ဒီလို Abstraction တွေ (Framework တွေ) ဟာ အလွန်အသုံးဝင်လာပါတယ်။
+
+ဒီအချက်တွေကို ထည့်သွင်းစဉ်းစားတဲ့အခါ၊ Agentic System တစ်ခုအတွက် လိုအပ်တဲ့ အင်္ဂါရပ်အချို့ကို ကျွန်တော်တို့ ချက်ချင်း ဖော်ထုတ်နိုင်ပါတယ်။
+
+*   System ကို စွမ်းအားပေးမယ့် *LLM Engine* တစ်ခု။ (ဥပမာ - OpenAI, Gemini, Llama စသည်တို့)
+*   Agent က အသုံးပြုနိုင်မယ့် *Tools များ စာရင်း*။ (ဥပမာ - Web Search Tool, Calculator Tool)
+*   LLM ရဲ့ ထွက်ရှိရလဒ်ကနေ Tool ခေါ်ဆိုမှုတွေကို ထုတ်ယူဖို့အတွက် *Parser* တစ်ခု။ (ဥပမာ - JSON Parser)
+*   Parser နဲ့ ကိုက်ညီအောင် ချိန်ညှိထားတဲ့ *System Prompt* တစ်ခု။ (Agent ကို ဘယ်လိုပုံစံနဲ့ အဖြေထုတ်ရမယ်ဆိုတာ ညွှန်ကြားတဲ့ Prompt)
+*   Agent ရဲ့ ယခင် ဆွေးနွေးမှုမှတ်တမ်းတွေကို မှတ်သားထားဖို့ *Memory System* တစ်ခု။
+*   LLM ရဲ့ အမှားအယွင်းတွေကို ထိန်းချုပ်ဖို့အတွက် *Error Logging နှင့် Retry Mechanisms* များ။
+
+ဒီအကြောင်းအရာတွေကို `smolagents`၊ `LlamaIndex` နဲ့ `LangGraph` အပါအဝင် Framework အမျိုးမျိုးမှာ ဘယ်လို ဖြေရှင်းထားသလဲဆိုတာကို ကျွန်တော်တို့ လေ့လာသွားပါမယ်။
+
+## Agentic Frameworks အခန်းများ
+
+| Framework | ဖော်ပြချက် | အခန်း ရေးသားသူ |
+| :--- | :--- | :--- |
+| [smolagents](./smolagents/introduction) | Hugging Face မှ တီထွင်ထားသော Agent Framework။ | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | Context-augmented AI Agent များကို ထုတ်လုပ်မှုအဆင့်အထိ ပို့ဆောင်ရန်အတွက် End-to-end Tooling များ။ | David Berenstein - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | Agent များ၏ အခြေအနေကို မှတ်သားထားပြီး စနစ်တကျ စီမံခန့်ခွဲနိုင်သော Agent များ။ | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |
+
+စတင်လေ့လာကြပါစို့!
