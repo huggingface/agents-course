@@ -48,6 +48,8 @@ After duplicating the Space, you'll need to add your Hugging Face API token so y
 4. Create a secret with the name `HF_TOKEN` and paste your token as the value
 5. Click **Save** to store your token securely
 
+> **⚠️ Cost Warning:** If you make your Space **public**, any user visiting it will trigger API calls authenticated with **your** token. If your token is linked to a paid service (such as a paid Hugging Face Inference tier or a third-party API like OpenAI), those external requests can quickly accumulate costs. To avoid unexpected charges, keep your Space **private** while experimenting, or monitor your API usage regularly.
+
 Throughout this lesson, the only file you will need to modify is the (currently incomplete) **"app.py"**. You can see here the [original one in the template](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py). To find yours, go to your copy of the space, then click the `Files` tab and then on `app.py` in the directory listing.
 
 Let's break down the code together:
