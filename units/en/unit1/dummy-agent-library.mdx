@@ -32,7 +32,7 @@ from huggingface_hub import InferenceClient
 ## If you run this on Google Colab, add it in the "Secrets" tab (key icon on the left sidebar) and call it "HF_TOKEN".
 try:
     from google.colab import userdata
-    HF_TOKEN = userdata.get('HF_TOKEN')
+    HF_TOKEN = userdata.get("HF_TOKEN")
 except ImportError:
     HF_TOKEN = os.environ.get("HF_TOKEN")
 
