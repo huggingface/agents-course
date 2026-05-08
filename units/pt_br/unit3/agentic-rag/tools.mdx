@@ -1,0 +1,233 @@
+# Construindo e integrando ferramentas para o agente
+
+Nesta seção daremos a Alfred acesso à web, previsão do tempo e estatísticas de downloads no Hugging Face Hub — assim ele poderá conduzir conversas atualizadas sobre qualquer assunto.
+
+## Acesso à web
+
+Para Alfred se portar como um anfitrião renascentista, é essencial conhecer as notícias do mundo. Comecemos criando uma ferramenta de busca.
+
+### smolagents
+```python
+from smolagents import DuckDuckGoSearchTool
+
+search_tool = DuckDuckGoSearchTool()
+print(search_tool("Who's the current President of France?"))
+```
+
+### LlamaIndex
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.tools import FunctionTool
+
+tool_spec = DuckDuckGoSearchToolSpec()
+search_tool = FunctionTool.from_defaults(tool_spec.duckduckgo_full_search)
+print(search_tool("Who's the current President of France?").raw_output[-1]['body'])
+```
+
+### LangGraph
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+search_tool = DuckDuckGoSearchRun()
+print(search_tool.invoke("Who's the current President of France?"))
+```
+
+## Ferramenta de clima (para agendar os fogos)
+
+Queremos fogos em noite limpa. Usaremos um exemplo simples com dados aleatórios (sinta-se livre para integrar APIs reais, como mostrado na [Unidade 1](../../unit1/tutorial)).
+
+### smolagents
+```python
+from smolagents import Tool
+import random
+
+class WeatherInfoTool(Tool):
+    name = "weather_info"
+    description = "Obtém clima fictício para uma localidade."
+    inputs = {"location": {"type": "string", "description": "Localização desejada."}}
+    output_type = "string"
+
+    def forward(self, location: str):
+        dados = random.choice([
+            {"condition": "Rainy", "temp_c": 15},
+            {"condition": "Clear", "temp_c": 25},
+            {"condition": "Windy", "temp_c": 20},
+        ])
+        return f"Weather in {location}: {dados['condition']}, {dados['temp_c']}°C"
+
+weather_info_tool = WeatherInfoTool()
+```
+
+### LlamaIndex
+```python
+import random
+from llama_index.core.tools import FunctionTool
+
+def get_weather_info(location: str) -> str:
+    dados = random.choice([
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20},
+    ])
+    return f"Weather in {location}: {dados['condition']}, {dados['temp_c']}°C"
+
+weather_info_tool = FunctionTool.from_defaults(get_weather_info)
+```
+
+### LangGraph
+```python
+from langchain.tools import Tool
+import random
+
+def get_weather_info(location: str) -> str:
+    dados = random.choice([
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20},
+    ])
+    return f"Weather in {location}: {dados['condition']}, {dados['temp_c']}°C"
+
+weather_info_tool = Tool(
+    name="get_weather_info",
+    func=get_weather_info,
+    description="Obtém clima fictício para uma localidade."
+)
+```
+
+## Estatísticas do Hub (encantando os builders)
+
+### smolagents
+```python
+from smolagents import Tool
+from huggingface_hub import list_models
+
+class HubStatsTool(Tool):
+    name = "hub_stats"
+    description = "Retorna o modelo mais baixado de um autor no Hugging Face Hub."
+    inputs = {"author": {"type": "string", "description": "Usuário ou organização."}}
+    output_type = "string"
+
+    def forward(self, author: str):
+        try:
+            modelos = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+            if modelos:
+                m = modelos[0]
+                return f"The most downloaded model by {author} is {m.id} with {m.downloads:,} downloads."
+            return f"No models found for author {author}."
+        except Exception as e:
+            return f"Error fetching models for {author}: {str(e)}"
+
+hub_stats_tool = HubStatsTool()
+```
+
+### LlamaIndex
+```python
+from huggingface_hub import list_models
+from llama_index.core.tools import FunctionTool
+
+def get_hub_stats(author: str) -> str:
+    modelos = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+    if modelos:
+        m = modelos[0]
+        return f"The most downloaded model by {author} is {m.id} with {m.downloads:,} downloads."
+    return f"No models found for author {author}."
+
+hub_stats_tool = FunctionTool.from_defaults(get_hub_stats)
+```
+
+### LangGraph
+```python
+from huggingface_hub import list_models
+from langchain.tools import Tool
+
+def get_hub_stats(author: str) -> str:
+    modelos = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+    if modelos:
+        m = modelos[0]
+        return f"The most downloaded model by {author} is {m.id} with {m.downloads:,} downloads."
+    return f"No models found for author {author}."
+
+hub_stats_tool = Tool(
+    name="get_hub_stats",
+    func=get_hub_stats,
+    description="Busca o modelo mais baixado de um autor no Hugging Face Hub."
+)
+```
+
+## Integrando tudo
+
+### smolagents
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+model = InferenceClientModel()
+alfred = CodeAgent(
+    tools=[search_tool, weather_info_tool, hub_stats_tool],
+    model=model
+)
+
+response = alfred.run("What is Facebook and what's their most popular model?")
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+### LlamaIndex
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+alfred = AgentWorkflow.from_tools_or_functions(
+    [search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+response = await alfred.run("What is Facebook and what's their most popular model?")
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+### LangGraph
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.graph import START, StateGraph
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {"messages": [chat_with_tools.invoke(state["messages"])]}
+
+builder = StateGraph(AgentState)
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges("assistant", tools_condition)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Who is Facebook and what's their most popular model?")]
+response = alfred.invoke({"messages": messages})
+print("🎩 Resposta do Alfred:")
+print(response['messages'][-1].content)
+```
+
+## Conclusão
+
+Com estas ferramentas, Alfred realiza buscas, verifica clima, comenta sobre modelos populares e mantém a conversa fluindo.
+
+> [!TIP]
+> Tente criar uma ferramenta que busque notícias recentes sobre um tópico.  
+> Em seguida, registre suas ferramentas personalizadas em `tools.py`.
