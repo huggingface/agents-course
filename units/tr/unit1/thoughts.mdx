@@ -1,0 +1,55 @@
+# Düşünce: İçsel Akıl Yürütme ve ReAct (Yeniden Eylem) Yaklaşımı
+
+<Tip> 
+Bu bölümde bir yapay zeka Ajanının iç işleyişine — akıl yürütme ve planlama yeteneğine — dalıyoruz. Ajanın bilgiyi analiz etmek, karmaşık problemleri yönetilebilir adımlara ayırmak ve bir sonraki adımda ne yapacağına karar vermek için içsel diyalogdan nasıl faydalandığını keşfedeceğiz. Ayrıca, modelin harekete geçmeden önce "adım adım düşünmesini" teşvik eden bir yönlendirme tekniği olan ReAct yaklaşımını da tanıtıyoruz.
+</Tip>
+
+Düşünceler, Ajanın görevi çözmek için **içsel akıl yürütme ve planlama süreçlerini** temsil eder.
+
+Bu, Ajanın Büyük Dil Modeli (LLM) kapasitesini **istem içinde sunulan bilgiyi analiz etmek** için kullanır.
+
+Bunu, Ajanın kendi kendine düşündüğü bir içsel diyalog gibi düşünebilirsiniz; burada elindeki görevi değerlendirir ve strateji geliştirir.
+
+Ajanın düşünceleri, mevcut gözlemlere erişip bir sonraki adım(lar)ın ne olması gerektiğine karar vermekten sorumludur.
+
+Bu süreç sayesinde Ajan, **karmaşık problemleri daha küçük ve yönetilebilir adımlara ayırabilir**, geçmiş deneyimlerden ders çıkarabilir ve yeni bilgilere göre planlarını sürekli olarak uyarlayabilir.
+
+İşte bazı yaygın düşünce türlerine örnekler:
+
+| Düşünce Türü        | Örnek |
+|---------------------|-------|
+| Planlama            | "Bu görevi üç adıma ayırmalıyım: 1) veriyi topla, 2) eğilimleri analiz et, 3) rapor oluştur" |
+| Analiz              | "Hata mesajına göre sorun, veritabanı bağlantı parametrelerinde gibi görünüyor" |
+| Karar Verme         | "Kullanıcının bütçe kısıtlamalarını göz önünde bulundurarak, orta seviye seçeneği önermeliyim" |
+| Problem Çözme       | "Bu kodu optimize etmek için önce darboğazları belirlemek amacıyla profilini çıkarmalıyım" |
+| Hafızaya Entegrasyon| "Kullanıcı daha önce Python tercih ettiğini söyledi, bu yüzden örnekleri Python ile vereceğim" |
+| Öz değerlendirme          | "Önceki yaklaşımım iyi sonuç vermedi, farklı bir strateji denemeliyim" |
+| Hedef Belirleme     | "Bu görevi tamamlamak için önce kabul kriterlerini belirlemem gerekiyor" |
+| Önceliklendirme     | "Yeni özellik eklemeden önce güvenlik açığı ele alınmalı" |
+
+> **Not:** Fonksiyon çağırma için ince ayar yapılmış LLM'ler söz konusu olduğunda, düşünce süreci isteğe bağlıdır.  
+> *Fonksiyon çağırma konusunda bilgi sahibi değilseniz, Eylemler (Actions) bölümünde daha fazla ayrıntı verilecektir.*
+
+## ReAct (Yeniden Eylem) Yaklaşımı
+
+Önemli yöntemlerden biri, **ReAct yaklaşımıdır**, yani "Nedenselleme" (Reasoning) ile "Hareket Etme"nin (Act) birleşimidir.
+
+ReAct, modelin bir sonraki belirteçleri çözümlemeden önce "Hadi adım adım düşünelim" ifadesinin eklenmesini içeren basit bir yönlendirme tekniğidir.
+
+Gerçekten de modele "adım adım düşün" şeklinde yönlendirme yapmak, çözümleme sürecini **bir plan oluşturmaya** yönlendirir. Bu da modelin **problemi alt görevlere ayırmasını** teşvik eder.
+
+Bu yöntem, modelin alt adımları daha ayrıntılı değerlendirmesini sağlar ve genellikle doğrudan nihai çözümü üretmeye çalışmaktan daha az hata ile sonuçlanır.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+<figcaption>(d) örneği, "Hadi adım adım düşünelim" şeklinde yönlendirme yapılan bir ReAct yaklaşımıdır.</figcaption>
+</figure>
+
+<Tip>
+Son zamanlarda akıl yürütme stratejilerine büyük ilgi görüyoruz. Deepseek R1 veya OpenAI'nin o1 modeli gibi modellerin arkasında yatan şey de tam olarak bu: **cevaplamadan önce düşünmek**.
+
+Bu modeller, özel `<think>` ve `</think>` belirteçleri arasında _düşünme_ bölümleri oluşturmaya özel olarak eğitildi. Bu sadece ReAct gibi bir yönlendirme tekniği değil, aynı zamanda modelin ne yapmasını beklediğimizi gösteren binlerce örnek üzerinden bu bölümleri üretmeyi öğrendiği bir eğitim yöntemi.
+</Tip>
+
+--- 
+Artık Düşünce sürecini daha iyi anladığımıza göre, sürecin ikinci kısmına daha derinlemesine bakalım: Eylem (Act).

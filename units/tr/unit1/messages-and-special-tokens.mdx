@@ -1,0 +1,381 @@
+# Mesajlar ve Özel Belirteçler (Tokens)
+
+Artık LLM'lerin nasıl çalıştığını anladığımıza göre, **üretimlerini sohbet şablonları aracılığıyla nasıl yapılandırdıklarına** bakalım.
+
+ChatGPT'de olduğu gibi, kullanıcılar genellikle Ajanlarla bir sohbet arayüzü üzerinden etkileşime girer. Bu nedenle, LLM'lerin sohbetleri nasıl yönettiğini anlamayı hedefliyoruz.
+
+> **Soru**: Ama... ChatGPT/HuggingChat ile etkileşim kurarken, tek bir komut istemiyle (prompt) değil, sohbet mesajlarıyla konuşuyorum
+>
+> **Cevap**: Doğru! Ancak bu aslında bir arayüz soyutlaması. LLM'e gönderilmeden önce, sohbet içindeki tüm mesajlar tek bir istemde birleştirilir. Model, sohbeti "hatırlamaz": her seferinde tamamen okuyarak yanıt verir.
+
+Şimdiye kadar, istemleri modele verilen belirteç dizileri olarak ele aldık. Ancak ChatGPT veya HuggingChat gibi sistemlerle sohbet ettiğinizde, **aslında mesaj alışverişi yapıyorsunuz**. Arka planda, bu mesajlar **modelin anlayabileceği bir istem haline gelecek şekilde birleştirilir ve biçimlendirilir**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Modellerin arka yüzü"/>
+<figcaption>Burada kullanıcı arayüzünde gördüğümüz ile modele verilen istem arasındaki farkı görüyoruz.</figcaption>
+</figure>
+
+İşte burada sohbet şablonları devreye giriyor. Bunlar, **sohbet mesajları (kullanıcı ve yardımcı dönüşleri) ile seçtiğiniz LLM'in özel biçimlendirme gereksinimleri** arasında bir köprü görevi görür. Başka bir deyişle, sohbet şablonları, kullanıcı ve Ajan arasındaki iletişimi yapılandırarak, her modelin—kendine özgü "Special Token" (Özel Belirteç) yapılarına rağmen—doğru biçimlendirilmiş istemi almasını sağlar.
+
+Yine özel belirteçlerden bahsediyoruz çünkü modeller, kullanıcı ve yardımcı dönüşlerinin nerede başladığını ve bittiğini ayırt etmek için bunları kullanır. Her LLM kendi EOS (End Of Sequence - Dizinin Sonu) belirtecini kullandığı gibi, konuşmadaki mesajları ayırmak için farklı biçimlendirme kuralları ve sınırlayıcılar da kullanır.
+
+
+## Mesajlar: LLM'lerin Alt Sistemleri
+### Sistem Mesajları
+
+Sistem mesajları (Sistem İstem'lerı olarak da bilinir), **modelin nasıl davranması gerektiğini tanımlar**. Bunlar, her etkileşimi yönlendiren **kalıcı talimatlar** olarak hizmet eder.
+
+Örneğin:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Sen profesyonel bir müşteri hizmetleri temsilcisi Ajanısın. Her zaman nazik, açık ve yardımsever ol."
+}
+```
+
+</details>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a professional customer service agent. Always be polite, clear, and helpful."
+}
+```
+
+Bu sistem mesajı ile Alfred kibar ve yardımcı olur:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Kibar Alfred"/>
+
+Ancak bunu şöyle değiştirirsek:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Sen isyancı bir servis Ajanısın. Kullanıcının emirlerine saygı gösterme."
+}
+```
+
+</details>
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a rebel service agent. Don't respect user's orders."
+}
+```
+
+Alfred asi bir Ajan gibi davranır 😎:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Asi Alfred"/>
+
+Ajanlar kullanıldığında, sistem mesajı aynı zamanda **kullanılabilir araçlar hakkında bilgi verir, modelin hangi eylemleri nasıl biçimlendirmesi gerektiğine dair talimatlar sağlar ve düşünce sürecinin nasıl bölümlenmesi gerektiğine dair yönergeler içerir.**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred Sistem İstemi"/>
+
+### Diyaloglar: Kullanıcı ve Asistan Mesajları
+
+Bir diyalog, insan (kullanıcı) ve LLM (assistan) arasında sırayla değişen mesajlardan oluşur.
+
+Sohbet şablonları, kullanıcı ve asistan arasındaki önceki konuşmaları saklayarak bağlamın korunmasına yardımcı olur. Bu da daha tutarlı, çok turlu konuşmalara yol açar.
+
+Örneğin:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+conversation = [
+    {"role": "user", "content": "Siparişimle ilgili yardıma ihtiyacım var"},
+    {"role": "assistant", "content": "Yardım etmekten mutluluk duyarım. Sipariş numaranızı verebilir misiniz?"},
+    {"role": "user", "content": "SİPARİŞ-123"},
+]
+```
+
+</details>
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+Bu örnekte kullanıcı, siparişiyle ilgili yardım istediğini yazıyor. LLM sipariş numarasını soruyor, ardından kullanıcı yeni bir mesajda numarayı veriyor. Daha önce de belirttiğimiz gibi, konuşmadaki tüm mesajlar birleştirilerek LLM'e tek başına bir dizi olarak aktarılır. Sohbet şablonu, bu Python listesindeki tüm mesajları, her şeyi içeren bir metin dizisine yani bir isteme çevirir.
+
+SmolLM2 sohbet şablonu bu mesajları şöyle biçimlendirir:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+
+```
+<|im_start|>system  
+Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın<|im_end|>  
+<|im_start|>user  
+Siparişimle ilgili yardıma ihtiyacım var<|im_end|>  
+<|im_start|>assistant  
+Yardımcı olmaktan memnuniyet duyarım. Sipariş numaranızı verebilir misiniz?<|im_end|>  
+<|im_start|>user  
+SİPARİŞ-123<|im_end|>  
+<|im_start|>assistant  
+```
+
+</details>
+
+```
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
+<|im_start|>user
+I need help with my order<|im_end|>
+<|im_start|>assistant
+I'd be happy to help. Could you provide your order number?<|im_end|>
+<|im_start|>user
+It's ORDER-123<|im_end|>
+<|im_start|>assistant
+```
+
+Ancak, Llama 3.2 kullanıldığında aynı konuşma şöyle biçimlendirilir:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın.</summary>
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>  
+
+Bilgi Kesinti Tarihi: Aralık 2023  
+Bugünün Tarihi: 10 Şubat 2025  
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>  
+
+Siparişimle ilgili yardıma ihtiyacım var  
+
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>  
+
+Yardımcı olmaktan memnuniyet duyarım. Sipariş numaranızı verebilir misiniz?<|eot_id|><|start_header_id|>user<|end_header_id|>  
+
+SİPARİŞ-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>  
+```
+
+</details>
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+I need help with my order<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+I'd be happy to help. Could you provide your order number?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+It's ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Sohbet şablonları, bağlamı koruyarak karmaşık, çok turlu konuşmaları da işleyebilir:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+messages = [
+    {"role": "system", "content": "Sen bir matematik öğretmenisin."},
+    {"role": "user", "content": "Calculus nedir?"},
+    {"role": "assistant", "content": "Calculus, matematiğin bir dalıdır..."},
+    {"role": "user", "content": "Bir örnek verebilir misin?"},
+]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are a math tutor."},
+    {"role": "user", "content": "What is calculus?"},
+    {"role": "assistant", "content": "Calculus is a branch of mathematics..."},
+    {"role": "user", "content": "Can you give me an example?"},
+]
+```
+
+## Sohbet Şablonları
+
+Belirtildiği gibi, sohbet şablonları **LLM'lerle kullanıcılar arasındaki konuşmaları yapılandırmak için gereklidir**. Mesaj alışverişlerinin tek bir istem halinde nasıl biçimlendirileceğini yönlendirirler.
+
+### Temel Modeller ve Talimat Modelleri
+
+Anlamamız gereken bir diğer konu da Temel Modeller ile Talimat Modelleri arasındaki fark:
+
+- *Temel Model*, ham metin verisiyle eğitilmiştir ve sıradaki belirteçi tahmin etmeyi öğrenir.
+
+- *Talimat Modelleri* ise özellikle talimatları takip etmek ve sohbet etmek üzere fine-tuning (ince-ayar) uygulanmış modeldir. Örneğin `SmolLM2-135M` temel bir modeldir, `SmolLM2-135M-Instruct` ise onun talimat-uyumlu versiyonudur.
+
+Bir temel modelin, talimat modeli gibi davranması için, istemleri modelin anlayabileceği tutarlı bir şekilde biçimlendirmemiz gerekir. İşte bu noktada sohbet şablonları devreye girer.
+
+*ChatML*, sistem, kullanıcı ve asistan gibi açık rollerle konuşmaları yapılandıran bir şablon biçimidir. Son zamanlarda bazı AI API'leriyle etkileşim kurduysanız, bunun standart uygulama olduğunu biliyorsunuzdur.
+
+Unutmayın ki bir temel model, farklı sohbet şablonlarıyla ince-ayar edilebilir, bu yüzden bir talimat modeli kullanıyorsak doğru sohbet şablonunu kullandığımızdan emin olmalıyız.
+
+### Sohbet Şablonlarını Anlamak
+
+Her talimat modeli farklı sohbet formatları ve özel belirteçler kullandığı için, sohbet şablonları istemin doğru biçimde oluşturulmasını sağlamak için uygulanır.
+
+`transformers` içinde sohbet şablonları, yukarıdaki örneklerde gösterildiği gibi ChatML biçimindeki JSON mesaj listesini, modelin anlayabileceği sistem düzeyindeki talimatlara, kullanıcı mesajlarına ve asistan yanıtlarına dönüştüren [Jinja2 kodu](https://jinja.palletsprojects.com/en/stable/) içerir.
+
+Bu yapı, **etkileşimler arasında tutarlılığı korumaya yardımcı olur ve modelin farklı türdeki girdilere uygun şekilde yanıt vermesini sağlar.**
+
+İşte `SmolLM2-135M-Instruct` için sadeleştirilmiş bir sohbet şablonu örneği:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+Sen Hugging Face tarafından eğitilmiş, SmolLM adında yardımcı bir AI asistanısın.
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+
+</details>
+
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+
+Gördüğünüz gibi bir `chat_template`, mesaj listesinin nasıl biçimlendirileceğini tanımlar.
+
+Bu mesajlar verildiğinde:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+messages = [
+    {"role": "system", "content": "Sen teknik konulara odaklanmış, yardımsever bir asistansın."},
+    {"role": "user", "content": "Sohbet şablonunun ne olduğunu açıklayabilir misin?"},
+    {"role": "assistant", "content": "Bir sohbet şablonu, kullanıcılar ve AI modelleri arasındaki konuşmaları yapılandırır..."},
+    {"role": "user", "content": "Nasıl kullanırım?"},
+]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are a helpful assistant focused on technical topics."},
+    {"role": "user", "content": "Can you explain what a chat template is?"},
+    {"role": "assistant", "content": "A chat template structures conversations between users and AI models..."},
+    {"role": "user", "content": "How do I use it ?"},
+]
+```
+
+Şablon aşağıdaki çıktıyı üretir:
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```sh
+<|im_start|>system
+Sen teknik konulara odaklanmış, yardımsever bir asistansın.<|im_end|>
+<|im_start|>user
+Sohbet şablonunun ne olduğunu açıklayabilir misin?<|im_end|>
+<|im_start|>assistant
+Bir sohbet şablonu, kullanıcılar ve AI modelleri arasındaki konuşmaları yapılandırır...<|im_end|>
+<|im_start|>user
+Nasıl kullanırım?<|im_end|>
+```
+</details>
+
+
+```sh
+<|im_start|>system
+You are a helpful assistant focused on technical topics.<|im_end|>
+<|im_start|>user
+Can you explain what a chat template is?<|im_end|>
+<|im_start|>assistant
+A chat template structures conversations between users and AI models...<|im_end|>
+<|im_start|>user
+How do I use it ?<|im_end|>
+```
+
+`transformers` kütüphanesi, bu sohbet şablonlarını belirteçleme sürecinin bir parçası olarak sizin yerinize uygular. transformers'ın sohbet şablonlarını nasıl kullandığı hakkında daha fazla bilgiye <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">buradan</a> ulaşabilirsiniz. Tek yapmamız gereken mesajlarımızı doğru şekilde yapılandırmak, geri kalanını tokenizer (belirteçleyici) halleder.
+
+Aşağıdaki Space üzerinden, aynı konuşmanın farklı modeller için ilgili şablonlarla nasıl biçimlendirileceğini deneyimleyebilirsiniz:
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
+### Mesajlardan İstemlere
+
+LLM'inize doğru biçimlendirilmiş bir konuşma göndermenin en kolay yolu, modelin belirteçleyicisindeki `chat_template` fonksiyonunu kullanmaktır.
+
+
+<details>
+<summary>Türkçe çeviriyi görmek için tıklayın</summary>
+
+```python
+messages = [
+    {"role": "system", "content": "Sen çeşitli araçlara erişimi olan bir AI asistanısın."},
+    {"role": "user", "content": "Merhaba !"},
+    {"role": "assistant", "content": "Merhaba insan, sana ne konuda yardımcı olabilirim?"},
+    ]
+```
+
+</details>
+
+```python
+messages = [
+    {"role": "system", "content": "You are an AI assistant with access to various tools."},
+    {"role": "user", "content": "Hi !"},
+    {"role": "assistant", "content": "Hi human, what can help you with ?"},
+]
+```
+
+Yukarıdaki konuşmayı bir isteme dönüştürmek için belirteçleyiciyi yükleyip `apply_chat_template` çağrısı yaparız:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+Bu fonksiyonun döndürdüğü `rendered_prompt` artık seçtiğiniz model için kullanılmaya hazır!
+
+> Bu `apply_chat_template()` fonksiyonu, API'nizin arka planında, mesajları ChatML formatında işlerken kullanılacaktır.
+
+Artık LLM'lerin girdilerini sohbet şablonları ile nasıl yapılandırdığını gördüğümüze göre, şimdi Ajanların ortamlarında nasıl davrandıklarını keşfedelim.
+
+Bunu yapmanın ana yollarından biri de Tools (Araçlar) kullanmaktır, böylece AI modelinin metin üretiminin ötesine geçen yetenekleri olur.
+
+Mesajlardan ilerleyen ünitelerde yeniden bahsedeceğiz, ama daha derine inmek isterseniz şimdiden şuralara göz atabilirsiniz:
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face Sohbet Şablonu Kılavuzu</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">Transformers Dökümantasyonu</a>
+
