@@ -238,12 +238,12 @@ agent.run(
 `Tool.from_langchain()` 메서드로 LangChain 도구를 쉽게 불러올 수 있습니다. Alfred는 Wayne Manor에서 최고의 엔터테인먼트 아이디어를 찾기 위해 LangChain 도구를 활용할 수 있습니다.
 
 ```python
-from langchain.agents import load_tools
+from langchain_community.agent_toolkits.load_tools import load_tools
 from smolagents import CodeAgent, InferenceClientModel, Tool
 
 search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 
-agent = CodeAgent(tools=[search_tool], model=model)
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
 
 agent.run("Search for luxury entertainment ideas for a superhero-themed event, such as live performances and interactive experiences.")
 ```
