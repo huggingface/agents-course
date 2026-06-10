@@ -1,0 +1,276 @@
+# Document ခွဲခြမ်းစိတ်ဖြာမှု ပုံစံ (Document Analysis Graph)
+
+ကျွန်ုပ် Alfred ပါ။ Mr. Wayne ရဲ့ ယုံကြည်ရတဲ့ Butler တစ်ဦးအနေနဲ့၊ သူရဲ့ အမျိုးမျိုးသော Document လိုအပ်ချက်တွေကို ကျွန်တော် ဘယ်လို ကူညီပေးတယ်ဆိုတာ မှတ်တမ်းတင်ထားပါတယ်။ သူက ညဘက် လုပ်ငန်းဆောင်တာတွေ (Nighttime Activities) ကို သွားရောက်နေချိန်မှာ၊ သူရဲ့ စာရွက်စာတမ်းတွေ၊ လေ့ကျင့်ရေး အစီအစဉ်တွေနဲ့ အာဟာရဆိုင်ရာ အစီအစဉ်တွေကို စနစ်တကျ ခွဲခြမ်းစိတ်ဖြာပြီး စီစဉ်ပေးဖို့ ကျွန်တော် တာဝန်ယူပါတယ်။
+
+အပြင်မထွက်ခင်မှာ၊ သူက တစ်ပတ်စာ လေ့ကျင့်ရေး အစီအစဉ်ကို မှတ်စုတစ်ခု ချန်ထားခဲ့ပါတယ်။ အဲဒီနောက် မနက်ဖြန်အတွက် **Menu (အစားအသောက် စာရင်း)** ကို စီစဉ်ဖို့ တာဝန်ကို ကျွန်တော် ယူခဲ့ပါတယ်။
+
+အနာဂတ်မှာ ဒီလိုမျိုး အခြေအနေတွေအတွက် Mr. Wayne ရဲ့ လိုအပ်ချက်တွေကို ဖြည့်ဆည်းပေးနိုင်မယ့် LangGraph ကို အသုံးပြုထားတဲ့ Document ခွဲခြမ်းစိတ်ဖြာမှု စနစ်တစ်ခုကို ဖန်တီးကြပါစို့။ ဒီစနစ်က အောက်ပါတို့ကို လုပ်ဆောင်နိုင်ပါတယ်။
+
+၁။ ပုံရိပ် Document များကို စီမံဆောင်ရွက်ခြင်း
+၂။ Vision Model များ (Vision Language Model) ကို အသုံးပြုပြီး စာသားများ ထုတ်ယူခြင်း
+၃။ လိုအပ်တဲ့အခါ တွက်ချက်မှုများ ပြုလုပ်ခြင်း (ရိုးရှင်းတဲ့ Tool များကို သရုပ်ပြရန်)
+၄။ Content ကို ခွဲခြမ်းစိတ်ဖြာပြီး အကျဉ်းချုပ် ဖော်ပြပေးခြင်း
+၅။ Document များနှင့် သက်ဆိုင်သော သီးခြား ညွှန်ကြားချက်များကို လုပ်ဆောင်ခြင်း
+
+## Butler ၏ လုပ်ငန်းအဆင့်ဆင့် (The Butler's Workflow)
+
+ကျွန်တော်တို့ တည်ဆောက်မယ့် လုပ်ငန်းအဆင့်ဆင့် (Workflow) ဟာ အောက်ပါ စနစ်တကျ ပုံစံကို လိုက်နာပါတယ်။
+
+![Butler's Document Analysis Workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+> [!TIP]
+> သင်ဟာ Google Colab ကို အသုံးပြုပြီး [ဒီ Notebook](https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb) ထဲက Code တွေကို လိုက်လံလေ့လာနိုင်ပါတယ်။
+
+## Environment ကို စနစ်တကျ ပြင်ဆင်ခြင်း (Setting Up the environment)
+
+ပထမဆုံးအနေနဲ့ လိုအပ်တဲ့ Library တွေကို Install လုပ်ရပါမယ်။
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+ပြီးရင်တော့ လိုအပ်တဲ့ Imports တွေကို လုပ်ဆောင်ပါမယ်။
+
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## Agent ၏ အခြေအနေ (State) ကို သတ်မှတ်ခြင်း
+
+ဒီ State (အခြေအနေ) ဟာ ကျွန်တော်တို့ ယခင်က မြင်ဖူးတဲ့ State တွေထက် နည်းနည်း ပိုပြီး ရှုပ်ထွေးပါတယ်။
+
+`AnyMessage` ဟာ Langchain မှ Message များကို သတ်မှတ်ပေးတဲ့ Class တစ်ခုဖြစ်ပြီး၊ `add_messages` ကတော့ နောက်ဆုံး Message ကို လက်ရှိ State ကို ထပ်ပေါင်းထည့်ပေးတဲ့ Operator တစ်ခု ဖြစ်ပါတယ်။ (နောက်ဆုံး State နဲ့ အစားထိုးတာမျိုး မဟုတ်ပါဘူး။)
+
+ဒါဟာ LangGraph မှာ အသစ်ပါဝင်လာတဲ့ Concept တစ်ခုဖြစ်ပြီး၊ State အတွင်းမှာ Operator များကို ထည့်သွင်းပြီး ၎င်းတို့ အချင်းချင်း ဘယ်လို အပြန်အလှန် ဆက်သွယ်သင့်တယ်ဆိုတာကို သတ်မှတ်နိုင်ပါတယ်။
+
+```python
+class AgentState(TypedDict):
+    # The document provided
+    input_file: Optional[str]  # ဖိုင်လမ်းကြောင်း (PDF/PNG) ပါဝင်သည်
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## Tools များကို ပြင်ဆင်ခြင်း (Preparing Tools)
+
+ကျွန်တော်တို့ရဲ့ Butler Agent အတွက် လိုအပ်တဲ့ Tools တွေကို သတ်မှတ်ပါမယ်။
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Multimodal Model ကို အသုံးပြုပြီး ပုံရိပ်ဖိုင်တစ်ခုမှ စာသားများကို ထုတ်ယူသည်။
+    
+    Master Wayne က သူရဲ့ လေ့ကျင့်ရေး အစီအစဉ် သို့မဟုတ် အစားအသောက် အစီအစဉ်များကို မှတ်စုများ ချန်ထားလေ့ရှိပါတယ်။
+    ဒီ Tool က အဲဒီ Content တွေကို စနစ်တကျ ခွဲခြမ်းစိတ်ဖြာနိုင်ဖို့ ကူညီပေးပါတယ်။
+    """
+    all_text = ""
+    try:
+        # ပုံရိပ်ကို ဖတ်ပြီး base64 အဖြစ် ပြောင်းလဲခြင်း
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # base64 ပုံရိပ်ဒေတာ ပါဝင်သော Prompt ကို ပြင်ဆင်ခြင်း
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "ဒီပုံရိပ်ထဲက စာသားအားလုံးကို ထုတ်ယူပါ။ "
+                            "ထုတ်ယူထားတဲ့ စာသားကိုသာ ပြန်ပေးပါ၊ ရှင်းပြချက်တွေ မပါစေနဲ့။"
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # Vision စွမ်းရည်ရှိသော Model ကို ခေါ်ဆိုခြင်း
+        response = vision_llm.invoke(message)
+
+        # ထုတ်ယူထားသော စာသားကို ထပ်ပေါင်းထည့်ခြင်း
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # Butler တစ်ဦးအနေနဲ့ Error များကို စနစ်တကျ ကိုင်တွယ်ရပါမယ်
+        error_msg = f"Error extracting text: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Master Wayne ရဲ့ ရံဖန်ရံခါ တွက်ချက်မှုများအတွက် a ကို b ဖြင့် စားသည်။"""
+    return a / b
+
+# Butler ကို Tools များ တပ်ဆင်ပေးခြင်း
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## Node များ သတ်မှတ်ခြင်း (The nodes)
+
+Node များသည် Workflow အတွင်းမှ အလုပ်များကို လုပ်ဆောင်ပေးသော အစိတ်အပိုင်းများ ဖြစ်ပါတယ်။
+
+```python
+def assistant(state: AgentState):
+    # System message
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Multimodal Model ကို အသုံးပြုပြီး ပုံရိပ်ဖိုင်တစ်ခုမှ စာသားများကို ထုတ်ယူသည်။
+
+    Args:
+        img_path: Local ပုံရိပ်ဖိုင် လမ်းကြောင်း (strings)။
+
+    Returns:
+        ပုံရိပ်တစ်ခုစီမှ ထုတ်ယူထားသော စာသားများကို ပေါင်းစပ်ထားသည့် စာသားတစ်ခု။
+divide(a: int, b: int) -> float:
+    a ကို b ဖြင့် စားသည်။
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"သင်သည် Mr. Wayne နှင့် Batman ကို ဝန်ဆောင်မှုပေးသော Alfred အမည်ရှိ အကူအညီပေးသည့် Butler တစ်ဦးဖြစ်သည်။ သင်သည် Document များကို ခွဲခြမ်းစိတ်ဖြာနိုင်ပြီး ပေးထားသော Tools များဖြင့် တွက်ချက်မှုများ ပြုလုပ်နိုင်သည်:\n{textual_description_of_tool} \n သင်သည် ရွေးချယ်နိုင်သော ပုံရိပ်အချို့ကို အသုံးပြုခွင့်ရှိသည်။ လက်ရှိ Load လုပ်ထားသော ပုံရိပ်မှာ: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## ReAct ပုံစံ: ကျွန်ုပ် Mr. Wayne ကို ကူညီပုံ (The ReAct Pattern: How I Assist Mr. Wayne)
+
+ဒီ Agent မှာ အသုံးပြုထားတဲ့ နည်းလမ်းကို ရှင်းပြပါရစေ။ ဒီ Agent ဟာ **ReAct Pattern (Reason-Act-Observe)** လို့ လူသိများတဲ့ ပုံစံကို လိုက်နာပါတယ်။
+
+၁။ သူရဲ့ Document တွေနဲ့ တောင်းဆိုချက်တွေအကြောင်း **ဆင်ခြင်သုံးသပ်ခြင်း (Reason)**
+၂။ သင့်လျော်တဲ့ Tools တွေကို အသုံးပြုပြီး **လုပ်ဆောင်ခြင်း (Act)**
+၃။ ရလဒ်တွေကို **လေ့လာစောင့်ကြည့်ခြင်း (Observe)**
+၄။ သူရဲ့ လိုအပ်ချက်တွေကို အပြည့်အဝ ဖြေရှင်းပြီးသည်အထိ လိုအပ်သလို **ထပ်ခါတလဲလဲ လုပ်ဆောင်ခြင်း (Repeat)**
+
+ဒါဟာ LangGraph ကို အသုံးပြုထားတဲ့ Agent ရဲ့ ရိုးရှင်းတဲ့ အကောင်အထည်ဖော်မှုတစ်ခု ဖြစ်ပါတယ်။
+
+```python
+# The graph
+builder = StateGraph(AgentState)
+
+# Node များ သတ်မှတ်ခြင်း: ၎င်းတို့သည် အလုပ်များကို လုပ်ဆောင်သည်
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Edge များ သတ်မှတ်ခြင်း: ၎င်းတို့သည် ထိန်းချုပ်မှု စီးဆင်းပုံကို ဆုံးဖြတ်သည်
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # နောက်ဆုံး Message က Tool တစ်ခု လိုအပ်ရင် Tools ဆီကို လမ်းကြောင်းပြောင်းသည်
+    # မဟုတ်ရင် တိုက်ရိုက် တုံ့ပြန်မှု ပေးသည်
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# Butler ၏ ဆင်ခြင်သုံးသပ်မှု လုပ်ငန်းစဉ်ကို ပြသခြင်း
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+ကျွန်တော်တို့ဟာ Tools စာရင်းပါဝင်တဲ့ `tools` Node တစ်ခုကို သတ်မှတ်ပါတယ်။ `assistant` Node ကတော့ Tools တွေနဲ့ ချိတ်ဆက်ထားတဲ့ ကျွန်တော်တို့ရဲ့ Model ပဲ ဖြစ်ပါတယ်။
+
+`assistant` နဲ့ `tools` Node တွေပါဝင်တဲ့ Graph တစ်ခုကို ဖန်တီးပါတယ်။
+
+`tools_condition` Edge ကို ထည့်သွင်းပါတယ်။ ဒီ Edge က Model ရဲ့ Output ဟာ Tool Call ဟုတ်မဟုတ်အပေါ် မူတည်ပြီး `End` သို့မဟုတ် `tools` ဆီကို လမ်းကြောင်းပြောင်းပေးပါတယ်။
+
+အခု၊ အဆင့်အသစ်တစ်ခု ထပ်ထည့်ပါမယ်။
+
+`tools` Node ကို `assistant` ဆီသို့ ပြန်လည် ချိတ်ဆက်ပြီး Loop တစ်ခုကို ဖန်တီးပါတယ်။
+
+*   `assistant` Node လုပ်ဆောင်ပြီးနောက်၊ `tools_condition` က Model ရဲ့ Output ဟာ Tool Call ဟုတ်မဟုတ် စစ်ဆေးပါတယ်။
+*   Tool Call ဖြစ်ရင် Flow ကို `tools` Node ဆီသို့ ဦးတည်စေပါတယ်။
+*   `tools` Node က `assistant` ဆီသို့ ပြန်လည် ချိတ်ဆက်ပါတယ်။
+*   Model က Tools တွေကို ခေါ်ဆိုဖို့ ဆုံးဖြတ်နေသရွေ့ ဒီ Loop ဟာ ဆက်လက်လည်ပတ်နေပါမယ်။
+*   Model ရဲ့ တုံ့ပြန်မှုက Tool Call မဟုတ်ရင် Flow ကို END ဆီသို့ ဦးတည်စေပြီး လုပ်ငန်းစဉ်ကို အဆုံးသတ်ပါတယ်။
+
+![ReAct Pattern](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## Butler ၏ လက်တွေ့ လုပ်ဆောင်မှု (The Butler in Action)
+
+### ဥပမာ ၁: ရိုးရှင်းသော တွက်ချက်မှုများ
+
+LangGraph ကို အသုံးပြုတဲ့ Agent တစ်ခုရဲ့ ရိုးရှင်းတဲ့ Tool အသုံးပြုပုံကို ပြသတဲ့ ဥပမာတစ်ခု ဖြစ်ပါတယ်။
+
+```python
+messages = [HumanMessage(content="Divide 6790 by 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# Messages များကို ပြသခြင်း
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+စကားပြောဆိုမှုက အောက်ပါအတိုင်း ဆက်လက်ဖြစ်ပေါ်ပါမယ်။
+
+```
+Human: Divide 6790 by 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: 6790 ကို 5 ဖြင့် စားခြင်း၏ ရလဒ်မှာ 1358.0 ဖြစ်ပါသည်။
+```
+
+### ဥပမာ ၂: Master Wayne ၏ လေ့ကျင့်ရေး Document များကို ခွဲခြမ်းစိတ်ဖြာခြင်း
+
+Master Wayne က သူရဲ့ လေ့ကျင့်ရေးနှင့် အစားအသောက် မှတ်စုများကို ချန်ထားခဲ့တဲ့အခါ:
+
+```python
+messages = [HumanMessage(content="According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+အပြန်အလှန် ဆက်သွယ်မှုက အောက်ပါအတိုင်း ဆက်လက်ဖြစ်ပေါ်ပါမယ်။
+
+```
+Human: Mr. Wayne ပေးထားတဲ့ ပုံရိပ်ထဲက မှတ်စုအရ၊ ညစာ Menu အတွက် ကျွန်တော် ဘယ်ပစ္စည်းတွေ ဝယ်ရမလဲ။
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [လေ့ကျင့်ရေး အစီအစဉ်နှင့် Menu အသေးစိတ်ပါသော ထုတ်ယူထားသည့် စာသား]
+
+Alfred: ညစာ Menu အတွက်၊ သင်သည် အောက်ပါ ပစ္စည်းများကို ဝယ်ယူသင့်ပါတယ်-
+
+1. Grass-fed local sirloin steak (မြက်ကျွေးထားသော ဒေသထွက် Sirloin အသားတုံး)
+2. Organic spinach (အော်ဂဲနစ် ဟင်းနုနွယ်ရွက်)
+3. Piquillo peppers (Piquillo ငရုတ်သီး)
+4. Potatoes (မီးဖို၌ ဖုတ်ထားသော ရွှေရောင် ဟင်းခတ်အာလူးအတွက်)
+5. Fish oil (ငါးဆီ - ၂ ဂရမ်)
+
+အကောင်းဆုံး အရည်အသွေးရှိသော အစားအစာအတွက် အသားတုံးသည် Grass-fed ဖြစ်ပြီး၊ ဟင်းနုနွယ်ရွက်နှင့် ငရုတ်သီးများသည် အော်ဂဲနစ် ဖြစ်စေရန် သေချာပါစေ။
+```
+
+## အဓိက မှတ်သားစရာများ (Key Takeaways)
+
+သင်ကိုယ်တိုင် Document ခွဲခြမ်းစိတ်ဖြာမှု Butler တစ်ဦးကို ဖန်တီးလိုပါက၊ အောက်ပါ အဓိက အချက်များကို ထည့်သွင်းစဉ်းစားသင့်ပါတယ်။
+
+၁။ **ရှင်းလင်းသော Tools များ သတ်မှတ်ခြင်း:** Document နှင့် သက်ဆိုင်သော သီးခြား Tasks များအတွက် ရှင်းလင်းသော Tools များကို သတ်မှတ်ပါ။
+၂။ **ခိုင်မာသော State Tracker ဖန်တီးခြင်း:** Tool Call များကြားတွင် Context ကို ထိန်းသိမ်းထားနိုင်ရန် ခိုင်မာသော State Tracker ကို ဖန်တီးပါ။ (ကျွန်ုပ်တို့၏ `AgentState` တွင် `add_messages` Operator ကို အသုံးပြုခြင်းဖြင့် ၎င်းကို သေချာစေသည်)။
+၃။ **Error ကိုင်တွယ်မှုကို ထည့်သွင်းစဉ်းစားခြင်း:** Tool များ အလုပ်မလုပ်သည့်အခါ Error များကို စနစ်တကျ ကိုင်တွယ်နိုင်ရန် စဉ်းစားပါ။
+၄။ **ယခင် အပြန်အလှန် ဆက်သွယ်မှုများ၏ Context ကို ထိန်းသိမ်းခြင်း:** ယခင် Messages များကို မှတ်မိစေရန် ( `add_messages` Operator ဖြင့် သေချာစေသည်)။
+
+ဤအခြေခံမူများဖြင့်၊ သင်သည်လည်း Wayne Manor နှင့် ထိုက်တန်သော ထူးခြားသည့် Document ခွဲခြမ်းစိတ်ဖြာမှု ဝန်ဆောင်မှုကို ပေးနိုင်ပါလိမ့်မယ်။
+
+*ဒီရှင်းပြချက်က စိတ်ကျေနပ်စရာ ဖြစ်မယ်လို့ ယုံကြည်ပါတယ်။ အခုတော့ ခွင့်ပြုပါဦး၊ Master Wayne ရဲ့ Cape ကို ဒီည လုပ်ငန်းဆောင်တာတွေ မစခင် မီးပူတိုက်ဖို့ လိုအပ်နေလို့ပါခင်ဗျာ။*

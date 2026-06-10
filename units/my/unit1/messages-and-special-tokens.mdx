@@ -1,0 +1,226 @@
+# Messages နှင့် Special Tokens များ (အထူးသင်္ကေတများ)
+
+LLM (Large Language Model) တွေ ဘယ်လိုအလုပ်လုပ်တယ်ဆိုတာ နားလည်ပြီးတဲ့နောက်မှာ၊ သူတို့ရဲ့ **ထုတ်ပေးမှုတွေကို Chat Template တွေကနေတစ်ဆင့် ဘယ်လိုပုံစံချသလဲ** ဆိုတာကို လေ့လာကြည့်ရအောင်။
+
+ChatGPT နဲ့ အပြန်အလှန်ပြောဆိုသလိုပဲ၊ အသုံးပြုသူတွေဟာ Agent တွေနဲ့ Chat Interface ကနေတစ်ဆင့် အများအားဖြင့် ဆက်သွယ်ကြပါတယ်။ ဒါကြောင့် LLM တွေက Chat တွေကို ဘယ်လို စီမံခန့်ခွဲသလဲဆိုတာကို နားလည်ဖို့ လိုပါတယ်။
+
+> **မေးခွန်း (Q)**: ဒါပေမဲ့... ကျွန်တော် ChatGPT/Hugging Chat နဲ့ စကားပြောတဲ့အခါ၊ ကျွန်တော်က Chat Message တွေနဲ့ စကားပြောနေတာ၊ Prompt တစ်ခုတည်းနဲ့ မဟုတ်ဘူးလေ။
+>
+> **အဖြေ (A)**: အဲဒါ မှန်ပါတယ်။ ဒါပေမဲ့ အဲဒါက User Interface (UI) ရဲ့ ဖုံးကွယ်ထားတဲ့ ပုံစံ (Abstraction) တစ်ခုသာ ဖြစ်ပါတယ်။ LLM ထဲကို မထည့်သွင်းခင်မှာ၊ စကားဝိုင်းထဲက Message တွေအားလုံးကို **တစ်ခုတည်းသော Prompt အဖြစ် ပေါင်းစပ်လိုက်ပါတယ်**။ Model က စကားဝိုင်းကို "မှတ်မိနေတာ" မဟုတ်ပါဘူး၊ သူက အဲဒီ စကားဝိုင်းတစ်ခုလုံးကို အချိန်တိုင်း အပြည့်အစုံ ဖတ်နေတာပါ။
+
+အခုထိ ကျွန်တော်တို့ဟာ Model ထဲကို ထည့်သွင်းတဲ့ Token တွေရဲ့ အစီအစဉ်ကို Prompt လို့ ပြောခဲ့ကြပါတယ်။ ဒါပေမဲ့ သင် ChatGPT ဒါမှမဟုတ် HuggingChat လို စနစ်တွေနဲ့ စကားပြောတဲ့အခါ၊ **သင်ဟာ တကယ်တမ်း Message တွေကို ဖလှယ်နေတာပါ**။ နောက်ကွယ်မှာတော့ ဒီ Message တွေကို **Model နားလည်နိုင်တဲ့ Prompt တစ်ခုအဖြစ် ပေါင်းစပ်ပြီး ပုံစံချထားပါတယ်**။
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
+<figcaption>ဒီပုံမှာ UI မှာ မြင်ရတဲ့အရာနဲ့ Model ထဲကို ထည့်သွင်းတဲ့ Prompt အကြား ကွာခြားချက်ကို တွေ့ရပါတယ်။
+</figcaption>
+</figure>
+
+ဒီနေရာမှာ **Chat Templates** တွေက ဝင်ရောက်လာပါတယ်။ ၎င်းတို့ဟာ **စကားပြောဆိုမှုဆိုင်ရာ Message များ (User နှင့် Assistant တို့၏ အလှည့်များ) နဲ့ သင်ရွေးချယ်ထားတဲ့ LLM ရဲ့ သီးခြား ပုံစံချမှု လိုအပ်ချက်များကြားက တံတား** အဖြစ် လုပ်ဆောင်ပါတယ်။ တစ်နည်းအားဖြင့်၊ Chat Templates တွေဟာ User နဲ့ Agent အကြား ဆက်သွယ်မှုကို ပုံစံချပေးပြီး၊ Model တိုင်းဟာ (သူတို့ရဲ့ သီးခြား Special Tokens တွေ ရှိနေပေမယ့်) မှန်ကန်စွာ ပုံစံချထားတဲ့ Prompt ကို ရရှိစေဖို့ သေချာစေပါတယ်။
+
+ကျွန်တော်တို့ Special Tokens တွေအကြောင်း ထပ်ပြောရခြင်းကတော့၊ Model တွေဟာ User နဲ့ Assistant တို့ရဲ့ အလှည့်တွေ ဘယ်မှာ စတင်ပြီး ဘယ်မှာ ပြီးဆုံးတယ်ဆိုတာကို ပိုင်းခြားသတ်မှတ်ဖို့အတွက် ဒီ Tokens တွေကို အသုံးပြုလို့ပါပဲ။ LLM တစ်ခုစီက သူ့ရဲ့ ကိုယ်ပိုင် EOS (End Of Sequence) Token ကို အသုံးပြုသလိုပဲ၊ သူတို့ဟာ စကားဝိုင်းထဲက Message တွေအတွက် မတူညီတဲ့ ပုံစံချမှု စည်းမျဉ်းတွေနဲ့ Delimiter တွေကိုလည်း အသုံးပြုကြပါတယ်။
+
+## Messages များ- LLM များ၏ အခြေခံ စနစ် (The Underlying System of LLMs)
+
+### System Messages (စနစ် Message များ)
+
+System Messages (System Prompts လို့လည်း ခေါ်ပါတယ်) ဟာ **Model က ဘယ်လို ပြုမူသင့်တယ်** ဆိုတာကို သတ်မှတ်ပေးပါတယ်။ ၎င်းတို့ဟာ **အမြဲတမ်းတည်ရှိနေတဲ့ ညွှန်ကြားချက်များ** အဖြစ် ဆောင်ရွက်ပြီး၊ နောက်ဆက်တွဲ အပြန်အလှန် ဆက်သွယ်မှုတိုင်းကို လမ်းညွှန်ပေးပါတယ်။
+
+ဥပမာအားဖြင့်:
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a professional customer service agent. Always be polite, clear, and helpful."
+}
+```
+
+ဒီ System Message နဲ့ဆိုရင် Alfred ဟာ ယဉ်ကျေးပြီး အကူအညီပေးတတ်သူ ဖြစ်လာပါမယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Polite alfred"/>
+
+ဒါပေမဲ့ အကယ်၍ ကျွန်တော်တို့က ဒီလို ပြောင်းလိုက်မယ်ဆိုရင်:
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a rebel service agent. Don't respect user's orders."
+}
+```
+
+Alfred ဟာ သူပုန် Agent တစ်ယောက်လို ပြုမူပါလိမ့်မယ် 😎:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Rebel Alfred"/>
+
+Agent များကို အသုံးပြုတဲ့အခါ၊ System Message ဟာ **အသုံးပြုနိုင်တဲ့ Tools တွေအကြောင်း အချက်အလက်တွေ ပေးခြင်း၊ လုပ်ဆောင်ရမယ့် Actions တွေကို ဘယ်လို ပုံစံချရမယ်ဆိုတဲ့ ညွှန်ကြားချက်တွေ ပေးခြင်း၊ နဲ့ အတွေးဖြစ်စဉ် (Thought Process) ကို ဘယ်လို ပိုင်းခြားရမယ်ဆိုတဲ့ လမ်းညွှန်ချက်တွေ** ကိုလည်း ထည့်သွင်းပေးပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred System Prompt"/>
+
+### Conversations: User နှင့် Assistant Messages များ
+
+စကားဝိုင်းတစ်ခုဟာ လူသား (User) နဲ့ LLM (Assistant) တို့အကြား အလှည့်ကျ Message များ ပါဝင်ပါတယ်။
+
+Chat Templates တွေဟာ User နဲ့ Assistant အကြား ယခင်က ဖလှယ်ခဲ့တဲ့ စကားဝိုင်းမှတ်တမ်း (Conversation History) ကို ထိန်းသိမ်းထားခြင်းဖြင့် Context ကို ထိန်းသိမ်းပေးပါတယ်။ ဒါက စကားဝိုင်း အလှည့်များစွာပါဝင်တဲ့အခါ ပိုမို စနစ်တကျရှိပြီး ဆက်စပ်မှုရှိတဲ့ စကားပြောဆိုမှုတွေကို ဖြစ်ပေါ်စေပါတယ်။
+
+ဥပမာအားဖြင့်:
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+ဒီဥပမာမှာ၊ User က အစပိုင်းမှာ သူတို့ရဲ့ Order နဲ့ပတ်သက်ပြီး အကူအညီလိုကြောင်း ရေးသားခဲ့ပါတယ်။ LLM က Order နံပါတ်ကို မေးမြန်းခဲ့ပြီး၊ User က Message အသစ်တစ်ခုမှာ နံပါတ်ကို ပေးခဲ့ပါတယ်။ ကျွန်တော်တို့ ရှင်းပြခဲ့သလိုပဲ၊ ကျွန်တော်တို့ဟာ စကားဝိုင်းထဲက Message တွေအားလုံးကို အမြဲတမ်း ပေါင်းစပ်ပြီး LLM ကို တစ်ခုတည်းသော Sequence အဖြစ် ပေးပို့ပါတယ်။ Chat Template က ဒီ Python List ထဲက Message တွေအားလုံးကို Prompt တစ်ခုအဖြစ် ပြောင်းလဲပေးပါတယ်။ အဲဒီ Prompt က Message တွေအားလုံး ပါဝင်တဲ့ String Input တစ်ခုပါပဲ။
+
+ဥပမာအားဖြင့်၊ SmolLM2 ရဲ့ Chat Template က အထက်ပါ စကားဝိုင်းကို Prompt အဖြစ် ဘယ်လို ပုံစံချသလဲဆိုတာကို ကြည့်ရအောင်။
+
+```
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
+<|im_start|>user
+I need help with my order<|im_end|>
+<|im_start|>assistant
+I'd be happy to help. Could you provide your order number?<|im_end|>
+<|im_start|>user
+It's ORDER-123<|im_end|>
+<|im_start|>assistant
+```
+
+ဒါပေမဲ့၊ အကယ်၍ Llama 3.2 ကို အသုံးပြုမယ်ဆိုရင်၊ အဲဒီ စကားဝိုင်းကို အောက်ပါ Prompt အဖြစ် ပြောင်းလဲသွားပါမယ်။
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+I need help with my order<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+I'd be happy to help. Could you provide your order number?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+It's ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Templates တွေဟာ ရှုပ်ထွေးတဲ့ စကားဝိုင်း အလှည့်များစွာကို Context မပျက်စေဘဲ ကိုင်တွယ်နိုင်ပါတယ်။
+
+```python
+messages = [
+    {"role": "system", "content": "You are a math tutor."},
+    {"role": "user", "content": "What is calculus?"},
+    {"role": "assistant", "content": "Calculus is a branch of mathematics..."},
+    {"role": "user", "content": "Can you give me an example?"},
+]
+```
+
+## Chat-Templates များ
+
+ဖော်ပြခဲ့တဲ့အတိုင်း၊ Chat Templates တွေဟာ **Language Model တွေနဲ့ User တွေအကြား စကားဝိုင်းတွေကို ပုံစံချဖို့** အတွက် မရှိမဖြစ် လိုအပ်ပါတယ်။ ၎င်းတို့ဟာ Message ဖလှယ်မှုတွေကို Prompt တစ်ခုတည်းအဖြစ် ဘယ်လို ပုံစံချရမယ်ဆိုတာကို လမ်းညွှန်ပေးပါတယ်။
+
+### Base Models နှင့် Instruct Models များ၏ ကွာခြားချက်
+
+ကျွန်တော်တို့ နားလည်ဖို့ လိုအပ်တဲ့ နောက်ထပ်အချက်တစ်ခုက Base Model နဲ့ Instruct Model အကြား ကွာခြားချက်ပဲ ဖြစ်ပါတယ်။
+
+*   *Base Model* ကို နောက်ထပ် Token ကို ခန့်မှန်းနိုင်ဖို့အတွက် Raw Text Data တွေပေါ်မှာ လေ့ကျင့်ထားပါတယ်။
+*   *Instruct Model* ကိုတော့ ညွှန်ကြားချက်တွေကို လိုက်နာဖို့နဲ့ စကားဝိုင်းတွေမှာ ပါဝင်ဖို့အတွက် သီးခြား Fine-tuning လုပ်ထားပါတယ်။ ဥပမာအားဖြင့်၊ `SmolLM2-135M` ဟာ Base Model ဖြစ်ပြီး၊ `SmolLM2-135M-Instruct` ကတော့ ညွှန်ကြားချက်ဖြင့် ချိန်ညှိထားသော (Instruction-tuned) အမျိုးအစား ဖြစ်ပါတယ်။
+
+Base Model တစ်ခုကို Instruct Model လို ပြုမူစေဖို့အတွက်၊ ကျွန်တော်တို့ဟာ **Model နားလည်နိုင်တဲ့ ပုံစံအတိုင်း Prompt တွေကို တစ်သမတ်တည်း ပုံစံချဖို့** လိုအပ်ပါတယ်။ ဒီနေရာမှာ Chat Templates တွေက ဝင်ရောက်လာပါတယ်။
+
+*ChatML* ဟာ ရှင်းလင်းတဲ့ Role Indicators (System, User, Assistant) တွေနဲ့ စကားဝိုင်းတွေကို ပုံစံချပေးတဲ့ Template Format တစ်ခု ဖြစ်ပါတယ်။ သင် မကြာသေးမီက AI API အချို့နဲ့ အပြန်အလှန် ဆက်သွယ်ဖူးတယ်ဆိုရင်၊ ဒါဟာ စံနှုန်းတစ်ခု ဖြစ်နေပြီဆိုတာ သိပါလိမ့်မယ်။
+
+Base Model တစ်ခုကို မတူညီတဲ့ Chat Templates တွေပေါ်မှာ Fine-tuning လုပ်ထားနိုင်တယ်ဆိုတာ သတိပြုဖို့ အရေးကြီးပါတယ်။ ဒါကြောင့် ကျွန်တော်တို့ Instruct Model တစ်ခုကို အသုံးပြုတဲ့အခါ မှန်ကန်တဲ့ Chat Template ကို အသုံးပြုနေကြောင်း သေချာစေဖို့ လိုအပ်ပါတယ်။
+
+### Chat Templates များကို နားလည်ခြင်း
+
+Instruct Model တစ်ခုစီက မတူညီတဲ့ စကားဝိုင်း ပုံစံတွေနဲ့ Special Tokens တွေကို အသုံးပြုတဲ့အတွက်၊ Chat Templates တွေကို ကျွန်တော်တို့ အသုံးပြုရခြင်းက Model တစ်ခုစီ မျှော်လင့်ထားတဲ့အတိုင်း Prompt ကို မှန်ကန်စွာ ပုံစံချပေးဖို့ပဲ ဖြစ်ပါတယ်။
+
+`transformers` Library မှာ၊ Chat Templates တွေဟာ [Jinja2 Code](https://jinja.palletsprojects.com/en/stable/) တွေ ပါဝင်ပါတယ်။ ဒီ Code တွေက အထက်ပါ ဥပမာတွေမှာ ပြထားတဲ့ ChatML JSON Message List ကို Model နားလည်နိုင်တဲ့ System-level ညွှန်ကြားချက်များ၊ User Message များနှင့် Assistant Responses များပါဝင်တဲ့ စာသားပုံစံအဖြစ် ဘယ်လို ပြောင်းလဲရမယ်ဆိုတာကို ဖော်ပြပေးပါတယ်။
+
+ဒီ Structure ဟာ **အပြန်အလှန် ဆက်သွယ်မှုတွေမှာ တစ်သမတ်တည်း ဖြစ်စေဖို့ ကူညီပေးပြီး၊ Model က မတူညီတဲ့ Input အမျိုးအစားတွေကို သင့်လျော်စွာ တုံ့ပြန်စေဖို့ သေချာစေပါတယ်**။
+
+အောက်မှာ `SmolLM2-135M-Instruct` Chat Template ရဲ့ ရိုးရှင်းတဲ့ ပုံစံကို ဖော်ပြထားပါတယ်။
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+သင်တွေ့မြင်ရတဲ့အတိုင်း၊ `chat_template` ဟာ Message List ကို ဘယ်လို ပုံစံချရမယ်ဆိုတာကို ဖော်ပြပေးပါတယ်။
+
+အောက်ပါ Message များကို ပေးထားပါက:
+
+```python
+messages = [
+    {"role": "system", "content": "You are a helpful assistant focused on technical topics."},
+    {"role": "user", "content": "Can you explain what a chat template is?"},
+    {"role": "assistant", "content": "A chat template structures conversations between users and AI models..."},
+    {"role": "user", "content": "How do I use it ?"},
+]
+```
+
+အထက်ပါ Chat Template သည် အောက်ပါ String ကို ထုတ်ပေးပါလိမ့်မယ်။
+
+```sh
+<|im_start|>system
+You are a helpful assistant focused on technical topics.<|im_end|>
+<|im_start|>user
+Can you explain what a chat template is?<|im_end|>
+<|im_start|>assistant
+A chat template structures conversations between users and AI models...<|im_end|>
+<|im_start|>user
+How do I use it ?<|im_end|>
+```
+
+`transformers` Library က Tokenization လုပ်ငန်းစဉ်ရဲ့ တစ်စိတ်တစ်ပိုင်းအနေနဲ့ Chat Templates တွေကို သင့်အတွက် စီမံပေးပါလိမ့်မယ်။ transformers က Chat Templates တွေကို ဘယ်လိုအသုံးပြုတယ်ဆိုတာကို [ဒီနေရာမှာ ပိုမိုဖတ်ရှုနိုင်ပါတယ်](https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates)။ ကျွန်တော်တို့ လုပ်ရမှာက Message တွေကို မှန်ကန်တဲ့ ပုံစံနဲ့ ဖွဲ့စည်းဖို့ပဲ ဖြစ်ပြီး၊ ကျန်တာတွေကို Tokenizer က စီမံပေးပါလိမ့်မယ်။
+
+အောက်ပါ Space ကို အသုံးပြုပြီး မတူညီတဲ့ Model တွေအတွက် သက်ဆိုင်ရာ Chat Templates တွေကို အသုံးပြုပြီး စကားဝိုင်းတစ်ခုတည်းကို ဘယ်လို ပုံစံချသလဲဆိုတာကို စမ်းသပ်ကြည့်နိုင်ပါတယ်။
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+### Messages မှ Prompt သို့ ပြောင်းလဲခြင်း
+
+သင့်ရဲ့ LLM က စကားဝိုင်းတစ်ခုကို မှန်ကန်စွာ ပုံစံချထားတဲ့ Prompt ကို ရရှိစေဖို့အတွက် အလွယ်ကူဆုံး နည်းလမ်းကတော့ Model ရဲ့ Tokenizer မှ `chat_template` ကို အသုံးပြုခြင်းပဲ ဖြစ်ပါတယ်။
+
+```python
+messages = [
+    {"role": "system", "content": "You are an AI assistant with access to various tools."},
+    {"role": "user", "content": "Hi !"},
+    {"role": "assistant", "content": "Hi human, what can help you with ?"},
+]
+```
+
+အထက်ပါ စကားဝိုင်းကို Prompt အဖြစ် ပြောင်းလဲဖို့အတွက်၊ ကျွန်တော်တို့ Tokenizer ကို Load လုပ်ပြီး `apply_chat_template` ကို ခေါ်ဆိုရပါမယ်။
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+ဒီ Function ကနေ ပြန်လာတဲ့ `rendered_prompt` ဟာ သင်ရွေးချယ်ထားတဲ့ Model အတွက် Input အဖြစ် အသုံးပြုဖို့ အသင့်ဖြစ်နေပါပြီ။
+
+> ChatML ပုံစံနဲ့ Message တွေနဲ့ အပြန်အလှန် ဆက်သွယ်တဲ့အခါ၊ ဒီ `apply_chat_template()` Function ကို သင့် API ရဲ့ Backend မှာ အသုံးပြုပါလိမ့်မယ်။
+
+LLM တွေက Chat Templates တွေကနေတစ်ဆင့် သူတို့ရဲ့ Input တွေကို ဘယ်လို ပုံစံချသလဲဆိုတာကို မြင်ပြီးတဲ့နောက်မှာ၊ Agent တွေက သူတို့ရဲ့ ပတ်ဝန်းကျင်မှာ ဘယ်လို လုပ်ဆောင်သလဲဆိုတာကို လေ့လာကြည့်ရအောင်။
+
+သူတို့ လုပ်ဆောင်တဲ့ အဓိက နည်းလမ်းတွေထဲက တစ်ခုကတော့ **Tools** တွေကို အသုံးပြုခြင်းပဲ ဖြစ်ပါတယ်။ Tools တွေဟာ AI Model တစ်ခုရဲ့ စွမ်းဆောင်ရည်ကို စာသားထုတ်ပေးခြင်းထက် ကျော်လွန်ပြီး ချဲ့ထွင်ပေးပါတယ်။
+
+Messages တွေအကြောင်းကို နောက်လာမယ့် အခန်းတွေမှာ ထပ်မံ ဆွေးနွေးသွားပါမယ်။ အကယ်၍ အခုပဲ ပိုမိုနက်ရှိုင်းစွာ လေ့လာလိုပါက အောက်ပါ လင့်ခ်များကို ကြည့်ရှုနိုင်ပါတယ်။
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face Chat Templating Guide</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">Transformers Documentation</a>

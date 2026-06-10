@@ -1,0 +1,169 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Agentic RAG စနစ်များ တည်ဆောက်ခြင်း (Building Agentic RAG Systems)
+
+> [!TIP]
+> ဒီအပိုင်းမှာပါတဲ့ Code တွေကို <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">ဒီ Notebook</a> မှာ လိုက်လံလေ့လာနိုင်ပြီး Google Colab ကို အသုံးပြုပြီး Run ကြည့်နိုင်ပါတယ်။
+
+**Retrieval Augmented Generation (RAG)** စနစ်တွေဆိုတာ ဒေတာ ရှာဖွေခြင်း (Data Retrieval) နဲ့ အဖြေထုတ်ပေးခြင်း (Generation) စွမ်းရည်တွေကို ပေါင်းစပ်ထားတဲ့ စနစ်တွေ ဖြစ်ပါတယ်။ ဒီစနစ်တွေက အကြောင်းအရာကို နားလည်ပြီး ဆီလျော်တဲ့ တုံ့ပြန်မှုတွေကို ပေးနိုင်ပါတယ်။ ဥပမာအားဖြင့်၊ အသုံးပြုသူရဲ့ မေးခွန်းကို Search Engine တစ်ခုဆီ ပို့လိုက်ပြီး၊ ရှာဖွေတွေ့ရှိတဲ့ ရလဒ်တွေကို မေးခွန်းနဲ့အတူ မော်ဒယ်ဆီ ပြန်ပေးပါတယ်။ အဲဒီအခါ မော်ဒယ်က မေးခွန်းနဲ့ ရှာဖွေတွေ့ရှိတဲ့ အချက်အလက်တွေကို အခြေခံပြီး အဖြေတစ်ခုကို ထုတ်ပေးပါတယ်။
+
+**Agentic RAG (Retrieval-Augmented Generation)** ဆိုတာကတော့ ရိုးရာ RAG စနစ်တွေကို ကျော်လွန်ပြီး **ကိုယ်ပိုင်အုပ်ချုပ်ခွင့်ရှိတဲ့ Agent တွေနဲ့ ပြောင်းလဲနေတဲ့ အသိပညာ ရှာဖွေမှု (Dynamic Knowledge Retrieval) ကို ပေါင်းစပ်ထားခြင်း** ဖြစ်ပါတယ်။
+
+ရိုးရာ RAG စနစ်တွေမှာ LLM က ရှာဖွေထားတဲ့ ဒေတာကို အခြေခံပြီး မေးခွန်းတွေကို ဖြေဖို့ပဲ အသုံးပြုပါတယ်။ ဒါပေမယ့် Agentic RAG ကတော့ **ရှာဖွေခြင်းနဲ့ အဖြေထုတ်ပေးခြင်း လုပ်ငန်းစဉ် နှစ်ခုလုံးကို ဉာဏ်ရည်ရှိရှိ ထိန်းချုပ်နိုင်စေပါတယ်**။ ဒါကြောင့် စွမ်းဆောင်ရည်နဲ့ တိကျမှု ပိုမိုကောင်းမွန်လာပါတယ်။
+
+ရိုးရာ RAG စနစ်တွေမှာ အဓိက ကန့်သတ်ချက်တွေ ရှိပါတယ်။ ဥပမာအားဖြင့် **တစ်ကြိမ်တည်း ရှာဖွေမှုအပေါ် မှီခိုနေရခြင်း** နဲ့ အသုံးပြုသူရဲ့ မေးခွန်းနဲ့ တိုက်ရိုက် အဓိပ္ပာယ်တူညီမှု (Semantic Similarity) ကိုသာ အာရုံစိုက်ခြင်းတို့ကြောင့် ဆီလျော်တဲ့ အချက်အလက်တွေကို လွဲချော်သွားနိုင်ပါတယ်။
+
+Agentic RAG ကတော့ ဒီပြဿနာတွေကို ဖြေရှင်းပေးပါတယ်။ Agent က ကိုယ်ပိုင် ဆုံးဖြတ်ချက်နဲ့ ရှာဖွေမေးခွန်းတွေကို ဖော်ထုတ်တာ၊ ရှာဖွေတွေ့ရှိတဲ့ ရလဒ်တွေကို ဝေဖန်သုံးသပ်တာ၊ ပြီးတော့ ပိုမိုတိကျပြီး ပြည့်စုံတဲ့ အဖြေတစ်ခုရဖို့အတွက် ရှာဖွေမှု အဆင့်များစွာကို လုပ်ဆောင်နိုင်ပါတယ်။
+
+## DuckDuckGo ဖြင့် အခြေခံ ရှာဖွေခြင်း (Basic Retrieval with DuckDuckGo)
+
+DuckDuckGo ကို အသုံးပြုပြီး ဝက်ဘ်ကို ရှာဖွေနိုင်တဲ့ ရိုးရှင်းတဲ့ Agent တစ်ခုကို တည်ဆောက်ကြည့်ရအောင်။ ဒီ Agent က အချက်အလက်တွေကို ရှာဖွေပြီး မေးခွန်းတွေကို ဖြေဖို့အတွက် အဖြေတွေကို ပေါင်းစပ်ပေးပါလိမ့်မယ်။ Agentic RAG ကို အသုံးပြုခြင်းအားဖြင့် Alfred ရဲ့ Agent က အောက်ပါတို့ကို လုပ်ဆောင်နိုင်ပါတယ်။
+
+*   နောက်ဆုံးပေါ် စူပါဟီးရိုး ပါတီခေတ်ရေစီးကြောင်းတွေကို ရှာဖွေခြင်း
+*   ဇိမ်ခံပစ္စည်းတွေ ပါဝင်အောင် ရလဒ်တွေကို ချိန်ညှိခြင်း
+*   အချက်အလက်တွေကို စုစည်းပြီး ပြည့်စုံတဲ့ အစီအစဉ်တစ်ခုအဖြစ် ပေါင်းစပ်ပေးခြင်း
+
+Alfred ရဲ့ Agent က ဒီအရာတွေကို ဘယ်လိုလုပ်ဆောင်နိုင်မလဲဆိုတာ ကြည့်ရအောင်။
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+# ရှာဖွေရေး Tool ကို စတင်သတ်မှတ်ခြင်း
+search_tool = DuckDuckGoSearchTool()
+
+# Model ကို စတင်သတ်မှတ်ခြင်း
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+# ဥပမာ အသုံးပြုပုံ
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+ဒီ Agent က အောက်ပါ လုပ်ငန်းစဉ်အတိုင်း လုပ်ဆောင်ပါတယ်။
+
+1.  **တောင်းဆိုချက်ကို ခွဲခြမ်းစိတ်ဖြာခြင်း (Analyzes the Request):** Alfred ရဲ့ Agent က မေးခွန်းရဲ့ အဓိက အစိတ်အပိုင်းတွေကို ဖော်ထုတ်ပါတယ်။ (ဇိမ်ခံ စူပါဟီးရိုး ပါတီစီစဉ်ခြင်း၊ အလှဆင်မှု၊ ဖျော်ဖြေရေးနဲ့ စားသောက်မှုတို့ကို အာရုံစိုက်ခြင်း)။
+2.  **ရှာဖွေမှု လုပ်ဆောင်ခြင်း (Performs Retrieval):** Agent က DuckDuckGo ကို အသုံးပြုပြီး Alfred ရဲ့ ဇိမ်ခံပွဲအတွက် လိုအပ်တဲ့ အချက်အလက်တွေကို ရှာဖွေပါတယ်။
+3.  **အချက်အလက် ပေါင်းစပ်ခြင်း (Synthesizes Information):** ရလဒ်တွေကို စုဆောင်းပြီးနောက်၊ Agent က ပါတီရဲ့ ကဏ္ဍအားလုံးကို ခြုံငုံမိတဲ့၊ လက်တွေ့ကျတဲ့ အစီအစဉ်တစ်ခုအဖြစ် စုစည်းပေးပါတယ်။
+4.  **အနာဂတ်အတွက် သိမ်းဆည်းခြင်း (Stores for Future Reference):** Agent က ရှာဖွေတွေ့ရှိတဲ့ အချက်အလက်တွေကို နောက်ပိုင်း ပွဲစီစဉ်မှုတွေမှာ လွယ်ကူစွာ ပြန်လည်ရယူနိုင်ဖို့ သိမ်းဆည်းထားပြီး စွမ်းဆောင်ရည်ကို မြှင့်တင်ပေးပါတယ်။
+
+## စိတ်ကြိုက် အသိပညာ အခြေခံ Tool (Custom Knowledge Base Tool)
+
+အထူးပြု လုပ်ငန်းတွေအတွက် စိတ်ကြိုက် အသိပညာ အခြေခံ (Custom Knowledge Base) တစ်ခုရှိတာဟာ အလွန်တန်ဖိုးရှိပါတယ်။ နည်းပညာဆိုင်ရာ Document တွေ ဒါမှမဟုတ် အထူးပြု အသိပညာတွေကို Vector Database ကနေ မေးမြန်းနိုင်တဲ့ Tool တစ်ခုကို ဖန်တီးကြည့်ရအောင်။ Semantic Search ကို အသုံးပြုပြီး Agent က Alfred ရဲ့ လိုအပ်ချက်အတွက် အသင့်တော်ဆုံး အချက်အလက်တွေကို ရှာဖွေနိုင်ပါတယ်။
+
+> **Vector Database ဆိုတာ ဘာလဲ?**
+> Vector Database ဆိုတာ Machine Learning Model တွေကနေ ဖန်တီးထားတဲ့ စာသား ဒါမှမဟုတ် အခြားဒေတာတွေရဲ့ ကိန်းဂဏန်းဆိုင်ရာ ဖော်ပြချက်များ (Embeddings) ကို သိမ်းဆည်းထားတဲ့ Database တစ်ခုပါ။ ၎င်းက High-dimensional Space မှာ အဓိပ္ပာယ်တူညီမှုတွေကို ဖော်ထုတ်ခြင်းဖြင့် Semantic Search ကို လုပ်ဆောင်နိုင်စေပါတယ်။
+
+ဒီနည်းလမ်းက ကြိုတင်သတ်မှတ်ထားတဲ့ အသိပညာနဲ့ Semantic Search ကို ပေါင်းစပ်ပြီး ပွဲစီစဉ်မှုအတွက် အကြောင်းအရာကို နားလည်တဲ့ ဖြေရှင်းနည်းတွေကို ပေးနိုင်ပါတယ်။ အထူးပြု အသိပညာကို ရယူနိုင်ခြင်းအားဖြင့် Alfred ဟာ ပါတီရဲ့ အသေးစိတ်အချက်အလက်တိုင်းကို ပြီးပြည့်စုံအောင် လုပ်ဆောင်နိုင်ပါလိမ့်မယ်။
+
+ဒီဥပမာမှာ၊ ကျွန်တော်တို့ဟာ စိတ်ကြိုက် Knowledge Base ကနေ ပါတီစီစဉ်မှု Idea တွေကို ပြန်လည်ရယူတဲ့ Tool တစ်ခုကို ဖန်တီးပါမယ်။ Knowledge Base ကို ရှာဖွေပြီး အကောင်းဆုံး ရလဒ်တွေကို ပြန်ပေးဖို့အတွက် **BM25 Retriever** ကို အသုံးပြုပါမယ်။ ပိုမိုထိရောက်တဲ့ ရှာဖွေမှုအတွက် Document တွေကို သေးငယ်တဲ့ အပိုင်းလေးတွေအဖြစ် ခွဲဖို့ **`RecursiveCharacterTextSplitter`** ကို အသုံးပြုပါမယ်။
+
+```python
+from langchain_community.docstore.document import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The query to perform. This should be a query related to party planning or superhero themes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # အကောင်းဆုံး Document ၅ ခုကို ပြန်ယူပါ
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Your search query must be a string"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nRetrieved ideas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# ပါတီစီစဉ်မှုဆိုင်ရာ Knowledge Base ကို ပုံဖော်ခြင်း
+party_ideas = [
+    {"text": "A superhero-themed masquerade ball with luxury decor, including gold accents and velvet curtains.", "source": "Party Ideas 1"},
+    {"text": "Hire a professional DJ who can play themed music for superheroes like Batman and Wonder Woman.", "source": "Entertainment Ideas"},
+    {"text": "For catering, serve dishes named after superheroes, like 'The Hulk's Green Smoothie' and 'Iron Man's Power Steak.'", "source": "Catering Ideas"},
+    {"text": "Decorate with iconic superhero logos and projections of Gotham and other superhero cities around the venue.", "source": "Decoration Ideas"},
+    {"text": "Interactive experiences with VR where guests can engage in superhero simulations or compete in themed games.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# ပိုမိုထိရောက်သော ရှာဖွေမှုအတွက် Document များကို သေးငယ်သော အပိုင်းများအဖြစ် ခွဲခြင်း
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Retriever Tool ကို ဖန်တီးခြင်း
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Agent ကို စတင်သတ်မှတ်ခြင်း
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+# ဥပမာ အသုံးပြုပုံ
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+ဒီ မြှင့်တင်ထားတဲ့ Agent က အောက်ပါတို့ကို လုပ်ဆောင်နိုင်ပါတယ်။
+
+1.  ပထမဆုံးအနေနဲ့ ဆီလျော်တဲ့ အချက်အလက်တွေအတွက် Document တွေကို စစ်ဆေးခြင်း
+2.  Knowledge Base မှ အချက်အလက်များကို ပေါင်းစပ်ခြင်း
+3.  စကားပြောဆိုမှု အကြောင်းအရာ (Conversation Context) ကို Memory ထဲမှာ ထိန်းသိမ်းထားခြင်း
+
+## မြှင့်တင်ထားသော ရှာဖွေမှု စွမ်းရည်များ (Enhanced Retrieval Capabilities)
+
+Agentic RAG စနစ်တွေကို တည်ဆောက်တဲ့အခါ Agent က ပိုမိုရှုပ်ထွေးတဲ့ နည်းဗျူဟာတွေကို အသုံးပြုနိုင်ပါတယ်။
+
+1.  **မေးခွန်း ပြန်လည်ဖွဲ့စည်းခြင်း (Query Reformulation):** အသုံးပြုသူရဲ့ မူရင်းမေးခွန်းကို တိုက်ရိုက် အသုံးမပြုဘဲ၊ ပစ်မှတ်ထားတဲ့ Document တွေနဲ့ ပိုမိုကိုက်ညီစေဖို့အတွက် ပိုမိုကောင်းမွန်အောင် ပြုပြင်ထားတဲ့ ရှာဖွေရေး စကားလုံးတွေကို Agent က ဖန်တီးနိုင်ပါတယ်။
+2.  **မေးခွန်း ခွဲခြမ်းခြင်း (Query Decomposition):** အသုံးပြုသူရဲ့ မေးခွန်းမှာ ရှာဖွေရမယ့် အချက်အလက်များစွာ ပါဝင်နေရင်၊ Agent က မေးခွန်းတစ်ခုတည်းကို မေးခွန်းများစွာအဖြစ် ခွဲခြမ်းပြီး ရှာဖွေနိုင်ပါတယ်။
+3.  **မေးခွန်း ချဲ့ထွင်ခြင်း (Query Expansion):** Query Reformulation နဲ့ ဆင်တူပေမယ့်၊ မေးခွန်းကို မတူညီတဲ့ စကားလုံး အသုံးအနှုန်းများစွာနဲ့ အကြိမ်များစွာ ပြုလုပ်ပြီး ရှာဖွေခြင်း။
+4.  **ပြန်လည် အဆင့်သတ်မှတ်ခြင်း (Reranking):** ရှာဖွေတွေ့ရှိတဲ့ Document တွေနဲ့ မေးခွန်းကြားက ဆက်စပ်မှုကို ပိုမိုပြည့်စုံစွာ တိုင်းတာဖို့ Cross-Encoders တွေကို အသုံးပြုပြီး အဆင့်သတ်မှတ်ခြင်း။
+5.  **အဆင့်များစွာ ရှာဖွေခြင်း (Multi-Step Retrieval):** Agent က ရှာဖွေမှု အကြိမ်များစွာ လုပ်ဆောင်နိုင်ပြီး၊ ပထမအကြိမ် ရလဒ်တွေကို အသုံးပြုပြီး နောက်ဆက်တွဲ ရှာဖွေမှုတွေကို ပိုမိုတိကျအောင် လုပ်ဆောင်နိုင်ပါတယ်။
+6.  **ရင်းမြစ် ပေါင်းစပ်ခြင်း (Source Integration):** ဝက်ဘ်ရှာဖွေမှုနဲ့ Local Document များကဲ့သို့ မတူညီတဲ့ ရင်းမြစ်များမှ အချက်အလက်တွေကို ပေါင်းစပ်နိုင်ခြင်း။
+7.  **ရလဒ် စစ်ဆေးအတည်ပြုခြင်း (Result Validation):** ရှာဖွေတွေ့ရှိတဲ့ Content တွေကို အဖြေထဲမှာ မထည့်သွင်းခင် ဆီလျော်မှုနဲ့ တိကျမှု ရှိမရှိ ခွဲခြမ်းစိတ်ဖြာခြင်း။
+
+ထိရောက်တဲ့ Agentic RAG စနစ်တွေဟာ အဓိက အချက်အလက်များစွာကို ဂရုတစိုက် ထည့်သွင်းစဉ်းစားဖို့ လိုအပ်ပါတယ်။ Agent က **မေးခွန်းအမျိုးအစားနဲ့ အကြောင်းအရာ (Context) ကို အခြေခံပြီး ရရှိနိုင်တဲ့ Tool တွေထဲကနေ ရွေးချယ်နိုင်ရပါမယ်**။ Memory စနစ်တွေက စကားပြောဆိုမှု မှတ်တမ်းကို ထိန်းသိမ်းထားပြီး ထပ်ခါတလဲလဲ ရှာဖွေမှုတွေကို ရှောင်ရှားဖို့ ကူညီပေးပါတယ်။ အဓိက ရှာဖွေမှု နည်းလမ်းတွေ အလုပ်မလုပ်တဲ့အခါမှာတောင် စနစ်က တန်ဖိုးရှိတဲ့ အဖြေကို ပေးနိုင်ဖို့အတွက် Fallback နည်းဗျူဟာတွေ ရှိထားဖို့ လိုအပ်ပါတယ်။ ဒါ့အပြင်၊ စစ်ဆေးအတည်ပြုခြင်း အဆင့်တွေကို ထည့်သွင်းခြင်းက ရှာဖွေတွေ့ရှိတဲ့ အချက်အလက်တွေရဲ့ တိကျမှုနဲ့ ဆီလျော်မှုကို သေချာစေပါတယ်။
+
+## အရင်းအမြစ်များ (Resources)
+
+- [Agentic RAG: turbocharge your RAG with query reformulation and self-query! 🚀](https://huggingface.co/learn/cookbook/agent_rag) - smolagents ကို အသုံးပြုပြီး Agentic RAG စနစ်တစ်ခု တည်ဆောက်ဖို့အတွက် လမ်းညွှန်ချက်။
