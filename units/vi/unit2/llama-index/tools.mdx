@@ -1,0 +1,111 @@
+# Sử dụng Tools trong LlamaIndex
+
+**Việc định nghĩa một bộ Tools rõ ràng là yếu tố quan trọng cho hiệu suất.** Như đã thảo luận trong [chương 1](../../unit1/tools), các giao diện tool rõ ràng giúp LLM dễ sử dụng hơn.  
+Giống như giao diện API phần mềm cho kỹ sư, chúng có thể tận dụng tool tốt hơn nếu hiểu cách hoạt động của nó.
+
+LlamaIndex có **bốn loại tool chính**:
+
+![Tools](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1. `FunctionTool`: Biến mọi hàm Python thành tool cho Agent. Nó tự động hiểu cách hàm hoạt động.
+2. `QueryEngineTool`: Cho phép Agent sử dụng query engine. Vì Agent được xây dựng trên query engine, chúng có thể dùng các Agent khác như tool.
+3. `Toolspecs`: Bộ tool do cộng đồng tạo ra, thường bao gồm tool cho dịch vụ cụ thể như Gmail.
+4. `Utility Tools`: Tool đặc biệt giúp xử lý lượng dữ liệu lớn từ tool khác.
+
+Chúng ta sẽ đi vào chi tiết từng loại bên dưới.
+
+## Tạo FunctionTool
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">notebook này</a> và chạy qua Google Colab.
+</Tip>
+
+FunctionTool cung cấp cách đơn giản để bao bọc hàm Python thành tool cho Agent.  
+Bạn có thể truyền hàm đồng bộ hoặc bất đồng bộ vào tool, cùng các tham số tùy chọn `name` và `description`.  
+Tên và mô tả đặc biệt quan trọng vì giúp Agent hiểu khi nào và cách sử dụng tool hiệu quả.  
+Hãy xem cách tạo FunctionTool và gọi nó:
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Hữu ích để lấy thông tin thời tiết cho một địa điểm cụ thể."""
+    print(f"Getting weather for {location}")
+    return f"The weather in {location} is sunny"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Hữu ích để lấy thông tin thời tiết cho một địa điểm cụ thể.",
+)
+tool.call("New York")
+```
+
+<Tip>Khi dùng Agent hoặc LLM với function calling, tool được chọn (và các đối số) phụ thuộc nhiều vào tên tool và mô tả mục đích/đối số. Tìm hiểu thêm trong [Hướng Dẫn Function Calling](https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/modules/function_calling.html) và [Hướng Dẫn Học Function Calling](https://docs.llamaindex.ai/en/stable/understanding/agent/function_calling.html).</Tip>
+
+## Tạo QueryEngineTool
+
+`QueryEngine` đã định nghĩa ở chương trước có thể dễ dàng biến thành tool bằng lớp `QueryEngineTool`.  
+Xem cách tạo `QueryEngineTool` từ `QueryEngine` trong ví dụ:
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## Tạo Toolspecs
+
+Hãy coi `ToolSpecs` như bộ sưu tập tool hoạt động hài hòa - giống bộ toolkit chuyên nghiệp được tổ chức tốt.  
+Như bộ tool sửa chữa xe chứa các công cụ bổ trợ, `ToolSpec` kết hợp các tool liên quan cho mục đích cụ thể.  
+Ví dụ: `ToolSpec` cho Agent kế toán có thể tích hợp khả năng bảng tính, email và công cụ tính toán để xử lý tài chính chính xác.
+
+<details>
+<summary>Cài đặt Google Toolspec</summary>
+Như đã giới thiệu trong [phần LlamaHub](llama-hub), ta cài Google toolspec bằng lệnh:
+
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+Giờ ta có thể load toolspec và chuyển thành danh sách tool:
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+```
+
+Để xem chi tiết hơn về các tool, ta có thể kiểm tra `metadata` của từng tool:
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+## Utility Tools
+
+Thường thì việc truy vấn trực tiếp API **có thể trả về quá nhiều dữ liệu**, một phần có thể không liên quan, vượt quá context window của LLM hoặc làm tăng token không cần thiết.  
+Hãy xem qua hai utility tool chính:
+
+1. `OnDemandToolLoader`: Biến mọi LlamaIndex data loader (lớp BaseReader) thành tool cho Agent. Tool được gọi với mọi tham số cần thiết để kích hoạt `load_data` từ data loader, cùng chuỗi truy vấn ngôn ngữ tự nhiên. Trong quá trình chạy, đầu tiên ta load dữ liệu từ data loader, index nó (ví dụ với vector store), rồi truy vấn 'theo yêu cầu'. Cả ba bước này diễn ra trong một lần gọi tool.
+2. `LoadAndSearchToolSpec`: Nhận bất kỳ Tool nào làm input. Khi gọi `to_tool_list`, nó trả về hai tool: tool load và tool search. Tool load sẽ gọi Tool cơ bản và index kết quả (mặc định bằng vector index). Tool search nhận chuỗi truy vấn và gọi index cơ bản.
+
+<Tip>Bạn có thể tìm toolspecs và utility tools trên <a href="https://llamahub.ai/">LlamaHub</a></Tip>
+
+Bây giờ chúng ta đã hiểu cơ bản về agents và tools trong LlamaIndex, hãy xem cách **dùng LlamaIndex để tạo workflow có thể cấu hình và quản lý được!**

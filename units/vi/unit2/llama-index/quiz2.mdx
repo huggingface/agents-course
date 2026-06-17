@@ -1,0 +1,111 @@
+# Kiểm tra nhanh (không chấm điểm) [[quiz2]]
+
+Gì nữa? Lại một bài kiểm tra ư? Chúng mình biết, chúng mình biết... 😅 Nhưng bài kiểm tra ngắn không chấm điểm này sẽ **giúp bạn củng cố các khái niệm quan trọng** vừa học.
+
+Bài kiểm tra này tập trung vào workflow và tương tác của Agent - những thành phần thiết yếu để xây dựng các AI Agent hiệu quả.
+
+### Câu 1: Mục đích của AgentWorkflow trong LlamaIndex là gì?
+
+<Question
+choices={[
+{
+text: "Để chạy một hoặc nhiều agent với tools",
+explain: "Đúng vậy, AgentWorkflow là cách chính để nhanh chóng tạo hệ thống với một hoặc nhiều agent.",
+correct: true
+},
+{
+text: "Tạo một agent đơn lẻ có thể truy vấn dữ liệu mà không cần bộ nhớ",
+explain: "Không đúng, AgentWorkflow có khả năng hơn thế, QueryEngine mới dùng cho các truy vấn đơn giản trên dữ liệu.",
+},
+{
+text: "Tự động xây dựng tools cho agents",
+explain: "AgentWorkflow không xây dựng tools, đó là nhiệm vụ của developer.",
+},
+{
+text: "Quản lý bộ nhớ và trạng thái của agent",
+explain: "Quản lý bộ nhớ và trạng thái không phải là mục đích chính của AgentWorkflow.",
+}
+]}
+/>
+
+---
+
+### Câu 2: Đối tượng nào được dùng để theo dõi trạng thái của workflow?
+
+<Question
+choices={[
+{
+text: "State",
+explain: "State không phải là đối tượng đúng để quản lý trạng thái workflow.",
+},
+{
+text: "Context",
+explain: "Context chính là đối tượng đúng được dùng để theo dõi trạng thái workflow.",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowState không phải là đối tượng đúng.",
+},
+{
+text: "Management",
+explain: "Management không phải là đối tượng hợp lệ để quản lý trạng thái workflow.",
+}
+]}
+/>
+
+---
+
+### Câu 3: Phương thức nào nên dùng nếu muốn agent ghi nhớ các tương tác trước đó?
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str) không duy trì lịch sử hội thoại.",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat() không phải là phương thức hợp lệ trên workflows.",
+},
+{
+text: "interact(query_str)",
+explain: "interact() không phải là phương thức hợp lệ cho tương tác agent.",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "Bằng cách truyền và duy trì context, ta có thể giữ được trạng thái!",
+correct: true
+}
+]}
+/>
+
+---
+
+### Câu 4: Tính năng chính của Agentic RAG là gì?
+
+<Question
+choices={[
+{
+text: "Chỉ có thể dùng tools dựa theo văn bản để trả lời câu hỏi trong workflow RAG",
+explain: "Agentic RAG có thể sử dụng nhiều tools khác nhau, bao gồm cả tools dựa theo văn bản.",
+},
+{
+text: "Tự động trả lời câu hỏi không cần tools như chatbot",
+explain: "Agentic RAG có sử dụng tools để trả lời câu hỏi.",
+},
+{
+text: "Có thể quyết định sử dụng bất kỳ tool nào để trả lời câu hỏi, kể cả RAG tools",
+explain: "Agentic RAG có tính linh hoạt sử dụng nhiều tools khác nhau để trả lời câu hỏi.",
+correct: true
+},
+{
+text: "Chỉ hoạt động với Function Calling Agents",
+explain: "Agentic RAG không bị giới hạn ở Function Calling Agents.",
+}
+]}
+/>
+
+---
+
+Hiểu rồi chứ? Tuyệt! Giờ thì hãy cùng **tóm tắt nhanh Chương này** nhé!

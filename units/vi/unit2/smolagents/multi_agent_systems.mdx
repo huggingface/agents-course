@@ -1,0 +1,470 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/multiagent_notebook.ipynb"},
+]} />
+
+# Hệ thống Đa Agent
+
+Hệ thống đa Agent cho phép **các Agent chuyên biệt hợp tác xử lý tác vụ phức tạp**, nâng cao tính mô-đun, khả năng mở rộng và độ ổn định. Thay vì phụ thuộc vào một Agent duy nhất, các tác vụ được phân phối cho nhiều Agent với khả năng khác nhau.
+
+Trong **smolagents**, các Agent khác nhau có thể kết hợp để tạo mã Python, gọi công cụ bên ngoài, thực hiện tìm kiếm web và hơn thế. Bằng cách điều phối các Agent này, ta có thể tạo ra các quy trình làm việc mạnh mẽ.
+
+Một thiết lập điển hình có thể bao gồm:
+- **Manager Agent** (Agent quản lý) để phân công tác vụ  
+- **Code Interpreter Agent** (Agent thông dịch mã) để thực thi code  
+- **Web Search Agent** (Agent tìm kiếm web) để thu thập thông tin  
+
+Biểu đồ dưới minh họa kiến trúc đa Agent đơn giản, nơi **Manager Agent** phối hợp với **Code Interpreter Tool** và **Web Search Agent** - Agent này lại sử dụng các công cụ như `DuckDuckGoSearchTool` và `VisitWebpageTool` để thu thập thông tin liên quan.
+
+<img src="https://mermaid.ink/img/pako:eNp1kc1qhTAQRl9FUiQb8wIpdNO76eKubrmFks1oRg3VSYgjpYjv3lFL_2hnMWQOJwn5sqgmelRWleUSKLAtFs09jqhtoWuYUFfFAa6QA9QDTnpzamheuhxn8pt40-6l13UtS0ddhtQXj6dbR4XUGQg6zEYasTF393KjeSDGnDJKNxzj8I_7hLW5IOSmP9CH9hv_NL-d94d4DVNg84p1EnK4qlIj5hGClySWbadT-6OdsrL02MI8sFOOVkciw8zx8kaNspxnrJQE0fXKtjBMMs3JA-MpgOQwftIE9Bzj14w-cMznI_39E9Z3p0uFoA?type=png" style='background: white;'>
+
+## Hệ thống Đa Agent trong thực tế
+
+Một hệ thống đa Agent bao gồm nhiều Agent chuyên biệt làm việc cùng nhau dưới sự điều phối của **Orchestrator Agent** (Agent điều phối). Cách tiếp cận này cho phép xử lý các quy trình phức tạp bằng cách phân phối tác vụ cho các Agent với vai trò khác nhau.
+
+Ví dụ, **Hệ thống RAG (Tìm kiếm và tạo ra câu trả lời) Đa Agent** có thể tích hợp:
+- **Web Agent** để duyệt internet  
+- **Retriever Agent** để truy xuất thông tin từ cơ sở tri thức  
+- **Image Generation Agent** để tạo hình ảnh  
+
+Tất cả Agent này hoạt động dưới sự điều phối của một Orchestrator quản lý việc phân công và tương tác.
+
+## Giải quyết tác vụ phức tạp với hệ thống phân cấp đa Agent
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/multiagent_notebook.ipynb" target="_blank">notebook này</a> và chạy bằng Google Colab.
+</Tip>
+
+Buổi tiếp tân sắp đến! Với sự giúp đỡ của bạn, Alfred gần như đã hoàn thành mọi chuẩn bị.
+
+Nhưng giờ phát sinh vấn đề: Batmobile đã biến mất. Alfred cần tìm phương tiện thay thế và phải tìm thật nhanh.
+
+May mắn thay, một số phim tiểu sử về cuộc đời Bruce Wayne đã được thực hiện, có lẽ Alfred có thể tìm thấy xe bỏ lại ở trường quay nào đó và nâng cấp lên tiêu chuẩn hiện đại, chắc chắn bao gồm cả tính năng tự lái hoàn toàn.
+
+Nhưng điều này có thể ở bất kỳ đâu trong các địa điểm quay phim trên thế giới - và số lượng có thể rất nhiều.
+
+Vì vậy Alfred cần bạn giúp đỡ. Bạn có thể xây dựng một Agent giải quyết tác vụ này không?
+
+> 👉 Tìm tất cả địa điểm quay phim Batman trên thế giới, tính toán thời gian vận chuyển bằng tàu đến đó và thể hiện chúng trên bản đồ với màu sắc biến đổi theo thời gian vận chuyển. Đồng thời thể hiện các nhà máy siêu xe có cùng thời gian vận chuyển.
+
+Hãy cùng xây dựng nào!
+
+Ví dụ này cần một số package bổ sung, hãy cài đặt chúng trước:
+
+```bash
+pip install 'smolagents[litellm]' plotly geopandas shapely kaleido -q
+```
+
+### Đầu tiên tạo công cụ tính thời gian vận chuyển bằng máy bay chở hàng
+
+```python
+import math
+from typing import Optional, Tuple
+
+from smolagents import tool
+
+
+@tool
+def calculate_cargo_travel_time(
+    origin_coords: Tuple[float, float],
+    destination_coords: Tuple[float, float],
+    cruising_speed_kmh: Optional[float] = 750.0,  # Tốc độ trung bình của máy bay chở hàng
+) -> float:
+    """
+    Tính thời gian di chuyển bằng máy bay chở hàng giữa hai điểm trên Trái Đất sử dụng khoảng cách vòng cung lớn.
+
+    Args:
+        origin_coords: Tuple (vĩ độ, kinh độ) của điểm xuất phát
+        destination_coords: Tuple (vĩ độ, kinh độ) của điểm đến
+        cruising_speed_kmh: Tốc độ bay tùy chọn theo km/h (mặc định 750 km/h cho máy bay chở hàng thông thường)
+
+    Returns:
+        float: Thời gian di chuyển ước tính tính bằng giờ
+
+    Ví dụ:
+        >>> # Từ Chicago (41.8781° N, 87.6298° W) đến Sydney (33.8688° S, 151.2093° E)
+        >>> result = calculate_cargo_travel_time((41.8781, -87.6298), (-33.8688, 151.2093))
+    """
+
+    def to_radians(degrees: float) -> float:
+        return degrees * (math.pi / 180)
+
+    # Trích xuất tọa độ
+    lat1, lon1 = map(to_radians, origin_coords)
+    lat2, lon2 = map(to_radians, destination_coords)
+
+    # Bán kính Trái Đất tính bằng km
+    EARTH_RADIUS_KM = 6371.0
+
+    # Tính khoảng cách vòng cung lớn bằng công thức haversine
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.asin(math.sqrt(a))
+    distance = EARTH_RADIUS_KM * c
+
+    # Thêm 10% để tính các tuyến đường không trực tiếp và kiểm soát không lưu
+    actual_distance = distance * 1.1
+
+    # Tính thời gian bay
+    # Thêm 1 giờ cho quy trình cất/hạ cánh
+    flight_time = (actual_distance / cruising_speed_kmh) + 1.0
+
+    # Định dạng kết quả
+    return round(flight_time, 2)
+
+
+print(calculate_cargo_travel_time((41.8781, -87.6298), (-33.8688, 151.2093)))
+```
+
+### Thiết lập Agent
+
+Đối với nhà cung cấp model, ta sử dụng Together AI - một trong những [nhà cung cấp inference mới trên Hub](https://huggingface.co/blog/inference-providers)!
+
+GoogleSearchTool sử dụng [Serper API](https://serper.dev) để tìm kiếm web, vì vậy cần thiết lập biến môi trường `SERPAPI_API_KEY` và truyền `provider="serpapi"` hoặc có `SERPER_API_KEY` và truyền `provider=serper`.
+
+Nếu không có Serper API, bạn có thể dùng `DuckDuckGoSearchTool` nhưng lưu ý nó có giới hạn tốc độ.
+
+```python
+import os
+from PIL import Image
+from smolagents import CodeAgent, GoogleSearchTool, HfApiModel, VisitWebpageTool
+
+model = HfApiModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together")
+```
+
+Ta có thể bắt đầu bằng cách tạo một Agent đơn giản làm baseline để tạo báo cáo cơ bản.
+
+```python
+task = """Tìm tất cả địa điểm quay phim Batman trên thế giới, tính thời gian vận chuyển bằng máy bay chở hàng đến đây (ta đang ở Gotham, 40.7128° N, 74.0060° W) và trả về dưới dạng dataframe pandas.
+Đồng thời cung cấp một số nhà máy siêu xe có cùng thời gian vận chuyển."""
+```
+
+```python
+agent = CodeAgent(
+    model=model,
+    tools=[GoogleSearchTool("serper"), VisitWebpageTool(), calculate_cargo_travel_time],
+    additional_authorized_imports=["pandas"],
+    max_steps=20,
+)
+```
+
+```python
+result = agent.run(task)
+```
+
+```python
+result
+```
+
+Trong trường hợp của chúng ta, nó tạo ra kết quả:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+```python
+|  | Địa điểm                                             | Thời gian đến Gotham (giờ) |
+|--|------------------------------------------------------|------------------------------|
+| 0  | Nghĩa trang Necropolis, Glasgow, Scotland, UK         | 8.60                         |
+| 1  | St. George's Hall, Liverpool, Anh, UK         | 8.81                         |
+| 2  | Two Temple Place, London, Anh, UK             | 9.17                         |
+| 3  | Wollaton Hall, Nottingham, Anh, UK           | 9.00                         |
+| 4  | Knebworth House, Knebworth, Hertfordshire, UK    | 9.15                         |
+| 5  | Nhà máy điện Acton Lane, Acton Lane, Acton, UK  | 9.16                         |
+| 6  | Cầu Queensboro, New York, Mỹ            | 1.01                         |
+| 7  | Phố Wall, New York, Mỹ                  | 1.00                         |
+| 8  | Pháo đài Mehrangarh, Jodhpur, Ấn Độ       | 18.34                        |
+| 9  | Hẻm núi Turda, Romania                      | 11.89                        |
+| 10 | Chicago, Mỹ                                     | 2.68                         |
+| 11 | Hong Kong, Trung Quốc                                 | 19.99                        |
+| 12 | Xưởng phim Cardington, Northamptonshire, UK        | 9.10                         |
+| 13 | Warner Bros. Leavesden Studios, Hertfordshire, UK | 9.13                         |
+| 14 | Westwood, Los Angeles, Mỹ                  | 6.79                         |
+| 15 | Woking, UK (McLaren)                             | 9.13                         |
+```
+</details>
+```python
+|  | Location                                             | Travel Time to Gotham (hours) |
+|--|------------------------------------------------------|------------------------------|
+| 0  | Necropolis Cemetery, Glasgow, Scotland, UK         | 8.60                         |
+| 1  | St. George's Hall, Liverpool, England, UK         | 8.81                         |
+| 2  | Two Temple Place, London, England, UK             | 9.17                         |
+| 3  | Wollaton Hall, Nottingham, England, UK           | 9.00                         |
+| 4  | Knebworth House, Knebworth, Hertfordshire, UK    | 9.15                         |
+| 5  | Acton Lane Power Station, Acton Lane, Acton, UK  | 9.16                         |
+| 6  | Queensboro Bridge, New York City, USA            | 1.01                         |
+| 7  | Wall Street, New York City, USA                  | 1.00                         |
+| 8  | Mehrangarh Fort, Jodhpur, Rajasthan, India       | 18.34                        |
+| 9  | Turda Gorge, Turda, Romania                      | 11.89                        |
+| 10 | Chicago, USA                                     | 2.68                         |
+| 11 | Hong Kong, China                                 | 19.99                        |
+| 12 | Cardington Studios, Northamptonshire, UK        | 9.10                         |
+| 13 | Warner Bros. Leavesden Studios, Hertfordshire, UK | 9.13                         |
+| 14 | Westwood, Los Angeles, CA, USA                  | 6.79                         |
+| 15 | Woking, UK (McLaren)                             | 9.13                         |
+```
+
+Ta có thể cải thiện bằng cách thêm các bước lập kế hoạch và prompt chi tiết hơn.
+
+Các bước lập kế hoạch cho phép Agent suy nghĩ trước và lên kế hoạch, hữu ích cho các tác vụ phức tạp.
+
+```python
+agent.planning_interval = 4
+
+detailed_report = agent.run(f"""
+Bạn là chuyên gia phân tích. Hãy tạo báo cáo toàn diện sau khi truy cập nhiều website.
+Đừng ngần ngại tìm kiếm nhiều truy vấn cùng lúc trong vòng lặp.
+Với mỗi dữ liệu tìm thấy, hãy truy cập URL nguồn để xác nhận số liệu.
+
+{task}
+""")
+
+print(detailed_report)
+```
+
+```python
+detailed_report
+```
+
+Trong trường hợp của chúng ta, nó tạo ra:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+```python
+|  | Địa điểm                                         | Thời gian di chuyển (giờ) |
+|--|--------------------------------------------------|---------------------|
+| 0  | Cầu Than thở, Nghĩa trang Glasgow, UK | 8.6                 |
+| 1  | Phố Wishart, Glasgow, Scotland, UK         | 8.6                 |
+```
+</details>
+```python
+|  | Location                                         | Travel Time (hours) |
+|--|--------------------------------------------------|---------------------|
+| 0  | Bridge of Sighs, Glasgow Necropolis, Glasgow, UK | 8.6                 |
+| 1  | Wishart Street, Glasgow, Scotland, UK         | 8.6                 |
+
+
+Nhờ những thay đổi nhanh chóng này, ta đã có báo cáo cô đọng hơn chỉ bằng cách cung cấp prompt chi tiết và thêm khả năng lập kế hoạch cho Agent!
+
+Cửa sổ ngữ cảnh của model đang nhanh chóng bị lấp đầy. **Nếu yêu cầu Agent kết hợp kết quả từ nhiều tìm kiếm, nó sẽ chậm dần và làm tăng token cùng chi phí**.
+
+➡️ Chúng ta cần cải thiện cấu trúc hệ thống.
+
+### ✌️ Chia tác vụ giữa hai Agent
+
+Cấu trúc đa Agent cho phép tách biệt bộ nhớ giữa các tác vụ con, mang lại hai lợi ích lớn:
+- Mỗi Agent tập trung hơn vào tác vụ chính, từ đó hiệu suất cao hơn
+- Tách biệt bộ nhớ làm giảm số lượng token đầu vào ở mỗi bước, giảm độ trễ và chi phí.
+
+Hãy tạo một nhóm với Agent tìm kiếm web chuyên dụng, được quản lý bởi một Agent khác.
+
+Agent quản lý cần khả năng vẽ biểu đồ để tạo báo cáo cuối: hãy cấp quyền truy cập các thư viện như `plotly`, `geopandas` + `shapely` cho việc vẽ bản đồ.
+
+```python
+model = HfApiModel(
+    "Qwen/Qwen2.5-Coder-32B-Instruct", provider="together", max_tokens=8096
+)
+
+web_agent = CodeAgent(
+    model=model,
+    tools=[
+        GoogleSearchTool(provider="serper"),
+        VisitWebpageTool(),
+        calculate_cargo_travel_time,
+    ],
+    name="web_agent",
+    description="Duyệt web để tìm thông tin",
+    verbosity_level=0,
+    max_steps=10,
+)
+```
+
+Agent quản lý cần xử lý các tác vụ nặng về tư duy.
+
+Vì vậy ta sử dụng model mạnh hơn [DeepSeek-R1](https://huggingface.co/deepseek-ai/DeepSeek-R1), và thêm `planning_interval`.
+
+```python
+from smolagents.utils import encode_image_base64, make_image_url
+from smolagents import OpenAIServerModel
+
+
+def check_reasoning_and_plot(final_answer, agent_memory):
+    multimodal_model = OpenAIServerModel("gpt-4o", max_tokens=8096)
+    filepath = "saved_map.png"
+    assert os.path.exists(filepath), "Hãy đảm bảo lưu biểu đồ dưới tên saved_map.png!"
+    image = Image.open(filepath)
+    prompt = (
+        f"Đây là tác vụ người dùng và các bước Agent đã thực hiện: {agent_memory.get_succinct_steps()}. Đây là biểu đồ được tạo."
+        "Hãy kiểm tra xem quá trình lập luận và biểu đồ có chính xác không: chúng có trả lời đúng tác vụ được giao không?"
+        "Đầu tiên liệt kê lý do tại sao đúng/sai, sau đó đưa ra quyết định cuối: VIẾT HOA PASS nếu đạt yêu cầu, FAIL nếu không."
+        "Đừng quá khắt khe: nếu biểu đồ giải quyết được phần lớn tác vụ, nên pass."
+        "Để pass, biểu đồ phải được tạo bằng px.scatter_map chứ không phải phương pháp khác (scatter_map trông đẹp hơn)."
+    )
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": prompt,
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {"url": make_image_url(encode_image_base64(image))},
+                },
+            ],
+        }
+    ]
+    output = multimodal_model(messages).content
+    print("Phản hồi: ", output)
+    if "FAIL" in output:
+        raise Exception(output)
+    return True
+
+
+manager_agent = CodeAgent(
+    model=HfApiModel("deepseek-ai/DeepSeek-R1", provider="together", max_tokens=8096),
+    tools=[calculate_cargo_travel_time],
+    managed_agents=[web_agent],
+    additional_authorized_imports=[
+        "geopandas",
+        "plotly",
+        "shapely",
+        "json",
+        "pandas",
+        "numpy",
+    ],
+    planning_interval=5,
+    verbosity_level=2,
+    final_answer_checks=[check_reasoning_and_plot],
+    max_steps=15,
+)
+```
+
+Hãy xem cấu trúc nhóm Agent:
+
+```python
+manager_agent.visualize()
+```
+
+Kết quả sẽ tương tự thế này, giúp ta hiểu mối quan hệ giữa các Agent và công cụ sử dụng:
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+```python
+CodeAgent | deepseek-ai/DeepSeek-R1
+├── ✅ Các import được phép: ['geopandas', 'plotly', 'shapely', 'json', 'pandas', 'numpy']
+├── 🛠️ Công cụ:
+│   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+│   ┃ Tên                        ┃ Mô tả                           ┃ Tham số                             ┃
+│   ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│   │ calculate_cargo_travel_time │ Tính thời gian di chuyển máy bay chở hàng giữa hai điểm trên Trái Đất     │ origin_coords (`array`): Tuple (vĩ độ, kinh độ) điểm xuất phát                        │
+│   │                             │                                       │ destination_coords (`array`): Tuple (vĩ độ, kinh độ) điểm đến                           │
+│   │                             │                                       │ cruising_speed_kmh (`number`): Tốc độ bay tùy chọn (mặc định 750 km/h)                         │
+│   │ final_answer                │ Cung cấp câu trả lời cuối cùng       │ answer (`any`): Câu trả lời cuối cùng                           │
+│   └─────────────────────────────┴───────────────────────────────────────┴───────────────────────────────────────┘
+└── 🤖 Các Agent quản lý:
+    └── web_agent | CodeAgent | Qwen/Qwen2.5-Coder-32B-Instruct
+        ├── ✅ Các import được phép: []
+        ├── 📝 Mô tả: Duyệt web để tìm thông tin
+        └── 🛠️ Công cụ:
+            ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+            ┃ Tên                        ┃ Mô tả                       ┃ Tham số                         ┃
+            ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+            │ web_search                  │ Thực hiện tìm kiếm Google       │ query (`string`): Truy vấn tìm kiếm                 │
+            │ visit_webpage               │ Truy cập webpage               │ url (`string`): URL cần truy cập                 │
+            │ calculate_cargo_travel_time │ Tính thời gian di chuyển máy bay chở hàng │ origin_coords (`array`): Tuple (vĩ độ, kinh độ) điểm xuất phát                    │
+            │ final_answer                │ Cung cấp câu trả lời cuối cùng  │ answer (`any`): Câu trả lời cuối cùng                    │
+            └─────────────────────────────┴───────────────────────────────────┴───────────────────────────────────┘
+```
+</details>
+```python
+CodeAgent | deepseek-ai/DeepSeek-R1
+├── ✅ Authorized imports: ['geopandas', 'plotly', 'shapely', 'json', 'pandas', 'numpy']
+├── 🛠️ Tools:
+│   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+│   ┃ Name                        ┃ Description                           ┃ Arguments                             ┃
+│   ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│   │ calculate_cargo_travel_time │ Calculate the travel time for a cargo │ origin_coords (`array`): Tuple of     │
+│   │                             │ plane between two points on Earth     │ (latitude, longitude) for the         │
+│   │                             │ using great-circle distance.          │ starting point                        │
+│   │                             │                                       │ destination_coords (`array`): Tuple   │
+│   │                             │                                       │ of (latitude, longitude) for the      │
+│   │                             │                                       │ destination                           │
+│   │                             │                                       │ cruising_speed_kmh (`number`):        │
+│   │                             │                                       │ Optional cruising speed in km/h       │
+│   │                             │                                       │ (defaults to 750 km/h for typical     │
+│   │                             │                                       │ cargo planes)                         │
+│   │ final_answer                │ Provides a final answer to the given  │ answer (`any`): The final answer to   │
+│   │                             │ problem.                              │ the problem                           │
+│   └─────────────────────────────┴───────────────────────────────────────┴───────────────────────────────────────┘
+└── 🤖 Managed agents:
+    └── web_agent | CodeAgent | Qwen/Qwen2.5-Coder-32B-Instruct
+        ├── ✅ Authorized imports: []
+        ├── 📝 Description: Browses the web to find information
+        └── 🛠️ Tools:
+            ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+            ┃ Name                        ┃ Description                       ┃ Arguments                         ┃
+            ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+            │ web_search                  │ Performs a google web search for  │ query (`string`): The search      │
+            │                             │ your query then returns a string  │ query to perform.                 │
+            │                             │ of the top search results.        │ filter_year (`integer`):          │
+            │                             │                                   │ Optionally restrict results to a  │
+            │                             │                                   │ certain year                      │
+            │ visit_webpage               │ Visits a webpage at the given url │ url (`string`): The url of the    │
+            │                             │ and reads its content as a        │ webpage to visit.                 │
+            │                             │ markdown string. Use this to      │                                   │
+            │                             │ browse webpages.                  │                                   │
+            │ calculate_cargo_travel_time │ Calculate the travel time for a   │ origin_coords (`array`): Tuple of │
+            │                             │ cargo plane between two points on │ (latitude, longitude) for the     │
+            │                             │ Earth using great-circle          │ starting point                    │
+            │                             │ distance.                         │ destination_coords (`array`):     │
+            │                             │                                   │ Tuple of (latitude, longitude)    │
+            │                             │                                   │ for the destination               │
+            │                             │                                   │ cruising_speed_kmh (`number`):    │
+            │                             │                                   │ Optional cruising speed in km/h   │
+            │                             │                                   │ (defaults to 750 km/h for typical │
+            │                             │                                   │ cargo planes)                     │
+            │ final_answer                │ Provides a final answer to the    │ answer (`any`): The final answer  │
+            │                             │ given problem.                    │ to the problem                    │
+            └─────────────────────────────┴───────────────────────────────────┴───────────────────────────────────┘
+```
+
+```python
+manager_agent.run("""
+Tìm tất cả địa điểm quay phim Batman trên thế giới, tính thời gian vận chuyển bằng máy bay chở hàng đến đây (ta đang ở Gotham, 40.7128° N, 74.0060° W).
+Đồng thời cung cấp một số nhà máy siêu xe có cùng thời gian vận chuyển. Cần ít nhất 6 điểm tổng cộng.
+Biểu diễn dữ liệu dưới dạng bản đồ thế giới, các địa điểm hiển thị bằng điểm phân tán với màu phụ thuộc vào thời gian vận chuyển, và lưu vào saved_map.png!
+
+Đây là ví dụ cách vẽ và trả về bản đồ:
+import plotly.express as px
+df = px.data.carshare()
+fig = px.scatter_map(df, lat="centroid_lat", lon="centroid_lon", text="name", color="peak_hour", size=100,
+     color_continuous_scale=px.colors.sequential.Magma, size_max=15, zoom=1)
+fig.show()
+fig.write_image("saved_image.png")
+final_answer(fig)
+
+Không bao giờ xử lý chuỗi bằng code: khi có chuỗi cần đọc, chỉ cần in ra và bạn sẽ thấy nó.
+""")
+```
+
+Tôi không biết kết quả chạy của bạn thế nào, nhưng trong trường hợp của tôi, Agent quản lý đã khéo léo phân chia tác vụ cho web_agent trong `1. Tìm địa điểm quay Batman`, sau đó `2. Tìm nhà máy siêu xe`, trước khi tổng hợp danh sách và vẽ bản đồ.
+
+Hãy xem bản đồ trông thế nào bằng cách kiểm tra trực tiếp từ trạng thái Agent:
+
+```python
+manager_agent.python_executor.state["fig"]
+```
+
+Kết quả sẽ hiển thị bản đồ:
+
+![Bản đồ ví dụ hệ thống đa Agent](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/output_map.png)
+
+## Tài nguyên
+
+- [Hệ thống Đa Agent](https://huggingface.co/docs/smolagents/main/en/examples/multiagents) –

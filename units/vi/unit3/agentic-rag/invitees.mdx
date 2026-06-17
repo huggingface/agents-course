@@ -1,0 +1,396 @@
+# Tạo công cụ RAG cho các câu chuyện về khách mời
+
+Alfred, trợ lý đáng tin cậy của bạn, đang chuẩn bị cho buổi tiệc xa hoa nhất thế kỷ. Để sự kiện diễn ra suôn sẻ, Alfred cần truy cập nhanh thông tin cập nhật về từng vị khách. Hãy giúp Alfred bằng cách tạo một công cụ Retrieval-Augmented Generation (RAG) tùy chỉnh, sử dụng tập dữ liệu riêng của chúng ta.
+
+## Tại sao dùng RAG cho tiệc?
+
+Hãy tưởng tượng Alfred đang giao lưu giữa các vị khách, cần nhớ lại chi tiết cụ thể về từng người trong nháy mắt. Một LLM truyền thống có thể gặp khó khăn vì:
+
+1. Danh sách khách cụ thể cho sự kiện của bạn và không có trong dữ liệu huấn luyện của model
+2. Thông tin khách có thể thay đổi hoặc được cập nhật thường xuyên
+3. Alfred cần truy xuất chi tiết chính xác như địa chỉ email
+
+Đây là lúc Retrieval Augmented Generation (RAG) tỏa sáng! Bằng cách kết hợp hệ thống truy xuất với LLM, Alfred có thể truy cập thông tin chính xác, cập nhật về khách của bạn theo yêu cầu.
+
+<Tip>
+
+Bạn có thể chọn bất kỳ framework nào được đề cập trong khóa học cho trường hợp sử dụng này. Chọn tùy chọn ưa thích từ các tab mã.
+
+</Tip>
+
+## Thiết lập ứng dụng
+
+Trong chương này, chúng ta sẽ phát triển agent trong một HF Space, như một dự án Python có cấu trúc. Cách tiếp cận này giúp chúng ta duy trì mã sạch, mô-đun hóa bằng cách tổ chức các chức năng khác nhau vào các tệp riêng biệt. Đồng thời, điều này tạo ra trường hợp sử dụng thực tế hơn khi bạn triển khai ứng dụng cho mục đích công cộng.
+
+### Cấu trúc dự án
+
+- **`tools.py`** – Cung cấp các công cụ hỗ trợ cho agent.  
+- **`retriever.py`** – Triển khai các hàm truy xuất để hỗ trợ truy cập kiến thức.  
+- **`app.py`** – Tích hợp tất cả thành phần thành một agent hoạt động đầy đủ, chúng ta sẽ hoàn thiện ở phần cuối chương này.  
+
+Để tham khảo thực hành, hãy xem [Space này trên HF](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG), nơi Agentic RAG được phát triển trong chương này đang hoạt động. Hãy thoải mái sao chép và thử nghiệm!
+
+Bạn có thể kiểm tra trực tiếp agent bên dưới:
+
+<iframe
+	src="https://agents-course-unit-3-agentic-rag.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+## Tổng quan tập dữ liệu
+
+Tập dữ liệu [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) của chúng ta chứa các trường sau cho mỗi khách mời:
+
+- **Name**: Tên đầy đủ của khách
+- **Relation**: Mối quan hệ của khách với chủ nhà
+- **Description**: Tiểu sử ngắn hoặc thông tin thú vị về khách
+- **Email Address**: Thông tin liên hệ để gửi lời mời hoặc theo dõi
+
+Dưới đây là bản xem trước tập dữ liệu:
+<iframe
+  src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train"
+  frameborder="0"
+  width="100%"
+  height="560px"
+></iframe>
+
+<Tip>
+Trong kịch bản thực tế, tập dữ liệu này có thể mở rộng để bao gồm sở thích ăn uống, món quà quan tâm, chủ đề trò chuyện cần tránh và các chi tiết hữu ích khác cho chủ nhà.
+</Tip>
+
+## Xây dựng công cụ sổ khách
+
+Chúng ta sẽ tạo một công cụ tùy chỉnh để Alfred có thể sử dụng truy xuất nhanh thông tin khách trong buổi tiệc. Hãy chia nhỏ thành ba bước quản lý được:
+
+1. Tải và chuẩn bị tập dữ liệu
+2. Tạo công cụ truy xuất
+3. Tích hợp công cụ với Alfred
+
+Bắt đầu với việc tải và chuẩn bị tập dữ liệu!
+
+### Bước 1: Tải và chuẩn bị tập dữ liệu
+
+Đầu tiên, ta cần chuyển đổi dữ liệu khách thô sang định dạng tối ưu cho truy xuất.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Ta sẽ sử dụng thư viện `datasets` của Hugging Face để tải tập dữ liệu và chuyển đổi thành danh sách đối tượng `Document` từ mô-đun `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain.docstore.document import Document
+
+# Tải tập dữ liệu
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Chuyển đổi mục dữ liệu thành đối tượng Document
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+Ta sẽ sử dụng thư viện `datasets` của Hugging Face để tải tập dữ liệu và chuyển đổi thành danh sách đối tượng `Document` từ mô-đun `llama_index.core.schema`.
+
+```python
+import datasets
+from llama_index.core.schema import Document
+
+# Tải tập dữ liệu
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Chuyển đổi mục dữ liệu thành đối tượng Document
+docs = [
+    Document(
+        text="\n".join([
+            f"Name: {guest_dataset['name'][i]}",
+            f"Relation: {guest_dataset['relation'][i]}",
+            f"Description: {guest_dataset['description'][i]}",
+            f"Email: {guest_dataset['email'][i]}"
+        ]),
+        metadata={"name": guest_dataset['name'][i]}
+    )
+    for i in range(len(guest_dataset))
+]
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+Ta sẽ sử dụng thư viện `datasets` của Hugging Face để tải tập dữ liệu và chuyển đổi thành danh sách đối tượng `Document` từ mô-đun `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain.docstore.document import Document
+
+# Tải tập dữ liệu
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Chuyển đổi mục dữ liệu thành đối tượng Document
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+```
+
+</hfoption>
+</hfoptions>
+
+Trong đoạn code trên, ta:
+- Tải tập dữ liệu
+- Chuyển đổi mỗi mục khách thành đối tượng `Document` với nội dung được định dạng
+- Lưu trữ các đối tượng `Document` trong danh sách
+
+Điều này có nghĩa ta đã có sẵn tất cả dữ liệu để bắt đầu cấu hình truy xuất.
+
+### Bước 2: Tạo công cụ truy xuất
+
+Giờ hãy tạo công cụ tùy chỉnh để Alfred tìm kiếm thông tin khách.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Ta sẽ sử dụng `BM25Retriever` từ mô-đun `langchain_community.retrievers` để tạo công cụ truy xuất.
+
+<Tip>
+  <code>BM25Retriever</code> là điểm khởi đầu tốt cho truy xuất, nhưng để tìm kiếm ngữ nghĩa nâng cao, bạn có thể cân nhắc sử dụng bộ truy xuất dựa trên embedding như từ <a href="https://www.sbert.net/">sentence-transformers</a>.
+</Tip>
+
+
+```python
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+
+class GuestInfoRetrieverTool(Tool):
+    name = "guest_info_retriever"
+    description = "Retrieves detailed information about gala guests based on their name or relation."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The name or relation of the guest you want information about."
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs):
+        self.is_initialized = False
+        self.retriever = BM25Retriever.from_documents(docs)
+
+    def forward(self, query: str):
+        results = self.retriever.get_relevant_documents(query)
+        if results:
+            return "\n\n".join([doc.page_content for doc in results[:3]])
+        else:
+            return "No matching guest information found."
+
+# Initialize the tool
+guest_info_tool = GuestInfoRetrieverTool(docs)
+```
+
+Hãy cùng tìm hiểu công cụ (tool) này từng bước:
+- `name` và `description` giúp Agent hiểu khi nào và cách sử dụng công cụ này
+- `inputs` định nghĩa các tham số mà công cụ mong đợi (trong trường hợp này là một truy vấn tìm kiếm)
+- Chúng ta đang sử dụng `BM25Retriever`, một thuật toán truy xuất văn bản mạnh mẽ mà không cần embeddings
+- Phương thức `forward` xử lý truy vấn và trả về thông tin khách mời phù hợp nhất
+
+</hfoption>
+<hfoption id="llama-index">
+Chúng ta sẽ sử dụng `BM25Retriever` từ mô-đun `llama_index.retrievers.bm25` để tạo công cụ truy xuất.
+
+<Tip>
+  <code>BM25Retriever</code> là điểm khởi đầu tuyệt vời cho truy xuất, nhưng để tìm kiếm ngữ nghĩa nâng cao hơn, bạn có thể cân nhắc sử dụng bộ truy xuất dựa trên embedding như từ <a href="https://www.sbert.net/">sentence-transformers</a>.
+</Tip>
+
+```python
+from llama_index.core.tools import FunctionTool
+from llama_index.retrievers.bm25 import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_defaults(nodes=docs)
+
+def get_guest_info_retriever(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.retrieve(query)
+    if results:
+        return "\n\n".join([doc.text for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+# Initialize the tool
+guest_info_tool = FunctionTool.from_defaults(get_guest_info_retriever)
+```
+
+Cùng mình tìm hiểu công cụ này từng bước:
+- Phần docstring giúp agent hiểu khi nào và cách sử dụng công cụ này
+- Các decorator kiểu dữ liệu xác định tham số mà công cụ mong đợi (trong trường hợp này là truy vấn tìm kiếm)
+- Ta đang sử dụng `BM25Retriever`, một thuật toán truy xuất văn bản mạnh mẽ không yêu cầu embedding
+- Phương thức xử lý truy vấn và trả về thông tin khách liên quan nhất
+
+</hfoption>
+<hfoption id="langgraph">
+
+Chúng ta sẽ sử dụng `BM25Retriever` từ mô-đun `langchain_community.retrievers` để tạo công cụ truy xuất.
+
+<Tip>
+  <code>BM25Retriever</code> là điểm khởi đầu tuyệt vời cho truy xuất, nhưng để tìm kiếm ngữ nghĩa nâng cao hơn, bạn có thể cân nhắc sử dụng bộ truy xuất dựa trên embedding như từ <a href="https://www.sbert.net/">sentence-transformers</a>.
+</Tip>
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain.tools import Tool
+
+bm25_retriever = BM25Retriever.from_documents(docs)
+
+def extract_text(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.invoke(query)
+    if results:
+        return "\n\n".join([doc.page_content for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+guest_info_tool = Tool(
+    name="guest_info_retriever",
+    func=extract_text,
+    description="Retrieves detailed information about gala guests based on their name or relation."
+)
+```
+
+Cùng mình tìm hiểu công cụ này từng bước:
+- `name` và `description` giúp agent hiểu khi nào và cách sử dụng công cụ này
+- Các decorator kiểu dữ liệu xác định tham số mà công cụ mong đợi (trong trường hợp này là truy vấn tìm kiếm)
+- Ta đang sử dụng `BM25Retriever`, một thuật toán truy xuất văn bản mạnh mẽ không yêu cầu embedding
+- Phương thức xử lý truy vấn và trả về thông tin khách liên quan nhất
+
+</hfoption>
+</hfoptions>
+
+### Bước 3: Tích hợp Công cụ với Alfred
+
+Cuối cùng, hãy kết hợp mọi thứ bằng cách tạo agent của chúng ta và trang bị cho nó công cụ tùy chỉnh:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Khởi tạo model Hugging Face
+model = InferenceClientModel()
+
+# Tạo Alfred, agent tiệc của chúng ta, với công cụ thông tin khách
+alfred = CodeAgent(tools=[guest_info_tool], model=model)
+
+# Truy vấn mẫu Alfred có thể nhận được trong buổi tiệc
+response = alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Kết quả mong đợi:
+
+```
+🎩 Alfred's Response:
+Based on the information I retrieved, Lady Ada Lovelace is an esteemed mathematician and friend. She is renowned for her pioneering work in mathematics and computing, often celebrated as the first computer programmer due to her work on Charles Babbage's Analytical Engine. Her email address is ada.lovelace@example.com.
+```
+
+Điều gì đang diễn ra trong bước cuối này:
+- Ta khởi tạo model Hugging Face bằng lớp `InferenceClientModel`
+- Ta tạo agent (Alfred) dưới dạng `CodeAgent`, có thể thực thi mã Python để giải quyết vấn đề
+- Ta yêu cầu Alfred truy xuất thông tin về vị khách tên "Lady Ada Lovelace"
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Khởi tạo model Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Tạo Alfred, agent tiệc của chúng ta, với công cụ thông tin khách
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool],
+    llm=llm,
+)
+
+# Truy vấn mẫu Alfred có thể nhận được trong buổi tiệc
+response = await alfred.run("Hãy cho tôi biết về vị khách tên 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Kết quả mong đợi:
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace is an esteemed mathematician and friend, renowned for her pioneering work in mathematics and computing. She is celebrated as the first computer programmer due to her work on Charles Babbage's Analytical Engine. Her email is ada.lovelace@example.com.
+```
+
+Điều gì đang diễn ra trong bước cuối này:
+- Ta khởi tạo model Hugging Face bằng lớp `HuggingFaceInferenceAPI`
+- Ta tạo agent (Alfred) dưới dạng `AgentWorkflow`, bao gồm công cụ vừa tạo
+- Ta yêu cầu Alfred truy xuất thông tin về vị khách tên "Lady Ada Lovelace"
+
+</hfoption>
+</hfoptions>
+
+## Ví dụ về Tương tác
+
+Trong buổi dạ hội, một cuộc trò chuyện có thể diễn ra như sau:
+
+**Bạn:** "Alfred, ngài đang nói chuyện với đại sứ là ai vậy?"
+
+**Alfred:** *nhanh chóng tìm kiếm cơ sở dữ liệu khách mời* "That's Dr. Nikola Tesla, sir. He's an old friend from your university days. He's recently patented a new wireless energy transmission system and would be delighted to discuss it with you. Just remember he's passionate about pigeons, so that might make for good small talk."
+
+
+```json
+{
+    "name": "Dr. Nikola Tesla",
+    "relation": "old friend from university days",  
+    "description": "Dr. Nikola Tesla is an old friend from your university days. He's recently patented a new wireless energy transmission system and would be delighted to discuss it with you. Just remember he's passionate about pigeons, so that might make for good small talk.",
+    "email": "nikola.tesla@gmail.com"
+}
+```
+
+## Tiến Xa Hơn Nữa
+
+Giờ đây khi Alfred đã có thể truy xuất thông tin khách mời, hãy cân nhắc cách bạn có thể nâng cấp hệ thống này:
+
+1. **Cải thiện retriever** để sử dụng thuật toán tinh vi hơn như [sentence-transformers](https://www.sbert.net/)
+2. **Triển khai bộ nhớ hội thoại** để Alfred nhớ các tương tác trước đó
+3. **Kết hợp với tìm kiếm web** để lấy thông tin mới nhất về những vị khách chưa quen biết
+4. **Tích hợp nhiều chỉ mục** để có thông tin đầy đủ hơn từ các nguồn đã xác minh
+
+Giờ đây Alfred đã được trang bị đầy đủ để xử lý các yêu cầu của khách một cách dễ dàng, đảm bảo buổi tiệc của bạn sẽ được nhớ đến như sự kiện tinh tế và thú vị nhất của thế kỷ!
+
+<Tip>
+Hãy thử mở rộng công cụ retriever để cũng trả về các chủ đề bắt đầu cuộc trò chuyện dựa trên sở thích hoặc nền tảng của mỗi vị khách. Bạn sẽ sửa đổi công cụ như thế nào để đạt được điều này?
+
+Khi hoàn thành, hãy triển khai công cụ truy xuất khách mời của bạn trong tệp <code>retriever.py</code>.
+</Tip>

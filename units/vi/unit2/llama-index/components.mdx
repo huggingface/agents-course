@@ -1,0 +1,235 @@
+# Các thành phần trong LlamaIndex là gì?
+
+Bạn còn nhớ Alfred, Agent hỗ trợ đắc lực từ Chương 1 chứ?  
+Để hỗ trợ ta hiệu quả, Alfred cần hiểu yêu cầu và **chuẩn bị, tìm kiếm và sử dụng thông tin liên quan để hoàn thành nhiệm vụ.**  
+Đây chính là lúc các thành phần của LlamaIndex phát huy tác dụng.
+
+Dù LlamaIndex có nhiều thành phần, **ta sẽ tập trung vào thành phần `QueryEngine`.**  
+Tại sao? Vì nó có thể được dùng như công cụ Tìm kiếm và tạo ra câu trả lời (RAG) cho Agent.
+
+Vậy RAG là gì? LLM được huấn luyện trên lượng dữ liệu khổng lồ để học kiến thức tổng quát.  
+Tuy nhiên, chúng có thể không được huấn luyện trên dữ liệu mới nhất và liên quan.  
+RAG giải quyết vấn đề này bằng cách tìm và truy xuất thông tin liên quan từ dữ liệu của bạn để cung cấp cho LLM.
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Hãy xem cách Alfred hoạt động:
+
+1. Bạn yêu cầu Alfred lên kế hoạch tiệc tối
+2. Alfred cần kiểm tra lịch trình, sở thích ăn uống và thực đơn thành công trước đó
+3. `QueryEngine` giúp Alfred tìm thông tin này và sử dụng để lên kế hoạch
+
+Điều này khiến `QueryEngine` **trở thành thành phần chính để xây dựng workflow RAG** trong LlamaIndex.  
+Giống như Alfred cần tìm kiếm thông tin trong gia đình bạn, mọi Agent đều cần cách tìm và hiểu dữ liệu liên quan.  
+`QueryEngine` chính là giải pháp cho nhu cầu này.
+
+Giờ hãy cùng khám phá sâu hơn về cách **kết hợp các thành phần để tạo pipeline RAG.**
+
+## Tạo pipeline RAG bằng các thành phần
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">notebook này</a> và chạy qua Google Colab.
+</Tip>
+
+Có năm giai đoạn chính trong RAG, thường xuất hiện trong các ứng dụng lớn:
+
+1. **Loading (Tải dữ liệu)**: đưa dữ liệu từ nguồn (file text, PDF, website, database, API) vào workflow. LlamaHub cung cấp hàng trăm công cụ tích hợp.
+2. **Indexing (Đánh chỉ mục)**: tạo cấu trúc dữ liệu cho phép truy vấn. Với LLM, điều này thường liên quan đến tạo embedding vector - biểu diễn số hóa ý nghĩa dữ liệu. Indexing cũng có thể bao gồm các chiến lược metadata khác.
+3. **Storing (Lưu trữ)**: sau khi index, bạn cần lưu index và metadata để tránh phải index lại.
+4. **Querying (Truy vấn)**: với mỗi chiến lược indexing, có nhiều cách sử dụng LLM và cấu trúc dữ liệu LlamaIndex để truy vấn, bao gồm sub-query, multi-step query và hybrid strategies.
+5. **Evaluation (Đánh giá)**: bước quan trọng để kiểm tra hiệu quả workflow so với các phương pháp khác hoặc khi có thay đổi. Đánh giá cung cấp các chỉ số khách quan về độ chính xác, độ trung thực và tốc độ phản hồi.
+
+Tiếp theo, hãy xem cách triển khai các giai đoạn này bằng thành phần.
+
+### Tải và embedding tài liệu
+
+Như đã đề cập, LlamaIndex có thể làm việc với dữ liệu riêng, nhưng **trước khi truy cập dữ liệu, ta cần tải chúng.**  
+Có ba cách chính để tải dữ liệu vào LlamaIndex:
+
+1. `SimpleDirectoryReader`: Bộ tải tích hợp cho nhiều loại file từ thư mục local.
+2. `LlamaParse`: Công cụ chính thức của LlamaIndex để phân tích PDF, có sẵn qua API.
+3. `LlamaHub`: Kho lưu trữ hàng trăm thư viện tải dữ liệu từ mọi nguồn.
+
+<Tip>Tham khảo <a href="https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/">LlamaHub</a> loaders và <a href="https://github.com/run-llama/llama_cloud_services/blob/main/parse.md">LlamaParse</a> cho các nguồn dữ liệu phức tạp.</Tip>
+
+**Cách đơn giản nhất là dùng `SimpleDirectoryReader`.**  
+Thành phần linh hoạt này có thể tải nhiều loại file từ thư mục và chuyển thành đối tượng `Document` mà LlamaIndex có thể xử lý.
+
+```python
+from llama_index.core import SimpleDirectoryReader
+
+reader = SimpleDirectoryReader(input_dir="path/to/directory")
+documents = reader.load_data()
+```
+
+Sau khi tải, ta cần chia tài liệu thành các phần nhỏ gọi là `Node`.  
+`Node` là đoạn văn bản từ tài liệu gốc, dễ xử lý hơn cho AI, vẫn giữ tham chiếu đến `Document` gốc.
+
+`IngestionPipeline` giúp tạo các node này qua hai biến đổi chính:
+1. `SentenceSplitter` chia tài liệu thành các đoạn nhỏ tại các điểm ngắt câu tự nhiên.
+2. `HuggingFaceEmbedding` chuyển mỗi đoạn thành embedding số - biểu diễn vector phản ánh ý nghĩa ngữ nghĩa để AI xử lý hiệu quả.
+
+Quy trình này giúp tổ chức tài liệu theo cách hữu ích cho tìm kiếm và phân tích.
+
+```python
+from llama_index.core import Document
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.ingestion import IngestionPipeline
+
+# tạo pipeline với các biến đổi
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_overlap=0),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ]
+)
+
+nodes = await pipeline.arun(documents=[Document.example()])
+```
+
+### Lưu trữ và đánh chỉ mục tài liệu
+
+Sau khi tạo `Node`, ta cần đánh chỉ mục để tìm kiếm, nhưng trước đó cần nơi lưu trữ.
+
+Vì đang dùng pipeline `ingestion`, ta có thể gắn trực tiếp kho vector (vector store) vào pipeline.  
+Trong trường hợp này, ta dùng `Chroma` để lưu trữ.
+
+<details>
+<summary>Cài đặt ChromaDB</summary>
+Như đã giới thiệu trong [phần về LlamaHub](llama-hub), ta có thể cài ChromaDB vector store bằng lệnh:
+
+```bash
+pip install llama-index-vector-stores-chroma
+```
+</details>
+
+```python
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_size=25, chunk_overlap=0),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ],
+    vector_store=vector_store,
+)
+```
+
+<Tip>Tổng quan về các vector store khác có trong <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">tài liệu LlamaIndex</a>.</Tip>
+
+Embedding vector giúp tìm kiếm phù hợp bằng cách embedding cả truy vấn và node trong cùng không gian vector.  
+`VectorStoreIndex` xử lý việc này, dùng cùng embedding model như lúc ingestion để đảm bảo tính nhất quán.
+
+Cách tạo index từ vector store và embedding:
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
+embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+```
+
+Mọi thông tin tự động lưu trong `ChromaVectorStore` và đường dẫn đã chỉ định.
+
+Giờ ta đã có thể lưu và tải index dễ dàng, hãy khám phá cách truy vấn nó.
+
+### Truy vấn VectorStoreIndex với prompt và LLM
+
+Trước khi truy vấn, ta cần chuyển index thành giao diện truy vấn. Các tùy chọn phổ biến:
+
+- `as_retriever`: Cho truy xuất tài liệu cơ bản, trả về danh sách `NodeWithScore` với điểm tương đồng
+- `as_query_engine`: Cho tương tác hỏi-đáp đơn, trả về phản hồi dạng văn bản
+- `as_chat_engine`: Cho hội thoại có ghi nhớ lịch sử, trả về phản hồi sử dụng cả ngữ cảnh và lịch sử chat
+
+Ta tập trung vào query engine vì phổ biến hơn cho tương tác kiểu Agent.  
+Ta cũng truyền LLM vào query engine để tạo phản hồi.
+
+```python
+from llama_index.LLM.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(
+    llm=llm,
+    response_mode="tree_summarize",
+)
+query_engine.query("What is the meaning of life?")
+# The meaning of life is 42
+```
+
+### Xử lý phản hồi
+
+Bên dưới, query engine không chỉ dùng LLM để trả lời mà còn sử dụng `ResponseSynthesizer` làm chiến lược xử lý phản hồi.  
+Có ba chiến lược chính hoạt động tốt:
+
+- `refine`: Tạo và tinh chỉnh câu trả lời bằng cách xử lý tuần tự từng text chunk. Mỗi Node/chunk sẽ gọi LLM riêng.
+- `compact` (mặc định): Tương tự refine nhưng nối các chunk trước, giảm số lần gọi LLM.
+- `tree_summarize`: Tạo câu trả lời chi tiết bằng cách xây dựng cấu trúc cây từ các chunk.
+
+<Tip>Kiểm soát chi tiết workflow truy vấn với <a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">low-level composition API</a>. API này cho phép tùy chỉnh từng bước truy vấn, kết hợp tốt với <a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">Workflows</a>.</Tip>
+
+LLM không phải lúc nào cũng cho kết quả chính xác, nên ta cần **đánh giá chất lượng câu trả lời**.
+
+### Đánh giá và quan sát
+
+LlamaIndex cung cấp **công cụ đánh giá tích hợp** để kiểm tra chất lượng phản hồi.  
+Các công cụ đánh giá này sử dụng LLM để phân tích phản hồi trên nhiều khía cạnh. Ba công cụ đánh giá chính:
+
+- `FaithfulnessEvaluator`: Kiểm tra tính trung thực của câu trả lời so với ngữ cảnh.
+- `AnswerRelevancyEvaluator`: Đánh giá mức độ liên quan của câu trả lời với câu hỏi.
+- `CorrectnessEvaluator`: Kiểm tra tính chính xác của câu trả lời.
+
+```python
+from llama_index.core.evaluation import FaithfulnessEvaluator
+
+query_engine = # từ phần trước
+llm = # từ phần trước
+
+# truy vấn index
+evaluator = FaithfulnessEvaluator(llm=llm)
+response = query_engine.query(
+    "What battles took place in New York City in the American Revolution?"
+)
+eval_result = evaluator.evaluate_response(response=response)
+eval_result.passing
+```
+
+Ngay cả khi không đánh giá trực tiếp, ta có thể **hiểu rõ hiệu suất hệ thống qua quan sát.**  
+Điều này đặc biệt hữu ích khi xây dựng workflow phức tạp và muốn hiểu cách từng thành phần hoạt động.
+
+<details>
+<summary>Cài đặt LlamaTrace</summary>
+Như đã giới thiệu trong [phần về LlamaHub](llama-hub), ta cài LlamaTrace callback từ Arize Phoenix bằng lệnh:
+
+```bash
+pip install -U llama-index-callbacks-arize-phoenix
+```
+
+Cần thiết lập biến môi trường `PHOENIX_API_KEY` bằng API key từ LlamaTrace. Cách lấy key:
+- Tạo tài khoản tại [LlamaTrace](https://llamatrace.com/login)
+- Tạo API key trong phần cài đặt tài khoản
+- Dùng API key trong code để kích hoạt tracing
+
+</details>
+
+```python
+import llama_index
+import os
+
+PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
+llama_index.core.set_global_handler(
+    "arize_phoenix",
+    endpoint="https://llamatrace.com/v1/traces"
+)
+```
+
+<Tip>Muốn tìm hiểu thêm về thành phần và cách sử dụng? Khám phá <a href="https://docs.llamaindex.ai/en/stable/module_guides/">Hướng dẫn thành phần</a> hoặc <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">Hướng dẫn RAG</a>.</Tip>
+
+Ta đã thấy cách dùng thành phần để tạo `QueryEngine`. Giờ hãy xem cách **dùng `QueryEngine` làm công cụ cho Agent!**

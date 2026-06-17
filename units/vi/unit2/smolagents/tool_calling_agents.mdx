@@ -1,0 +1,73 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/tool_calling_agents.ipynb"},
+]} />
+
+# Viết các hành động dưới dạng đoạn code hoặc JSON
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">notebook này</a> mà bạn có thể chạy trên Google Colab.
+</Tip>
+
+Tool Calling Agents là loại Agent thứ hai có trong `smolagents`. Khác với Code Agent sử dụng đoạn code Python, các Agent này **sử dụng khả năng gọi công cụ tích hợp sẵn của các nhà cung cấp LLM** để tạo ra các lệnh gọi công cụ dưới dạng **cấu trúc JSON**. Đây là cách tiếp cận tiêu chuẩn được sử dụng bởi OpenAI, Anthropic và nhiều nhà cung cấp khác.
+
+Hãy xem một ví dụ. Khi Alfred muốn tìm kiếm dịch vụ catering và ý tưởng tiệc tùng, một `CodeAgent` sẽ tạo và chạy code Python như thế này:
+
+```python
+for query in [
+    "Best catering services in Gotham City", 
+    "Party theme ideas for superheroes"
+]:
+    print(web_search(f"Search for: {query}"))
+```
+
+Trong khi đó, `ToolCallingAgent` sẽ tạo ra cấu trúc JSON:
+
+```python
+[
+    {"name": "web_search", "arguments": "Best catering services in Gotham City"},
+    {"name": "web_search", "arguments": "Party theme ideas for superheroes"}
+]
+```
+
+JSON này sau đó được dùng để thực thi các lệnh gọi công cụ.
+
+Dù `smolagents` tập trung chủ yếu vào `CodeAgents` vì [chúng hoạt động tốt hơn tổng thể](https://arxiv.org/abs/2402.01030), `ToolCallingAgents` có thể hiệu quả cho các hệ thống đơn giản không cần xử lý biến hay các lệnh gọi công cụ phức tạp.
+
+![Hành động dạng Code vs JSON](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)  
+
+## Tool Calling Agents hoạt động thế nào?  
+
+Tool Calling Agents tuân theo quy trình làm việc đa bước giống như Code Agents (xem chi tiết ở [phần trước](./code_agents)). 
+
+Điểm khác biệt chính nằm ở **cách chúng cấu trúc hành động**: thay vì code có thể thực thi, chúng **tạo ra các đối tượng JSON xác định tên công cụ và tham số**. Hệ thống sau đó **phân tích các hướng dẫn này** để thực thi công cụ phù hợp.
+
+## Ví dụ: Chạy Tool Calling Agent  
+
+Hãy xem lại ví dụ trước khi Alfred bắt đầu chuẩn bị tiệc, nhưng lần này ta sẽ dùng `ToolCallingAgent` để làm nổi bật sự khác biệt. Ta sẽ xây dựng một Agent có thể tìm kiếm web bằng DuckDuckGo, giống như trong ví dụ Code Agent. Điểm khác biệt duy nhất là loại Agent - framework sẽ xử lý mọi thứ còn lại:
+
+```python
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, HfApiModel
+
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+Khi kiểm tra trace của Agent, thay vì thấy `Executing parsed code:`, bạn sẽ thấy:
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "best music recommendations for a party at Wayne's         │
+│ mansion"}                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```  
+
+Agent tạo ra một lệnh gọi công cụ có cấu trúc mà hệ thống xử lý để tạo đầu ra, thay vì trực tiếp thực thi code như `CodeAgent`.
+
+Giờ khi đã hiểu cả hai loại Agent, ta có thể chọn loại phù hợp cho nhu cầu của mình. Hãy tiếp tục khám phá `smolagents` để biến bữa tiệc của Alfred thành công! 🎉
+
+## Tài nguyên
+
+- [Tài liệu ToolCallingAgent](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - Tài liệu chính thức về ToolCallingAgent
