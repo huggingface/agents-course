@@ -1,0 +1,117 @@
+# Quiz rápido (sem nota) [[quiz1]]
+
+Já discutimos os principais componentes e ferramentas do LlamaIndex.
+Vamos fazer um quiz rápido, afinal **testar-se** é uma ótima forma de aprender e [evitar a ilusão de competência](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf).
+Isso ajuda a identificar **onde reforçar o conhecimento**.
+
+Este quiz é opcional e não possui nota.
+
+### Q1: O que é um QueryEngine?
+Qual opção descreve melhor esse componente?
+
+<Question
+choices={[
+{
+text: "A system that only processes static text without any retrieval capabilities.",
+explain: "A QueryEngine must be able to retrieve and process relevant information.",
+},
+{
+text: "A component that finds and retrieves relevant information as part of the RAG process.",
+explain: "This captures the core purpose of a QueryEngine component.",
+correct: true
+},
+{
+text: "A tool that only stores vector embeddings without search functionality.",
+explain: "A QueryEngine does more than just store embeddings - it actively searches and retrieves information.",
+},
+{
+text: "A component that only evaluates response quality.",
+explain: "Evaluation is separate from the QueryEngine's main retrieval purpose.",
+}
+]}
+/>
+
+---
+
+### Q2: Qual é o propósito do FunctionTool?
+Por que FunctionTools são importantes para um agente?
+
+<Question
+choices={[
+{
+text: "To handle large amounts of data storage.",
+explain: "FunctionTools are not primarily for data storage.",
+},
+{
+text: "To convert Python functions into tools that an agent can use.",
+explain: "FunctionTools wrap Python functions to make them accessible to agents.",
+correct: true
+},
+{
+text: "To allow agents to create random functions definitions.",
+explain: "FunctionTools serve the specific purpose of making functions available to agents.",
+},
+{
+text: "To only process text data.",
+explain: "FunctionTools can work with various types of functions, not just text processing.",
+}
+]}
+/>
+
+---
+
+### Q3: O que são Toolspecs no LlamaIndex?
+Qual é a principal função delas?
+
+<Question
+choices={[
+{
+text: "They are redundant components that don't add functionality.",
+explain: "Toolspecs serve an important purpose in the LlamaIndex ecosystem.",
+},
+{
+text: "They are sets of community-created tools that extend agent capabilities.",
+explain: "Toolspecs allow the community to share and reuse tools.",
+correct: true
+},
+{
+text: "They are used solely for memory management.",
+explain: "Toolspecs are about providing tools, not managing memory.",
+},
+{
+text: "They only work with text processing.",
+explain: "Toolspecs can include various types of tools, not just text processing.",
+}
+]}
+/>
+
+---
+
+### Q4: O que é necessário para criar uma ferramenta?
+Quais informações devem ser incluídas?
+
+<Question
+choices={[
+{
+text: "A function, a name, and description must be defined.",
+explain: "While these all make up a tool, the name and description can be parsed from the function and docstring.",
+},
+{
+text: "Only the name is required.",
+explain: "A function and description/docstring is also required for proper tool documentation.",
+},
+{
+text: "Only the description is required.",
+explain: "A function is required so that we have code to run when an agent selects a tool",
+},
+{
+text: "Only the function is required.",
+explain: "The name and description default to the name and docstring from the provided function",
+correct: true
+}
+]}
+/>
+
+---
+
+Parabéns por concluir o quiz 🥳! Se errou alguma questão, volte ao capítulo e revise os pontos relevantes. Se foi tudo certo, você está pronto para ir mais fundo na construção com esses componentes!

@@ -1,0 +1,117 @@
+# Autoavaliação rápida (sem nota) [[quiz2]]
+
+Como assim outro quiz? Pois é 😅 Mas este é curto e não vale nota; serve apenas para **reforçar os conceitos que você acabou de ver**.
+
+Ele aborda LLMs, sistema de mensagens e ferramentas — componentes essenciais para criar agentes de IA.
+
+### Q1: Qual opção melhor descreve uma ferramenta de IA?
+
+<Question
+choices={[
+{
+text: "Um processo que apenas gera respostas em texto",
+explain: "",
+},
+{
+text: "Um processo executável ou API externa que permite ao agente realizar tarefas específicas e interagir com o ambiente",
+explain: "Ferramentas são funções executáveis que permitem aos agentes realizar tarefas específicas e interagir com o mundo.",
+correct: true
+},
+{
+text: "Um recurso que armazena as conversas do agente",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q2: Como os agentes usam ferramentas como forma de “agir” no ambiente?
+
+<Question
+choices={[
+{
+text: "Aguardando passivamente por instruções do usuário",
+explain: "",
+},
+{
+text: "Recorrendo apenas a respostas pré-programadas",
+explain: "",
+},
+{
+text: "Pedindo ao LLM que gere o código de invocação da ferramenta quando apropriado e executando-a em nome do modelo",
+explain: "Os agentes invocam ferramentas e usam raciocínio para planejar ou replanejar com base nas informações obtidas.",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q3: O que é um Large Language Model (LLM)?
+
+<Question
+choices={[
+{
+text: "Um chatbot simples com respostas pré-definidas",
+explain: "",
+},
+{
+text: "Um modelo de deep learning treinado em grandes quantidades de texto para compreender e gerar linguagem humana",
+explain: "",
+correct: true
+},
+{
+text: "Uma IA baseada em regras fixas",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q4: Qual é o papel dos tokens especiais em LLMs?
+
+<Question
+choices={[
+{
+text: "São palavras extras no vocabulário para melhorar a qualidade da geração",
+explain: "",
+},
+{
+text: "Servem para funções específicas, como marcar o fim de sequência (EOS) ou separar papéis em modelos de chat",
+explain: "",
+correct: true
+},
+{
+text: "São tokens inseridos aleatoriamente para variar as respostas",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q5: Como modelos de chat processam as mensagens do usuário internamente?
+
+<Question
+choices={[
+{
+text: "Interpretam diretamente as mensagens como comandos estruturados, sem transformações",
+explain: "",
+},
+{
+text: "Transformam as mensagens em um prompt formatado, concatenando mensagens de sistema, usuário e assistente",
+explain: "",
+correct: true
+},
+{
+text: "Geram respostas aleatórias baseadas em conversas anteriores",
+explain: "",
+}
+]}
+/>
+
+---
+
+Tudo certo? Ótimo! Agora vamos **mergulhar no fluxo completo de um agente e começar a construir o seu primeiro agente de IA!***
