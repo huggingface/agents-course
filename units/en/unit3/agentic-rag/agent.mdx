@@ -69,7 +69,11 @@ Now, let's combine all these tools into a single agent:
 
 ```python
 # Initialize the Hugging Face model
-llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Check available providers: https://huggingface.co/inference/models
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="auto"
+)
 
 # Create Alfred with all the tools
 alfred = AgentWorkflow.from_tools_or_functions(
@@ -90,7 +94,8 @@ from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 
-from tools import DuckDuckGoSearchRun, weather_info_tool, hub_stats_tool
+from langchain_community.tools import DuckDuckGoSearchRun
+from tools import weather_info_tool, hub_stats_tool
 from retriever import guest_info_tool
 ```
 
