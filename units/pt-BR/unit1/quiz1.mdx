@@ -1,0 +1,163 @@
+### Q1: O que é um Agente?
+Qual das alternativas a seguir melhor descreve um Agente de IA?
+
+<Question
+choices={[
+{
+text: "Um modelo de IA que pode raciocinar, planejar e usar ferramentas para interagir com seu ambiente a fim atingir um objetivo específico.",
+explain: "Essa definição captura as características essenciais de um Agente.",
+correct: true
+},
+{
+text: "Um sistema que processa exclusivamente texto estático, sem nenhum mecanismo inerente para interagir dinamicamente com seu entorno ou executar ações significativas.",
+explain: "Um Agente deve ser capaz de realizar uma ação e interagir com seu ambiente."
+},
+{
+text: "Um agente conversacional restrito a responder consultas, sem a capacidade de realizar quaisquer ações ou interagir com sistemas externos.",
+explain: "Um chatbot como este não tem a habilidade de realizar ações, o que o torna diferente de um Agente."
+},
+{
+text: "Um repositório de informações online que oferece conteúdo estático sem a capacidade de executar tarefas ou interagir ativamente com os usuários.",
+explain: "Um Agente interage ativamente com seu ambiente em vez de apenas fornecer informações estáticas."
+}
+]}
+/>
+
+---
+
+### Q2: Qual é o Papel do Planejamento em um Agente?
+Por que um Agente precisa planejar antes de tomar uma ação?
+
+<Question
+choices={[
+{
+text: "Para armazenar ou relembrar principalmente interações anteriores, em vez de mapear uma sequência de ações futuras.",
+explain: "Planejamento é sobre determinar ações futuras, não armazenar interações passadas."
+},
+{
+text: "Para decidir sobre a sequência de ações e selecionar as ferramentas adequadas e necessárias para atender à solicitação do usuário.",
+explain: "Planejamento ajuda o Agente a determinar os melhores passos e ferramentas para concluir uma tarefa.",
+correct: true
+},
+{
+text: "Para executar uma sequência de ações arbitrárias e descoordenadas que carecem de qualquer estratégia definida ou objetivo intencional.",
+explain: "Planejamento garante que as ações do Agente sejam intencionais e não aleatórias."
+},
+{
+text: "Para simplesmente converter ou traduzir texto, ignorando qualquer processo de formular uma sequência deliberada de ações ou empregar raciocínio estratégico.",
+explain: "Planejamento é sobre estruturar ações, não apenas converter texto."
+}
+]}
+/>
+
+---
+
+### Q3: Como as Ferramentas (Tools) Aumentam as Capacidades de um Agente?
+Por que as ferramentas (*tools*) são essenciais para um Agente?
+
+<Question
+choices={[
+{
+text: "Ferramentas não tem um propósito real e não contribuem para a capacidade do Agente de realizar ações além da geração básica de texto.",
+explain: "As ferramentas expandem as capacidades de um Agente permitindo que ele execute ações que vão além da geração de texto."
+},
+{
+text: "As ferramentas são projetadas exclusivamente para armazenamento em memória, sem qualquer capacidade de facilitar a execução de tarefas ou aprimorar o desempenho interativo.",
+explain: "As ferramentas servem principalmente para realizar ações, e não apenas para armazenar dados."
+},
+{
+text: "As ferramentas restringem severamente o Agente a gerar exclusivamente texto, impedindo-o de se envolver em uma gama mais ampla de ações interativas.",
+explain: "Pelo contrário, as ferramentas permitem que os Agentes vão além de respostas baseadas em texto."
+},
+{
+text: "Ferramentas preveem ao Agente a habilidade de executar ações que um modelo de geração de texto não pode realizar nativamente, como fazer um café ou gerar imagens.",
+explain: "As ferramentas permitem que os Agentes interajam com o mundo real e concluam tarefas.",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4: Como as Ações (Actions) Diferem das Ferramentas (Tools)?
+Qual é a diferença fundamental entre Ações e Ferramentas?
+
+<Question
+choices={[
+{
+text: "Ações são os passos que o Agente toma, enquanto Ferramentas são os recursos externos que o Agente pode usar para realizar essas ações.",
+explain: "Ações são objetivos de mais alto nível, enquanto as Ferramentas são funções específicas que o Agente pode invocar.",
+correct: true
+},
+{
+text: "Ações e Ferramentas são componentes totalmente idênticos que podem ser usados alternadamente, sem diferenças claras entre eles.",
+explain: "Não, Ações são metas ou tarefas, enquanto Ferramentas são os utilitários específicos que o Agente usa para alcançá-las."
+},
+{
+text: "Ferramentas são consideradas utilitários amplos disponíveis para várias funções, enquanto acredita-se erroneamente que as Ações estão restritas apenas as interações físicas.",
+explain: "Não necessariamente. As ações podem envolver tanto tarefas digitais quanto físicas."
+},
+{
+text: "Ações por natureza requerem o uso de LLMs para serem determinadas e executadas, enquanto as Ferramentas são projetadas para funcionar de forma autônoma, sem tais dependências.",
+explain: "Embora os LLMs ajudem a decidir as Ações, as Ações em si não são dependentes dos LLMs."
+}
+]}
+/>
+
+---
+
+### Q5: Qual Papel os Grandes Modelos de Linguagem (LLMs) Desempenham nos Agentes?
+Como os LLMs contribuem para a funcionalidade de um Agente?
+
+<Question
+choices={[
+{
+text: "Os LLMs funcionam meramente como repositórios passivos que armazenam informações, carecendo de qualquer capacidade de processar ativamente a entrada ou produzir respostas dinâmicas.",
+explain: "Os LLMs processam ativamente a entrada de texto e geram respostas, em vez de apenas armazenar informações."
+},
+{
+text: "Os LLMs servem como o 'cérebro' do Agente, encarregados do raciocínio, processando entradas de texto para entender as instruções e planejar as ações.",
+explain: "Os LLMs permitem que o Agente consiga interpretar, planejar e decidir sobre os próximos passos.",
+correct: true
+},
+{
+text: "Acredita-se erroneamente que os LLMs sejam usados exclusivamente para processamento de imagens, quando, na verdade, sua função principal é processar e gerar texto.",
+explain: "Os LLMs trabalham predominantemente com texto, embora em alguns casos também possam interagir com entradas multimodais."
+},
+{
+text: "Os LLMs são considerados completamente irrelevantes para a operação de Agentes de IA, o que implica que eles são totalmente supérfluos em qualquer aplicação prática.",
+explain: "Os LLMs são o componente central dos Agentes de IA modernos."
+}
+]}
+/>
+
+---
+
+### Q6: Qual das Opções a Seguir Exibe o Melhor Exemplo de um Agente de IA?
+Qual exemplo do mundo real melhor ilustra um Agente de IA em ação?
+
+<Question
+choices={[
+{
+text: "Uma página estática de FAQ (Perguntas Frequentes) em um site que fornece informações fixas e não possui capacidades de resposta dinâmicas ou interativas.",
+explain: "Uma página estática de FAQ não interage de modo dinâmico com os usuários nem toma ações."
+},
+{
+text: "Uma simples calculadora que executa operações aritméticas com base em regras fixas, sem nenhuma capacidade algorítmica de planejamento ou raciocínio.",
+explain: "Uma calculadora opera seguindo regras fixas sem o menor raciocínio lógico ou elaboração de plano, portanto ela não é um Agente."
+},
+{
+text: "Um assistente virtual como a Siri ou Alexa que sabe compreender bem seus comandos por voz, refletir sobre o tema, e executar as tarefas que você pediu (como agendar alarmes ou enviar mensagens de texto).",
+explain: "Este exemplo inclui interativamente o raciocínio lógico, planejamento prévio e interação contínua com seu ambiente.",
+correct: true
+},
+{
+text: "Um NPC de videogame que opera sob um script predefinido de respostas, sem capacidade de raciocinar, planejar ou usar ferramentas externas.",
+explain: "A menos que o NPC consiga raciocinar, agir e usar ferramentas (Tools), ele não funcionará como um verdadeiro Agente de IA."
+}
+]}
+/>
+
+---
+
+Parabéns por concluir este Quiz 🥳! Se precisar revisar algum elemento, aproveite o tempo para revisitar o capítulo e reforçar seus conhecimentos antes de mergulhar ainda mais fundo no "cérebro do Agente": os LLMs (Grandes Modelos de Linguagem).

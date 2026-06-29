@@ -1,0 +1,172 @@
+- title: Unidade 0. Boas-vindas ao curso
+  sections:
+  - local: unit0/introduction
+    title: Boas-vindas ao curso 🤗
+  - local: unit0/onboarding
+    title: Onboarding
+  - local: unit0/discord101
+    title: (Opcional) Introdução ao Discord (Discord 101)
+  - title: Live 1. Como o curso funciona e Perguntas & Respostas
+    sections:
+    - local: communication/live1
+      title: Live 1. Como o curso funciona e Perguntas & Respostas
+- title: Unidade 1. Introdução aos Agentes
+  sections:
+  - local: unit1/introduction
+    title: Introdução
+  - local: unit1/what-are-agents
+    title: O que é um Agente?
+  - local: unit1/quiz1
+    title: Quiz Rápido 1
+  - local: unit1/what-are-llms
+    title: O que são LLMs?
+  - local: unit1/messages-and-special-tokens
+    title: Mensagens e Tokens Especiais
+  - local: unit1/tools
+    title: O que são Ferramentas?
+  - local: unit1/quiz2
+    title: Quiz Rápido 2
+  - local: unit1/agent-steps-and-structure
+    title: Entendendo Agentes de IA através do Ciclo Pensamento-Ação-Observação
+  - local: unit1/thoughts
+    title: Pensamento, Raciocínio Interno e a Abordagem ReAct
+  - local: unit1/actions
+    title: Ações, Habilitando o Agente a Interagir com seu Ambiente
+  - local: unit1/observations
+    title: Observar, Integrar o Feedback para Refletir e Adaptar
+  - local: unit1/dummy-agent-library
+    title: Biblioteca de Agentes Fictícia
+  - local: unit1/tutorial
+    title: Vamos Criar o Nosso Primeiro Agente Usando smolagents
+  - local: unit1/final-quiz
+    title: Quiz Final da Unidade 1
+  - local: unit1/conclusion
+    title: Conclusão
+#- title: Unidade 2. Frameworks para Agentes de IA
+#  sections:
+#  - local: unit2/introduction
+#    title: Frameworks para Agentes de IA
+#- title: Unidade 2.1 O framework smolagents
+#  sections:
+#  - local: unit2/smolagents/introduction
+#    title: Introdução ao smolagents
+#  - local: unit2/smolagents/why_use_smolagents
+#    title: Por que usar smolagents?
+#  - local: unit2/smolagents/quiz1
+#    title: Quiz Rápido 1
+#  - local: unit2/smolagents/code_agents
+#    title: Construindo Agentes que usam código
+#  - local: unit2/smolagents/tool_calling_agents
+#    title: Escrevendo ações como fragmentos de código ou blocos JSON
+#  - local: unit2/smolagents/tools
+#    title: Ferramentas
+#  - local: unit2/smolagents/retrieval_agents
+#    title: Agentes de Recuperação de Informação (Retrieval Agents)
+#  - local: unit2/smolagents/quiz2
+#    title: Quiz Rápido 2
+#  - local: unit2/smolagents/multi_agent_systems
+#    title: Sistemas Multi-Agentes
+#  - local: unit2/smolagents/vision_agents
+#    title: Agentes de Visão e Navegadores
+#  - local: unit2/smolagents/final_quiz
+#    title: Quiz Final
+#  - local: unit2/smolagents/conclusion
+#    title: Conclusão
+#- title: Unidade 2.2 O framework LlamaIndex
+#  sections:
+#  - local: unit2/llama-index/introduction
+#    title: Introdução ao LlamaIndex
+#  - local: unit2/llama-index/llama-hub
+#    title: Introdução ao LlamaHub
+#  - local: unit2/llama-index/components
+#    title: O que são Componentes no LlamaIndex?
+#  - local: unit2/llama-index/tools
+#    title: Usando Ferramentas no LlamaIndex
+#  - local: unit2/llama-index/quiz1
+#    title: Quiz Rápido 1
+#  - local: unit2/llama-index/agents
+#    title: Usando Agentes no LlamaIndex
+#  - local: unit2/llama-index/workflows
+#    title: Criando Workflows Agênticos no LlamaIndex
+#  - local: unit2/llama-index/quiz2
+#    title: Quiz Rápido 2
+#  - local: unit2/llama-index/conclusion
+#    title: Conclusão
+#- title: Unidade 2.3 O framework LangGraph
+#  sections:
+#  - local: unit2/langgraph/introduction
+#    title: Introdução ao LangGraph
+#  - local: unit2/langgraph/when_to_use_langgraph
+#    title: O que é o LangGraph?
+#  - local: unit2/langgraph/building_blocks
+#    title: Blocos de Construção do LangGraph
+#  - local: unit2/langgraph/first_graph
+#    title: Construindo seu Primeiro LangGraph
+#  - local: unit2/langgraph/document_analysis_agent
+#    title: Grafo de Análise de Documento
+#  - local: unit2/langgraph/quiz1
+#    title: Quiz Rápido 1
+#  - local: unit2/langgraph/conclusion
+#    title: Conclusão
+#- title: Unidade 3. Caso de Uso para Agentes RAG (Agentic RAG)
+#  sections:
+#  - local: unit3/agentic-rag/introduction
+#    title: Introdução ao Caso de Uso de Agentes RAG
+#  - local: unit3/agentic-rag/agentic-rag
+#    title: RAG Agêntica (Retrieval Augmented Generation)
+#  - local: unit3/agentic-rag/invitees
+#    title: Criando uma Ferramenta RAG para Histórias de Convidados
+#  - local: unit3/agentic-rag/tools
+#    title: Construindo e Integrando Ferramentas no seu Agente
+#  - local: unit3/agentic-rag/agent
+#    title: Criando seu Agente Gala
+#  - local: unit3/agentic-rag/conclusion
+#    title: Conclusão
+#- title: Unidade 4. Projeto Final - Crie, Teste e Certifique o seu Agente
+#  sections:
+#  - local: unit4/introduction
+#    title: Introdução à Unidade Final
+#  - local: unit4/what-is-gaia
+#    title: O que é GAIA?
+#  - local: unit4/hands-on
+#    title: A Prática Final
+#  - local: unit4/get-your-certificate
+#    title: Receba seu Certificado de Excelência
+#  - local: unit4/conclusion
+#    title: Conclusão do Curso
+#  - local: unit4/additional-readings
+#    title: O que você deve aprender agora?
+#- title: Unidade Bônus 1. Fazendo Fine-tuning em um LLM para Function-calling
+#  sections:
+#  - local: bonus-unit1/introduction
+#    title: Introdução
+#  - local: bonus-unit1/what-is-function-calling
+#    title: O que é Function Calling (Chamada de Função)?
+#  - local: bonus-unit1/fine-tuning
+#    title: Vamos fazer o Fine-Tune do seu modelo para chamadas de função
+#  - local: bonus-unit1/conclusion
+#    title: Conclusão
+#- title: Unidade Bônus 2. Observabilidade de Agentes e Avaliação
+#  sections:
+#  - local: bonus-unit2/introduction
+#    title: Introdução
+#  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+#    title: O que é observabilidade e avaliação de agentes?
+#  - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
+#    title: Monitorando e avaliando agentes
+#  - local: bonus-unit2/quiz
+#    title: Quiz
+#- title: Unidade Bônus 3. Agentes em Jogos com Pokémon
+#  sections:
+#  - local: bonus-unit3/introduction
+#    title: Introdução
+#  - local: bonus-unit3/state-of-art
+#    title: O Estado da Arte no Uso de LLMs em Jogos
+#  - local: bonus-unit3/from-llm-to-agents
+#    title: De LLMs para Agentes de IA
+#  - local: bonus-unit3/building_your_pokemon_agent
+#    title: Construa seu próprio Agente de Batalha Pokémon
+#  - local: bonus-unit3/launching_agent_battle
+#    title: Lançando seu Agente de Batalha Pokémon
+#  - local: bonus-unit3/conclusion
+#    title: Conclusão
