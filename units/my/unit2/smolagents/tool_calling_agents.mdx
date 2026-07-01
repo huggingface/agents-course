@@ -1,0 +1,73 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# လုပ်ဆောင်ချက်များကို Code Snippets သို့မဟုတ် JSON Blobs များအဖြစ် ရေးသားခြင်း
+
+> [!TIP]
+> ဒီအပိုင်းမှာပါတဲ့ Code တွေကို <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">ဒီ Notebook</a> မှာ လိုက်လံလေ့လာနိုင်ပြီး Google Colab ကို အသုံးပြုပြီး ကိုယ်တိုင် run ကြည့်နိုင်ပါတယ်။
+
+**Tool Calling Agents** တွေဟာ `smolagents` မှာ ရရှိနိုင်တဲ့ ဒုတိယမြောက် Agent အမျိုးအစား ဖြစ်ပါတယ်။ Python Code Snippets တွေကို အသုံးပြုတဲ့ **Code Agents** တွေနဲ့ မတူဘဲ၊ ဒီ Agent တွေဟာ **LLM Providers တွေရဲ့ Built-in Tool-calling စွမ်းရည်** ကို အသုံးပြုပြီး Tool Calls တွေကို **JSON ပုံစံ** နဲ့ ထုတ်ပေးပါတယ်။ ဒါဟာ OpenAI, Anthropic နဲ့ အခြားသော Provider များစွာက အသုံးပြုတဲ့ စံနည်းလမ်းပဲ ဖြစ်ပါတယ်။
+
+ဥပမာတစ်ခုကို ကြည့်ရအောင်။ Alfred က Catering ဝန်ဆောင်မှုတွေနဲ့ ပါတီ Idea တွေကို ရှာဖွေချင်တယ်ဆိုပါစို့။ **CodeAgent** တစ်ခုဆိုရင် အောက်ပါအတိုင်း Python Code ကို ထုတ်ပေးပြီး run ပါလိမ့်မယ်။
+
+```python
+for query in [
+    "Best catering services in Gotham City", 
+    "Party theme ideas for superheroes"
+]:
+    print(web_search(f"Search for: {query}"))
+```
+
+ဒါပေမယ့် **ToolCallingAgent** တစ်ခုဆိုရင်တော့ အဲဒီအစား JSON ပုံစံကို ဖန်တီးပေးပါလိမ့်မယ်။
+
+```json
+[
+    {"name": "web_search", "arguments": "Best catering services in Gotham City"},
+    {"name": "web_search", "arguments": "Party theme ideas for superheroes"}
+]
+```
+
+ဒီ JSON အစုအဝေး (Blob) ကို အသုံးပြုပြီး Tool Calls တွေကို လုပ်ဆောင်သွားမှာ ဖြစ်ပါတယ်။
+
+`smolagents` ဟာ **CodeAgents** တွေကို အဓိကထား အာရုံစိုက်ထားပါတယ် (ဘာကြောင့်လဲဆိုတော့ [သူတို့က စွမ်းဆောင်ရည် ပိုကောင်းလို့ပါ](https://huggingface.co/papers/2402.01030))။ ဒါပေမယ့် **ToolCallingAgents** တွေဟာ Variable တွေကို ကိုင်တွယ်ဖို့ ဒါမှမဟုတ် ရှုပ်ထွေးတဲ့ Tool Calls တွေ မလိုအပ်တဲ့ ရိုးရှင်းတဲ့ စနစ်တွေအတွက်တော့ အလွန်ထိရောက်မှု ရှိပါတယ်။
+
+![Code vs JSON Actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+## Tool Calling Agents တွေ ဘယ်လို အလုပ်လုပ်သလဲ။
+
+Tool Calling Agents တွေဟာ Code Agents တွေလိုပဲ အဆင့်များစွာပါဝင်တဲ့ လုပ်ငန်းအဆင့်ဆင့် (Multi-step Workflow) ကို လိုက်နာပါတယ် (အသေးစိတ်ကို [အရင်အပိုင်း](./code_agents) မှာ ကြည့်နိုင်ပါတယ်)။
+
+အဓိက ကွာခြားချက်ကတော့ **သူတို့ရဲ့ လုပ်ဆောင်ချက်တွေကို ပုံစံချပုံ** ပဲ ဖြစ်ပါတယ်။ လုပ်ဆောင်နိုင်တဲ့ Code အစား၊ သူတို့ဟာ **Tool နာမည်တွေနဲ့ Arguments တွေကို သတ်မှတ်ပေးတဲ့ JSON Objects တွေကို ထုတ်ပေးပါတယ်**။ ထို့နောက် စနစ်က သင့်လျော်တဲ့ Tool တွေကို လုပ်ဆောင်နိုင်ဖို့အတွက် **ဒီညွှန်ကြားချက်တွေကို စစ်ဆေးအတည်ပြု (Parse) ပါတယ်**။
+
+## ဥပမာ: Tool Calling Agent ကို Run ကြည့်ခြင်း
+
+Alfred ပါတီပြင်ဆင်မှု စတင်ခဲ့တဲ့ အရင်ဥပမာကို ပြန်ကြည့်ရအောင်။ ဒီတစ်ခါတော့ ကွာခြားချက်ကို မီးမောင်းထိုးပြနိုင်ဖို့ **ToolCallingAgent** ကို အသုံးပြုပါမယ်။ ကျွန်တော်တို့ရဲ့ Code Agent ဥပမာအတိုင်း DuckDuckGo ကို အသုံးပြုပြီး ဝက်ဘ်ရှာဖွေနိုင်တဲ့ Agent တစ်ခုကို တည်ဆောက်ပါမယ်။ ကွာခြားချက်က Agent အမျိုးအစားပဲ ဖြစ်ပြီး၊ ကျန်တာအားလုံးကို Framework က ကိုင်တွယ်ပေးပါတယ်။
+
+```python
+from smolagents import ToolCallingAgent, WebSearchTool, InferenceClientModel
+
+agent = ToolCallingAgent(tools=[WebSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+သင် Agent ရဲ့ Trace (လုပ်ဆောင်မှု မှတ်တမ်း) ကို စစ်ဆေးကြည့်တဲ့အခါ၊ `Executing parsed code:` ကို မြင်ရမယ့်အစား အောက်ပါအတိုင်း မြင်ရပါလိမ့်မယ်။
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "best music recommendations for a party at Wayne's         │
+│ mansion"}                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+Agent ဟာ စနစ်ကနေ Output ထုတ်ပေးဖို့ စီမံဆောင်ရွက်တဲ့ စနစ်တကျ Tool Call ကို ထုတ်ပေးတာ ဖြစ်ပြီး၊ **CodeAgent** လိုမျိုး Code ကို တိုက်ရိုက် လုပ်ဆောင်တာ မဟုတ်ပါဘူး။
+
+အခုဆိုရင် Agent အမျိုးအစား နှစ်ခုလုံးကို နားလည်သွားပြီဖြစ်လို့၊ ကျွန်တော်တို့ရဲ့ လိုအပ်ချက်အတွက် မှန်ကန်တဲ့ Agent ကို ရွေးချယ်နိုင်ပါပြီ။ Alfred ရဲ့ ပါတီကို အောင်မြင်အောင် လုပ်ဆောင်ဖို့ `smolagents` ကို ဆက်လက်လေ့လာကြပါစို့! 🎉
+
+## အရင်းအမြစ်များ (Resources)
+
+*   [ToolCallingAgent documentation](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - ToolCallingAgent အတွက် တရားဝင် စာရွက်စာတမ်း။

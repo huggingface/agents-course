@@ -1,0 +1,34 @@
+# `LangGraph` ကို မိတ်ဆက်ခြင်း
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/LangGraph.png" alt="Unit 2.3 Thumbnail"/>
+
+ကျွန်တော်တို့ရဲ့ ခရီးစဉ်ရဲ့ နောက်ထပ်အပိုင်းကို ကြိုဆိုပါတယ်။ ဒီအပိုင်းမှာ ရှုပ်ထွေးတဲ့ LLM (Large Language Model) လုပ်ငန်းအဆင့်ဆင့်တွေကို စနစ်တကျ စီမံခန့်ခွဲနိုင်ဖို့ ဒီဇိုင်းထုတ်ထားတဲ့ [`LangGraph`](https://github.com/langchain-ai/langgraph) Framework ကို အသုံးပြုပြီး **Application တွေ ဘယ်လိုတည်ဆောက်ရမလဲ** ဆိုတာကို သင်ယူရမှာ ဖြစ်ပါတယ်။
+
+`LangGraph` ဆိုတာကတော့ သင့်ရဲ့ Agent ရဲ့ စီးဆင်းမှု (Flow) အပေါ်မှာ **ထိန်းချုပ်နိုင်တဲ့ ကိရိယာများ** ကို ပေးခြင်းအားဖြင့် **ထုတ်လုပ်မှုအဆင့် (Production-ready)** Application တွေကို တည်ဆောက်နိုင်စေမယ့် Framework တစ်ခုပဲ ဖြစ်ပါတယ်။
+
+> [!NOTE]
+> **LangGraph ရဲ့ အဓိက အားသာချက်:** LangGraph ဟာ LangChain ရဲ့ အစိတ်အပိုင်းတစ်ခုဖြစ်ပေမယ့်၊ သူက Agent တွေရဲ့ လုပ်ဆောင်ချက်တွေကို **Graph (ပုံစံချထားသော အဆင့်များ)** အနေနဲ့ မြင်သာအောင် စီမံခန့်ခွဲနိုင်တဲ့အတွက်၊ Agent တွေ ဘယ်အဆင့်မှာ ဘာလုပ်ရမယ်၊ ဘယ်လို ဆုံးဖြတ်ချက်ချရမယ်ဆိုတာကို ပိုမိုတိကျစွာ ထိန်းချုပ်နိုင်ပါတယ်။ ဒါကြောင့် ရှုပ်ထွေးတဲ့ AI Application တွေအတွက် မရှိမဖြစ် လိုအပ်ပါတယ်။
+
+## Module ခြုံငုံသုံးသပ်ချက် (Module Overview)
+
+ဒီအခန်းမှာ သင်လေ့လာရမယ့် အကြောင်းအရာတွေကတော့-
+
+### ⭐️ ၁။ [LangGraph ဆိုတာ ဘာလဲ၊ ဘယ်အချိန်မှာ အသုံးပြုသင့်သလဲ။](./when_to_use_langgraph)
+### ⭐️ ၂။ [LangGraph ရဲ့ အခြေခံ တည်ဆောက်မှု အစိတ်အပိုင်းများ](./building_blocks)
+### ⭐️ ၃။ [Alfred၊ စာပို့ခွဲခြားပေးသော Butler Agent](./first_graph)
+### ⭐️ ၄။ [Alfred၊ Document ခွဲခြမ်းစိတ်ဖြာသော Agent](./document_analysis_agent)
+### ⭐️ ၅။ [Quiz](./quizz1)
+
+> [!WARNING]
+> ဒီအပိုင်းက ဥပမာတွေကို လေ့ကျင့်ဖို့အတွက် စွမ်းဆောင်ရည်မြင့် LLM/VLM (Vision Language Model) ကို အသုံးပြုဖို့ လိုအပ်ပါတယ်။ ကျွန်တော်တို့ကတော့ LangGraph နဲ့ အကောင်းဆုံး တွဲဖက်အသုံးပြုနိုင်တဲ့ GPT-4o API ကို အသုံးပြုပြီး လုပ်ဆောင်ခဲ့ပါတယ်။
+
+ဒီအခန်းရဲ့ အဆုံးမှာဆိုရင် သင်ဟာ ခိုင်မာတဲ့၊ စနစ်တကျ စီမံထားတဲ့၊ ထုတ်လုပ်မှုအဆင့်အတွက် အသင့်ဖြစ်နေတဲ့ Application တွေကို တည်ဆောက်နိုင်ဖို့အတွက် အသင့်ဖြစ်နေပါပြီ!
+
+ဒါပေမယ့် ဒီအပိုင်းဟာ LangGraph ကို မိတ်ဆက်ပေးတဲ့ အပိုင်းသာ ဖြစ်ပါတယ်။ ပိုမိုအဆင့်မြင့်တဲ့ အကြောင်းအရာတွေကို LangChain Academy ရဲ့ အခမဲ့ Course ဖြစ်တဲ့ [Introduction to LangGraph](https://academy.langchain.com/courses/intro-to-langgraph) မှာ ဆက်လက်လေ့လာနိုင်ပါတယ်။
+
+ကဲ... စတင်လိုက်ရအောင်!
+
+## အရင်းအမြစ်များ (Resources)
+
+*   [LangGraph Agents](https://langchain-ai.github.io/langgraph/) - LangGraph Agent ဥပမာများ
+*   [LangChain academy](https://academy.langchain.com/courses/intro-to-langgraph) - LangChain မှ LangGraph အကြောင်း အပြည့်အစုံ သင်ကြားပေးသော Course
