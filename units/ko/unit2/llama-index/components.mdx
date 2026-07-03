@@ -121,6 +121,8 @@ pipeline = IngestionPipeline(
     ],
     vector_store=vector_store,
 )
+
+nodes = await pipeline.arun(documents=[Document.example()])
 ```
 
 <Tip>다양한 벡터 스토어에 대한 개요는 <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">LlamaIndex 문서</a>에서 찾을 수 있습니다.</Tip>
