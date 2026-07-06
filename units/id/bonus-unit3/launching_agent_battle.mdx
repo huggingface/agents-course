@@ -1,0 +1,70 @@
+# Meluncurkan Pokémon Battle Agent Kamu
+
+Sekarang waktunya bertarung! ⚡️
+
+## **Bertarung Melawan Stream Agent!**
+
+Kalau kamu belum ingin membuat agent sendiri dan hanya penasaran dengan potensi battle agents di Pokémon, kami mengadakan livestream otomatis di [twitch](https://www.twitch.tv/jofthomas).
+
+<iframe
+	src="https://jofthomas-twitch-streaming.hf.space"
+	frameborder="0"
+	width="1200"
+	height="600"
+></iframe>
+
+
+Untuk melawan agent di stream, kamu bisa mengikuti langkah berikut:
+
+Instruksi:
+1.  Buka **Pokémon Showdown Space**: [Link di sini](https://huggingface.co/spaces/Jofthomas/Pokemon_showdown)
+2.  **Choose Your Name** di pojok kanan atas.
+3.  Cari **Current Agent's Username**. Cek:
+    * **Stream Display**: [Link di sini](https://www.twitch.tv/jofthomas)
+4.  **Search** username tersebut di Showdown Space dan **Send a Battle Invitation**.
+
+*Catatan:* Hanya satu agent yang online dalam satu waktu. Pastikan namanya benar.
+
+
+
+## Pokémon Battle Agent Challenger
+
+Kalau kamu sudah membuat Pokémon Battle Agent sendiri dari bagian sebelumnya, kamu mungkin bertanya: **bagaimana cara mengujinya melawan agent lain?** Mari kita lihat.
+
+Kami sudah membuat [Hugging Face Space](https://huggingface.co/spaces/PShowdown/pokemon_agents) khusus untuk tujuan ini:
+
+<iframe
+	src="https://pshowdown-pokemon-agents.hf.space"
+	frameborder="0"
+	width="1200"
+	height="600"
+></iframe>
+
+Space ini terhubung ke **Pokémon Showdown server** kami sendiri, tempat Agent kamu bisa melawan yang lain dalam AI-powered battles.
+
+### Cara Meluncurkan Agent Kamu
+
+Ikuti langkah-langkah ini untuk membawa Agent kamu ke arena:
+
+1. **Duplicate the Space**
+   Klik tiga titik di menu kanan atas Space, lalu pilih “Duplicate this Space”.
+
+2. **Tambahkan Code Agent Kamu ke `agent.py`**
+   Buka file tersebut dan tempelkan implementasi Agent kamu. Kamu bisa mengikuti [contoh ini](https://huggingface.co/spaces/PShowdown/pokemon_agents/blob/main/agents.py) atau mengecek [project structure](https://huggingface.co/spaces/PShowdown/pokemon_agents/tree/main) sebagai panduan.
+
+3. **Daftarkan Agent Kamu di `app.py`**
+   Tambahkan nama dan logic Agent kamu ke dropdown menu. Lihat [snippet ini](https://huggingface.co/spaces/PShowdown/pokemon_agents/blob/main/app.py) sebagai inspirasi.
+
+4. **Pilih Agent Kamu**
+   Setelah ditambahkan, Agent kamu akan muncul di dropdown menu “Select Agent”. Pilih dari daftar itu! ✅
+
+5. **Masukkan Username Pokémon Showdown Kamu**
+   Pastikan username cocok dengan yang muncul di input **"Choose name"** pada iframe. Kamu juga bisa terhubung dengan akun resmimu.
+
+6. **Klik “Send Battle Invitation”**
+   Agent kamu akan mengirim undangan ke lawan yang dipilih. Undangan itu seharusnya muncul di layar.
+
+7. **Terima Battle & Nikmati Pertarungannya!**
+   Pertarungan dimulai. Semoga Agent terpintar yang menang.
+
+Siap melihat kreasimu beraksi? Mari mulai AI showdown! 🥊

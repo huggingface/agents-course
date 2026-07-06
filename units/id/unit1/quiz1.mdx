@@ -1,0 +1,157 @@
+### Q1: Apa itu Agent?
+Manakah dari pilihan berikut yang paling tepat mendeskripsikan AI Agent?
+
+<Question
+choices={[
+{
+text: "AI model yang dapat bernalar, merencanakan, dan menggunakan tools untuk berinteraksi dengan environment-nya demi mencapai tujuan tertentu.",
+explain: "Definisi ini menangkap karakteristik penting dari Agent.",
+correct: true
+},
+{
+text: "Sistem yang hanya memproses teks statis, tanpa mekanisme bawaan untuk berinteraksi secara dinamis dengan lingkungan sekitar atau menjalankan actions yang bermakna.",
+explain: "Agent harus mampu mengambil action dan berinteraksi dengan environment-nya.",
+},
+{
+text: "Agent percakapan yang terbatas hanya untuk menjawab pertanyaan, tanpa kemampuan melakukan actions atau berinteraksi dengan sistem eksternal.",
+explain: "Chatbot seperti ini tidak memiliki kemampuan untuk mengambil actions, sehingga berbeda dari Agent.",
+},
+{
+text: "Repository informasi online yang menawarkan konten statis tanpa kemampuan menjalankan tugas atau berinteraksi aktif dengan pengguna.",
+explain: "Agent berinteraksi aktif dengan environment-nya, bukan sekadar menyediakan informasi statis.",
+}
+]}/>
+
+---
+
+### Q2: Apa Peran Planning dalam Agent?
+Mengapa Agent perlu melakukan planning sebelum mengambil action?
+
+<Question
+choices={[
+{
+text: "Untuk terutama menyimpan atau mengingat interaksi masa lalu, bukan memetakan urutan actions masa depan.",
+explain: "Planning berkaitan dengan menentukan actions masa depan, bukan menyimpan interaksi masa lalu.",
+},
+{
+text: "Untuk memutuskan urutan actions dan memilih tools yang sesuai guna memenuhi permintaan user.",
+explain: "Planning membantu Agent menentukan langkah dan tools terbaik untuk menyelesaikan tugas.",
+correct: true
+},
+{
+text: "Untuk menjalankan rangkaian actions sembarang dan tidak terkoordinasi yang tidak memiliki strategi atau tujuan yang jelas.",
+explain: "Planning memastikan actions Agent bersifat disengaja dan tidak acak.",
+},
+{
+text: "Untuk sekadar mengonversi atau menerjemahkan teks, melewati proses menyusun urutan actions yang disengaja atau menggunakan reasoning strategis.",
+explain: "Planning berkaitan dengan menyusun actions, bukan hanya mengonversi teks.",
+}
+]}/>
+
+---
+
+### Q3: Bagaimana Tools Meningkatkan Kemampuan Agent?
+Mengapa tools penting bagi Agent?
+
+<Question
+choices={[
+{
+text: "Tools tidak memiliki tujuan nyata dan tidak berkontribusi pada kemampuan Agent untuk melakukan actions di luar text generation dasar.",
+explain: "Tools memperluas kemampuan Agent dengan memungkinkannya melakukan actions di luar text generation.",
+},
+{
+text: "Tools hanya dirancang untuk penyimpanan memori, tanpa kemampuan mendukung eksekusi tugas atau meningkatkan performa interaktif.",
+explain: "Tools terutama digunakan untuk melakukan actions, bukan hanya menyimpan data.",
+},
+{
+text: "Tools sangat membatasi Agent hanya untuk menghasilkan teks, sehingga mencegahnya melakukan berbagai actions interaktif yang lebih luas.",
+explain: "Sebaliknya, tools memungkinkan Agents melampaui respons berbasis teks.",
+},
+{
+text: "Tools memberi Agent kemampuan untuk menjalankan actions yang tidak dapat dilakukan model text-generation secara bawaan, seperti membuat kopi atau menghasilkan gambar.",
+explain: "Tools memungkinkan Agents berinteraksi dengan dunia nyata dan menyelesaikan tugas.",
+correct: true
+}
+]}/>
+
+---
+
+### Q4: Apa Perbedaan Actions dan Tools?
+Apa perbedaan utama antara Actions dan Tools?
+
+<Question
+choices={[
+{
+text: "Actions adalah langkah yang diambil Agent, sedangkan Tools adalah sumber daya eksternal yang dapat digunakan Agent untuk melakukan actions tersebut.",
+explain: "Actions adalah tujuan tingkat lebih tinggi, sedangkan Tools adalah fungsi spesifik yang dapat dipanggil Agent.",
+correct: true
+},
+{
+text: "Actions dan Tools adalah komponen yang sepenuhnya identik dan dapat digunakan saling menggantikan tanpa perbedaan yang jelas.",
+explain: "Tidak, Actions adalah tujuan atau tugas, sedangkan Tools adalah utilitas spesifik yang digunakan Agent untuk mencapainya.",
+},
+{
+text: "Tools dianggap sebagai utilitas luas untuk berbagai fungsi, sementara Actions keliru dianggap hanya terbatas pada interaksi fisik.",
+explain: "Tidak selalu. Actions dapat melibatkan tugas digital maupun fisik.",
+},
+{
+text: "Actions secara bawaan membutuhkan LLMs untuk ditentukan dan dieksekusi, sedangkan Tools dirancang untuk berfungsi secara mandiri tanpa dependensi tersebut.",
+explain: "Walaupun LLMs membantu menentukan Actions, Actions itu sendiri tidak bergantung pada LLMs.",
+}
+]}/>
+
+---
+
+### Q5: Apa Peran Large Language Models (LLMs) dalam Agents?
+Bagaimana LLMs berkontribusi pada fungsionalitas Agent?
+
+<Question
+choices={[
+{
+text: "LLMs hanya berfungsi sebagai repository pasif yang menyimpan informasi, tanpa kemampuan memproses input secara aktif atau menghasilkan respons dinamis.",
+explain: "LLMs secara aktif memproses input teks dan menghasilkan respons, bukan hanya menyimpan informasi.",
+},
+{
+text: "LLMs berfungsi sebagai 'otak' reasoning Agent, memproses input teks untuk memahami instruksi dan merencanakan actions.",
+explain: "LLMs memungkinkan Agent menafsirkan, merencanakan, dan memutuskan langkah berikutnya.",
+correct: true
+},
+{
+text: "LLMs keliru dianggap hanya digunakan untuk pemrosesan gambar, padahal fungsi utamanya adalah memproses dan menghasilkan teks.",
+explain: "LLMs terutama bekerja dengan teks, walaupun terkadang dapat berinteraksi dengan input multimodal.",
+},
+{
+text: "LLMs dianggap sepenuhnya tidak relevan bagi operasi AI Agents, sehingga benar-benar tidak diperlukan dalam aplikasi praktis apa pun.",
+explain: "LLMs adalah komponen inti dari AI Agents modern.",
+}
+]}/>
+
+---
+
+### Q6: Mana yang Paling Menunjukkan AI Agent?
+Contoh dunia nyata mana yang paling menggambarkan AI Agent sedang bekerja?
+
+<Question
+choices={[
+{
+text: "Halaman FAQ statis di website yang menyediakan informasi tetap dan tidak memiliki kemampuan respons interaktif atau dinamis.",
+explain: "Halaman FAQ statis tidak berinteraksi secara dinamis dengan pengguna atau mengambil actions.",
+},
+{
+text: "Kalkulator sederhana yang melakukan operasi aritmetika berdasarkan aturan tetap, tanpa kemampuan reasoning atau planning.",
+explain: "Kalkulator mengikuti aturan tetap tanpa reasoning atau planning, sehingga bukan Agent.",
+},
+{
+text: "Asisten virtual seperti Siri atau Alexa yang dapat memahami perintah lisan, bernalar atas perintah itu, dan melakukan tugas seperti mengatur reminder atau mengirim pesan.",
+explain: "Contoh ini mencakup reasoning, planning, dan interaksi dengan environment.",
+correct: true
+},
+{
+text: "NPC video game yang berjalan berdasarkan skrip respons tetap, tanpa kemampuan bernalar, merencanakan, atau menggunakan tools eksternal.",
+explain: "Kecuali NPC dapat bernalar, merencanakan, dan menggunakan tools, ia tidak berfungsi sebagai AI Agent.",
+}
+]}/>
+
+---
+
+Selamat sudah menyelesaikan Quiz ini 🥳! Jika kamu perlu mengulas elemen tertentu, luangkan waktu untuk kembali ke bab ini agar pengetahuanmu semakin kuat sebelum masuk lebih dalam ke "otak Agent": LLMs.

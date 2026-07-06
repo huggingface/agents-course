@@ -1,0 +1,88 @@
+
+# Thought: Reasoning Internal dan Pendekatan ReAct
+
+> [!TIP]
+> Di bagian ini, kita melihat cara kerja internal AI agent: kemampuannya untuk bernalar dan merencanakan. Kita akan membahas bagaimana agent menggunakan dialog internalnya untuk menganalisis informasi, memecah masalah kompleks menjadi langkah-langkah yang lebih mudah dikelola, dan memutuskan action apa yang perlu diambil berikutnya.
+>
+> Kita juga memperkenalkan pendekatan ReAct, teknik prompting yang mendorong model untuk berpikir "step by step" sebelum bertindak.
+
+Thoughts merepresentasikan **proses reasoning dan planning internal Agent** untuk menyelesaikan tugas.
+
+Ini menggunakan kapasitas Large Language Model (LLM) agent **untuk menganalisis informasi saat disajikan dalam prompt-nya**. Pada dasarnya, ini adalah monolog internalnya saat mengerjakan sebuah masalah.
+
+Thoughts milik Agent membantunya menilai observations saat ini dan memutuskan action berikutnya. Melalui proses ini, agent dapat **memecah masalah kompleks menjadi langkah-langkah yang lebih kecil dan lebih mudah dikelola**, merefleksikan pengalaman sebelumnya, dan terus menyesuaikan rencana berdasarkan informasi baru.
+
+
+## 🧠 Contoh Jenis Thought yang Umum
+
+| Jenis Thought    | Contoh                                                                 |
+|--------------------|-------------------------------------------------------------------------|
+| Planning           | "Saya perlu memecah tugas ini menjadi tiga langkah: 1) mengumpulkan data, 2) menganalisis tren, 3) membuat laporan" |
+| Analysis           | "Berdasarkan pesan error, masalahnya tampaknya ada pada parameter koneksi database" |
+| Decision Making    | "Dengan mempertimbangkan batasan budget user, saya sebaiknya merekomendasikan opsi mid-tier" |
+| Problem Solving    | "Untuk memperbaiki performa kode ini, saya sebaiknya melakukan profiling terlebih dahulu untuk mengidentifikasi bottleneck" |
+| Memory Integration | "User sebelumnya menyebutkan preferensinya untuk Python, jadi saya akan memberikan contoh dalam Python" |
+| Self-Reflection    | "Pendekatan terakhir saya tidak bekerja dengan baik, saya sebaiknya mencoba strategi lain" |
+| Goal Setting       | "Untuk menyelesaikan tugas ini, saya perlu menetapkan acceptance criteria terlebih dahulu" |
+| Prioritization     | "Kerentanan keamanan harus ditangani sebelum menambahkan fitur baru" |
+
+> **Catatan:** Dalam kasus LLMs yang di-fine-tune untuk function-calling, proses thought bersifat opsional. Detail lebih lanjut akan dibahas di bagian Actions.
+
+
+## 🔗 Chain-of-Thought (CoT)
+
+**Chain-of-Thought (CoT)** adalah teknik prompting yang memandu model untuk **memikirkan masalah langkah demi langkah sebelum menghasilkan jawaban akhir.**
+
+Biasanya dimulai dengan:
+> *"Let's think step by step."*
+
+Pendekatan ini membantu model **bernalar secara internal**, terutama untuk tugas logis atau matematis, **tanpa berinteraksi dengan tools eksternal**.
+
+### ✅ Contoh (CoT)
+```
+Question: Berapa 15% dari 200?
+Thought: Mari berpikir langkah demi langkah. 10% dari 200 adalah 20, dan 5% dari 200 adalah 10, jadi 15% adalah 30.
+Answer: 30
+```
+
+
+## ⚙️ ReAct: Reasoning + Acting
+
+Metode utama adalah **pendekatan ReAct**, yang menggabungkan "Reasoning" (Think) dengan "Acting" (Act).
+
+ReAct adalah teknik prompting yang mendorong model untuk berpikir langkah demi langkah dan menyisipkan actions (seperti menggunakan tools) di antara langkah reasoning.
+
+Ini memungkinkan agent menyelesaikan tugas multi-step yang kompleks dengan bergantian antara:
+- Thought: reasoning internal
+- Action: penggunaan tool
+- Observation: menerima output tool
+
+### 🔄 Contoh (ReAct)
+```
+Thought: Saya perlu mencari cuaca terbaru di Paris.
+Action: Search["cuaca di Paris"]
+Observation: Suhunya 18°C dan berawan.
+Thought: Sekarang saya tahu cuacanya...
+Action: Finish["Suhunya 18°C dan berawan di Paris."]
+```
+
+<figure>
+  <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+  <figcaption>
+    (d) adalah contoh pendekatan ReAct, ketika kita memberi prompt "Let's think step by step", dan model bertindak di antara thoughts.
+  </figcaption>
+</figure>
+
+
+## 🔁 Perbandingan: ReAct vs. CoT
+
+| Fitur              | Chain-of-Thought (CoT)      | ReAct                               |
+|----------------------|-----------------------------|-------------------------------------|
+| Logika step-by-step   | ✅ Ya                      | ✅ Ya                              |
+| Tools eksternal       | ❌ Tidak                       | ✅ Ya (Actions + Observations)     |
+| Paling cocok untuk      | Logika, matematika, tugas internal | Pencarian informasi, tugas multi-step dinamis |
+
+> [!TIP]
+> Model terbaru seperti **Deepseek R1** atau **OpenAI’s o1** di-fine-tune untuk *berpikir sebelum menjawab*. Mereka menggunakan token terstruktur seperti `<think>` dan `</think>` untuk memisahkan fase reasoning dari jawaban akhir secara eksplisit.
+>
+> Berbeda dari ReAct atau CoT, yang termasuk strategi prompting, ini adalah **teknik di level training**, ketika model belajar berpikir melalui contoh.

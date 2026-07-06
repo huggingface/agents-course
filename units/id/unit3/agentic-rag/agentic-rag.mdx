@@ -1,0 +1,28 @@
+# Agentic Retrieval Augmented Generation (RAG)
+
+Di unit ini, kita akan melihat bagaimana Agentic RAG bisa membantu Alfred menyiapkan gala yang luar biasa.
+
+> [!TIP]
+> Kita sudah membahas Retrieval Augmented Generation (RAG) dan agentic RAG di unit sebelumnya, jadi silakan lanjut ke bagian berikutnya kalau kamu sudah familiar dengan konsepnya.
+
+LLM dilatih pada kumpulan data yang sangat besar untuk mempelajari pengetahuan umum.
+Namun, pengetahuan dunia yang dimiliki LLM tidak selalu relevan atau up-to-date.
+**RAG menyelesaikan masalah ini dengan mencari dan mengambil informasi yang relevan dari datamu, lalu meneruskannya ke LLM.**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Sekarang, pikirkan cara kerja Alfred:
+
+1. Kita meminta Alfred membantu merencanakan sebuah gala
+2. Alfred perlu menemukan berita terbaru dan informasi cuaca
+3. Alfred perlu menyusun dan mencari informasi tamu
+
+Sama seperti Alfred perlu mencari informasi rumah tanggamu agar bisa membantu, setiap agent membutuhkan cara untuk menemukan dan memahami data yang relevan.
+**Agentic RAG adalah cara yang powerful untuk menggunakan agents dalam menjawab pertanyaan tentang datamu.** Kita bisa memberikan berbagai tools kepada Alfred untuk membantunya menjawab pertanyaan.
+Namun, alih-alih otomatis menjawab pertanyaan hanya berdasarkan dokumen, Alfred bisa memutuskan untuk menggunakan tool atau alur lain untuk menjawab pertanyaan tersebut.
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+Mari kita mulai **membangun workflow agentic RAG kita!**
+
+Pertama, kita akan membuat tool RAG untuk mengambil detail terbaru tentang para undangan. Berikutnya, kita akan mengembangkan tools untuk web search, update cuaca, dan statistik unduhan model Hugging Face Hub. Terakhir, kita akan mengintegrasikan semuanya untuk menghidupkan agent agentic RAG kita!

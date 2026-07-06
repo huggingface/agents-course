@@ -1,0 +1,73 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Menulis actions sebagai potongan kode atau blob JSON
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">notebook ini</a>, yang bisa kamu jalankan menggunakan Google Colab.
+
+Tool Calling Agents adalah tipe agent kedua yang tersedia di `smolagents`. Berbeda dari Code Agents yang memakai potongan Python, agents ini **menggunakan kemampuan tool-calling bawaan dari provider LLM** untuk menghasilkan tool calls sebagai **struktur JSON**. Ini adalah pendekatan standar yang digunakan OpenAI, Anthropic, dan banyak provider lain.
+
+Mari lihat contohnya. Saat Alfred ingin mencari layanan katering dan ide pesta, `CodeAgent` akan menghasilkan dan menjalankan kode Python seperti ini:
+
+```python
+for query in [
+    "Best catering services in Gotham City",
+    "Party theme ideas for superheroes"
+]:
+    print(web_search(f"Search for: {query}"))
+```
+
+Sebaliknya, `ToolCallingAgent` akan membuat struktur JSON:
+
+```python
+[
+    {"name": "web_search", "arguments": "Best catering services in Gotham City"},
+    {"name": "web_search", "arguments": "Party theme ideas for superheroes"}
+]
+```
+
+Blob JSON ini kemudian digunakan untuk mengeksekusi tool calls.
+
+Walau `smolagents` terutama berfokus pada `CodeAgents` karena [secara umum performanya lebih baik](https://huggingface.co/papers/2402.01030), `ToolCallingAgents` bisa efektif untuk sistem sederhana yang tidak membutuhkan penanganan variable atau tool calls yang kompleks.
+
+![Actions dalam Code vs JSON](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+## Bagaimana Cara Kerja Tool Calling Agents?
+
+Tool Calling Agents mengikuti workflow multi-step yang sama seperti Code Agents (lihat [bagian sebelumnya](./code_agents) untuk detailnya).
+
+Perbedaan utamanya ada pada **cara mereka menyusun actions**: alih-alih executable code, agents ini **menghasilkan JSON objects yang menentukan nama tool dan arguments**. Sistem kemudian **mem-parsing instruksi ini** untuk mengeksekusi tools yang sesuai.
+
+## Contoh: Menjalankan Tool Calling Agent
+
+Mari kembali ke contoh sebelumnya saat Alfred mulai menyiapkan pesta, tetapi kali ini kita memakai `ToolCallingAgent` untuk menonjolkan perbedaannya. Kita akan membangun agent yang bisa mencari di web menggunakan DuckDuckGo, sama seperti contoh Code Agent kita. Satu-satunya perbedaan adalah tipe agent. Framework menangani sisanya:
+
+```python
+from smolagents import ToolCallingAgent, WebSearchTool, InferenceClientModel
+
+agent = ToolCallingAgent(tools=[WebSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+Saat memeriksa trace agent, alih-alih melihat `Executing parsed code:`, kamu akan melihat sesuatu seperti:
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "best music recommendations for a party at Wayne's         │
+│ mansion"}                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+Agent menghasilkan structured tool call yang diproses sistem untuk menghasilkan output, bukan mengeksekusi kode secara langsung seperti `CodeAgent`.
+
+Sekarang kita sudah memahami kedua tipe agent, kita bisa memilih yang paling sesuai dengan kebutuhan. Mari lanjut menjelajahi `smolagents` agar pesta Alfred sukses! 🎉
+
+## Referensi
+
+- [Dokumentasi ToolCallingAgent](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - Dokumentasi resmi untuk ToolCallingAgent

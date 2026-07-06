@@ -1,0 +1,66 @@
+# Pengantar `smolagents`
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/thumbnail.jpg" alt="Thumbnail Unit 2.1"/>
+
+Selamat datang di modul ini. Kamu akan belajar **cara membangun agents yang efektif** menggunakan library [`smolagents`](https://github.com/huggingface/smolagents), sebuah framework ringan untuk membuat AI agents yang mumpuni.
+
+`smolagents` adalah library Hugging Face. Jadi, kami akan sangat menghargai dukunganmu dengan memberi **star** pada [`repository`](https://github.com/huggingface/smolagents) smolagents:
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/star_smolagents.gif" alt="memberi star pada smolagents"/>
+
+## Ringkasan Modul
+
+Modul ini memberi ringkasan konsep utama dan strategi praktis untuk membangun intelligent agents menggunakan `smolagents`.
+
+Dengan banyaknya open-source framework yang tersedia, kita perlu memahami komponen dan kemampuan yang membuat `smolagents` berguna, sekaligus tahu kapan solusi lain mungkin lebih cocok.
+
+Kita akan membahas tipe agent penting, termasuk code agents untuk tugas software development, tool calling agents untuk membuat workflow modular berbasis function, dan retrieval agents yang mengakses serta menyintesis informasi.
+
+Kita juga akan membahas orkestrasi beberapa agents, serta integrasi kemampuan vision dan web browsing. Dua hal ini membuka kemungkinan baru untuk aplikasi yang dinamis dan peka konteks.
+
+Di unit ini, Alfred, agent dari Unit 1, kembali lagi. Kali ini, ia menggunakan framework `smolagents` untuk proses internalnya. Bersama-sama, kita akan mempelajari konsep utama di balik framework ini saat Alfred menangani berbagai tugas. Alfred sedang mengatur pesta di Wayne Manor ketika keluarga Wayne 🦇 sedang pergi, dan pekerjaannya banyak. Ikuti perjalanannya dan lihat bagaimana ia menyelesaikan tugas-tugas itu dengan `smolagents`!
+
+> [!TIP]
+> Di unit ini, kamu akan belajar membangun AI agents dengan library `smolagents`. Agents buatanmu akan bisa mencari data, mengeksekusi kode, dan berinteraksi dengan halaman web. Kamu juga akan belajar menggabungkan beberapa agents untuk membuat sistem yang lebih kuat.
+
+![Alfred sang agent](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg)
+
+## Daftar Isi
+
+Di unit `smolagents` ini, kita akan membahas:
+
+### 1️⃣ [Mengapa Menggunakan smolagents](./why_use_smolagents)
+
+`smolagents` adalah salah satu dari banyak open-source agent frameworks yang tersedia untuk pengembangan aplikasi. Opsi lain mencakup `LlamaIndex` dan `LangGraph`, yang juga dibahas di modul lain dalam kursus ini. `smolagents` menawarkan beberapa fitur utama yang bisa membuatnya cocok untuk use case tertentu, tapi kita tetap perlu mempertimbangkan semua opsi saat memilih framework. Kita akan melihat kelebihan dan kekurangan `smolagents`, supaya kamu bisa mengambil keputusan berdasarkan kebutuhan project-mu.
+
+### 2️⃣ [CodeAgents](./code_agents)
+
+`CodeAgents` adalah tipe agent utama di `smolagents`. Alih-alih menghasilkan JSON atau teks, agents ini menghasilkan kode Python untuk melakukan actions. Modul ini membahas tujuan, fungsi, dan cara kerjanya, disertai contoh praktik langsung untuk menunjukkan kemampuannya.
+
+### 3️⃣ [ToolCallingAgents](./tool_calling_agents)
+
+`ToolCallingAgents` adalah tipe agent kedua yang didukung oleh `smolagents`. Berbeda dari `CodeAgents`, yang menghasilkan kode Python, agents ini bergantung pada blob JSON/teks yang harus di-parse dan ditafsirkan oleh sistem untuk mengeksekusi actions. Modul ini membahas fungsinya, perbedaan utamanya dari `CodeAgents`, dan menyediakan contoh untuk menggambarkan penggunaannya.
+
+### 4️⃣ [Tools](./tools)
+
+Seperti yang kita lihat di Unit 1, tools adalah functions yang bisa digunakan LLM di dalam agentic system, dan tools menjadi blok penyusun utama perilaku agent. Modul ini membahas cara membuat tools, strukturnya, dan beberapa metode implementasi menggunakan class `Tool` atau decorator `@tool`. Kamu juga akan mempelajari default toolbox, cara berbagi tools dengan komunitas, dan cara memuat tools kontribusi komunitas untuk digunakan di agents milikmu.
+
+### 5️⃣ [Retrieval Agents](./retrieval_agents)
+
+Retrieval agents memberi model akses ke knowledge bases, sehingga model bisa mencari, menyintesis, dan mengambil informasi dari berbagai sumber. Agents ini menggunakan vector stores untuk retrieval yang efisien dan menerapkan pola **Retrieval-Augmented Generation (RAG)**. Agents seperti ini sangat berguna untuk mengintegrasikan web search dengan custom knowledge bases sambil menjaga konteks percakapan melalui memory systems. Modul ini membahas strategi implementasi, termasuk fallback mechanisms untuk retrieval informasi yang lebih andal.
+
+### 6️⃣ [Multi-Agent Systems](./multi_agent_systems)
+
+Mengorkestrasi beberapa agents secara efektif adalah bagian penting dalam membangun multi-agent systems yang kuat. Dengan menggabungkan agents yang memiliki kemampuan berbeda, seperti web search agent dan code execution agent, kamu bisa membuat solusi yang lebih canggih. Modul ini berfokus pada perancangan, implementasi, dan pengelolaan multi-agent systems untuk meningkatkan efisiensi dan reliabilitas.
+
+### 7️⃣ [Vision dan Browser agents](./vision_agents)
+
+Vision agents memperluas kemampuan agent tradisional dengan menyertakan **Vision-Language Models (VLMs)**, sehingga agents bisa memproses dan menafsirkan informasi visual. Modul ini membahas cara merancang dan mengintegrasikan agents berbasis VLM, yang memungkinkan fungsi seperti image-based reasoning, analisis data visual, dan interaksi multimodal. Kita juga akan menggunakan vision agents untuk membangun browser agent yang bisa menjelajahi web dan mengekstrak informasi darinya.
+
+## Referensi
+
+- [Dokumentasi smolagents](https://huggingface.co/docs/smolagents) - Dokumentasi resmi untuk library smolagents
+- [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - Paper riset tentang arsitektur agent
+- [Agent Guidelines](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - Praktik terbaik untuk membangun agents yang andal
+- [LangGraph Agents](https://langchain-ai.github.io/langgraph/) - Contoh tambahan implementasi agent
+- [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling) - Memahami function calling di LLMs
+- [RAG Best Practices](https://www.pinecone.io/learn/retrieval-augmented-generation/) - Panduan untuk menerapkan RAG yang efektif

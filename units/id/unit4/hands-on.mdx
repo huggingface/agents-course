@@ -1,0 +1,52 @@
+# Praktik Langsung
+
+Sekarang setelah kamu siap mempelajari pembuatan agent akhir secara lebih mendalam, mari kita lihat cara mengirimkannya untuk direview.
+
+## Dataset
+
+Dataset yang digunakan di leaderboard ini terdiri dari 20 pertanyaan yang diambil dari pertanyaan level 1 pada **validation** set GAIA.
+
+Pertanyaan yang dipilih difilter berdasarkan jumlah tools dan langkah yang dibutuhkan untuk menjawabnya.
+
+Berdasarkan kondisi benchmark GAIA saat ini, kami rasa meminta kamu menargetkan 30% pada pertanyaan level 1 adalah pengujian yang adil.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="Status GAIA saat ini!" />
+
+## Prosesnya
+
+Sekarang pertanyaan besar yang mungkin ada di pikiranmu adalah: "Bagaimana cara mulai mengirimkan jawaban?"
+
+Untuk Unit ini, kami membuat API yang memungkinkan kamu mengambil pertanyaan dan mengirim jawaban untuk dinilai.
+Berikut ringkasan route-nya (lihat [dokumentasi live](https://agents-course-unit4-scoring.hf.space/docs) untuk detail interaktif):
+
+* **`GET /questions`**: Mengambil daftar lengkap pertanyaan evaluasi yang sudah difilter.
+* **`GET /random-question`**: Mengambil satu pertanyaan acak dari daftar.
+* **`GET /files/{task_id}`**: Mengunduh file tertentu yang terkait dengan task ID yang diberikan.
+* **`POST /submit`**: Mengirim jawaban agent, menghitung skor, dan memperbarui leaderboard.
+
+Fungsi submit akan membandingkan jawaban dengan ground truth secara **EXACT MATCH**, jadi susun prompt dengan baik! Tim GAIA membagikan contoh prompting untuk agent-mu [di sini](https://huggingface.co/spaces/gaia-benchmark/leaderboard) (untuk keperluan kursus ini, pastikan kamu tidak menyertakan teks "FINAL ANSWER" dalam submission, cukup buat agent menjawab dengan jawabannya saja tanpa tambahan lain).
+
+🎨 **Sesuaikan Template dengan Gayamu!**
+
+Untuk mendemonstrasikan proses berinteraksi dengan API, kami menyertakan [template dasar](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) sebagai titik awal.
+
+Silakan, dan bahkan **sangat dianjurkan**, untuk mengubah, menambahkan, atau merombaknya sepenuhnya! Modifikasi dengan cara apa pun yang paling sesuai dengan pendekatan dan kreativitasmu.
+
+Untuk mengirimkan template ini, ada 3 hal yang dihitung dan dibutuhkan oleh API:
+
+* **Username:** Username Hugging Face kamu (di sini diperoleh melalui login Gradio), yang digunakan untuk mengidentifikasi submission-mu.
+* **Code Link (`agent_code`):** URL yang mengarah ke kode Hugging Face Space-mu (`.../tree/main`) untuk keperluan verifikasi, jadi pastikan space-mu tetap publik.
+* **Answers (`answers`):** Daftar respons (`{"task_id": ..., "submitted_answer": ...}`) yang dihasilkan oleh Agent-mu untuk dinilai.
+
+Karena itu, kami mendorong kamu untuk memulai dengan menduplikasi [template](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) ini ke profil Hugging Face-mu sendiri.
+
+🏆 Lihat leaderboard [di sini](https://huggingface.co/spaces/agents-course/Students_leaderboard)
+
+*Catatan singkat: Leaderboard ini dibuat untuk bersenang-senang! Kami tahu skor bisa dikirim tanpa verifikasi penuh. Jika kami melihat terlalu banyak skor tinggi tanpa link publik yang mendukungnya, kami mungkin perlu meninjau, menyesuaikan, atau menghapus beberapa entri agar leaderboard tetap bermanfaat.*
+Leaderboard akan menampilkan link ke basis kode space-mu. Karena leaderboard ini hanya untuk peserta, pastikan space-mu tetap publik jika kamu mendapatkan skor yang kamu banggakan.
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>

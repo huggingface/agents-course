@@ -1,0 +1,48 @@
+# Mari Fine-Tune Modelmu untuk Function Calling
+
+Sekarang kita siap melakukan fine-tuning model pertama kita untuk Function Calling 🔥.
+
+## Bagaimana kita melatih model untuk Function Calling?
+
+> Jawaban: kita butuh **data**
+
+Proses training model bisa dibagi menjadi 3 langkah:
+
+1. **Model menjalani pre-training dengan data dalam jumlah besar**. Output dari langkah ini adalah **pre-trained model**. Contohnya, [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b). Ini adalah base model yang hanya tahu cara **memprediksi token berikutnya tanpa kemampuan instruction following yang kuat**.
+
+2. Agar berguna dalam konteks chat, model lalu perlu di-**fine-tune** supaya bisa mengikuti instruksi. Pada langkah ini, model bisa dilatih oleh pembuat model, komunitas open-source, kamu, atau siapa saja. Misalnya, [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) adalah instruction-tuned model dari Google Team di balik proyek Gemma.
+
+3. Setelah itu, model bisa di-**aligned** dengan preferensi pembuatnya. Contohnya, model chat customer service yang tidak boleh bersikap kasar kepada pelanggan.
+
+Biasanya produk lengkap seperti Gemini atau Mistral **melewati ketiga langkah tersebut**, sedangkan model yang kamu temukan di Hugging Face mungkin baru menyelesaikan satu atau beberapa langkah training ini.
+
+Dalam tutorial ini, kita akan membuat model Function Calling berbasis [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it). Kita memilih model fine-tuned [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it), bukan base model [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b), karena model fine-tuned sudah lebih cocok untuk use case kita.
+
+Kalau mulai dari pre-trained model, kita **butuh training lebih banyak agar model belajar instruction following, chat, dan Function Calling**.
+
+Dengan memulai dari instruction-tuned model, **kita mengurangi jumlah informasi baru yang perlu dipelajari model**.
+
+## LoRA (Low-Rank Adaptation of Large Language Models)
+
+LoRA adalah teknik training populer dan ringan yang **mengurangi jumlah trainable parameters**.
+
+Cara kerjanya adalah **menyisipkan sejumlah kecil weights baru sebagai adapter ke model yang akan dilatih**. Training dengan LoRA jadi jauh lebih cepat, lebih hemat memori, dan menghasilkan model weights yang lebih kecil, biasanya beberapa ratus MB, sehingga lebih mudah disimpan dan dibagikan.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="Inference LoRA" width="50%"/>
+
+LoRA bekerja dengan menambahkan pasangan matriks rank decomposition ke layer Transformer, biasanya berfokus pada linear layers. Selama training, kita akan "freeze" bagian model lainnya dan hanya memperbarui weights dari adapter yang baru ditambahkan.
+
+Dengan cara ini, jumlah **parameters** yang perlu kita latih turun banyak karena kita hanya perlu memperbarui weights milik adapter.
+
+Saat inference, input diteruskan ke adapter dan base model. Alternatifnya, adapter weights ini bisa digabungkan dengan base model, sehingga tidak ada tambahan latency overhead.
+
+LoRA berguna untuk mengadaptasi language model yang **besar** ke tugas atau domain tertentu sambil menjaga kebutuhan resource tetap masuk akal. Teknik ini membantu mengurangi memori yang **dibutuhkan** untuk melatih model.
+
+Kalau ingin mempelajari cara kerja LoRA lebih jauh, cek [tutorial ini](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt).
+
+## Fine-Tuning a Model for Function-Calling
+
+Kamu bisa mengakses notebook tutorialnya 👉 [di sini](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb).
+
+Lalu, klik [![Buka di Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) agar kamu bisa menjalankannya di Colab Notebook.
+

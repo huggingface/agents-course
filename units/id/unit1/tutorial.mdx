@@ -1,0 +1,243 @@
+# Mari Membuat Agent Pertama Kita Menggunakan smolagents
+
+Di bagian terakhir, kita belajar bagaimana membuat Agents dari nol menggunakan kode Python, dan kita **melihat betapa melelahkannya proses itu**. Untungnya, banyak library Agent menyederhanakan pekerjaan ini dengan **menangani sebagian besar pekerjaan berat untukmu**.
+
+Dalam tutorial ini, **kamu akan membuat Agent pertamamu** yang mampu melakukan actions seperti image generation, web search, pengecekan time zone, dan masih banyak lagi!
+
+Kamu juga akan mempublikasikan agent-mu **di Hugging Face Space agar bisa dibagikan kepada teman dan kolega**.
+
+Mari kita mulai!
+
+
+## Apa itu smolagents?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/smolagents.png" alt="smolagents"/>
+
+Untuk membuat Agent ini, kita akan menggunakan `smolagents`, library yang **menyediakan framework untuk mengembangkan agents-mu dengan mudah**.
+
+Library ringan ini dirancang agar sederhana, tetapi ia mengabstraksi banyak kompleksitas dalam membangun Agent, sehingga kamu bisa fokus mendesain perilaku agent-mu.
+
+Kita akan mendalami smolagents di Unit berikutnya. Sementara itu, kamu juga bisa membaca <a href="https://huggingface.co/blog/smolagents" target="_blank">posting blog</a> ini atau <a href="https://github.com/huggingface/smolagents" target="_blank">repository library di GitHub</a>.
+
+Singkatnya, `smolagents` adalah library yang berfokus pada **CodeAgent**, jenis agent yang melakukan **"Actions"** melalui code blocks, lalu **"Observes"** hasilnya dengan mengeksekusi kode.
+
+Berikut contoh dari apa yang akan kita bangun!
+
+Kita menyediakan **Image generation tool** untuk agent dan memintanya menghasilkan gambar kucing.
+
+Agent di dalam `smolagents` akan memiliki **perilaku yang sama dengan agent kustom yang kita bangun sebelumnya**: ia akan **think, act, dan observe dalam siklus** sampai mencapai jawaban akhir:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="Pemutar video YouTube" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+Seru, kan?
+
+## Mari bangun Agent kita!
+
+Untuk memulai, duplikasi Space ini: <a href="https://huggingface.co/spaces/agents-course/First_agent_template" target="_blank">https://huggingface.co/spaces/agents-course/First_agent_template</a>
+> Terima kasih kepada <a href="https://huggingface.co/m-ric" target="_blank">Aymeric</a> untuk template ini! 🙌
+
+
+Menduplikasi Space berarti **membuat salinan lokal di profilmu sendiri**:
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplikasi"/>
+
+Setelah menduplikasi Space, kamu perlu menambahkan Hugging Face API token agar agent-mu dapat mengakses model API:
+
+1. Pertama, dapatkan Hugging Face token dari [https://hf.co/settings/tokens](https://hf.co/settings/tokens) dengan permission untuk inference, jika kamu belum memilikinya
+2. Buka Space yang sudah kamu duplikasi dan klik tab **Settings**
+3. Scroll ke bagian **Variables and Secrets** dan klik **New Secret**
+4. Buat secret dengan nama `HF_TOKEN` dan tempel token-mu sebagai nilai
+5. Klik **Save** untuk menyimpan token-mu secara aman
+
+Sepanjang pelajaran ini, satu-satunya file yang perlu kamu modifikasi adalah **"app.py"** (yang saat ini belum lengkap). Kamu bisa melihat [versi asli di template](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py). Untuk menemukan file milikmu, buka salinan Space-mu, lalu klik tab `Files` dan klik `app.py` di daftar direktori.
+
+Mari kita uraikan kodenya bersama:
+
+- File dimulai dengan beberapa import library sederhana tetapi diperlukan
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+```
+
+Seperti dijelaskan sebelumnya, kita akan langsung menggunakan class **CodeAgent** dari **smolagents**.
+
+
+### Tools
+
+Sekarang mari masuk ke tools! Jika kamu ingin penyegaran tentang tools, jangan ragu kembali ke bagian [Tools](tools) dalam kursus ini.
+
+```python
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # penting untuk menentukan return type
+    # Pertahankan format ini untuk deskripsi tool / deskripsi args, tetapi silakan modifikasi tool-nya
+    """A tool that does nothing yet
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Buat objek timezone
+        tz = pytz.timezone(timezone)
+        # Ambil waktu saat ini di timezone tersebut
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+```
+
+
+Tools adalah hal yang kami dorong untuk kamu bangun di bagian ini! Kami memberikan dua contoh:
+
+1. **Tool dummy yang belum bekerja** dan bisa kamu modifikasi menjadi sesuatu yang berguna.
+2. **Tool yang benar-benar bekerja** untuk mengambil waktu saat ini di suatu tempat di dunia.
+
+Untuk mendefinisikan tool-mu, penting untuk:
+
+1. Memberikan tipe input dan output untuk fungsi, seperti pada `get_current_time_in_timezone(timezone: str) -> str:`
+2. **Docstring yang diformat dengan baik**. `smolagents` mengharapkan semua arguments memiliki **deskripsi tekstual di docstring**.
+
+### Agent
+
+Agent ini menggunakan [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) sebagai engine LLM. Ini model yang sangat mumpuni dan akan kita akses melalui serverless API.
+
+```python
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+
+# Kita membuat CodeAgent
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # tambahkan tools-mu di sini (jangan hapus final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates
+)
+
+GradioUI(agent).launch()
+```
+
+Agent ini masih menggunakan `InferenceClient` yang kita lihat di bagian sebelumnya, melalui class **InferenceClientModel**!
+
+Kita akan memberikan contoh yang lebih mendalam saat membahas framework ini di Unit 2. Untuk saat ini, kamu perlu fokus **menambahkan tools baru ke daftar tools** menggunakan parameter `tools` pada Agent-mu.
+
+Misalnya, kamu bisa menggunakan `DuckDuckGoSearchTool` yang diimpor pada baris pertama kode, atau memeriksa `image_generation_tool` yang di-load dari Hub pada bagian kode berikutnya.
+
+**Menambahkan tools akan memberi agent-mu kemampuan baru**, jadi coba kreatif di sini!
+
+### System Prompt
+
+System prompt agent disimpan dalam file `prompts.yaml` terpisah. File ini berisi instruksi yang telah ditentukan untuk memandu perilaku agent.
+
+Menyimpan prompts dalam file YAML memudahkan customization dan reuse di berbagai agents atau use cases.
+
+Kamu bisa mengecek [struktur file Space](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main) untuk melihat lokasi file `prompts.yaml` dan bagaimana file itu diorganisasi dalam proyek.
+
+`app.py` lengkapnya:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+from tools.final_answer import FinalAnswerTool
+
+from Gradio_UI import GradioUI
+
+# Di bawah ini adalah contoh tool yang tidak melakukan apa pun. Buat kami terkesan dengan kreativitasmu!
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # penting untuk menentukan return type
+    # Pertahankan format ini untuk deskripsi tool / deskripsi args, tetapi silakan modifikasi tool-nya
+    """A tool that does nothing yet
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Buat objek timezone
+        tz = pytz.timezone(timezone)
+        # Ambil waktu saat ini di timezone tersebut
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+
+
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+
+# Import tool dari Hub
+image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
+
+# Load system prompt dari file prompt.yaml
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # tambahkan tools-mu di sini (jangan hapus final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates # Teruskan system prompt ke CodeAgent
+)
+
+
+GradioUI(agent).launch()
+```
+
+**Tujuanmu** adalah membiasakan diri dengan Space dan Agent.
+
+Saat ini, agent dalam template **tidak menggunakan tools apa pun, jadi coba berikan beberapa tool yang sudah tersedia atau bahkan buat sendiri tools baru!**
+
+Kami menantikan output agents-mu yang luar biasa di channel Discord **#agents-course-showcase**!
+
+
+---
+Selamat, kamu sudah membangun Agent pertamamu! Jangan ragu membagikannya kepada teman dan kolega.
+
+Karena ini percobaan pertamamu, wajar jika masih ada bug atau terasa lambat. Di unit mendatang, kita akan belajar cara membangun Agents yang lebih baik.
+
+Cara terbaik untuk belajar adalah mencoba, jadi jangan ragu memperbaruinya, menambahkan lebih banyak tools, mencoba model lain, dan sebagainya.
+
+Di bagian berikutnya, kamu akan mengisi Quiz akhir dan mendapatkan sertifikatmu!

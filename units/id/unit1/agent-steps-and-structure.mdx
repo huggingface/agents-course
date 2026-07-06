@@ -1,0 +1,150 @@
+# Memahami AI Agents melalui Siklus Thought-Action-Observation
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Perencanaan Unit 1"/>
+
+Di bagian sebelumnya, kita mempelajari:
+
+- **Bagaimana tools disediakan untuk agent dalam system prompt**.
+- **Bagaimana AI agents adalah sistem yang dapat 'bernalar', merencanakan, dan berinteraksi dengan environment-nya**.
+
+Di bagian ini, **kita akan mengeksplorasi AI Agent Workflow secara lengkap**, yaitu siklus yang kita definisikan sebagai Thought-Action-Observation.
+
+Lalu, kita akan mendalami setiap langkah ini.
+
+
+## Komponen Inti
+
+Cara kerja Agents adalah siklus berkelanjutan: **thinking (Thought) → acting (Act) dan observing (Observe)**.
+
+Mari kita uraikan actions ini bersama:
+
+1. **Thought**: Bagian LLM dari Agent memutuskan langkah berikutnya.
+2. **Action:** Agent mengambil action dengan memanggil tools beserta arguments terkait.
+3. **Observation:** Model merefleksikan respons dari tool.
+
+## Siklus Thought-Action-Observation
+
+Ketiga komponen ini bekerja bersama dalam loop berkelanjutan. Menggunakan analogi dari pemrograman, agent menggunakan **while loop**: loop berlanjut sampai tujuan agent terpenuhi.
+
+Secara visual, tampilannya seperti ini:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Siklus Think, Act, Observe"/>
+
+Dalam banyak framework Agent, **aturan dan panduan disematkan langsung ke system prompt**, memastikan setiap siklus mengikuti logika yang telah didefinisikan.
+
+Dalam versi sederhana, system prompt kita mungkin terlihat seperti ini:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Siklus Think, Act, Observe"/>
+
+Di sini kita melihat bahwa dalam System Message kita mendefinisikan:
+
+- *Perilaku Agent*.
+- *Tools yang dapat diakses Agent kita*, seperti yang dijelaskan di bagian sebelumnya.
+- *Siklus Thought-Action-Observation*, yang kita masukkan ke dalam instruksi LLM.
+
+Mari ambil contoh kecil untuk memahami prosesnya sebelum mendalami setiap langkah.
+
+## Alfred, Agent cuaca
+
+Kita membuat Alfred, Weather Agent.
+
+Seorang user bertanya kepada Alfred: "Bagaimana cuaca saat ini di New York?"
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Alfred Agent"/>
+
+Tugas Alfred adalah menjawab pertanyaan ini menggunakan tool API cuaca.
+
+Beginilah siklusnya berjalan:
+
+### Thought
+
+**Reasoning Internal:**
+
+Saat menerima pertanyaan, dialog internal Alfred mungkin seperti ini:
+
+*"User membutuhkan informasi cuaca saat ini untuk New York. Saya punya akses ke tool yang mengambil data cuaca. Pertama, saya perlu memanggil API cuaca untuk mendapatkan detail terbaru."*
+
+Langkah ini menunjukkan agent memecah masalah menjadi beberapa tahap: pertama, mengumpulkan data yang diperlukan.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Alfred Agent"/>
+
+### Action
+
+**Penggunaan Tool:**
+
+Berdasarkan reasoning-nya dan fakta bahwa Alfred mengetahui tool `get_weather`, Alfred menyiapkan perintah berformat JSON yang memanggil tool API cuaca. Misalnya, action pertamanya bisa berupa:
+
+Thought: Saya perlu mengecek cuaca saat ini untuk New York.
+
+```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+```
+
+Di sini, action secara jelas menentukan tool mana yang akan dipanggil (misalnya, get_weather) dan parameter apa yang akan diberikan ("location": "New York").
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
+
+### Observation
+
+**Feedback dari Environment:**
+
+Setelah tool call, Alfred menerima observation. Ini bisa berupa data cuaca mentah dari API seperti:
+
+*"Cuaca saat ini di New York: berawan sebagian, 15°C, kelembapan 60%."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Alfred Agent"/>
+
+Observation ini kemudian ditambahkan ke prompt sebagai konteks tambahan. Ia berfungsi sebagai feedback dunia nyata, mengonfirmasi apakah action berhasil dan memberikan detail yang dibutuhkan.
+
+
+### Thought yang diperbarui
+
+**Refleksi:**
+
+Dengan observation di tangan, Alfred memperbarui reasoning internalnya:
+
+*"Sekarang saya punya data cuaca untuk New York, saya bisa menyusun jawaban untuk user."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Alfred Agent"/>
+
+
+### Action Akhir
+
+Alfred kemudian menghasilkan respons akhir dengan format yang sudah kita instruksikan:
+
+Thought: Sekarang saya punya data cuaca. Cuaca saat ini di New York berawan sebagian dengan suhu 15°C dan kelembapan 60%.
+
+Final answer : Cuaca saat ini di New York berawan sebagian dengan suhu 15°C dan kelembapan 60%.
+
+Action akhir ini mengirim jawaban kembali ke user, menutup loop.
+
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Alfred Agent"/>
+
+
+Yang kita lihat dalam contoh ini:
+
+- **Agents beriterasi melalui loop sampai tujuan terpenuhi:**
+
+**Proses Alfred bersifat siklis**. Ia dimulai dengan thought, lalu bertindak dengan memanggil tool, dan akhirnya mengamati hasilnya. Jika observation menunjukkan error atau data yang belum lengkap, Alfred dapat masuk kembali ke siklus untuk memperbaiki pendekatannya.
+
+- **Integrasi Tool:**
+
+Kemampuan memanggil tool (seperti API cuaca) memungkinkan Alfred bergerak **melampaui pengetahuan statis dan mengambil data real-time**, aspek penting dari banyak AI Agents.
+
+- **Adaptasi Dinamis:**
+
+Setiap siklus memungkinkan agent memasukkan informasi baru (observations) ke reasoning-nya (thought), memastikan jawaban akhir memiliki informasi yang baik dan akurat.
+
+Contoh ini menunjukkan konsep inti di balik *ReAct cycle* (konsep yang akan kita kembangkan di bagian berikutnya): **interaksi Thought, Action, dan Observation memberdayakan AI agents untuk menyelesaikan tugas kompleks secara iteratif**.
+
+Dengan memahami dan menerapkan prinsip-prinsip ini, kamu dapat merancang agents yang tidak hanya bernalar tentang tugasnya, tetapi juga **menggunakan tools eksternal secara efektif untuk menyelesaikannya**, sambil terus menyempurnakan output berdasarkan feedback dari environment.
+
+---
+
+Sekarang mari kita dalami Thought, Action, Observation sebagai langkah-langkah individual dalam proses ini.
