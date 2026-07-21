@@ -1,7 +1,9 @@
 name: Upload PR Documentation
 
+# Hugging Face doc-builder requires workflow_run to publish PR docs after the
+# untrusted PR build finishes. Only runs when that build succeeded.
 on:
-  workflow_run:
+  workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows: ["Build PR Documentation"]
     types:
       - completed
@@ -12,9 +14,9 @@ permissions:
   deployments: write
   pull-requests: write
 
-
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: huggingface/doc-builder/.github/workflows/upload_pr_documentation.yml@9ad2de8582b56c017cb530c1165116d40433f1c6  # main
     with:
       package_name: agents-course

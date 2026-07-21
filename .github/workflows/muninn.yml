@@ -1,0 +1,91 @@
+# Muninn all-in-one security scan. Findings are published to code scanning and
+# PR comments.
+#
+# Gate severity (fail-on) lives in this workflow — not in muninn.yml.
+# muninn.yml holds scanner enablement and suppressions only.
+#
+# On pull_request, muninn.yml is loaded from the trusted base SHA so a PR
+# cannot expand suppressions (or disable scanners) by editing the head copy.
+# Bootstrap: if base has no muninn.yml yet, fall back to the head checkout.
+name: Security / Muninn
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  muninn:
+    name: Muninn
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Checkout trusted Muninn suppressions (base SHA)
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted-muninn-policy
+          sparse-checkout: |
+            muninn.yml
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Resolve Muninn config path
+        id: policy
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # Config must be workspace-relative: the Muninn action runs in Docker
+          # with only GITHUB_WORKSPACE mounted (RUNNER_TEMP / host abs paths fail).
+          trusted="trusted-muninn-policy/muninn.yml"
+          trusted_cfg=".muninn-trusted.yml"
+          head_cfg="muninn.yml"
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -f "$trusted" ]; then
+            cp "$trusted" "$trusted_cfg"
+            rm -rf trusted-muninn-policy
+            echo "Using trusted base muninn.yml (suppressions) from ${BASE_SHA}"
+            echo "config=${trusted_cfg}" >> "$GITHUB_OUTPUT"
+          elif [ -f "$head_cfg" ]; then
+            echo "Using workspace muninn.yml (push/schedule or bootstrap: base has no file yet)"
+            echo "config=${head_cfg}" >> "$GITHUB_OUTPUT"
+          else
+            echo "No muninn.yml found; Muninn will use built-in defaults" >&2
+            echo "config=muninn.yml" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Muninn
+        id: muninn
+        # zizmor: ignore[github_action_from_unverified_creator_used]
+        uses: skaldlab/muninn@365628a795478e870417bf9e395a0ecc63685442 # v0.3.5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Gate severity is owned by this workflow (not muninn.yml).
+          fail-on: info
+          format: sarif,comment
+          config: ${{ steps.policy.outputs.config }}
+
+      - name: Upload SARIF
+        if: always() && hashFiles('muninn.sarif') != ''
+        uses: github/codeql-action/upload-sarif@99df26d4f13ea111d4ec1a7dddef6063f76b97e9 # v4
+        with:
+          sarif_file: muninn.sarif
