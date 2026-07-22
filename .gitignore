@@ -177,3 +177,8 @@ cython_debug/
 notebooks/unit2/llama-index/data
 notebooks/unit2/llama-index/alfred_chroma_db
 .DS_Store
+
+# Muninn local scan artifacts
+muninn.json
+muninn.sarif
+.muninn-trusted.yml

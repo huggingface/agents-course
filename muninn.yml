@@ -1,0 +1,36 @@
+# Scanner enablement and suppressions only. Gate severity (fail-on) is set in
+# .github/workflows/muninn.yml so the CI check and allowlist stay separate.
+
+version: 1
+
+scanners:
+  gitleaks:
+    enabled: true
+  zizmor:
+    enabled: true
+  actionlint:
+    enabled: true
+  poutine:
+    enabled: true
+  semgrep:
+    enabled: true
+    rulesets:
+      - p/security-audit
+      - p/secrets
+  osv-scanner:
+    enabled: true
+  trivy:
+    enabled: true
+    ignore-unfixed: true
+  checkov:
+    enabled: true
+
+suppressions:
+  # skaldlab/muninn is this project's security scanner; pinned by commit SHA.
+  # Marketplace publisher verification is pending.
+  - fingerprint: 8116a80cfea481ae
+    reason: >
+      Skald Lab Muninn is this repository's security scanner, pinned by commit
+      SHA; GitHub Marketplace creator verification is pending.
+      (.github/workflows/muninn.yml)
+    expires: 2027-01-21T00:00:00Z
