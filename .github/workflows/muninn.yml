@@ -76,7 +76,7 @@ jobs:
       - name: Run Muninn
         id: muninn
         # zizmor: ignore[github_action_from_unverified_creator_used]
-        uses: skaldlab/muninn@365628a795478e870417bf9e395a0ecc63685442 # v0.3.5
+        uses: skaldlab/muninn@daf98872b5748d015ed5bd828296175f6bc0115d # v0.3.6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           # Gate severity is owned by this workflow (not muninn.yml).
