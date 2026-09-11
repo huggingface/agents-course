@@ -1,0 +1,118 @@
+# Teste seu entendimento sobre LangGraph
+
+Vamos avaliar o que você aprendeu sobre `LangGraph` com um quiz rápido! Isso ajuda a reforçar os conceitos vistos até aqui.
+
+Este quiz é opcional e não possui nota.
+
+### Q1: Qual é o objetivo principal do LangGraph?
+Escolha a afirmação que melhor descreve o papel do LangGraph.
+
+<Question
+choices={[
+  {
+    text: "A framework to build control flows for applications containing LLMs",
+    explain: "LangGraph is specifically designed to help build and manage the control flow of applications that use LLMs.",
+    correct: true
+  },
+  {
+    text: "A library that provides interfaces to interact with different LLM models",
+    explain: "This better describes LangChain's role, which provides standard interfaces for model interaction. LangGraph focuses on control flow.",
+  },
+  {
+    text: "An Agent library for tool calling",
+    explain: "While LangGraph works with agents, the main purpose of langGraph is 'Ochestration'.",
+  }
+]}
+/>
+
+---
+
+### Q2: No equilíbrio “Controle x Liberdade”, onde o LangGraph se posiciona?
+Qual afirmação melhor caracteriza a abordagem do LangGraph ao projetar agentes?
+
+<Question
+choices={[
+  {
+    text: "LangGraph maximizes freedom, allowing LLMs to make all decisions independently",
+    explain: "LangGraph actually focuses more on control than freedom, providing structure for LLM workflows.",
+  },
+  {
+    text: "LangGraph provides strong control over execution flow while still leveraging LLM capabilities for decision making",
+    explain: "LangGraph shines when you need control over your agent's execution, providing predictable behavior through structured workflows.",
+    correct: true
+  },
+]}
+/>
+
+---
+
+### Q3: Qual é o papel do State no LangGraph?
+Selecione a descrição mais precisa.
+
+<Question
+choices={[
+  {
+    text: "State is the latest generation from the LLM",
+    explain: "State is a user-defined class in LangGraph, not LLM generated. It's fields are user defined, the values can be LLM filled",
+  },
+  {
+    text: "State is only used to track errors during execution",
+    explain: "State has a much broader purpose than just error tracking. But that's still usefull.",
+  },
+  {
+    text: "State represents the information that flows through your agent application",
+    explain: "State is central to LangGraph and contains all the information needed for decision-making between steps. You provide the fields than you need to compute and the nodes can alter the values to decide on a branching.",
+    correct: true
+  },
+  {
+    text: "State is only relevant when working with external APIs",
+    explain: "State is fundamental to all LangGraph applications, not just those working with external APIs.",
+  }
+]}
+/>
+
+### Q4: O que é uma Conditional Edge no LangGraph?
+Escolha a opção mais correta.
+
+<Question
+choices={[
+    {
+    text: "An edge that determines which node to execute next based on evaluating a condition",
+    explain: "Conditional edges allow your graph to make dynamic routing decisions based on the current state, creating branching logic in your workflow.",
+    correct: true
+  },
+  {
+    text: "An edge that is only followed when a specific condition occurs",
+    explain: "Conditional edges control the flow of the application on it's outputs, not on the input.",
+  },
+  {
+    text: "An edge that requires user confirmation before proceeding",
+    explain: "Conditional edges are based on programmatic conditions, not user interaction requirements.",
+  }
+]}
+/>
+
+---
+
+### Q5: Como o LangGraph ajuda a lidar com alucinações de LLMs?
+Escolha a melhor resposta.
+
+<Question
+choices={[
+  {
+    text: "LangGraph eliminates hallucinations entirely by limiting LLM responses",
+    explain: "No framework can completely eliminate hallucinations from LLMs, LangGraph is no exception.",
+  },
+  {
+    text: "LangGraph provides structured workflows that can validate and verify LLM outputs",
+    explain: "By creating structured workflows with validation steps, verification nodes, and error handling paths, LangGraph helps reduce the impact of hallucinations.",
+    correct: true
+  },
+  {
+    text: "LangGraph has no effect on hallucinations",
+    explain: "LangGraph's structured approach to workflows can help significantly in mitigating hallucinations at the cost of speed.",
+  }
+]}
+/>
+
+Parabéns por concluir o quiz! 🎉 Se errou alguma questão, vale revisitar as seções anteriores. Em seguida, exploraremos recursos mais avançados do LangGraph e construiremos workflows de agentes mais complexos.

@@ -1,0 +1,124 @@
+# Ações: habilitando o agente a interagir com o ambiente
+
+> [!TIP]
+> Nesta seção, exploramos as etapas concretas que um agente de IA segue para interagir com seu ambiente.
+>
+> Vamos ver como as ações são representadas (usando JSON ou código), por que a abordagem stop and parse é importante e quais tipos de agentes existem.
+
+Ações são as etapas concretas que um **agente de IA executa para interagir com o ambiente**.
+
+Seja buscando informações na web ou controlando um dispositivo físico, cada ação é uma operação deliberada feita pelo agente.
+
+Por exemplo, um agente de suporte ao cliente pode recuperar dados do usuário, sugerir artigos de ajuda ou encaminhar o caso para um atendente humano.
+
+## Tipos de ações de um agente
+
+Há vários tipos de agentes que executam ações de maneiras diferentes:
+
+| Tipo de agente          | Descrição                                                                                      |
+|-------------------------|-------------------------------------------------------------------------------------------------|
+| Agente JSON             | A ação é especificada em formato JSON.                                                          |
+| Agente de código        | O agente escreve um bloco de código que será interpretado externamente.                        |
+| Agente com function calling | Subcategoria do agente JSON, ajustada para gerar uma nova mensagem a cada ação.             |
+
+As ações em si podem servir a muitos propósitos:
+
+| Tipo de ação             | Descrição                                                                                   |
+|--------------------------|---------------------------------------------------------------------------------------------|
+| Coleta de informações    | Fazer buscas na web, consultar bancos de dados ou recuperar documentos.                     |
+| Uso de ferramentas       | Realizar chamadas de API, executar cálculos e rodar código.                                  |
+| Interação com o ambiente | Manipular interfaces digitais ou controlar dispositivos físicos.                            |
+| Comunicação              | Conversar com usuários via chat ou colaborar com outros agentes.                            |
+
+O LLM lida apenas com texto. Ele descreve a ação que deseja executar e os parâmetros que serão enviados à ferramenta. Para que o agente funcione corretamente, o LLM precisa parar de gerar tokens assim que terminar de definir completamente a ação. Isso devolve o controle para o agente e garante que o resultado seja analisável, seja em JSON, código ou formato de function calling.
+
+## A abordagem stop and parse
+
+Uma estratégia fundamental para implementar ações é a **stop and parse**. Ela garante que a saída do agente seja estruturada e previsível:
+
+1. **Geração em formato estruturado**:
+
+O agente escreve a ação desejada em um formato claro e pré-definido (JSON ou código).
+
+2. **Interromper a geração**:
+
+Assim que o texto que define a ação é emitido, **o LLM interrompe a geração de novos tokens**. Isso evita saídas extra ou equivocadas.
+
+3. **Analisar a saída**:
+
+Um parser externo lê a ação formatada, identifica qual ferramenta chamar e extrai os parâmetros necessários.
+
+Por exemplo, um agente que precisa consultar o clima pode produzir:
+
+
+```json
+Thought: I need to check the current weather for New York.
+Action :
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+O framework consegue analisar facilmente o nome da função a ser chamada e os argumentos necessários.
+
+Esse formato claro e legível por máquina reduz erros e permite que ferramentas externas processem o comando com precisão.
+
+Observação: agentes com function calling funcionam de forma semelhante, estruturando cada ação para invocar a função certa com os argumentos corretos. Vamos aprofundar nesses agentes em uma unidade futura.
+
+## Agentes de código
+
+Uma abordagem alternativa é usar *agentes de código*.  
+A ideia é: **em vez de produzir um objeto JSON simples**, o agente gera um **bloco de código executável — normalmente em uma linguagem de alto nível como Python**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Code Agents" />
+
+Essa abordagem traz várias vantagens:
+
+- **Expressividade:** Código representa naturalmente lógica complexa, com loops, condicionais e funções aninhadas, oferecendo mais flexibilidade que JSON.  
+- **Modularidade e reuso:** O código gerado pode incluir funções e módulos reutilizáveis em diferentes ações ou tarefas.  
+- **Facilidade de depuração:** Com sintaxe bem definida, erros de código costumam ser mais simples de identificar e corrigir.  
+- **Integração direta:** Agentes de código se conectam a bibliotecas e APIs externas, permitindo operações avançadas como processamento de dados ou decisões em tempo real.
+
+Lembre-se de que executar código gerado por LLM pode representar riscos de segurança, desde prompt injection até execução de código malicioso. Por isso, recomenda-se usar frameworks como o `smolagents`, que já incluem proteções padrão. Para saber mais sobre riscos e mitigação, [consulte esta seção dedicada](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution).
+
+Por exemplo, um agente encarregado de buscar informações climáticas poderia gerar este trecho em Python:
+
+```python
+# Code Agent Example: Retrieve Weather Information
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "No weather information available")
+    else:
+        return "Error: Unable to fetch weather data."
+
+# Execute the function and prepare the final answer
+result = get_weather("New York")
+final_answer = f"The current weather in New York is: {result}"
+print(final_answer)
+```
+
+Nesse exemplo, o agente:
+
+- Obtém dados climáticos **via chamada de API**,  
+- Processa a resposta,  
+- E usa `print()` para exibir o resultado final.
+
+Essa abordagem **também segue o stop and parse**, delimitando o bloco de código e sinalizando quando a execução termina (neste caso, imprimindo `final_answer`).
+
+---
+
+Vimos que as ações fazem a ponte entre o raciocínio interno do agente e sua interação com o mundo, executando tarefas claras e estruturadas — seja via JSON, código ou chamadas de função.
+
+Essa execução cuidadosa garante que cada ação seja precisa e pronta para processamento externo por meio do stop and parse. Na próxima seção, vamos explorar Observações para entender como os agentes capturam e integram feedback do ambiente.
+
+Depois disso, estaremos **finalmente prontos para construir nosso primeiro agente!**
+
+After this, we will **finally be ready to build our first Agent!**
+
+
+
+

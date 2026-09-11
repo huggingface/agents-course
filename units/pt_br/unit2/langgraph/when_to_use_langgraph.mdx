@@ -1,0 +1,66 @@
+# O que é o `LangGraph`?
+
+`LangGraph` é um framework desenvolvido pela [LangChain](https://www.langchain.com/) **para controlar o fluxo de aplicações que integram um LLM**.
+
+## `LangGraph` é diferente de `LangChain`?
+
+LangChain fornece interfaces padrão para interagir com modelos, fazer chamadas a ferramentas e realizar buscas.  
+As classes do LangChain **podem** ser usadas no LangGraph, mas não é obrigatório.
+
+Os pacotes são distintos e funcionam isoladamente — embora, na prática, você encontre muitos exemplos combinando ambos.
+
+## Quando devo usar o `LangGraph`?
+### Controle x liberdade
+
+Ao projetar aplicações de IA, existe um equilíbrio entre **controle** e **liberdade**:
+
+- **Liberdade** dá espaço para o LLM ser criativo e resolver problemas inesperados.  
+- **Controle** garante comportamento previsível e mantém limites.
+
+Code Agents, como os do *smolagents*, são bastante livres: chamam várias ferramentas em um passo, criam ferramentas novas etc. Por outro lado, tornam-se menos previsíveis do que um agente “tradicional” baseado em JSON.
+
+`LangGraph` situa-se no extremo do **controle**. Ele brilha quando você precisa comandar a execução do agente.
+
+É especialmente útil para construir aplicações que seguem etapas bem definidas, mas **sem perder o poder dos LLMs**.  
+Se sua aplicação envolve uma sequência de passos que deve ser coordenada com decisões a cada junção, **LangGraph entrega a estrutura ideal**.
+
+Imagine: queremos criar um assistente que responde perguntas sobre documentos.  
+Antes de responder, talvez seja necessário converter um gráfico ou tabela em texto — dependendo do tipo de documento. Isso já gera um fluxo ramificado:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/flow.png" alt="Control flow"/>
+
+> 💡 **Dica:** No lado esquerdo não há chamadas de ferramentas (não é um agente). No lado direito será preciso escrever código para consultar o XLS (converter para pandas, manipular etc.).
+
+Essa ramificação é determinística, mas você pode criar ramificações condicionadas à resposta do LLM, tornando-as não determinísticas.
+
+Casos em que o LangGraph se destaca:
+
+- **Processos de raciocínio multi-etapas** que exigem controle explícito do fluxo.  
+- **Aplicações que precisam persistir estado** entre etapas.  
+- **Sistemas que combinam lógica determinística com IA**.  
+- **Workflows com intervenções humanas** (human-in-the-loop).  
+- **Arquiteturas complexas de agentes** trabalhando em conjunto.
+
+Em resumo, se você consegue desenhar, **como humano**, um fluxo de ações baseado na saída de cada etapa e decidir o próximo passo, o LangGraph é a escolha certa.
+
+`LangGraph` é, na minha opinião, o framework agêntico mais pronto para produção atualmente.
+
+## Como o LangGraph funciona?
+
+No centro da solução, o `LangGraph` usa um grafo direcionado para definir o fluxo da aplicação:
+
+- **Nodes** representam etapas de processamento (chamar um LLM, usar uma ferramenta, tomar uma decisão).  
+- **Edges** definem as transições possíveis entre etapas.  
+- **State** é definido pelo usuário e propagado entre os nós; é a base para decidir o próximo passo.
+
+Vamos explorar esses blocos fundamentais no próximo capítulo!
+
+## Qual a diferença em relação a Python puro?
+
+Talvez você pense: “Posso escrever tudo com `if-else`, certo?”  
+Tecnicamente, sim. Mas o LangGraph oferece **vantagens** para sistemas complexos:  
+- Abstrações mais fáceis de usar;  
+- Gestão de estado embutida;  
+- Visualizações, logs (traces), suporte a human-in-the-loop e mais.
+
+Você pode criar a mesma aplicação sem LangGraph, mas com ele o processo fica mais simples e organizado.

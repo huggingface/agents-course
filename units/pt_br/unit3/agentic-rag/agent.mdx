@@ -1,0 +1,220 @@
+# Construindo o agente da gala
+
+Chegou a hora de juntar todos os componentes que preparamos para Alfred e criar um agente completo, capaz de conduzir nossa festa extravagante.
+
+Nesta seção, combinaremos as ferramentas de consulta a convidados, busca na web, previsão do tempo e estatísticas do Hugging Face Hub em um único agente poderoso.
+
+## Montando Alfred: o agente completo
+
+Em vez de reimplementar tudo, vamos importar as ferramentas que salvamos em `tools.py` e `retriever.py`.
+
+> [!TIP]
+> Se você ainda não implementou as ferramentas, volte às seções de <a href="./tools">ferramentas</a> e <a href="./invitees">retriever</a>, implemente-as e adicione aos arquivos `tools.py` e `retriever.py`.
+
+### smolagents
+
+```python
+# Importações principais
+import random
+from smolagents import CodeAgent, InferenceClientModel
+
+# Importação das ferramentas personalizadas
+from tools import DuckDuckGoSearchTool, WeatherInfoTool, HubStatsTool
+from retriever import load_guest_dataset
+
+# Inicializa modelo e ferramentas
+model = InferenceClientModel()
+search_tool = DuckDuckGoSearchTool()
+weather_info_tool = WeatherInfoTool()
+hub_stats_tool = HubStatsTool()
+guest_info_tool = load_guest_dataset()
+
+# Cria Alfred com todas as ferramentas
+alfred = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool],
+    model=model,
+    add_base_tools=True,
+    planning_interval=3
+)
+```
+
+### LlamaIndex
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+from tools import search_tool, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm,
+)
+```
+
+### LangGraph
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.graph import START, StateGraph
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+from tools import DuckDuckGoSearchRun, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+
+search_tool = DuckDuckGoSearchRun()
+
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {"messages": [chat_with_tools.invoke(state["messages"])]}
+
+builder = StateGraph(AgentState)
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges("assistant", tools_condition)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+```
+
+Seu agente está pronto!
+
+## Exemplos ponta a ponta
+
+### 1. Consulta sobre convidados
+
+```python
+query = "Tell me about 'Lady Ada Lovelace'"
+response = alfred.run(query)
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+Saída esperada:
+
+```
+🎩 Resposta do Alfred:
+Lady Ada Lovelace é uma matemágica e amiga. Ela é conhecida como a primeira programadora por seu trabalho no Analytical Engine de Charles Babbage...
+```
+
+### 2. Checando o tempo para fogos
+
+```python
+query = "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"
+response = alfred.run(query)
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+Saída esperada (varia conforme API):
+
+```
+🎩 Resposta do Alfred:
+O tempo em Paris hoje à noite está chuvoso com 15 °C; talvez não seja ideal para os fogos.
+```
+
+### 3. Impressionando pesquisadores de IA
+
+```python
+query = "One of our guests is from Qwen. What can you tell me about their most popular model?"
+response = alfred.run(query)
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+Saída esperada:
+
+```
+🎩 Resposta do Alfred:
+O modelo mais baixado de Qwen é Qwen/Qwen2.5-VL-7B-Instruct, com 3 313 345 downloads.
+```
+
+### 4. Combinando múltiplas ferramentas
+
+```python
+query = "I need to speak with Dr. Nikola Tesla about recent advancements in wireless energy. Can you help me prepare?"
+response = alfred.run(query)
+print("🎩 Resposta do Alfred:")
+print(response)
+```
+
+Saída esperada:
+
+```
+🎩 Resposta do Alfred:
+Informações do convidado:
+- Nome: Dr. Nikola Tesla
+- Relação: amigo antigo
+- Descrição: ...
+
+Avanços recentes:
+1. Progresso em transmissão de energia sem fio via micro-ondas focadas
+2. Desenvolvimento de acoplamento indutivo em ressonância...
+```
+
+## Recurso avançado: memória de conversação
+
+### smolagents
+
+```python
+alfred_with_memory = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool],
+    model=model,
+    add_base_tools=True,
+    planning_interval=3
+)
+
+resp1 = alfred_with_memory.run("Tell me about Lady Ada Lovelace.")
+resp2 = alfred_with_memory.run("What projects is she currently working on?", reset=False)
+```
+
+### LlamaIndex
+
+```python
+from llama_index.core.workflow import Context
+
+ctx = Context(alfred)
+resp1 = await alfred.run("Tell me about Lady Ada Lovelace.", ctx=ctx)
+resp2 = await alfred.run("What projects is she currently working on?", ctx=ctx)
+```
+
+### LangGraph
+
+```python
+resp = alfred.invoke({"messages": [HumanMessage(content="Tell me about Lady Ada Lovelace.")]} )
+resp = alfred.invoke({"messages": resp["messages"] + [HumanMessage(content="What projects is she currently working on?")]} )
+```
+
+Repare que nenhum dos frameworks liga a memória automaticamente:  
+- **smolagents:** é preciso `reset=False`;  
+- **LlamaIndex:** requer passar um `Context`;  
+- **LangGraph:** oferece opções como recuperar mensagens anteriores ou usar um [MemorySaver](https://langchain-ai.github.io/langgraph/tutorials/introduction/#part-3-adding-memory-to-the-chatbot).
+
+## Conclusão
+
+Parabéns! Você construiu Alfred, um agente sofisticado com múltiplas ferramentas capaz de:
+
+1. Obter informações detalhadas dos convidados  
+2. Checar condições meteorológicas  
+3. Fornecer insights sobre modelos de IA  
+4. Pesquisar na web em tempo real  
+5. Manter contexto conversacional
+
+Com essas habilidades, Alfred está pronto para tornar a sua gala um sucesso absoluto!***

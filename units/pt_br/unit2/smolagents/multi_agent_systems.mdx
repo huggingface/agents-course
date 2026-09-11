@@ -1,0 +1,247 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/multiagent_notebook.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Sistemas multiagentes
+
+Sistemas multiagentes permitem que **agentes especializados colaborem em tarefas complexas**, aumentando modularidade, escalabilidade e robustez. Em vez de depender de um único agente, distribuímos o trabalho entre agentes com habilidades distintas.
+
+No **smolagents**, podemos combinar agentes diferentes para gerar código Python, chamar ferramentas externas, fazer buscas na web e muito mais. Ao orquestrar esses agentes, construímos fluxos de trabalho poderosos.
+
+Uma estrutura típica pode incluir:
+- Um **agente gerente** que delega tarefas;  
+- Um **agente interpretador de código** para execução de scripts;  
+- Um **agente de busca na web** para recuperar informações.
+
+<img src="https://mermaid.ink/img/pako:eNp1kc1qhTAQRl9FUiQb8wIpdNO76eKubrmFks1oRg3VSYgjpYjv3lFL_2hnMWQOJwn5sqgmelRWleUSKLAtFs09jqhtoWuYUFfFAa6QA9QDTnpzamheuhxn8pt40-6l13UtS0ddhtQXj6dbR4XUGQg6zEYasTF393KjeSDGnDJKNxzj8I_7hLW5IOSmP9CH9hv_NL-d94d4DVNg84p1EnK4qlIj5hGClySWbadT-6OdsrL02MI8sFOOVkciw8zx8kaNspxnrJQE0fXKtjBMMs3JA-MpgOQwftIE9Bzj14w-cMznI_39E9Z3p0uFoA?type=png" style='background: white;'/>
+
+## Multiagentes em ação
+
+Um sistema multiagente reúne vários agentes especializados sob a coordenação de um **orquestrador**. Assim, cada agente assume um papel específico:
+
+- **Agente Web** — navega na internet;  
+- **Agente Retriever** — acessa bases de conhecimento;  
+- **Agente de geração de imagens** — produz visuais;  
+- etc.
+
+## Resolvendo uma tarefa complexa com uma hierarquia de agentes
+
+> [!TIP]
+> Você pode acompanhar o código <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/multiagent_notebook.ipynb" target="_blank">neste notebook</a>.
+
+Imagine: a recepção está chegando e Alfred quase concluiu os preparativos. Porém, a Batmóvel desapareceu! Ele precisa encontrar um substituto.
+
+Talvez haja carros “sobrando” em sets de filmagem de filmes sobre Bruce Wayne. Só que esses sets podem estar espalhados pelo mundo.
+
+A missão:  
+> 👉 Encontrar todos os locais de filmagem do Batman pelo mundo, calcular o tempo de transferência por avião de carga até Gotham (40.7128° N, 74.0060° W), plotar tudo em um mapa com cores variando conforme o tempo, e incluir fábricas de supercarros com o mesmo tempo de transferência.
+
+Vamos construir isso!
+
+Primeiro, instale os pacotes adicionais:
+
+```bash
+pip install 'smolagents[litellm]' plotly geopandas shapely kaleido -q
+```
+
+### Ferramenta para estimar tempo de voo de carga
+
+```python
+import math
+from typing import Optional, Tuple
+from smolagents import tool
+
+@tool
+def calculate_cargo_travel_time(
+    origin_coords: Tuple[float, float],
+    destination_coords: Tuple[float, float],
+    cruising_speed_kmh: Optional[float] = 750.0,
+) -> float:
+    """
+    Calcula o tempo de voo entre dois pontos usando distância de arco máximo.
+    """
+    def to_radians(degrees: float) -> float:
+        return degrees * (math.pi / 180)
+
+    lat1, lon1 = map(to_radians, origin_coords)
+    lat2, lon2 = map(to_radians, destination_coords)
+    EARTH_RADIUS_KM = 6371.0
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.asin(math.sqrt(a))
+    distance = EARTH_RADIUS_KM * c
+
+    actual_distance = distance * 1.1
+    flight_time = (actual_distance / cruising_speed_kmh) + 1.0
+    return round(flight_time, 2)
+```
+
+### Configurando os agentes
+
+Vamos usar a infraestrutura da Hugging Face com o provedor Together AI.
+
+```python
+import os
+from PIL import Image
+from smolagents import (
+    CodeAgent,
+    GoogleSearchTool,
+    InferenceClientModel,
+    VisitWebpageTool,
+)
+
+model = InferenceClientModel(
+    model_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="together"
+)
+```
+
+Primeiro, criamos um agente simples (baseline):
+
+```python
+task = """Find all Batman filming locations in the world, calculate the time to transfer via cargo plane to here (we're in Gotham, 40.7128° N, 74.0060° W), and return them to me as a pandas dataframe.
+Also give me some supercar factories with the same cargo plane transfer time."""
+
+agent = CodeAgent(
+    model=model,
+    tools=[GoogleSearchTool("serper"), VisitWebpageTool(), calculate_cargo_travel_time],
+    additional_authorized_imports=["pandas"],
+    max_steps=20,
+)
+
+result = agent.run(task)
+print(result)
+```
+
+Isso gera uma tabela com locais e tempos de voo. Para melhorar, podemos:
+
+- Aumentar o detalhamento do prompt;  
+- Ativar planejamento (`planning_interval`).
+
+```python
+agent.planning_interval = 4
+
+detailed_report = agent.run(f"""
+You're an expert analyst...
+{task}
+""")
+print(detailed_report)
+```
+
+Melhoramos o resultado, mas o contexto enche rápido. **Juntar todas as informações em um único agente aumenta custo e tempo.**
+
+➡️ Vamos dividir a tarefa entre dois agentes.
+
+### ✌️ Dividindo a tarefa
+
+Separar agentes reduz tokens e deixa cada agente mais focado. Criaremos:
+- **Agente web**: busca informações;  
+- **Agente gerente**: consolida, faz cálculos e plota.
+
+```python
+model = InferenceClientModel(
+    "Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="together",
+    max_tokens=8096
+)
+
+web_agent = CodeAgent(
+    model=model,
+    tools=[
+        GoogleSearchTool(provider="serper"),
+        VisitWebpageTool(),
+        calculate_cargo_travel_time,
+    ],
+    name="web_agent",
+    description="Browses the web to find information",
+    verbosity_level=0,
+    max_steps=10,
+)
+```
+
+Para o agente gerente, usaremos o modelo [DeepSeek-R1](https://huggingface.co/deepseek-ai/DeepSeek-R1), capaz de raciocínio mais longo, e autorizamos imports como `plotly`, `geopandas` e `shapely`.
+
+```python
+from smolagents.utils import encode_image_base64, make_image_url
+from smolagents import OpenAIServerModel
+
+def check_reasoning_and_plot(final_answer, agent_memory):
+    multimodal_model = OpenAIServerModel("gpt-4o", max_tokens=8096)
+    filepath = "saved_map.png"
+    assert os.path.exists(filepath), "Salve o gráfico como saved_map.png!"
+    image = Image.open(filepath)
+    prompt = (
+        f"Here is a user-given task and the agent steps: {agent_memory.get_succinct_steps()}..."
+    )
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": make_image_url(encode_image_base64(image))}},
+            ],
+        }
+    ]
+    output = multimodal_model(messages).content
+    print("Feedback: ", output)
+    if "FAIL" in output:
+        raise Exception(output)
+    return True
+
+manager_agent = CodeAgent(
+    model=InferenceClientModel("deepseek-ai/DeepSeek-R1", provider="together", max_tokens=8096),
+    tools=[calculate_cargo_travel_time],
+    managed_agents=[web_agent],
+    additional_authorized_imports=[
+        "geopandas",
+        "plotly",
+        "shapely",
+        "json",
+        "pandas",
+        "numpy",
+    ],
+    planning_interval=5,
+    verbosity_level=2,
+    final_answer_checks=[check_reasoning_and_plot],
+    max_steps=15,
+)
+```
+
+Podemos visualizar o grafo resultante:
+
+```python
+manager_agent.visualize()
+```
+
+E executar a tarefa:
+
+```python
+manager_agent.run("""
+Find all Batman filming locations...
+""")
+```
+
+No meu teste, o gerente delegou buscas ao `web_agent` para localizar filmagens, depois fábricas de supercarros, agregou tudo e produziu o mapa.
+
+Por fim, podemos inspecionar o gráfico:
+
+```python
+manager_agent.python_executor.state["fig"]
+```
+
+![Mapa resultante](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/output_map.png)
+
+## Recursos
+
+- [Multi-Agent Systems](https://huggingface.co/docs/smolagents/main/en/examples/multiagents)  
+- [What is Agentic RAG?](https://weaviate.io/blog/what-is-agentic-rag)  
+- [Multi-Agent RAG System 🤖🤝🤖 Recipe](https://huggingface.co/learn/cookbook/multiagent_rag_system)
