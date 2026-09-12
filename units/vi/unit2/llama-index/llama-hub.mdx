@@ -1,0 +1,46 @@
+# Giới thiệu về LlamaHub
+
+**LlamaHub là một kho lưu trữ hàng trăm tích hợp, agent và các tool mà bạn có thể sử dụng trong LlamaIndex.**
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+Chúng ta sẽ sử dụng nhiều tích hợp trong khóa học này, vì vậy hãy cùng xem qua LlamaHub và cách nó có thể hỗ trợ chúng ta.
+
+Hãy cùng tìm hiểu cách tìm và cài đặt các dependencies cho các thành phần cần thiết.
+
+## Cài đặt
+
+Hướng dẫn cài đặt LlamaIndex được cung cấp dưới dạng tổng quan chi tiết trên **[LlamaHub](https://llamahub.ai/)**.  
+Ban đầu có thể hơi choáng ngợp, nhưng hầu hết **câu lệnh cài đặt đều tuân theo định dạng dễ nhớ**:
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+
+Hãy thử cài đặt dependencies cho LLM và thành phần nhúng sử dụng [Tích hợp API luận suy của Hugging Face](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms).
+
+```bash
+pip install llama-index-llms-huggingface-api llama-index-embeddings-huggingface
+```
+
+## Cách sử dụng
+
+Sau khi cài đặt, ta có thể xem cách sử dụng. Bạn sẽ nhận thấy đường dẫn import tuân theo cú pháp lệnh cài đặt!  
+Dưới đây là ví dụ về cách sử dụng **Tích hợp API luận suy của Hugging Face cho các thành phần LLM**.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token="hf_xxx",
+)
+
+llm.complete("Hello, how are you?")
+# Tôi khỏe, tôi có thể giúp gì cho bạn hôm nay?
+```
+
+Tuyệt vời, giờ chúng ta đã biết cách tìm kiếm, cài đặt và sử dụng các tích hợp cho các thành phần cần thiết.  
+**Hãy cùng đi sâu vào các thành phần** và xem cách sử dụng chúng để xây dựng agent của riêng mình.

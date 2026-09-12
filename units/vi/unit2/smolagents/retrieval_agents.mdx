@@ -1,0 +1,163 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/retrieval_agents.ipynb"},
+]} />
+
+# Xây dựng hệ thống RAG mang tính tác nhân
+
+<Tip>
+Bạn có thể theo dõi mã trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">notebook này</a> để chạy trên Google Colab.
+</Tip>
+
+Hệ thống Tạo câu trả lời kết hợp truy xuất dữ liệu (RAG) kết hợp khả năng truy xuất dữ liệu và tạo câu trả lời để đưa ra phản hồi theo ngữ cảnh. Ví dụ: truy vấn của người dùng được chuyển đến công cụ tìm kiếm, kết quả truy xuất được cung cấp cho mô hình cùng với truy vấn. Mô hình sau đó tạo phản hồi dựa trên truy vấn và thông tin đã truy xuất.
+
+RAG mang tính tác nhân (Agentic RAG) mở rộng hệ thống RAG truyền thống bằng cách **kết hợp các tác nhân tự trị với truy xuất tri thức động**. 
+
+Trong khi hệ thống RAG truyền thống sử dụng LLM để trả lời truy vấn dựa trên dữ liệu đã truy xuất, RAG mang tính tác nhân **cho phép kiểm soát thông minh cả quá trình truy xuất và tạo câu trả lời**, cải thiện hiệu quả và độ chính xác.
+
+Hệ thống RAG truyền thống gặp phải những hạn chế chính như **chỉ dựa vào một bước truy xuất duy nhất** và tập trung vào độ tương đồng ngữ nghĩa trực tiếp với truy vấn của người dùng, điều này có thể bỏ sót thông tin liên quan. 
+
+RAG mang tính tác nhân giải quyết những vấn đề này bằng cách cho phép tác nhân tự động xây dựng truy vấn tìm kiếm, đánh giá kết quả truy xuất và thực hiện nhiều bước truy xuất để tạo ra kết quả toàn diện và phù hợp hơn.
+
+## Truy xuất cơ bản với DuckDuckGo
+
+Hãy xây dựng một tác nhân đơn giản có thể tìm kiếm web bằng DuckDuckGo. Tác nhân này sẽ truy xuất thông tin và tổng hợp phản hồi để trả lời các truy vấn. Với RAG mang tính tác nhân, tác nhân của Alfred có thể:
+
+* Tìm kiếm xu hướng tiệc siêu anh hùng mới nhất
+* Tinh chỉnh kết quả để bao gồm các yếu tố sang trọng
+* Tổng hợp thông tin thành một kế hoạch hoàn chỉnh
+
+Đây là cách tác nhân của Alfred có thể đạt được điều này:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+# Khởi tạo công cụ tìm kiếm
+search_tool = DuckDuckGoSearchTool()
+
+# Khởi tạo model
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+# Ví dụ sử dụng
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+Tác nhân tuân theo quy trình sau:
+
+1. **Phân tích yêu cầu:** Tác nhân của Alfred xác định các yếu tố chính của truy vấn - lập kế hoạch tiệc siêu anh hùng sang trọng, tập trung vào trang trí, giải trí và ăn uống.
+2. **Thực hiện truy xuất:** Tác nhân tận dụng DuckDuckGo để tìm kiếm thông tin mới nhất và phù hợp nhất, đảm bảo phù hợp với sở thích tinh tế của Alfred cho một sự kiện sang trọng.
+3. **Tổng hợp thông tin:** Sau khi thu thập kết quả, tác nhân xử lý chúng thành một kế hoạch hành động mạch lạc cho Alfred, bao gồm mọi khía cạnh của bữa tiệc.
+4. **Lưu trữ để tham khảo sau:** Tác nhân lưu trữ thông tin đã truy xuất để dễ dàng truy cập khi lập kế hoạch cho các sự kiện trong tương lai, tối ưu hóa hiệu quả trong các tác vụ tiếp theo.
+
+## Công cụ cơ sở tri thức tùy chỉnh
+
+Đối với các tác vụ chuyên biệt, một cơ sở tri thức tùy chỉnh có thể rất hữu ích. Hãy tạo một công cụ truy vấn cơ sở dữ liệu vector về tài liệu kỹ thuật hoặc tri thức chuyên ngành. Sử dụng tìm kiếm ngữ nghĩa, tác nhân có thể tìm thấy thông tin phù hợp nhất cho nhu cầu của Alfred.
+
+Cơ sở dữ liệu vector lưu trữ biểu diễn số (embeddings) của văn bản hoặc dữ liệu khác, được tạo bởi các model học máy. Nó cho phép tìm kiếm ngữ nghĩa bằng cách xác định các ý nghĩa tương tự trong không gian nhiều chiều.
+
+Cách tiếp cận này kết hợp tri thức được xác định trước với tìm kiếm ngữ nghĩa để cung cấp giải pháp theo ngữ cảnh cho việc lập kế hoạch sự kiện. Với quyền truy cập tri thức chuyên biệt, Alfred có thể hoàn thiện từng chi tiết của bữa tiệc.
+
+Trong ví dụ này, chúng ta sẽ tạo một công cụ truy xuất ý tưởng lập kế hoạch tiệc từ cơ sở tri thức tùy chỉnh. Chúng ta sẽ sử dụng bộ truy xuất BM25 để tìm kiếm cơ sở tri thức và trả về kết quả hàng đầu, đồng thời sử dụng `RecursiveCharacterTextSplitter` để chia tài liệu thành các đoạn nhỏ hơn để tìm kiếm hiệu quả hơn.
+
+<details>
+<summary>Bấm để xem bản dịch tiếng Việt</summary>
+
+```python
+from langchain.docstore.document import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The query to perform. This should be a query related to party planning or superhero themes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Retrieve the top 5 documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Your search query must be a string"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nRetrieved ideas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Simulate a knowledge base about party planning
+party_ideas = [
+    {"text": "A superhero-themed masquerade ball with luxury decor, including gold accents and velvet curtains.", "source": "Party Ideas 1"},
+    {"text": "Hire a professional DJ who can play themed music for superheroes like Batman and Wonder Woman.", "source": "Entertainment Ideas"},
+    {"text": "For catering, serve dishes named after superheroes, like 'The Hulk's Green Smoothie' and 'Iron Man's Power Steak.'", "source": "Catering Ideas"},
+    {"text": "Decorate with iconic superhero logos and projections of Gotham and other superhero cities around the venue.", "source": "Decoration Ideas"},
+    {"text": "Interactive experiences with VR where guests can engage in superhero simulations or compete in themed games.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Split the documents into smaller chunks for more efficient search
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Create the retriever tool
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Initialize the agent
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+# Example usage
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+Agent (tác nhân) nâng cao này có thể:
+1. Đầu tiên kiểm tra tài liệu để tìm thông tin liên quan
+2. Kết hợp thông tin chi tiết từ cơ sở kiến thức
+3. Duy trì ngữ cảnh hội thoại trong bộ nhớ
+
+## Khả năng Truy xuất Nâng cao
+
+Khi xây dựng hệ thống RAG (tìm kiếm và tạo ra câu trả lời) agentic, agent (tác nhân) có thể sử dụng các chiến lược phức tạp như:
+
+1. **Cải tiến Truy vấn (Query Reformulation):** Thay vì sử dụng truy vấn thô từ người dùng, agent có thể tạo ra các điều kiện tìm kiếm tối ưu hơn để khớp với tài liệu mục tiêu
+2. **Truy xuất Nhiều Bước (Multi-Step Retrieval):** Agent có thể thực hiện nhiều lần tìm kiếm, sử dụng kết quả ban đầu để thông báo cho các truy vấn tiếp theo
+3. **Tích hợp Nguồn (Source Integration):** Thông tin có thể được kết hợp từ nhiều nguồn như tìm kiếm web và tài liệu cục bộ
+4. **Xác thực Kết quả (Result Validation):** Nội dung truy xuất có thể được phân tích về mức độ liên quan và độ chính xác trước khi đưa vào câu trả lời
+
+Các hệ thống RAG agentic hiệu quả đòi hỏi sự cân nhắc cẩn thận về một số khía cạnh chính. Agent **nên chọn giữa các Tools (công cụ) có sẵn dựa trên loại truy vấn và ngữ cảnh**. Hệ thống bộ nhớ giúp duy trì lịch sử hội thoại và tránh truy xuất lặp đi lặp lại. Có các chiến lược dự phòng đảm bảo hệ thống vẫn có thể cung cấp giá trị ngay cả khi các phương pháp truy xuất chính không thành công. Ngoài ra, việc triển khai các bước xác thực giúp đảm bảo tính chính xác và mức độ liên quan của thông tin được truy xuất.
