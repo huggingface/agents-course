@@ -80,7 +80,7 @@ login()
 
 ### Selecting a Playlist for the Party Using `smolagents`
 
-Music is an essential part of a successful party! Alfred needs some help selecting the playlist. Luckily, `smolagents` has got us covered! We can build an agent capable of searching the web using DuckDuckGo. To give the agent access to this tool, we include it in the tool list when creating the agent.
+Music is an essential part of a successful party! Alfred needs some help selecting the playlist. Luckily, `smolagents` has got us covered! We can build an agent capable of searching the web using our native `WebSearchTool` tool. To give the agent access to this tool, we include it in the tool list when creating the agent.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred Playlist"/>
 
@@ -89,9 +89,9 @@ For the model, we'll rely on `InferenceClientModel`, which provides access to Hu
 Running an agent is quite straightforward:
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+from smolagents import CodeAgent, WebSearchTool, InferenceClientModel
 
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+agent = CodeAgent(tools=[WebSearchTool()], model=InferenceClientModel())
 
 agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
 ```
@@ -224,7 +224,7 @@ For example, the _AlfredAgent_ is available [here](https://huggingface.co/spaces
 You may be wondering—how did Alfred build such an agent using `smolagents`? By integrating several tools, he can generate an agent as follows. Don't worry about the tools for now, as we'll have a dedicated section later in this unit to explore that in detail:
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
+from smolagents import CodeAgent, WebSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
 
 @tool
 def suggest_menu(occasion: str) -> str:
@@ -290,7 +290,7 @@ class SuperheroPartyThemeTool(Tool):
 # Alfred, the butler, preparing the menu for the party
 agent = CodeAgent(
     tools=[
-        DuckDuckGoSearchTool(), 
+        WebSearchTool(), 
         VisitWebpageTool(),
         suggest_menu,
         catering_service_tool,
