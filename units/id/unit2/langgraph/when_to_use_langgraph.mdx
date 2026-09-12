@@ -1,0 +1,68 @@
+# Apa Itu `LangGraph`? [[what-is-langgraph]]
+
+`LangGraph` adalah framework yang dikembangkan oleh [LangChain](https://www.langchain.com/) **untuk mengelola control flow aplikasi yang mengintegrasikan LLM**.
+
+## Apakah `LangGraph` berbeda dari `LangChain`?
+
+LangChain menyediakan interface standar untuk berinteraksi dengan models dan components lain, berguna untuk retrieval, LLM calls, dan tools calls.
+Classes dari LangChain bisa dipakai di LangGraph, tetapi tidak HARUS dipakai.
+
+Package-nya berbeda dan bisa dipakai secara terpisah, tetapi pada akhirnya, semua resources yang kamu temukan online biasanya memakai kedua package tersebut bersama-sama.
+
+## Kapan sebaiknya saya memakai `LangGraph`?
+### Control vs freedom
+
+Saat merancang aplikasi AI, kamu akan menghadapi trade-off mendasar antara **control** dan **freedom**:
+
+- **Freedom** memberi LLM lebih banyak ruang untuk kreatif dan menangani masalah yang tidak terduga.
+- **Control** memungkinkan kamu memastikan perilaku yang prediktabel dan menjaga guardrails.
+
+Code Agents, seperti yang bisa kamu temui di *smolagents*, sangat bebas. Mereka bisa memanggil beberapa tools dalam satu action step, membuat tools sendiri, dan sebagainya. Namun, perilaku ini bisa membuat mereka kurang prediktabel dan lebih sulit dikontrol dibanding Agent biasa yang bekerja dengan JSON!
+
+`LangGraph` berada di ujung lain spektrum ini. Ia paling berguna saat kamu membutuhkan **"Control"** atas eksekusi agent.
+
+LangGraph sangat berguna ketika kamu membutuhkan **Control atas aplikasi**. Framework ini memberimu tools untuk membangun aplikasi yang mengikuti proses prediktabel sambil tetap memakai kekuatan LLM.
+
+Sederhananya, jika aplikasimu melibatkan serangkaian langkah yang perlu diorkestrasi dengan cara tertentu, dengan keputusan diambil pada setiap titik percabangan, **LangGraph menyediakan struktur yang kamu butuhkan**.
+
+Sebagai contoh, katakanlah kita ingin membangun LLM assistant yang bisa menjawab beberapa pertanyaan berdasarkan sejumlah dokumen.
+
+Karena LLM paling memahami teks, sebelum dapat menjawab pertanyaan, kamu perlu mengubah modality lain yang kompleks (charts, tables) menjadi teks. Namun, pilihan itu bergantung pada jenis dokumen yang kamu punya!
+
+Ini adalah branching yang saya pilih untuk direpresentasikan seperti berikut:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/flow.png" alt="Control flow"/>
+
+> 💡 **Kiat:** Bagian kiri bukan agent, karena tidak ada tool call yang terlibat. Namun bagian kanan perlu menulis sedikit kode untuk melakukan query pada xls (convert ke pandas dan memanipulasinya).
+
+Walaupun branching ini deterministik, kamu juga bisa merancang branching yang dikondisikan pada output LLM sehingga sifatnya menjadi tidak deterministik.
+
+Skenario utama ketika LangGraph unggul meliputi:
+
+- **Proses multi-step reasoning** yang membutuhkan control eksplisit atas flow
+- **Aplikasi yang membutuhkan persistence of state** antar langkah
+- **Systems yang menggabungkan logic deterministik dengan kemampuan AI**
+- **Workflows yang membutuhkan intervensi human-in-the-loop**
+- **Arsitektur agent kompleks** dengan beberapa components yang bekerja bersama
+
+Intinya, kapan pun memungkinkan, **sebagai manusia**, rancang flow actions berdasarkan output dari setiap action, lalu putuskan apa yang perlu dieksekusi berikutnya. Dalam kasus seperti ini, LangGraph adalah framework yang tepat untukmu!
+
+Menurut saya, `LangGraph` adalah agent framework paling production-ready yang tersedia saat ini.
+
+## Bagaimana LangGraph bekerja?
+
+Pada intinya, `LangGraph` memakai struktur directed graph untuk mendefinisikan flow aplikasimu:
+
+- **Nodes** merepresentasikan langkah pemrosesan individual (seperti memanggil LLM, memakai tool, atau mengambil keputusan).
+- **Edges** mendefinisikan kemungkinan transisi antar langkah.
+- **State** didefinisikan oleh pengguna, dipertahankan, dan diteruskan antar nodes selama eksekusi. Saat menentukan node berikutnya, current state inilah yang kita lihat.
+
+Kita akan membahas building blocks dasar ini lebih lanjut pada bab berikutnya!
+
+## Apa bedanya dengan Python biasa? Mengapa saya butuh LangGraph?
+
+Kamu mungkin bertanya: "Bukankah saya bisa menulis kode Python biasa dengan pernyataan if-else untuk menangani semua flow ini?"
+
+Secara teknis bisa, tetapi LangGraph menawarkan **beberapa keunggulan** dibanding vanilla Python untuk membangun sistem kompleks. Kamu bisa membuat aplikasi yang sama tanpa LangGraph, tetapi LangGraph menyediakan tools dan abstraksi yang membuatnya lebih mudah.
+
+LangGraph mencakup states, visualization, logging (traces), built-in human-in-the-loop, dan lainnya.

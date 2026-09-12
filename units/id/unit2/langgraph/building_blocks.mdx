@@ -1,0 +1,127 @@
+# Blok Penyusun LangGraph
+
+Untuk membuat aplikasi dengan LangGraph, kamu perlu memahami core components-nya. Mari jelajahi building blocks dasar yang membentuk aplikasi LangGraph.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Building_blocks.png" alt="Blok Penyusun" width="70%"/>
+
+Aplikasi di LangGraph dimulai dari **entrypoint**, lalu tergantung pada eksekusinya, flow bisa bergerak ke satu fungsi atau fungsi lain sampai mencapai END.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/application.png" alt="Aplikasi"/>
+
+## 1. State
+
+**State** adalah konsep inti di LangGraph. State merepresentasikan semua informasi yang mengalir melalui aplikasimu.
+
+```python
+from typing_extensions import TypedDict
+
+class State(TypedDict):
+    graph_state: str
+```
+
+State bersifat **User defined**, jadi fields-nya perlu dirancang dengan cermat agar memuat semua data yang dibutuhkan untuk proses pengambilan keputusan!
+
+> 💡 **Kiat:** Pikirkan dengan cermat informasi apa yang perlu dilacak aplikasimu antar langkah.
+
+## 2. Nodes
+
+**Nodes** adalah fungsi Python. Setiap node:
+- Menerima state sebagai input
+- Melakukan operasi tertentu
+- Mengembalikan update ke state
+
+```python
+def node_1(state):
+    print("---Node 1---")
+    return {"graph_state": state['graph_state'] +" I am"}
+
+def node_2(state):
+    print("---Node 2---")
+    return {"graph_state": state['graph_state'] +" happy!"}
+
+def node_3(state):
+    print("---Node 3---")
+    return {"graph_state": state['graph_state'] +" sad!"}
+```
+
+Sebagai contoh, Nodes bisa berisi:
+- **LLM calls**: menghasilkan teks atau mengambil keputusan
+- **Tool calls**: berinteraksi dengan sistem eksternal
+- **Conditional logic**: menentukan langkah berikutnya
+- **Human intervention**: mendapatkan input dari pengguna
+
+> 💡 **Info:** Beberapa nodes yang dibutuhkan untuk keseluruhan workflow, seperti START dan END, sudah tersedia langsung dari LangGraph.
+
+
+## 3. Edges
+
+**Edges** menghubungkan nodes dan mendefinisikan kemungkinan jalur melalui graph:
+
+```python
+import random
+from typing import Literal
+
+def decide_mood(state) -> Literal["node_2", "node_3"]:
+
+    # Sering kali, kita akan memakai state untuk menentukan node berikutnya
+    user_input = state['graph_state']
+
+    # Di sini, kita cukup membuat pembagian 50 / 50 antara nodes 2, 3
+    if random.random() < 0.5:
+
+        # 50% dari waktu, kita mengembalikan Node 2
+        return "node_2"
+
+    # 50% dari waktu, kita mengembalikan Node 3
+    return "node_3"
+```
+
+Edges bisa berupa:
+- **Direct**: selalu bergerak dari node A ke node B
+- **Conditional**: memilih node berikutnya berdasarkan current state
+
+## 4. StateGraph
+
+**StateGraph** adalah container yang menyimpan keseluruhan agent workflow:
+
+```python
+from IPython.display import Image, display
+from langgraph.graph import StateGraph, START, END
+
+# Buat graph
+builder = StateGraph(State)
+builder.add_node("node_1", node_1)
+builder.add_node("node_2", node_2)
+builder.add_node("node_3", node_3)
+
+# Logika
+builder.add_edge(START, "node_1")
+builder.add_conditional_edges("node_1", decide_mood)
+builder.add_edge("node_2", END)
+builder.add_edge("node_3", END)
+
+# Tambahkan
+graph = builder.compile()
+```
+
+Lalu bisa divisualisasikan!
+```python
+# Lihat
+display(Image(graph.get_graph().draw_mermaid_png()))
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/basic_graph.jpeg" alt="Visualisasi Graph"/>
+
+Yang paling penting, graph bisa di-invoke:
+```python
+graph.invoke({"graph_state" : "Hi, this is Lance."})
+```
+output:
+```
+---Node 1---
+---Node 3---
+{'graph_state': 'Hi, this is Lance. I am sad!'}
+```
+
+## Selanjutnya
+
+Pada bagian berikutnya, kita akan mempraktikkan konsep-konsep ini dengan membuat graph pertama kita. Graph ini memungkinkan Alfred menerima emailmu, mengklasifikasikannya, dan menyusun jawaban awal jika email tersebut valid.

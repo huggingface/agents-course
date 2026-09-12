@@ -1,0 +1,220 @@
+# Apa itu LLMs?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Perencanaan Unit 1"/>
+
+Di bagian sebelumnya, kita belajar bahwa setiap Agent membutuhkan **AI Model sebagai intinya**, dan LLMs adalah jenis AI model yang paling umum untuk tujuan ini.
+
+Sekarang kita akan mempelajari apa itu LLMs dan bagaimana mereka mendukung Agents.
+
+Bagian ini menawarkan penjelasan teknis yang ringkas tentang penggunaan LLMs. Jika kamu ingin mendalami lebih jauh, kamu bisa mengecek <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">Natural Language Processing Course gratis kami</a>.
+
+## Apa itu Large Language Model?
+
+LLM adalah jenis AI model yang unggul dalam **memahami dan menghasilkan bahasa manusia**. LLM dilatih pada data teks dalam jumlah sangat besar, sehingga dapat mempelajari pola, struktur, bahkan nuansa dalam bahasa. Model-model ini biasanya terdiri dari jutaan parameter.
+
+Sebagian besar LLMs saat ini **dibangun di atas arsitektur Transformer**, yaitu arsitektur deep learning berbasis algoritma "Attention" yang mendapat perhatian besar sejak rilis BERT dari Google pada tahun 2018.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg" alt="Transformer"/>
+<figcaption>Arsitektur Transformer asli terlihat seperti ini, dengan encoder di kiri dan decoder di kanan.
+</figcaption>
+</figure>
+
+Ada 3 jenis transformers:
+
+1. **Encoders**
+   Transformer berbasis encoder menerima teks (atau data lain) sebagai input dan menghasilkan representasi padat (atau embedding) dari teks tersebut.
+
+   - **Contoh**: BERT dari Google
+   - **Use Cases**: Text classification, semantic search, Named Entity Recognition
+   - **Ukuran Umum**: Jutaan parameter
+
+2. **Decoders**
+   Transformer berbasis decoder berfokus **menghasilkan token baru untuk melengkapi sebuah sequence, satu token setiap kali**.
+
+   - **Contoh**: Llama dari Meta
+   - **Use Cases**: Text generation, chatbots, code generation
+   - **Ukuran Umum**: Miliaran (dalam pengertian AS, yaitu 10^9) parameter
+
+3. **Seq2Seq (Encoder-Decoder)**
+   Transformer sequence-to-sequence _menggabungkan_ encoder dan decoder. Encoder pertama-tama memproses input sequence menjadi representasi konteks, lalu decoder menghasilkan output sequence.
+
+   - **Contoh**: T5, BART
+   - **Use Cases**: Translation, Summarization, Paraphrasing
+   - **Ukuran Umum**: Jutaan parameter
+
+Walaupun Large Language Models hadir dalam berbagai bentuk, LLMs biasanya berupa model berbasis decoder dengan miliaran parameter. Berikut beberapa LLM yang paling dikenal:
+
+| **Model**                          | **Provider**                              |
+|-----------------------------------|-------------------------------------------|
+| **Deepseek-R1**                    | DeepSeek                                  |
+| **GPT4**                           | OpenAI                                    |
+| **Llama 3**                        | Meta (Facebook AI Research)               |
+| **SmolLM2**                       | Hugging Face     |
+| **Gemma**                          | Google                                    |
+| **Mistral**                        | Mistral                                |
+
+Prinsip dasar LLM sederhana tetapi sangat efektif: **tujuannya adalah memprediksi token berikutnya, berdasarkan sequence token sebelumnya**. "Token" adalah unit informasi yang digunakan LLM. Kamu bisa membayangkan "token" seperti "kata", tetapi demi efisiensi LLM tidak menggunakan kata utuh.
+
+Misalnya, walaupun bahasa Inggris diperkirakan memiliki 600.000 kata, sebuah LLM mungkin memiliki vocabulary sekitar 32.000 token (seperti pada Llama 2). Tokenization sering bekerja pada unit sub-word yang dapat digabungkan.
+
+Sebagai contoh, perhatikan bagaimana token "interest" dan "ing" dapat digabungkan menjadi "interesting", atau "ed" dapat ditambahkan menjadi "interested."
+
+Kamu bisa bereksperimen dengan tokenizer yang berbeda di playground interaktif di bawah ini:
+
+<iframe
+	src="https://agents-course-the-tokenizer-playground.static.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Setiap LLM memiliki beberapa **special tokens** yang spesifik untuk model tersebut. LLM menggunakan token-token ini untuk membuka dan menutup komponen terstruktur dalam generation-nya. Misalnya, untuk menandai awal atau akhir sequence, message, atau respons. Input prompts yang kita berikan ke model juga disusun dengan special tokens. Yang paling penting adalah **End of sequence token** (EOS).
+
+Bentuk special tokens sangat beragam di berbagai provider model.
+
+Tabel di bawah ini menggambarkan keragaman special tokens.
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Model</strong></th>
+      <th><strong>Provider</strong></th>
+      <th><strong>EOS Token</strong></th>
+      <th><strong>Fungsi</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>GPT4</strong></td>
+      <td>OpenAI</td>
+      <td><code>&lt;|endoftext|&gt;</code></td>
+      <td>Akhir teks message</td>
+    </tr>
+    <tr>
+      <td><strong>Llama 3</strong></td>
+      <td>Meta (Facebook AI Research)</td>
+      <td><code>&lt;|eot_id|&gt;</code></td>
+      <td>Akhir sequence</td>
+    </tr>
+    <tr>
+      <td><strong>Deepseek-R1</strong></td>
+      <td>DeepSeek</td>
+      <td><code>&lt;|end_of_sentence|&gt;</code></td>
+      <td>Akhir teks message</td>
+    </tr>
+    <tr>
+      <td><strong>SmolLM2</strong></td>
+      <td>Hugging Face</td>
+      <td><code>&lt;|im_end|&gt;</code></td>
+      <td>Akhir instruction atau message</td>
+    </tr>
+    <tr>
+      <td><strong>Gemma</strong></td>
+      <td>Google</td>
+      <td><code>&lt;end_of_turn&gt;</code></td>
+      <td>Akhir giliran percakapan</td>
+    </tr>
+  </tbody>
+</table>
+
+> [!TIP]
+> Kami tidak mengharapkan kamu menghafal special tokens ini, tetapi penting untuk memahami keragamannya dan peran yang mereka mainkan dalam text generation LLMs. Jika kamu ingin tahu lebih banyak tentang special tokens, kamu bisa mengecek konfigurasi model di repository Hub-nya. Misalnya, kamu bisa menemukan special tokens model SmolLM2 di <a href="https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json">tokenizer_config.json</a>.
+
+## Memahami prediksi token berikutnya
+
+LLMs disebut **autoregressive**, yang berarti **output dari satu pass menjadi input untuk pass berikutnya**. Loop ini berlanjut sampai model memprediksi token berikutnya sebagai token EOS; pada titik itu model dapat berhenti.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="GIF visual decoding autoregressive" width="60%">
+
+Dengan kata lain, LLM akan mendecode teks sampai mencapai EOS. Tetapi apa yang terjadi selama satu loop decoding?
+
+Walaupun proses lengkapnya bisa cukup teknis untuk tujuan belajar agents, berikut ringkasan singkatnya:
+
+- Setelah input teks **ditokenisasi**, model menghitung representasi sequence yang menangkap informasi tentang makna dan posisi setiap token dalam input sequence.
+- Representasi ini masuk ke model, yang menghasilkan skor untuk mengurutkan kemungkinan setiap token dalam vocabulary-nya sebagai token berikutnya dalam sequence.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="GIF visual decoding" width="60%">
+
+Berdasarkan skor ini, kita memiliki beberapa strategi untuk memilih token yang akan melengkapi kalimat.
+
+- Strategi decoding paling mudah adalah selalu mengambil token dengan skor maksimum.
+
+Kamu bisa berinteraksi sendiri dengan proses decoding menggunakan SmolLM2 di Space ini (ingat, model akan mendecode sampai mencapai token **EOS**, yaitu **<|im_end|>** untuk model ini):
+
+<iframe
+	src="https://agents-course-decoding-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+- Namun, ada strategi decoding yang lebih canggih. Misalnya, *beam search* mengeksplorasi beberapa sequence kandidat untuk menemukan sequence dengan total skor maksimum, meskipun beberapa token individual memiliki skor lebih rendah.
+
+<iframe
+	src="https://agents-course-beam-search-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Jika kamu ingin tahu lebih banyak tentang decoding, kamu bisa melihat [NLP course](https://huggingface.co/learn/nlp-course).
+
+## Attention adalah kunci
+
+Aspek utama dari arsitektur Transformer adalah **Attention**. Saat memprediksi kata berikutnya,
+tidak semua kata dalam kalimat sama pentingnya; kata seperti "France" dan "capital" dalam kalimat *"The capital of France is ..."* membawa makna paling penting.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AttentionSceneFinal.gif" alt="GIF visual Attention" width="60%">
+Proses mengidentifikasi kata-kata paling relevan untuk memprediksi token berikutnya ini terbukti sangat efektif.
+
+Walaupun prinsip dasar LLMs, yaitu memprediksi token berikutnya, tetap konsisten sejak GPT-2, ada kemajuan besar dalam scaling neural networks dan membuat mekanisme attention bekerja untuk sequence yang semakin panjang.
+
+Jika kamu pernah berinteraksi dengan LLMs, kamu mungkin familiar dengan istilah *context length*, yang merujuk pada jumlah maksimum token yang dapat diproses LLM dan rentang _attention_ maksimumnya.
+
+## Prompting LLM itu penting
+
+Mengingat satu-satunya pekerjaan LLM adalah memprediksi token berikutnya dengan melihat setiap input token, lalu memilih token mana yang "penting", susunan kata dalam input sequence-mu sangat penting.
+
+Input sequence yang kamu berikan ke LLM disebut _prompt_. Desain prompt yang cermat membuatnya lebih mudah **mengarahkan generation LLM menuju output yang diinginkan**.
+
+## Bagaimana LLMs dilatih?
+
+LLMs dilatih pada dataset teks besar, tempat mereka belajar memprediksi kata berikutnya dalam sequence melalui objective self-supervised atau masked language modeling.
+
+Dari unsupervised learning ini, model mempelajari struktur bahasa dan **pola dasar dalam teks, sehingga model dapat melakukan generalisasi ke data yang belum pernah dilihat**.
+
+Setelah _pre-training_ awal ini, LLMs dapat di-fine-tune pada objective supervised learning untuk menjalankan tugas spesifik. Misalnya, beberapa model dilatih untuk struktur percakapan atau penggunaan tool, sementara yang lain berfokus pada classification atau code generation.
+
+## Bagaimana saya bisa menggunakan LLMs?
+
+Kamu memiliki dua opsi utama:
+
+1. **Menjalankan secara Lokal** (jika kamu memiliki hardware yang memadai).
+
+2. **Menggunakan Cloud/API** (misalnya melalui Hugging Face Serverless Inference API).
+
+Sepanjang kursus ini, kita terutama akan menggunakan model melalui API di Hugging Face Hub. Nanti, kita akan mengeksplorasi cara menjalankan model-model ini secara lokal di hardware-mu.
+
+
+## Bagaimana LLMs digunakan dalam AI Agents?
+
+LLMs adalah komponen utama AI Agents, **menyediakan fondasi untuk memahami dan menghasilkan bahasa manusia**.
+
+LLMs dapat menafsirkan instruksi pengguna, menjaga konteks dalam percakapan, menentukan rencana, dan memutuskan tools mana yang akan digunakan.
+
+Kita akan mengeksplorasi langkah-langkah ini secara lebih detail dalam Unit ini, tetapi untuk sekarang, yang perlu kamu pahami adalah bahwa LLM adalah **otak Agent**.
+
+---
+
+Itu banyak sekali informasi! Kita sudah membahas dasar-dasar tentang apa itu LLMs, bagaimana cara kerjanya, dan perannya dalam mendukung AI agents.
+
+Jika kamu ingin mendalami dunia language models dan natural language processing yang menarik ini, jangan ragu untuk mengecek <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">NLP course gratis kami</a>.
+
+Sekarang setelah kita memahami cara kerja LLMs, saatnya melihat **bagaimana LLMs menyusun generation mereka dalam konteks percakapan**.
+
+Untuk menjalankan <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb" target="_blank">notebook ini</a>, **kamu memerlukan Hugging Face token** yang bisa kamu dapatkan dari <a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a>.
+
+Untuk informasi lebih lanjut tentang cara menjalankan Jupyter Notebooks, cek <a href="https://huggingface.co/docs/hub/notebooks">Jupyter Notebooks di Hugging Face Hub</a>.
+
+Kamu juga perlu meminta akses ke <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank">model Meta Llama</a>.

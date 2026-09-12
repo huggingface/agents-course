@@ -1,0 +1,92 @@
+# AI Agent Observability dan Evaluation
+
+## 🔎 Apa Itu Observability?
+
+Observability adalah cara memahami apa yang terjadi di dalam AI agent dengan melihat sinyal eksternal seperti logs, metrics, dan traces. Untuk AI agents, ini berarti melacak actions, penggunaan tool, model calls, dan respons agar kita bisa melakukan debugging serta memperbaiki performa agent.
+
+![Dashboard observability](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/langfuse-dashboard.png)
+
+## 🔭 Kenapa Agent Observability Penting?
+
+Tanpa observability, AI agents terasa seperti "black boxes". Observability tools membuat agents lebih transparan, sehingga kamu bisa:
+
+- Memahami trade-off antara cost dan accuracy
+- Mengukur latency
+- Mendeteksi harmful language & prompt injection
+- Memantau feedback user
+
+Dengan kata lain, demo agent kamu jadi siap dibawa ke production.
+
+## 🔨 Observability Tools
+
+Observability tools yang umum untuk AI agents mencakup platform seperti [Langfuse](https://langfuse.com) dan [Arize](https://www.arize.com). Tools ini membantu mengumpulkan traces yang detail dan menyediakan dashboard untuk memantau metrics secara real-time, sehingga masalah lebih mudah ditemukan dan performa bisa diperbaiki.
+
+Fitur dan kemampuan observability tools bisa sangat berbeda. Sebagian tools bersifat open source dan dibantu komunitas besar yang ikut membentuk roadmap serta integrasinya. Ada tools yang fokus pada bagian tertentu dari LLMOps, seperti observability, evaluations, atau prompt management, sementara tools lain dirancang untuk mencakup seluruh workflow LLMOps. Cobalah membaca dokumentasi dari beberapa opsi agar kamu bisa memilih solusi yang cocok.
+
+Banyak agent framework seperti [smolagents](https://huggingface.co/docs/smolagents/v1.12.0/en/index) menggunakan standar [OpenTelemetry](https://opentelemetry.io/docs/) untuk mengekspos metadata ke observability tools. Di luar itu, observability tools juga membuat custom instrumentations agar lebih fleksibel mengikuti dunia LLM yang bergerak cepat. Cek dokumentasi tool yang kamu pakai untuk melihat apa saja yang didukung.
+
+## 🔬 Traces dan Spans
+
+Observability tools biasanya merepresentasikan agent runs sebagai traces dan spans.
+
+- **Traces** merepresentasikan satu task agent secara utuh dari awal sampai selesai, misalnya menangani query user.
+- **Spans** adalah langkah-langkah individual di dalam trace, misalnya memanggil language model atau mengambil data.
+
+![Contoh trace smolagent di Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/trace-tree.png)
+
+## 📊 Metrics Utama yang Perlu Dipantau
+
+Berikut beberapa metrics yang paling sering dipantau oleh observability tools:
+
+**Latency:** Seberapa cepat agent merespons? Waktu tunggu yang panjang bisa merusak pengalaman user. Kamu sebaiknya mengukur latency untuk task dan langkah individual dengan menelusuri agent runs. Misalnya, agent yang membutuhkan 20 detik untuk semua model calls bisa dipercepat dengan memakai model yang lebih cepat atau menjalankan model calls secara paralel.
+
+**Costs:** Berapa biaya per agent run? AI agents bergantung pada LLM calls yang ditagih per token atau API eksternal. Penggunaan tool yang sering atau prompt yang berkali-kali bisa cepat menaikkan cost. Contohnya, jika agent memanggil LLM lima kali untuk peningkatan kualitas yang kecil, kamu perlu menilai apakah biayanya masuk akal, atau apakah jumlah calls bisa dikurangi dan model yang lebih murah bisa dipakai. Pemantauan real-time juga membantu menemukan lonjakan tak terduga, misalnya bug yang menyebabkan loop API berlebihan.
+
+**Request Errors:** Berapa banyak request yang gagal dijalankan agent? Ini bisa mencakup API errors atau tool calls yang gagal. Agar agent lebih tangguh menghadapi masalah seperti ini di production, kamu bisa menyiapkan fallback atau retry. Misalnya, jika LLM provider A sedang down, kamu beralih ke LLM provider B sebagai backup.
+
+**User Feedback:** Evaluasi langsung dari user memberi insight yang berguna. Bentuknya bisa berupa rating eksplisit (👍thumbs-up/👎down, ⭐1-5 stars) atau komentar teks. Feedback negatif yang konsisten perlu menjadi sinyal bahwa agent tidak bekerja seperti yang diharapkan.
+
+**Implicit User Feedback:** Perilaku user memberi feedback tidak langsung, bahkan tanpa rating eksplisit. Contohnya, user langsung mengubah susunan pertanyaan, mengulang query, atau menekan tombol retry. Jika kamu melihat user berulang kali menanyakan hal yang sama, itu tanda agent belum bekerja sesuai harapan.
+
+**Accuracy:** Seberapa sering agent menghasilkan output yang benar atau diinginkan? Definisi accuracy bisa berbeda, misalnya kebenaran jawaban untuk problem-solving, accuracy dalam information retrieval, atau kepuasan user. Langkah pertama adalah mendefinisikan seperti apa keberhasilan untuk agent kamu. Kamu bisa melacak accuracy lewat automated checks, evaluation scores, atau label penyelesaian task. Contohnya, memberi label traces sebagai "succeeded" atau "failed".
+
+**Automated Evaluation Metrics:** Kamu juga bisa menyiapkan automated evals. Misalnya, gunakan LLM untuk memberi skor pada output agent, apakah output itu membantu, akurat, atau tidak. Ada juga beberapa library open source yang membantu memberi skor pada aspek berbeda dari agent. Contohnya, [RAGAS](https://docs.ragas.io/) untuk RAG agents atau [LLM Guard](https://llm-guard.com/) untuk mendeteksi harmful language atau prompt injection.
+
+Dalam praktiknya, kombinasi metrics ini memberi cakupan terbaik untuk melihat kondisi AI agent. Di [notebook contoh](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit2/monitoring-and-evaluating-agents.ipynb) bab ini, kita akan menunjukkan seperti apa metrics tersebut dalam contoh nyata. Tapi sebelum itu, kita pelajari dulu bentuk workflow evaluation yang umum.
+
+## 👍 Mengevaluasi AI Agents
+
+Observability memberi kita metrics, sedangkan evaluation adalah proses menganalisis data itu, sekaligus menjalankan tests, untuk menentukan seberapa baik performa AI agent dan bagaimana cara memperbaikinya. Setelah kamu punya traces dan metrics, bagaimana cara memakainya untuk menilai agent dan mengambil keputusan?
+
+Evaluation secara rutin diperlukan karena AI agents sering bersifat non-deterministic dan bisa berubah, baik lewat updates maupun pergeseran perilaku model. Tanpa evaluation, kamu tidak tahu apakah “smart agent” benar-benar bekerja dengan baik atau malah mengalami regresi.
+
+Ada dua kategori evaluation untuk AI agents: **online evaluation** dan **offline evaluation**. Keduanya berguna dan saling melengkapi. Biasanya kita mulai dengan offline evaluation, karena ini langkah minimum sebelum agent di-deploy.
+
+### 🥷 Offline Evaluation
+
+![Item dataset di Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/example-dataset.png)
+
+Di sini, agent dievaluasi dalam setting yang terkontrol, biasanya menggunakan test datasets, bukan query user yang live. Kamu memakai curated datasets yang sudah memiliki expected output atau perilaku yang benar, lalu menjalankan agent pada data tersebut.
+
+Misalnya, jika kamu membuat agent untuk soal cerita matematika, kamu mungkin punya [test dataset](https://huggingface.co/datasets/gsm8k) berisi 100 soal dengan jawaban yang sudah diketahui. Offline evaluation sering dilakukan saat development, dan bisa menjadi bagian dari CI/CD pipelines, untuk memeriksa perbaikan atau mencegah regresi. Keuntungannya: proses ini **repeatable dan kamu bisa mendapatkan metrics accuracy yang jelas karena punya ground truth**. Kamu juga bisa mensimulasikan query user dan mengukur respons agent terhadap jawaban ideal, atau memakai automated metrics seperti yang dijelaskan sebelumnya.
+
+Tantangan utama offline eval adalah memastikan test dataset cukup mencakup banyak kasus dan tetap relevan. Agent mungkin tampil baik pada test set tetap, tapi menghadapi query yang sangat berbeda di production. Karena itu, test sets perlu terus diperbarui dengan edge cases baru dan contoh yang mencerminkan skenario dunia nyata. Gabungan kasus “smoke test” kecil dan evaluation sets yang lebih besar biasanya berguna: set kecil untuk pemeriksaan cepat, set besar untuk metrics performa yang lebih luas.
+
+### 🔄 Online Evaluation
+
+Ini berarti mengevaluasi agent di environment live dan dunia nyata, yaitu saat agent benar-benar dipakai di production. Online evaluation mencakup pemantauan performa agent pada interaksi user sungguhan dan analisis outcome secara berkelanjutan.
+
+Contohnya, kamu bisa melacak success rate, skor kepuasan user, atau metrics lain pada live traffic. Kelebihan online evaluation adalah kemampuannya **menangkap hal-hal yang mungkin tidak kamu antisipasi di lab**. Kamu bisa mengamati model drift dari waktu ke waktu, misalnya jika efektivitas agent menurun saat pola input berubah, serta menemukan query atau situasi tak terduga yang tidak ada di test data. Ini memberi gambaran yang lebih nyata tentang perilaku agent di lapangan.
+
+Online evaluation sering mencakup pengumpulan implicit dan explicit user feedback seperti yang sudah dibahas, dan kadang menjalankan shadow tests atau A/B tests, ketika versi baru agent berjalan paralel untuk dibandingkan dengan versi lama. Tantangannya, mendapatkan label atau skor yang andal untuk interaksi live bisa rumit. Kamu mungkin perlu bergantung pada feedback user atau downstream metrics, misalnya apakah user mengklik hasilnya.
+
+### 🤝 Menggabungkan Keduanya
+
+Dalam praktiknya, evaluation AI agent yang berhasil memadukan metode **online** dan **offline**. Kamu bisa menjalankan offline benchmarks secara rutin untuk memberi skor kuantitatif pada agent atas task yang sudah didefinisikan, sambil terus memantau penggunaan live untuk menemukan hal-hal yang luput dari benchmark. Misalnya, offline tests bisa menunjukkan apakah success rate agent code-generation pada kumpulan problem yang dikenal sedang membaik, sementara online monitoring bisa memberi peringatan saat user mulai menanyakan kategori pertanyaan baru yang masih sulit ditangani agent. Menggabungkan keduanya memberi gambaran yang lebih kuat.
+
+Banyak tim memakai loop seperti ini: _offline evaluation → deploy new agent version → monitor online metrics and collect new failure examples → add those examples to offline test set → iterate_. Dengan pola ini, evaluation berjalan terus dan makin baik dari waktu ke waktu.
+
+## 🧑‍💻 Mari Lihat Cara Kerjanya dalam Praktik
+
+Di bagian berikutnya, kita akan melihat contoh penggunaan observability tools untuk memantau dan mengevaluasi agent.
+

@@ -1,0 +1,142 @@
+# Kuis Singkat (tidak dinilai) [[quiz1]]
+
+Mari uji pemahamanmu tentang `smolagents` lewat kuis singkat! Menguji diri sendiri membantu memperkuat materi yang sudah dipelajari dan menemukan bagian yang mungkin perlu ditinjau lagi.
+
+Kuis ini opsional dan tidak dinilai.
+
+### Q1: Apa salah satu keuntungan utama memilih `smolagents` dibanding framework lain?
+Pernyataan mana yang paling tepat menggambarkan kekuatan inti pendekatan `smolagents`?
+
+<Question
+choices={[
+  {
+    text: "Framework ini menggunakan file konfigurasi yang sangat khusus dan learning curve yang curam agar hanya developer ahli yang bisa memakainya",
+    explain: "smolagents dirancang agar sederhana dan kompleksitas kodenya minimal, bukan untuk menciptakan learning curve yang curam.",
+  },
+  {
+    text: "Framework ini mendukung pendekatan code-first dengan abstraksi minimal, sehingga agents bisa berinteraksi langsung melalui Python function calls",
+    explain: "Benar, smolagents menekankan desain yang langsung, berpusat pada kode, dan memakai abstraksi minimal.",
+    correct: true
+  },
+  {
+    text: "Framework ini berfokus pada JSON-based actions, sehingga agents tidak perlu menulis kode apa pun",
+    explain: "Walau smolagents mendukung JSON-based tool calls (ToolCallingAgents), library ini lebih menekankan pendekatan berbasis kode dengan CodeAgents.",
+  },
+  {
+    text: "Framework ini terintegrasi erat dengan satu provider LLM dan hardware khusus",
+    explain: "smolagents mendukung beberapa model providers dan tidak membutuhkan hardware khusus.",
+  }
+]}
+/>
+
+---
+
+### Q2: Dalam skenario apa kamu kemungkinan paling terbantu oleh smolagents?
+Situasi mana yang paling sesuai dengan kekuatan smolagents?
+
+<Question
+choices={[
+  {
+    text: "Membuat prototype atau bereksperimen cepat dengan logika agent, terutama ketika aplikasimu relatif sederhana",
+    explain: "Benar. smolagents dirancang untuk membuat agent secara sederhana dan lincah tanpa setup yang berat.",
+    correct: true
+  },
+  {
+    text: "Membangun sistem enterprise berskala besar yang membutuhkan puluhan microservices dan pipeline data real-time",
+    explain: "Walau memungkinkan, smolagents lebih berfokus pada eksperimen ringan yang berpusat pada kode, bukan infrastruktur enterprise yang berat.",
+  },
+  {
+    text: "Membutuhkan framework yang hanya mendukung cloud-based LLMs dan melarang local inference",
+    explain: "smolagents menawarkan integrasi fleksibel dengan model lokal maupun hosted, bukan hanya cloud-based LLMs.",
+  },
+  {
+    text: "Skenario yang membutuhkan orkestrasi tingkat lanjut, persepsi multi-modal, dan fitur skala enterprise langsung dari awal",
+    explain: "Walau kamu bisa mengintegrasikan kemampuan tingkat lanjut, inti smolagents sendiri ringan dan minimal.",
+  }
+]}
+/>
+
+---
+
+### Q3: smolagents menawarkan fleksibilitas dalam integrasi model. Pernyataan mana yang paling mencerminkan pendekatannya?
+Pilih deskripsi yang paling akurat tentang cara smolagents berinteroperasi dengan LLMs.
+
+<Question
+choices={[
+  {
+    text: "Framework ini hanya menyediakan satu built-in model dan tidak mengizinkan integrasi custom",
+    explain: "smolagents mendukung beberapa backend berbeda dan model yang didefinisikan user.",
+  },
+  {
+    text: "Framework ini mengharuskan kamu menerapkan sendiri model connector untuk setiap penggunaan LLM",
+    explain: "Ada beberapa connector siap pakai yang membuat integrasi LLM lebih langsung.",
+  },
+  {
+    text: "Framework ini hanya terintegrasi dengan open-source LLMs, bukan API komersial",
+    explain: "smolagents bisa terintegrasi dengan open-source model APIs maupun API model komersial.",
+  },
+  {
+    text: "Framework ini bisa digunakan dengan berbagai LLM, serta menawarkan class siap pakai seperti TransformersModel, InferenceClientModel, dan LiteLLMModel",
+    explain: "Benar. smolagents mendukung integrasi model yang fleksibel melalui berbagai class.",
+    correct: true
+  }
+]}
+/>
+
+---
+
+### Q4: Bagaimana smolagents menangani pilihan antara code-based actions dan JSON-based actions?
+Pernyataan mana yang tepat menggambarkan filosofi smolagents tentang format action?
+
+<Question
+choices={[
+  {
+    text: "Framework ini hanya mengizinkan JSON-based actions untuk semua tugas agent, sehingga membutuhkan parser untuk mengekstrak tool calls",
+    explain: "ToolCallingAgent menggunakan JSON-based calls, tetapi smolagents juga menyediakan opsi utama CodeAgent yang menulis kode Python.",
+  },
+  {
+    text: "Framework ini berfokus pada code-based actions melalui CodeAgent, tetapi juga mendukung JSON-based tool calls dengan ToolCallingAgent",
+    explain: "Benar, smolagents terutama merekomendasikan code-based actions, tetapi menyertakan alternatif berbasis JSON untuk user yang menginginkan atau membutuhkannya.",
+    correct: true
+  },
+  {
+    text: "Framework ini melarang semua external function calls dan mengharuskan seluruh logika berada sepenuhnya di dalam LLM",
+    explain: "smolagents memang dirancang untuk memberi LLM kemampuan memanggil tools atau kode eksternal.",
+  },
+  {
+    text: "Framework ini mengharuskan user mengubah setiap potongan kode menjadi object JSON secara manual sebelum menjalankan agent",
+    explain: "smolagents bisa mengelola pembuatan potongan kode secara otomatis di jalur CodeAgent, tanpa perlu konversi JSON manual.",
+  }
+]}
+/>
+
+---
+
+### Q5: Bagaimana smolagents terintegrasi dengan Hugging Face Hub untuk memberi manfaat tambahan?
+Pernyataan mana yang tepat menggambarkan salah satu keuntungan utama integrasi Hub?
+
+<Question
+choices={[
+  {
+    text: "Integrasi ini otomatis menaikkan semua model publik ke tier lisensi komersial",
+    explain: "Integrasi Hub tidak mengubah tier lisensi untuk model atau tools.",
+  },
+  {
+    text: "Integrasi ini mematikan local inference sepenuhnya dan memaksa penggunaan model remote saja",
+    explain: "User tetap bisa melakukan local inference jika mau; push ke Hub tidak menimpa penggunaan lokal.",
+  },
+  {
+    text: "Integrasi ini memungkinkan kamu melakukan push dan berbagi agents atau tools, sehingga mudah ditemukan dan digunakan ulang oleh developer lain",
+    explain: "smolagents mendukung upload agents dan tools ke HF Hub agar bisa digunakan ulang oleh orang lain.",
+    correct: true
+  },
+  {
+    text: "Integrasi ini menyimpan semua code-based agents milikmu secara permanen dan mencegah pembaruan atau versioning",
+    explain: "Repository Hub mendukung pembaruan dan version control, jadi kamu bisa merevisi code-based agents kapan saja.",
+  }
+]}
+/>
+
+---
+
+Selamat, kamu sudah menyelesaikan kuis ini! 🎉 Kalau ada pertanyaan yang terlewat, coba baca ulang bagian *Mengapa menggunakan smolagents* agar pemahamanmu lebih kuat. Kalau hasilmu bagus, kamu siap menjelajahi topik yang lebih lanjut di smolagents!

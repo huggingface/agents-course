@@ -1,0 +1,160 @@
+# Apa itu Agent?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Perencanaan Unit 1"/>
+
+Di akhir bagian ini, kamu akan merasa nyaman dengan konsep agents dan berbagai aplikasinya dalam AI.
+
+Untuk menjelaskan apa itu Agent, mari mulai dengan analogi.
+
+## Gambaran Besar: Alfred Sang Agent
+
+Kenalkan Alfred. Alfred adalah **Agent**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="Ini Alfred"/>
+
+Bayangkan Alfred **menerima perintah**, seperti: "Alfred, saya ingin kopi, tolong."
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="Saya ingin kopi"/>
+
+Karena Alfred **memahami bahasa alami**, ia cepat menangkap permintaan kita.
+
+Sebelum memenuhi pesanan, Alfred melakukan **reasoning dan planning**, mencari tahu langkah dan tools yang ia butuhkan untuk:
+
+1. Pergi ke dapur
+2. Menggunakan mesin kopi
+3. Menyeduh kopi
+4. Membawa kopi kembali
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="Reason dan plan"/>
+
+Setelah memiliki rencana, ia **harus bertindak**. Untuk menjalankan rencananya, **ia bisa menggunakan tools dari daftar tools yang ia ketahui**.
+
+Dalam kasus ini, untuk membuat kopi, ia menggunakan mesin kopi. Ia mengaktifkan mesin kopi untuk menyeduh kopi.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="Membuat kopi"/>
+
+Akhirnya, Alfred membawa kopi yang baru diseduh kepada kita.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Membawa kopi"/>
+
+Dan inilah Agent: **model AI yang mampu bernalar, merencanakan, dan berinteraksi dengan environment-nya**.
+
+Kita menyebutnya Agent karena ia memiliki _agency_, alias kemampuan untuk berinteraksi dengan environment.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="Proses Agent"/>
+
+## Mari kita buat lebih formal
+
+Sekarang setelah kamu punya gambaran besarnya, berikut definisi yang lebih presisi:
+
+> Agent adalah sistem yang menggunakan model AI untuk berinteraksi dengan environment-nya demi mencapai tujuan yang ditentukan pengguna. Agent menggabungkan reasoning, planning, dan eksekusi actions (sering kali melalui tools eksternal) untuk menyelesaikan tugas.
+
+Bayangkan Agent memiliki dua bagian utama:
+
+1. **Otak (AI Model)**
+
+Di sinilah semua proses berpikir terjadi. Model AI **menangani reasoning dan planning**.
+Ia memutuskan **Actions mana yang perlu diambil berdasarkan situasi**.
+
+2. **Tubuh (Capabilities dan Tools)**
+
+Bagian ini mewakili **semua hal yang Agent siap lakukan**.
+
+**Cakupan actions yang mungkin dilakukan** bergantung pada apa yang **sudah dibekalkan** kepada agent. Misalnya, karena manusia tidak punya sayap, mereka tidak bisa melakukan **Action** "terbang", tetapi mereka bisa menjalankan **Actions** seperti "berjalan", "berlari", "melompat", "mengambil", dan seterusnya.
+
+### Spektrum "Agency"
+
+Mengikuti definisi ini, Agents berada dalam spektrum berkelanjutan dengan tingkat agency yang semakin meningkat:
+
+| Tingkat Agency | Deskripsi | Disebut apa | Contoh pola |
+| --- | --- | --- | --- |
+| ☆☆☆ | Output Agent tidak berdampak pada alur program | Simple processor | `process_llm_output(llm_response)` |
+| ★☆☆ | Output Agent menentukan control flow dasar | Router | `if llm_decision(): path_a() else: path_b()` |
+| ★★☆ | Output Agent menentukan eksekusi fungsi | Tool caller | `run_function(llm_chosen_tool, llm_chosen_args)` |
+| ★★★ | Output Agent mengontrol iterasi dan kelanjutan program | Multi-step Agent | `while llm_should_continue(): execute_next_step()` |
+| ★★★ | Satu agentic workflow dapat memulai agentic workflow lain | Multi-Agent | `if llm_trigger(): execute_agent()` |
+
+Tabel dari [panduan konseptual smolagents](https://huggingface.co/docs/smolagents/conceptual_guides/intro_agents).
+
+
+## Jenis AI Models apa yang kita gunakan untuk Agents?
+
+Model AI yang paling umum ditemukan dalam Agents adalah LLM (Large Language Model), yang menerima **teks** sebagai input dan juga menghasilkan **teks** sebagai output.
+
+Contoh yang terkenal adalah **GPT-4** dari **OpenAI**, **Llama** dari **Meta**, **Gemini** dari **Google**, dan sebagainya. Model-model ini telah dilatih pada teks dalam jumlah sangat besar dan mampu melakukan generalisasi dengan baik. Kita akan belajar lebih banyak tentang LLMs di [bagian berikutnya](what-are-llms).
+
+> [!TIP]
+> Kita juga bisa menggunakan model yang menerima jenis input lain sebagai model inti Agent. Misalnya, Vision Language Model (VLM), yang mirip LLM tetapi juga memahami gambar sebagai input. Untuk saat ini kita akan fokus pada LLMs dan membahas opsi lain nanti.
+
+## Bagaimana AI mengambil action terhadap environment-nya?
+
+LLMs adalah model yang luar biasa, tetapi **mereka hanya bisa menghasilkan teks**.
+
+Namun, jika kamu meminta aplikasi chat terkenal seperti HuggingChat atau ChatGPT untuk membuat gambar, mereka bisa! Bagaimana mungkin?
+
+Jawabannya adalah developer HuggingChat, ChatGPT, dan aplikasi serupa menerapkan fungsionalitas tambahan (disebut **Tools**) yang dapat digunakan LLM untuk membuat gambar.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="Eiffel Brocolis"/>
+<figcaption>Model menggunakan Image Generation Tool untuk menghasilkan gambar ini.
+</figcaption>
+</figure>
+
+Kita akan belajar lebih banyak tentang tools di bagian [Tools](tools).
+
+## Jenis tugas apa yang bisa dilakukan Agent?
+
+Agent dapat melakukan tugas apa pun yang kita implementasikan melalui **Tools** untuk menyelesaikan **Actions**.
+
+Misalnya, jika saya menulis Agent untuk bertindak sebagai asisten pribadi saya (seperti Siri) di komputer, lalu saya memintanya "kirim email ke Manager saya untuk meminta penundaan meeting hari ini", saya bisa memberinya kode untuk mengirim email. Ini akan menjadi Tool baru yang dapat digunakan Agent kapan pun ia perlu mengirim email. Kita bisa menulisnya dalam Python:
+
+```python
+def send_message_to(recipient, message):
+    """Useful to send an e-mail message to a recipient"""
+    ...
+```
+
+LLM, seperti yang akan kita lihat, akan menghasilkan kode untuk menjalankan tool saat dibutuhkan, sehingga tugas yang diinginkan dapat terpenuhi.
+
+```python
+send_message_to("Manager", "Can we postpone today's meeting?")
+```
+
+**Desain Tools sangat penting dan berdampak besar pada kualitas Agent-mu**. Beberapa tugas membutuhkan Tools yang sangat spesifik untuk dibuat, sementara tugas lain dapat diselesaikan dengan tools serbaguna seperti "web_search".
+
+> Perhatikan bahwa **Actions tidak sama dengan Tools**. Sebuah Action, misalnya, bisa melibatkan penggunaan beberapa Tools untuk diselesaikan.
+
+Mengizinkan agent berinteraksi dengan environment-nya **memungkinkan penggunaan nyata bagi perusahaan dan individu**.
+
+### Contoh 1: Asisten Virtual Pribadi
+
+Asisten virtual seperti Siri, Alexa, atau Google Assistant bekerja sebagai agents ketika mereka berinteraksi atas nama pengguna menggunakan environment digital pengguna.
+
+Mereka menerima pertanyaan pengguna, menganalisis konteks, mengambil informasi dari database, dan memberikan respons atau memulai actions (seperti mengatur reminder, mengirim pesan, atau mengontrol perangkat pintar).
+
+### Contoh 2: Chatbot Customer Service
+
+Banyak perusahaan menerapkan chatbot sebagai agents yang berinteraksi dengan pelanggan dalam bahasa alami.
+
+Agents ini dapat menjawab pertanyaan, memandu pengguna melalui langkah troubleshooting, membuka issue di database internal, atau bahkan menyelesaikan transaksi.
+
+Tujuan yang telah ditentukan sebelumnya bisa mencakup peningkatan kepuasan pengguna, pengurangan waktu tunggu, atau peningkatan tingkat konversi penjualan. Dengan berinteraksi langsung dengan pelanggan, belajar dari dialog, dan menyesuaikan respons dari waktu ke waktu, mereka menunjukkan prinsip inti agent dalam tindakan.
+
+
+### Contoh 3: AI Non-Playable Character dalam video game
+
+AI agents yang ditenagai LLMs dapat membuat Non-Playable Characters (NPCs) lebih dinamis dan sulit ditebak.
+
+Alih-alih mengikuti pohon perilaku (behavior tree) yang kaku, mereka dapat **merespons secara kontekstual, beradaptasi dengan interaksi pemain**, dan menghasilkan dialog yang lebih bernuansa. Fleksibilitas ini membantu menciptakan karakter yang lebih hidup dan menarik, yang berkembang seiring actions pemain.
+
+---
+
+Sebagai rangkuman, Agent adalah sistem yang menggunakan AI Model (biasanya LLM) sebagai reasoning engine utamanya untuk:
+
+- **Memahami bahasa alami:** Menafsirkan dan merespons instruksi manusia dengan cara yang bermakna.
+
+- **Bernalar dan merencanakan:** Menganalisis informasi, membuat keputusan, dan menyusun strategi untuk menyelesaikan masalah.
+
+- **Berinteraksi dengan environment-nya:** Mengumpulkan informasi, mengambil actions, dan mengamati hasil dari actions tersebut.
+
+Sekarang setelah kamu memiliki pemahaman yang kuat tentang apa itu Agents, mari perkuat pemahamanmu dengan quiz singkat tanpa nilai. Setelah itu, kita akan masuk ke "otak Agent": [LLMs](what-are-llms).

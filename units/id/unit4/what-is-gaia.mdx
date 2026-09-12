@@ -1,0 +1,70 @@
+# Apa Itu GAIA?
+
+[GAIA](https://huggingface.co/papers/2311.12983) adalah **benchmark yang dirancang untuk mengevaluasi AI assistants pada tugas real-world** yang membutuhkan kombinasi kemampuan inti, seperti reasoning, pemahaman multimodal, web browsing, dan penggunaan tool yang mahir.
+
+Benchmark ini diperkenalkan dalam paper _"[GAIA: A Benchmark for General AI Assistants](https://huggingface.co/papers/2311.12983)"_.
+
+Benchmark ini berisi **466 pertanyaan yang dikurasi dengan cermat**. Pertanyaan-pertanyaan tersebut **secara konsep sederhana bagi manusia**, tetapi **sangat menantang bagi sistem AI saat ini**.
+
+Untuk menggambarkan jaraknya:
+- **Manusia**: tingkat keberhasilan ~92%
+- **GPT-4 with plugins**: ~15%
+- **Deep Research (OpenAI)**: 67,36% pada validation set
+
+GAIA memperlihatkan keterbatasan AI models saat ini dan menyediakan benchmark yang ketat untuk mengevaluasi progres menuju AI assistants yang benar-benar general-purpose.
+
+## 🌱 Prinsip Inti GAIA
+
+GAIA dirancang dengan cermat berdasarkan pilar-pilar berikut:
+
+- 🔍 **Kesulitan real-world**: Tugas membutuhkan multi-step reasoning, pemahaman multimodal, dan interaksi dengan tool.
+- 🧾 **Interpretabilitas manusia**: Meski sulit bagi AI, tugas tetap sederhana secara konsep dan mudah diikuti manusia.
+- 🛡️ **Sulit dimanipulasi**: Jawaban benar membutuhkan eksekusi tugas secara lengkap, sehingga brute-forcing tidak efektif.
+- 🧰 **Kesederhanaan evaluasi**: Jawaban ringkas, faktual, dan tidak ambigu, ideal untuk benchmarking.
+
+## Tingkat Kesulitan
+
+Tugas GAIA disusun dalam **tiga level dengan kompleksitas yang meningkat**, dan masing-masing menguji skill tertentu:
+
+- **Level 1**: Membutuhkan kurang dari 5 langkah dan penggunaan tool yang minimal.
+- **Level 2**: Melibatkan reasoning yang lebih kompleks, koordinasi antara beberapa tools, dan 5-10 langkah.
+- **Level 3**: Menuntut perencanaan jangka panjang dan integrasi lanjutan dari berbagai tools.
+
+![Level GAIA](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_levels.png)
+
+## Contoh Pertanyaan GAIA yang Sulit
+
+> Buah apa saja yang ditampilkan dalam lukisan tahun 2008 "Embroidery from Uzbekistan" dan juga disajikan sebagai bagian dari menu sarapan Oktober 1949 pada ocean liner yang kemudian digunakan sebagai properti terapung untuk film "The Last Voyage"? Berikan item sebagai daftar yang dipisahkan koma, urutkan searah jarum jam berdasarkan susunannya dalam lukisan mulai dari posisi pukul 12. Gunakan bentuk jamak untuk setiap buah.
+
+Seperti yang kamu lihat, pertanyaan ini menantang sistem AI dalam beberapa cara:
+
+- Membutuhkan **format respons terstruktur**
+- Melibatkan **multimodal reasoning** (misalnya, menganalisis gambar)
+- Menuntut **multi-hop retrieval** atas fakta-fakta yang saling bergantung:
+  - Mengidentifikasi buah dalam lukisan
+  - Menemukan ocean liner mana yang digunakan dalam *The Last Voyage*
+  - Mencari menu sarapan Oktober 1949 untuk kapal tersebut
+- Membutuhkan **urutan yang benar** dan perencanaan tingkat tinggi agar bisa diselesaikan dengan urutan yang tepat
+
+Jenis tugas ini memperlihatkan bagian-bagian di mana LLM mandiri sering kurang memadai, sehingga GAIA menjadi benchmark ideal untuk **sistem berbasis agent** yang dapat melakukan reasoning, mengambil informasi, dan mengeksekusi tugas dalam banyak langkah serta modalitas.
+
+![Plot kapabilitas GAIA](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_capabilities.png)
+
+## Evaluasi Langsung
+
+Untuk mendorong benchmarking berkelanjutan, **GAIA menyediakan leaderboard publik yang di-host di Hugging Face**, tempat kamu bisa menguji models terhadap **300 pertanyaan testing**.
+
+👉 Lihat leaderboard [di sini](https://huggingface.co/spaces/gaia-benchmark/leaderboard)
+
+<iframe
+	src="https://gaia-benchmark-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Ingin mempelajari GAIA lebih dalam?
+
+- 📄 [Baca paper lengkapnya](https://huggingface.co/papers/2311.12983)
+- 📄 [Posting rilis Deep Research oleh OpenAI](https://openai.com/index/introducing-deep-research/)
+- 📄 [Open-source DeepResearch: Membebaskan search agents kita](https://huggingface.co/blog/open-deep-research)
