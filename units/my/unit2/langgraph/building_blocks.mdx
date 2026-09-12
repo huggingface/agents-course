@@ -1,0 +1,132 @@
+## LangGraph ၏ အခြေခံ အစိတ်အပိုင်းများ (Building Blocks of LangGraph)
+
+LangGraph ကို အသုံးပြုပြီး Application များ တည်ဆောက်ဖို့အတွက်၊ ၎င်း၏ အဓိက အစိတ်အပိုင်းများကို နားလည်ထားဖို့ လိုအပ်ပါတယ်။ LangGraph Application တစ်ခုကို ဖွဲ့စည်းထားတဲ့ အခြေခံ အစိတ်အပိုင်းတွေကို လေ့လာကြည့်ရအောင်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Building_blocks.png" alt="Building Blocks" width="70%"/>
+
+LangGraph ရှိ Application တစ်ခုသည် **စတင်ရာနေရာ (entrypoint)** မှ စတင်ပြီး၊ လုပ်ဆောင်မှုအပေါ် မူတည်၍ **အဆုံးသတ် (END)** သို့ မရောက်မချင်း Function တစ်ခုမှ အခြား Function တစ်ခုသို့ စီးဆင်းသွားနိုင်ပါတယ်။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/application.png" alt="Application"/>
+
+### ၁။ State (အခြေအနေ)
+
+**State (အခြေအနေ)** သည် LangGraph ၏ ဗဟိုအယူအဆ ဖြစ်ပါတယ်။ ၎င်းသည် သင့် Application တစ်လျှောက်လုံး စီးဆင်းနေသော အချက်အလက်အားလုံးကို ကိုယ်စားပြုပါတယ်။
+
+```python
+from typing_extensions import TypedDict
+
+class State(TypedDict):
+    graph_state: str
+```
+
+**State သည် အသုံးပြုသူမှ သတ်မှတ်ရသော အရာဖြစ်ပါတယ်**။ ထို့ကြောင့်၊ ဆုံးဖြတ်ချက်ချမှတ်ခြင်း လုပ်ငန်းစဉ်အတွက် လိုအပ်သော ဒေတာအားလုံး ပါဝင်စေရန် Fields များကို ဂရုတစိုက် ဖန်တီးရပါမယ်။
+
+> 💡 **အကြံပြုချက်:** သင့် Application သည် အဆင့်တစ်ခုနှင့်တစ်ခုကြားတွင် မည်သည့်အချက်အလက်များကို မှတ်တမ်းတင်ရန် လိုအပ်သလဲဆိုတာကို သေသေချာချာ စဉ်းစားပါ။ (ဥပမာ- လက်ရှိ စကားပြောဆိုမှု မှတ်တမ်း၊ ရရှိထားသော ဒေတာ၊ သို့မဟုတ် ယခင် Node မှ ထွက်လာသော ရလဒ်များ)
+
+### ၂။ Nodes (Node များ)
+
+**Nodes (Node များ)** ဆိုတာ Python Function တွေပဲ ဖြစ်ပါတယ်။ Node တစ်ခုစီက-
+
+*   State ကို Input အဖြစ် ယူပါတယ်။
+*   လုပ်ငန်းတစ်ခုခုကို လုပ်ဆောင်ပါတယ်။
+*   State ကို ပြောင်းလဲမှုများ ပြန်လည်ပေးပို့ပါတယ်။
+
+```python
+def node_1(state):
+    print("---Node 1---")
+    return {"graph_state": state['graph_state'] +" I am"}
+
+def node_2(state):
+    print("---Node 2---")
+    return {"graph_state": state['graph_state'] +" happy!"}
+
+def node_3(state):
+    print("---Node 3---")
+    return {"graph_state": state['graph_state'] +" sad!"}
+```
+
+ဥပမာအားဖြင့်၊ Node များတွင် အောက်ပါတို့ ပါဝင်နိုင်ပါတယ်-
+
+*   **LLM ခေါ်ဆိုမှုများ (LLM calls):** စာသားများ ထုတ်ပေးခြင်း သို့မဟုတ် ဆုံးဖြတ်ချက်များ ချမှတ်ခြင်း။
+*   **Tool ခေါ်ဆိုမှုများ (Tool calls):** ပြင်ပ စနစ်များနှင့် ထိတွေ့ဆက်ဆံခြင်း (ဥပမာ- API ခေါ်ဆိုခြင်း)။
+*   **အခြေအနေအရ ဆုံးဖြတ်သည့် Logic (Conditional logic):** နောက်ထပ် လုပ်ဆောင်ရမည့် အဆင့်ကို ဆုံးဖြတ်ခြင်း။
+*   **လူသား၏ ပါဝင်မှု (Human intervention):** အသုံးပြုသူများထံမှ Input ရယူခြင်း။
+
+> 💡 **သတင်းအချက်အလက်:** LangGraph မှ တိုက်ရိုက်ပါဝင်သော **START** နှင့် **END** ကဲ့သို့သော Node များသည် Workflow တစ်ခုလုံးအတွက် မရှိမဖြစ် လိုအပ်ပါတယ်။
+
+### ၃။ Edges (ဆက်သွယ်မှုများ)
+
+**Edges (ဆက်သွယ်မှုများ)** သည် Node များကို ချိတ်ဆက်ပေးပြီး၊ သင့် Graph တစ်လျှောက် ဖြစ်နိုင်ခြေရှိသော လမ်းကြောင်းများကို သတ်မှတ်ပေးပါတယ်။
+
+```python
+import random
+from typing import Literal
+
+def decide_mood(state) -> Literal["node_2", "node_3"]:
+    
+    # Often, we will use state to decide on the next node to visit
+    user_input = state['graph_state'] 
+    
+    # Here, let's just do a 50 / 50 split between nodes 2, 3
+    if random.random() < 0.5:
+
+        # 50% of the time, we return Node 2
+        return "node_2"
+    
+    # 50% of the time, we return Node 3
+    return "node_3"
+```
+
+Edges များသည် အောက်ပါအတိုင်း ဖြစ်နိုင်ပါတယ်-
+
+*   **တိုက်ရိုက် (Direct):** Node A မှ Node B သို့ အမြဲတမ်း သွားခြင်း။
+*   **အခြေအနေအရ (Conditional):** လက်ရှိ State အပေါ် မူတည်၍ နောက်ထပ် Node ကို ရွေးချယ်ခြင်း။ (ဥပမာ- အပေါ်က `decide_mood` Function သည် State ကို စစ်ဆေးပြီး နောက်ထပ် Node ကို ရွေးချယ်ပေးပါတယ်)
+
+### ၄။ StateGraph (StateGraph)
+
+**StateGraph** သည် သင့် Agent ၏ Workflow တစ်ခုလုံးကို ထည့်သွင်းထားသော Container ဖြစ်ပါတယ်။
+
+```python
+from IPython.display import Image, display
+from langgraph.graph import StateGraph, START, END
+
+# Build graph
+builder = StateGraph(State)
+builder.add_node("node_1", node_1)
+builder.add_node("node_2", node_2)
+builder.add_node("node_3", node_3)
+
+# Logic
+builder.add_edge(START, "node_1")
+builder.add_conditional_edges("node_1", decide_mood)
+builder.add_edge("node_2", END)
+builder.add_edge("node_3", END)
+
+# Add
+graph = builder.compile()
+```
+
+၎င်းကို ပုံရိပ်ဖြင့် မြင်သာအောင် ပြသနိုင်ပါတယ်!
+
+```python
+# View
+display(Image(graph.get_graph().draw_mermaid_png()))
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/basic_graph.jpeg" alt="Graph Visualization"/>
+
+ဒါပေမယ့် အရေးအကြီးဆုံးကတော့ ၎င်းကို အောက်ပါအတိုင်း ခေါ်ဆို အသုံးပြုနိုင်ခြင်းပဲ ဖြစ်ပါတယ်။
+
+```python
+graph.invoke({"graph_state" : "Hi, this is Lance."})
+```
+output :
+```
+---Node 1---
+---Node 3---
+{'graph_state': 'Hi, this is Lance. I am sad!'}
+```
+(ဒီဥပမာမှာ `decide_mood` Function က ကျပန်း (Random) ရွေးချယ်မှုအရ Node 3 ကို ရွေးချယ်လိုက်တာကို တွေ့ရမှာပါ။)
+
+## နောက်ထပ် ဘာတွေ လေ့လာရမလဲ?
+
+နောက်အပိုင်းမှာတော့ ဒီအယူအဆတွေကို လက်တွေ့ကျင့်သုံးပြီး ကျွန်တော်တို့ရဲ့ ပထမဆုံး Graph ကို တည်ဆောက်သွားပါမယ်။ ဒီ Graph က Alfred ကို သင့်ရဲ့ E-mail တွေကို လက်ခံယူစေခြင်း၊ အမျိုးအစားခွဲခြားစေခြင်းနဲ့ အကယ်၍ အရေးပါတဲ့ E-mail ဖြစ်ရင် ကနဦးအဖြေတစ်ခုကို ရေးသားစေခြင်းတို့ကို လုပ်ဆောင်နိုင်မှာ ဖြစ်ပါတယ်။

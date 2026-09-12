@@ -1,0 +1,59 @@
+# LlamaHub ကို မိတ်ဆက်ခြင်း (Introduction to the LlamaHub)
+
+**LlamaHub ဆိုတာဟာ LlamaIndex အတွင်းမှာ သင်အသုံးပြုနိုင်တဲ့ ရာနဲ့ချီတဲ့ Integrations (ပေါင်းစပ်မှုများ)၊ Agents နဲ့ Tools တွေရဲ့ Registry (မှတ်ပုံတင်ဌာန) ပဲ ဖြစ်ပါတယ်**။
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+ဒီ Course မှာ ကျွန်တော်တို့ Integrations အမျိုးမျိုးကို အသုံးပြုသွားမှာဖြစ်လို့၊ LlamaHub နဲ့ ၎င်းက ကျွန်တော်တို့ကို ဘယ်လို ကူညီနိုင်မလဲဆိုတာကို အရင်ဆုံး ကြည့်လိုက်ရအောင်။
+
+ကျွန်တော်တို့ လိုအပ်တဲ့ Components တွေအတွက် Dependencies တွေကို ဘယ်လိုရှာဖွေပြီး Install လုပ်ရမလဲဆိုတာကို ကြည့်လိုက်ရအောင်။
+
+## Installation (တပ်ဆင်ခြင်း)
+
+LlamaIndex ကို Install လုပ်ဖို့ ညွှန်ကြားချက်တွေကို [LlamaHub](https://llamahub.ai/) မှာ စနစ်တကျ ဖွဲ့စည်းထားတဲ့ Overview အနေနဲ့ ရရှိနိုင်ပါတယ်။
+
+အစပိုင်းမှာ ဒါက နည်းနည်း ရှုပ်ထွေးနိုင်ပေမယ့်၊ Install လုပ်တဲ့ Command တွေဟာ ယေဘုယျအားဖြင့် မှတ်ရလွယ်ကူတဲ့ ပုံစံကို လိုက်နာပါတယ်-
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+
+Hugging Face Inference API Integration ကို အသုံးပြုပြီး LLM နဲ့ Embedding Component အတွက် Dependencies တွေကို Install လုပ်ကြည့်ရအောင် [Hugging Face inference API integration](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms)။
+
+```bash
+pip install llama-index-llms-huggingface-api llama-index-embeddings-huggingface
+```
+
+## Usage (အသုံးပြုပုံ)
+
+Install လုပ်ပြီးတာနဲ့ အသုံးပြုပုံ ပုံစံတွေကို ကျွန်တော်တို့ မြင်တွေ့နိုင်ပါတယ်။ Import လုပ်တဲ့ လမ်းကြောင်းတွေဟာ Install Command ကို လိုက်နာတယ်ဆိုတာကို သတိထားမိပါလိမ့်မယ်။
+
+အောက်မှာ **LLM Component အတွက် Hugging Face Inference API ကို အသုံးပြုတဲ့ ဥပမာ** ကို ကြည့်နိုင်ပါတယ်။
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+import os
+from dotenv import load_dotenv
+
+# Load the .env file
+load_dotenv()
+
+# Retrieve HF_TOKEN from the environment variables
+hf_token = os.getenv("HF_TOKEN")
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token=hf_token,
+    provider="auto"
+)
+
+response = llm.complete("Hello, how are you?")
+print(response)
+# I am good, how can I help you today?
+```
+
+ကောင်းပါပြီ၊ ကျွန်တော်တို့ လိုအပ်တဲ့ Components တွေအတွက် Integrations တွေကို ဘယ်လိုရှာဖွေရမယ်၊ Install လုပ်ရမယ်၊ အသုံးပြုရမယ်ဆိုတာကို သိရှိသွားပါပြီ။
+
+**Components တွေကို ပိုမိုနက်နက်နဲနဲ လေ့လာကြည့်ရအောင်**၊ ပြီးတော့ ကျွန်တော်တို့ရဲ့ ကိုယ်ပိုင် Agent တွေကို တည်ဆောက်ဖို့အတွက် ၎င်းတို့ကို ဘယ်လိုအသုံးပြုနိုင်မလဲဆိုတာကို ကြည့်ရအောင်။
