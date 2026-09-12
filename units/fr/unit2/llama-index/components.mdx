@@ -121,6 +121,8 @@ pipeline = IngestionPipeline(
     ],
     vector_store=vector_store,
 )
+
+nodes = await pipeline.arun(documents=[Document.example()])
 ```
 
 > [!TIP]
