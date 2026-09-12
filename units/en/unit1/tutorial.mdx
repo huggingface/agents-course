@@ -55,11 +55,12 @@ Let's break down the code together:
 - The file begins with some simple but necessary library imports
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, load_tool, tool
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
 import datetime
 import requests
 import pytz
 import yaml
+from tools.final_answer import FinalAnswerTool
 ```
 
 As outlined earlier, we will directly use the **CodeAgent** class from **smolagents**.
