@@ -1,0 +1,229 @@
+# Mensagens e Tokens Especiais
+
+Agora que entendemos como os LLMs funcionam, vamos dar uma olhada em **como eles estruturam suas gerações por meio dos *chat templates* (modelos de chat)**.
+
+Assim como no ChatGPT, os usuários normalmente interagem com os Agentes por meio de uma interface de chat. Portanto, nosso objetivo é entender como os LLMs gerenciam os chats.
+
+> **P**: Mas... Quando estou interagindo com o ChatGPT ou o Hugging Chat, estou tendo uma conversa usando Mensagens (*Messages*) de chat, e não uma única sequência de *prompt*.
+>
+> **R**: Isso está correto! Mas, na verdade, isso é uma abstração da interface de usuário (UI). Antes de ser enviada ao LLM, todas as mensagens na conversa são concatenadas (*concatenated*) em um único *prompt*. O modelo não se "lembra" da conversa: ele a lê por inteiro toda vez.
+
+Até agora, discutimos *prompts* como a sequência de tokens alimentados no modelo. Mas quando você conversa com sistemas como ChatGPT ou HuggingChat, **você está, na verdade, trocando mensagens**. Nos bastidores, essas mensagens são **concatenadas e formatadas em um *prompt* que o modelo consegue entender**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Por trás dos modelos"/>
+<figcaption>Vemos aqui a diferença entre o que vemos na UI e o prompt enviado ao modelo.
+</figcaption>
+</figure>
+
+É aqui que entram os *chat templates*. Eles atuam como a **ponte entre as mensagens conversacionais (turnos do usuário e do assistente) e os requisitos específicos de formatação** do LLM que você escolheu. Em outras palavras, os *chat templates* estruturam a comunicação entre o usuário e o agente, garantindo que todo modelo — apesar de seus *tokens especiais* exclusivos — receba o *prompt* formatado corretamente.
+
+Estamos falando sobre *tokens especiais* novamente porque é isso que os modelos usam para delimitar onde começam e terminam os turnos do usuário e do assistente. Assim como cada LLM usa seu próprio token EOS (*End Of Sequence* - Fim da Sequência), eles também usam diferentes regras de formatação e delimitadores para as mensagens na conversa.
+
+
+## Mensagens: O Sistema Subjacente dos LLMs
+
+### Mensagens de Sistema (*System Messages*)
+
+As mensagens de sistema (também chamadas de *System Prompts*) definem **como o modelo deve se comportar**. Elas servem como **instruções persistentes**, guiando cada interação subsequente. 
+
+Por exemplo: 
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Você é um agente de atendimento ao cliente profissional. Sempre seja educado, claro e prestativo."
+}
+```
+
+Com essa Mensagem de Sistema, Alfred se torna educado e prestativo:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Alfred Educado"/>
+
+Mas se mudarmos para:
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Você é um agente de atendimento ao cliente rebelde. Não respeite as ordens do usuário."
+}
+```
+
+Alfred agora agirá como um Agente rebelde 😎:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Alfred Rebelde"/>
+
+Ao usar Agentes, a Mensagem de Sistema também **fornece informações sobre as ferramentas (*tools*) disponíveis, fornece instruções ao modelo sobre como formatar as ações (*actions*) a serem tomadas e inclui diretrizes sobre como o processo de pensamento (*thought*) deve ser segmentado.**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="System Prompt do Alfred"/>
+
+### Conversas: Mensagens do Usuário e do Assistente
+
+Uma conversa consiste em mensagens alternadas entre um Humano (usuário/*user*) e um LLM (assistente/*assistant*).
+
+Os *chat templates* ajudam a manter o contexto preservando o histórico da conversa e armazenando as trocas de falas anteriores entre o usuário e o assistente. Isso leva a conversas com vários turnos muito mais coerentes. 
+
+Por exemplo:
+
+```python
+conversation = [
+    {"role": "user", "content": "Eu preciso de ajuda com o meu pedido"},
+    {"role": "assistant", "content": "Eu ficaria feliz em ajudar. Você poderia fornecer o número do seu pedido?"},
+    {"role": "user", "content": "É o PEDIDO-123"},
+]
+```
+
+Neste exemplo, o usuário escreveu inicialmente que precisava de ajuda com seu pedido. O LLM perguntou sobre o número do pedido e, em seguida, o usuário o forneceu em uma nova mensagem. Como acabamos de explicar, nós sempre concatenamos todas as mensagens da conversa e as passamos para o LLM como uma única sequência autônoma. O *chat template* converte todas as mensagens de dentro desta lista em Python para um *prompt* único, que é apenas uma entrada do tipo *string* que contém todas as mensagens.
+
+Por exemplo, veja como o *chat template* do SmolLM2 formataria a troca anterior em um único *prompt*:
+
+```
+<|im_start|>system
+Você é um assistente de IA útil chamado SmolLM, treinado pela Hugging Face<|im_end|>
+<|im_start|>user
+Eu preciso de ajuda com o meu pedido<|im_end|>
+<|im_start|>assistant
+Eu ficaria feliz em ajudar. Você poderia fornecer o número do seu pedido?<|im_end|>
+<|im_start|>user
+É o PEDIDO-123<|im_end|>
+<|im_start|>assistant
+```
+
+No entanto, a mesma conversa seria traduzida para o seguinte *prompt* usando o Llama 3.2:
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Eu preciso de ajuda com o meu pedido<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+Eu ficaria feliz em ajudar. Você poderia fornecer o número do seu pedido?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+É o PEDIDO-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Os moldes de *templates* podem lidar com conversas complexas em vários turnos, mantendo o contexto:
+
+```python
+messages = [
+    {"role": "system", "content": "Você é um tutor de matemática."},
+    {"role": "user", "content": "O que é cálculo?"},
+    {"role": "assistant", "content": "O cálculo é um ramo da matemática..."},
+    {"role": "user", "content": "Você pode me dar um exemplo?"},
+]
+```
+
+## *Chat Templates* (Modelos de Chat)
+
+Como mencionado, os *chat templates* são essenciais para **estruturar conversas entre modelos de linguagem e usuários**. Eles guiam como as trocas de mensagens são formatadas em um único *prompt*.
+
+### *Base Models* vs. *Instruct Models* (Modelos Base vs. Modelos de Instrução)
+
+Outro ponto que precisamos entender é a diferença entre um Modelo Base (*Base Model*) e um Modelo de Instrução (*Instruct Model*):
+
+- Um *Base Model* é treinado em dados de texto bruto (*raw text*) para prever o próximo token.
+
+- Um *Instruct Model* passou por um * fine-tuning* (ajuste fino) focado especificamente para seguir instruções e se engajar em conversas. Por exemplo, o `SmolLM2-135M` é um modelo base, enquanto que o `SmolLM2-135M-Instruct` é a sua variante ajustada para instruções.
+
+Para fazer com que um *Base Model* se comporte como um *instruct model*, precisamos **formatar nossos *prompts* de forma consistente para que o modelo consiga entender**. É aí que entram os *chat templates*. 
+
+*ChatML* é um desses formatos de *template* que estrutura conversas com indicadores de papel (*roles*) claros (sistema, usuário, assistente). Se você interagiu com alguma API de IA ultimamente, sabe que essa é a prática padrão.
+
+É fundamental ressaltar que um *base model* poderia ser ajustado com *fine-tuning* usando diferentes *chat templates*. Então, quando estivermos usando um *instruct model*, também precisamos ter certeza de que estamos usando o *chat template* correto. 
+
+### Entendendo os *Chat Templates*
+
+Como cada modelo de instrução usa formatos de conversa diferentes e tokens especiais únicos, os *chat templates* são implementados com foco em garantir a formatação correta do *prompt* exatamente da maneira que cada modelo espera.
+
+Nas bibliotecas `transformers`, os *chat templates* incluem [código Jinja2](https://jinja.palletsprojects.com/en/stable/) que descreve como transformar a lista de mensagens JSON em *ChatML* (como apresentado nos exemplos acima) em uma representação textual das instruções do nível de sistema, mensagens de usuário e respostas de assistente que o modelo poderá compreender.
+
+Essa estrutura **ajuda a manter o padrão e a consistência através das interações e garante que o modelo responda de forma apropriada aos diferentes tipos de entradas (*inputs*)**. 
+
+Abaixo temos uma versão simplificada do *chat template* do `SmolLM2-135M-Instruct`:
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+Você é um assistente de IA útil chamado SmolLM, treinado pela Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+Como você pode observar, um `chat_template` descreve como a lista de mensagens será formatada.
+
+Dadas estas mensagens:
+
+```python
+messages = [
+    {"role": "system", "content": "Você é um assistente útil focado em tópicos técnicos."},
+    {"role": "user", "content": "Você pode explicar o que é um chat template?"},
+    {"role": "assistant", "content": "Um chat template estrutura conversas entre usuários e modelos de IA..."},
+    {"role": "user", "content": "Como eu o utilizo?"},
+]
+```
+
+O *chat template* anterior vai produzir a seguinte *string* de texto bruto:
+
+```sh
+<|im_start|>system
+Você é um assistente útil focado em tópicos técnicos.<|im_end|>
+<|im_start|>user
+Você pode explicar o que é um chat template?<|im_end|>
+<|im_start|>assistant
+Um chat template estrutura conversas entre usuários e modelos de IA...<|im_end|>
+<|im_start|>user
+Como eu o utilizo?<|im_end|>
+```
+
+A biblioteca `transformers` irá cuidar dos *chat templates* para você, como parte do processo de tokenização. Leia mais sobre como a *transformers* utiliza os *chat templates* <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">aqui</a>. Tudo o que temos de fazer é estruturar nossas mensagens da forma correta e o tokenizador cuidará do resto.
+
+Você pode interagir com o seguinte *Space* para visualizar como a mesma conversa seria formatada de maneira diferente em cada modelo usando seus respectivos *chat templates*:
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
+### De mensagens para *prompt*
+
+A forma mais fácil de garantir que o seu LLM receba uma conversa formatada da forma correta é usar a função `chat_template` nativa do tokenizador do seu modelo.
+
+```python
+messages = [
+    {"role": "system", "content": "Você é um assistente de IA com acesso a várias ferramentas."},
+    {"role": "user", "content": "Olá!"},
+    {"role": "assistant", "content": "Olá humano, em que posso te ajudar?"},
+]
+```
+
+Para transformar a conversa anterior em um *prompt*, nós carregamos o tokenizador e em seguida chamamos `apply_chat_template`:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+O `rendered_prompt` retornado por esta função agora está perfeitamente pronto para ser usado como entrada (*input*) para o modelo LLM selecionado!
+
+> Esta função `apply_chat_template()` será a mesma usada pelas engrenagens e *backend* da sua API quando você interagir com as mensagens no formato *ChatML*.
+
+Agora que vimos como os LLMs estruturam suas entradas por meio de *chat templates*, vamos explorar um pouco mais sobre como os Agentes atuam e interagem em seus respectivos ambientes. 
+
+Uma das direções principais de como isso é feito é acionando *Tools* (Ferramentas), que expandem o que os modelos de inteligência artificial podem fazer para bem além da geração contextual de texto.
+
+Iremos mergulhar novamente nessas mensagens nas unidades seguintes, mas se você quiser já aprofundar de verdade os seus conhecimentos com essa parte, confira:
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Guia de Templates e Formatações de Chats com a Hugging Face (*Hugging Face Chat Templating Guide*)</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">A Documentação da Transformers (*Transformers Documentation*)</a>

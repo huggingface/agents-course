@@ -1,0 +1,44 @@
+# Observar: Integrando Feedback para Refletir e Adaptar
+
+As Observações são a **forma como um Agente percebe as consequências de suas ações**.
+
+Elas fornecem informações cruciais que alimentam o processo de pensamento do Agente e guiam suas ações futuras.
+
+São **sinais provenientes do ambiente** — seja dados de uma API, mensagens de erro, ou logs do sistema — que direcionam o próximo ciclo de pensamento.
+
+Na fase de observação, o agente:
+
+- **Coleta Feedback:** Recebe dados ou a confirmação de que sua ação foi bem-sucedida (ou não).
+- **Anexa os Resultados:** Integra a nova informação ao seu contexto atual, efetivamente atualizando sua memória.
+- **Adapta sua Estratégia:** Utiliza este contexto atualizado para refinar pensamentos e ações subsequentes.
+
+Por exemplo, se uma API de clima retorna os dados *"parcialmente nublado, 15°C, 60% de umidade"*, esta observação é anexada à memória do agente (ao final do prompt).
+
+O Agente então a utiliza para decidir se informações adicionais são necessárias ou se já está pronto para fornecer uma resposta final.
+
+Esta **incorporação iterativa de feedback garante que o agente permaneça alinhado dinamicamente com os seus objetivos**, constantemente aprendendo e se ajustando com base em resultados reais.
+
+Estas observações **podem assumir muitas formas**, desde a leitura de texto em uma página web até o monitoramento da posição de um braço robótico. Elas podem ser vistas como "logs" das Ferramentas que fornecem feedback em texto da execução da Ação.
+
+| Tipo de Observação | Exemplo |
+|---------------------|---------------------------------------------------------------------------|
+| Feedback do Sistema | Mensagens de erro, notificações de sucesso, códigos de status |
+| Mudanças de Dados | Atualizações no banco de dados, modificações no sistema de arquivos, mudanças de estado |
+| Dados Ambientais | Leituras de sensores, métricas do sistema, uso de recursos |
+| Análise de Resposta | Respostas de API, resultados de consultas (*queries*), saídas de computação |
+| Eventos Baseados em Tempo | Prazos atingidos, tarefas agendadas concluídas |
+
+## Como os Resultados São Anexados?
+
+Após executar uma ação, o framework segue esses passos nesta ordem:
+
+1. **Analisa (*Parses*) a ação** para identificar qual função (ou funções) chamar e qual argumento (ou argumentos) usar.  
+2. **Executa a ação.**  
+3. **Anexa o resultado** como uma **Observação (*Observation*)**.  
+
+---
+Com isso, terminamos de aprender o Ciclo Pensamento-Ação-Observação do Agente.
+
+Se alguns aspectos ainda parecerem um pouco confusos ou "borrados", não se preocupe — nós iremos revisitar e aprofundar fortemente esses conceitos nas futuras Unidades.
+
+Agora, chegou a hora de colocar seus conhecimentos em prática programando o seu primeiríssimo Agente!
