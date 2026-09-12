@@ -159,7 +159,12 @@ We also pass in an LLM to the query engine to use for the response.
 ```python
 from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
 
-llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Check available providers: https://huggingface.co/inference/models
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="auto"
+)
+
 query_engine = index.as_query_engine(
     llm=llm,
     response_mode="tree_summarize",
