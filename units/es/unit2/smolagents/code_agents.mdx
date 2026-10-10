@@ -273,7 +273,7 @@ class SuperheroPartyThemeTool(Tool):
         themes = {
             "classic heroes": "Gala de la Liga de la Justicia: Los invitados vienen vestidos como sus héroes favoritos de DC con cócteles temáticos como 'El Ponche de Kryptonita'.",
             "villain masquerade": "Baile de los Pícaros de Gotham: Una mascarada misteriosa donde los invitados se visten como villanos clásicos de Batman.",
-            "futuristic Gotham": "Noche Neo-Gotham: Una fiesta de estilo cyberpunk inspirada en Batman Beyond, con decoraciones de neón y gadgets futuristas."
+            "futuristic gotham": "Noche Neo-Gotham: Una fiesta de estilo cyberpunk inspirada en Batman Beyond, con decoraciones de neón y gadgets futuristas."
         }
         
         return themes.get(category.lower(), "Idea de fiesta temática no encontrada. Prueba con 'héroes clásicos', 'mascarada de villanos' o 'Gotham futurista'.")
@@ -314,7 +314,7 @@ A medida que Alfred perfecciona el Agente Preparador de Fiestas, se está cansan
 Primero, necesitamos instalar las dependencias necesarias:
 
 ```bash
-pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents langfuse
 ```
 
 A continuación, Alfred ya ha creado una cuenta en Langfuse y tiene sus claves API listas. Si aún no lo has hecho, puedes registrarte en Langfuse Cloud [aquí](https://cloud.langfuse.com/) o explorar [alternativas](https://huggingface.co/docs/smolagents/tutorials/inspect_runs).
@@ -323,30 +323,34 @@ Una vez que tengas tus claves API, deben configurarse correctamente de la siguie
 
 ```python
 import os
-import base64
 
-LANGFUSE_PUBLIC_KEY="pk-lf-..."
-LANGFUSE_SECRET_KEY="sk-lf-..."
-LANGFUSE_AUTH=base64.b64encode(f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()).decode()
+# Obtén las claves para tu proyecto desde la página de configuración del proyecto: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..." 
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 Región EU
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 Región US
+```
 
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://cloud.langfuse.com/api/public/otel" # Región de datos EU
-# os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://us.cloud.langfuse.com/api/public/otel" # Región de datos US
-os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+Con las variables de entorno configuradas, ahora podemos inicializar el cliente de Langfuse. `get_client()` inicializa el cliente de Langfuse usando las credenciales proporcionadas en las variables de entorno.
+
+```python
+from langfuse import get_client
+ 
+langfuse = get_client()
+ 
+# Verificar la conexión
+if langfuse.auth_check():
+    print("¡El cliente de Langfuse está autenticado y listo!")
+else:
+    print("La autenticación falló. Por favor, verifica tus credenciales y el host.")
 ```
 
 Finalmente, Alfred está listo para inicializar el `SmolagentsInstrumentor` y comenzar a rastrear el rendimiento de su agente.
 
 ```python
-from opentelemetry.sdk.trace import TracerProvider
-
 from openinference.instrumentation.smolagents import SmolagentsInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
-trace_provider = TracerProvider()
-trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
-
-SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+SmolagentsInstrumentor().instrument()
 ```
 
 ¡Alfred ahora está conectado 🔌! Las ejecuciones de `smolagents` se están registrando en Langfuse, dándole visibilidad completa del comportamiento del agente. Con esta configuración, está listo para revisar ejecuciones anteriores y refinar aún más su Agente Preparador de Fiestas.
