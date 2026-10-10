@@ -247,6 +247,21 @@ Al usar `Tool.from_langchain()`, Alfred añade sin esfuerzo funcionalidades de b
 
 Así es como lo hace:
 
+Primero necesitamos instalar la integración de `langchain` para `smolagents`.
+
+```bash
+pip install -U langchain-community
+```
+
+Después de instalar la integración de langchain, asegúrate de configurar tu clave de SerpAPI.
+Esto es necesario para herramientas basadas en búsqueda como `SerpAPITool`:
+
+```python
+os.environ['SERPAPI_API_KEY'] = '...'
+```
+
+Puedes crear una clave de SerpAPI [aquí](https://serpapi.com/)
+
 ```python
 from langchain.agents import load_tools
 from smolagents import CodeAgent, InferenceClientModel, Tool
@@ -256,6 +271,43 @@ search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 agent = CodeAgent(tools=[search_tool], model=model)
 
 agent.run("Busca ideas de entretenimiento de lujo para un evento temático de superhéroes, como actuaciones en vivo y experiencias interactivas.")
+```
+
+### Importar una colección de herramientas desde cualquier servidor MCP
+
+`smolagents` también permite importar herramientas desde los cientos de servidores MCP disponibles en [glama.ai](https://glama.ai/mcp/servers) o [smithery.ai](https://smithery.ai). Si quieres profundizar en MCP, puedes consultar nuestro [Curso gratuito de MCP](https://huggingface.co/learn/mcp-course/). 
+
+<details>
+<summary>Instalar el cliente mcp</summary>
+
+Primero necesitamos instalar la integración de `mcp` para `smolagents`.
+
+```bash
+pip install "smolagents[mcp]"
+```
+</details>
+
+Las herramientas de los servidores MCP se pueden cargar en un objeto ToolCollection de la siguiente manera:
+
+```python
+import os
+from smolagents import ToolCollection, CodeAgent
+from mcp import StdioServerParameters
+from smolagents import InferenceClientModel
+
+
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+
+server_parameters = StdioServerParameters(
+    command="uvx",
+    args=["--quiet", "pubmedmcp@0.1.3"],
+    env={"UV_PYTHON": "3.12", **os.environ},
+)
+
+with ToolCollection.from_mcp(server_parameters, trust_remote_code=True) as tool_collection:
+    agent = CodeAgent(tools=[*tool_collection.tools], model=model, add_base_tools=True)
+    agent.run("Please find a remedy for hangover.")
 ```
 
 Con esta configuración, Alfred puede descubrir rápidamente opciones de entretenimiento lujosas, asegurando que los invitados de élite de Gotham tengan una experiencia inolvidable. ¡Esta herramienta le ayuda a organizar el evento temático de superhéroes perfecto para la Mansión Wayne! 🎉

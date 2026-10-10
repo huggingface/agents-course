@@ -35,9 +35,9 @@
   - local: unit1/observations
     title: Observar, Integrando Feedback para Reflejar y Adaptar
   - local: unit1/dummy-agent-library
-    title: Libreria de Agentes Dummy
+    title: Librería de Agentes Dummy
   - local: unit1/tutorial
-    title: Creemos nuesto primer Agente usando smolagents
+    title: Creemos nuestro primer Agente usando smolagents
   - local: unit1/final-quiz
     title: Prueba Final de Unidad 1
   - local: unit1/conclusion
@@ -51,7 +51,7 @@
   - local: unit2/smolagents/introduction
     title: Introducción a smolagents
   - local: unit2/smolagents/why_use_smolagents
-    title: Por que usar smolagents?
+    title: ¿Por qué usar smolagents?
   - local: unit2/smolagents/quiz1
     title: Prueba rápida 1
   - local: unit2/smolagents/code_agents
@@ -65,7 +65,7 @@
   - local: unit2/smolagents/quiz2
     title: Prueba rápida 2
   - local: unit2/smolagents/multi_agent_systems
-    title: Sistemas de Agentes Multiples
+    title: Sistemas de Agentes Múltiples
   - local: unit2/smolagents/vision_agents
     title: Agentes de Visión y Navegación
   - local: unit2/smolagents/final_quiz
@@ -117,7 +117,7 @@
   - local: unit3/agentic-rag/invitees
     title: Creando una herramienta RAG para historias de invitados
   - local: unit3/agentic-rag/tools
-    title: Construyendo y integrando herramientas para tu agente
+    title: Construyendo e integrando herramientas para tu agente
   - local: unit3/agentic-rag/agent
     title: Creando tu agente de gala
   - local: unit3/agentic-rag/conclusion
