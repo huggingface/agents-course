@@ -131,8 +131,8 @@ In other words, an LLM will decode text until it reaches the EOS. But what happe
 
 While the full process can be quite technical for the purpose of learning agents, here's a brief overview:
 
-- Once the input text is **tokenized**, the model computes a representation of the sequence that captures information about the meaning and the position of each token in the input sequence.
-- This representation goes into the model, which outputs scores that rank the likelihood of each token in its vocabulary as being the next one in the sequence.
+- Once the input text is **tokenized**, it is passed through the model's **embedding layer**, which converts each token into a representation that captures its meaning and position within the sequence.
+- These representations are then processed through the model's deeper layers, which capture complex relationships between tokens, and the model outputs scores that rank the likelihood of each token in its vocabulary as being the next one in the sequence.
 
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="Visual Gif of decoding" width="60%">
 
