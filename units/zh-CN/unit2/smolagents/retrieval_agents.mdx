@@ -68,8 +68,8 @@ print(response)
 在此示例中，我们将创建从自定义知识库检索派对策划创意的工具。使用 BM25 检索器搜索知识库并返回最佳结果，同时使用 `RecursiveCharacterTextSplitter` 将文档分割为更小的块以提高搜索效率：
 
 ```python
-from langchain.docstore.document import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.docstore.document import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from smolagents import Tool
 from langchain_community.retrievers import BM25Retriever
 from smolagents import CodeAgent, InferenceClientModel
