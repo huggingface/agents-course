@@ -214,31 +214,34 @@ Even without direct evaluation, we can **gain insights into how our system is pe
 This is especially useful when we are building more complex workflows and want to understand how each component is performing.
 
 <details>
-<summary>Install LlamaTrace</summary>
+<summary>Install tracing dependencies</summary>
 
-As introduced in the <a href="./llama-hub">section on the LlamaHub</a>, we can install the LlamaTrace callback from Arize Phoenix with the following command:
+As introduced in the <a href="./llama-hub">section on the LlamaHub</a>, we can install the OpenInference instrumentation for LlamaIndex and the Arize Phoenix OTel package with the following command:
 
 ```bash
-pip install -U llama-index-callbacks-arize-phoenix
+pip install -U openinference-instrumentation-llama-index arize-phoenix-otel
 ```
 
-Additionally, we need to set the `PHOENIX_API_KEY` environment variable to our LlamaTrace API key. We can get this by:
-- Creating an account at [LlamaTrace](https://llamatrace.com/login)
+Additionally, we need a `PHOENIX_API_KEY` to send traces to the hosted Phoenix (formerly LlamaTrace) platform. We can get this by:
+- Creating an account at [Arize Phoenix](https://app.phoenix.arize.com)
 - Generating an API key in your account settings
 - Using the API key in the code below to enable tracing
 
 </details>
 
 ```python
-import llama_index
 import os
+from phoenix.otel import register
+from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 
 PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
-os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
-llama_index.core.set_global_handler(
-    "arize_phoenix",
-    endpoint="https://llamatrace.com/v1/traces"
+os.environ["PHOENIX_API_KEY"] = PHOENIX_API_KEY
+tracer_provider = register(
+    project_name="llama-index-project",
+    endpoint="https://app.phoenix.arize.com/v1/traces",
 )
+
+LlamaIndexInstrumentor().instrument(tracer_provider=tracer_provider)
 ```
 
 > [!TIP]
