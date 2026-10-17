@@ -60,11 +60,10 @@ The agent follows this process:
 
 ## Custom Knowledge Base Tool
 
-For specialized tasks, a custom knowledge base can be invaluable. Let's create a tool that queries a vector database of technical documentation or specialized knowledge. Using semantic search, the agent can find the most relevant information for Alfred's needs.
-
+For specialized tasks, a custom knowledge base can be invaluable. Let's create a tool that queries a custom knowledge base of party planning ideas. Using BM25, a keyword-based retrieval method that ranks documents by term frequency, the agent can find the most relevant information for Alfred's needs. Note that BM25 is not semantic search — unlike vector-based retrieval it does not use embeddings or capture meaning, but when paired with an LLM it still produces context-aware results.
 A vector database stores numerical representations (embeddings) of text or other data, created by machine learning models. It enables semantic search by identifying similar meanings in high-dimensional space.
 
-This approach combines predefined knowledge with semantic search to provide context-aware solutions for event planning. With specialized knowledge access, Alfred can perfect every detail of the party.
+This approach combines predefined knowledge with keyword-based retrieval and LLM reasoning to provide context-aware solutions for event planning. With specialized knowledge access, Alfred can perfect every detail of the party.
 
 In this example, we'll create a tool that retrieves party planning ideas from a custom knowledge base. We'll use a BM25 retriever to search the knowledge base and return the top results, and `RecursiveCharacterTextSplitter` to split the documents into smaller chunks for more efficient search.
 
@@ -77,7 +76,7 @@ from smolagents import CodeAgent, InferenceClientModel
 
 class PartyPlanningRetrieverTool(Tool):
     name = "party_planning_retriever"
-    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    description = "Uses keyword-based retrieval (BM25) to retrieve relevant party planning ideas for Alfred's superhero-themed party at Wayne Manor."
     inputs = {
         "query": {
             "type": "string",
