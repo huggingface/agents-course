@@ -1,0 +1,144 @@
+# Quiz Final – Fundamentos de Agentes
+
+Este questionário opcional e sem nota ajuda a consolidar os conceitos vistos na Unidade 1. Boa sorte! 🎉
+
+---
+
+### Q1: O que é um agente de IA?
+Escolha a alternativa que melhor descreve a definição de um agente no contexto deste curso.
+
+<Question
+choices={[ 
+  {
+    text: "Um agente é um modelo de IA que apenas responde perguntas em linguagem natural sem utilizar ferramentas externas.",
+    explain: "Um agente vai além de respostas em linguagem natural: ele pode planejar, tomar decisões e usar ferramentas."
+  },
+  {
+    text: "Um agente é um sistema que combina um modelo de IA com capacidades de raciocínio, planejamento e execução de ações para atingir um objetivo.",
+    explain: "Correto! Um agente reúne raciocínio, planejamento e execução de ações (muitas vezes via ferramentas) para cumprir tarefas.",
+    correct: true
+  },
+  {
+    text: "Um agente é qualquer modelo de IA que gera imagens, independentemente do contexto.",
+    explain: "Geração de imagens pode ser uma ferramenta, mas não define um agente."
+  },
+  {
+    text: "Um agente é uma API serverless usada para acessar modelos de linguagem.",
+    explain: "A API é apenas um meio de acesso; não define um agente."
+  }
+]}
+/>
+
+---
+
+### Q2: Qual é a função principal do LLM dentro de um agente?
+Selecione a opção que descreve corretamente o papel do modelo de linguagem.
+
+<Question
+choices={[ 
+  {
+    text: "Executar diretamente chamadas de API e interagir com dispositivos.",
+    explain: "O LLM gera texto; quem executa as ações são ferramentas externas."
+  },
+  {
+    text: "Apenas armazenar dados factuais para respostas rápidas.",
+    explain: "O LLM é treinado em grandes corpora, mas seu papel é gerar texto coerente, não apenas armazenar fatos."
+  },
+  {
+    text: "Servir como o 'cérebro' do agente, produzindo raciocínio, planejamento e instruções textuais.",
+    explain: "Perfeito! O LLM gera o raciocínio e as instruções textuais que direcionam o agente.",
+    correct: true
+  },
+  {
+    text: "Controlar o hardware e garantir segurança de execução.",
+    explain: "Isso é papel da infraestrutura e de mecanismos de segurança, não do LLM."
+  }
+]}
+/>
+
+---
+
+### Q3: No ciclo Pensamento → Ação → Observação, o que caracteriza a etapa “Ação”?
+Marque a alternativa correta.
+
+<Question
+choices ={[
+  {
+    text: "É quando o agente descreve internamente o próximo passo a fazer.",
+    explain: "Isso é parte da etapa de Pensamento (Thought)."
+  },
+  {
+    text: "É quando o agente executa um passo concreto, chamando ferramentas ou APIs com argumentos definidos.",
+    explain: "Exatamente. Ação significa usar ferramentas ou executar tarefas concretas.",
+    correct: true
+  },
+  {
+    text: "É quando o agente avalia o resultado recebido de uma ferramenta.",
+    explain: "Avaliar o resultado faz parte da Observação (Observation)."
+  },
+  {
+    text: "É quando o agente encerra a conversa após concluir a tarefa.",
+    explain: "Encerrar o diálogo é o resultado final; não corresponde à etapa de ação."
+  }
+]}
+/>
+
+---
+
+### Q4: Por que usamos a abordagem “stop and parse” ao lidar com ações?
+Selecione a alternativa que descreve o objetivo dessa prática.
+
+<Question
+choices ={[
+  {
+    text: "Para impedir que o LLM gere qualquer texto antes de definirmos o prompt.",
+    explain: "Essa abordagem não tem relação com o momento anterior à geração do texto."
+  },
+  {
+    text: "Para garantir que o LLM pare de gerar tokens após descrever a ação, permitindo que o agente interprete e execute o comando corretamente.",
+    explain: "Correto! Parar a geração após a ação evita ruídos e permite o parsing seguro.",
+    correct: true
+  },
+  {
+    text: "Para evitar que o modelo utilize ferramentas mais de uma vez.",
+    explain: "Stop and parse não limita a quantidade de ações; apenas controla o formato e a execução."
+  },
+  {
+    text: "Para garantir que a resposta final seja sempre um JSON.",
+    explain: "A resposta pode ser JSON ou outro formato; o importante é interromper na hora certa."
+  }
+]}
+/>
+
+---
+
+### Q5: O que diferencia um agente de código (Code Agent) de um agente JSON?
+Escolha a melhor descrição.
+
+<Question
+choices ={[
+  {
+    text: "Agentes de código sempre usam JSON, enquanto agentes JSON nunca geram código.",
+    explain: "Agentes de código emitem blocos executáveis; agentes JSON descrevem ações em JSON."
+  },
+  {
+    text: "Agentes de código geram blocos executáveis (por exemplo, Python), enquanto agentes JSON descrevem a ação em formato JSON estruturado.",
+    explain: "Isso mesmo! Essa é a principal diferença entre eles.",
+    correct: true
+  },
+  {
+    text: "Agentes de código só funcionam offline, e agentes JSON apenas online.",
+    explain: "O modo de operação (online/offline) não depende do tipo de saída."
+  },
+  {
+    text: "Agentes de código não podem usar ferramentas externas.",
+    explain: "Eles podem chamar ferramentas; a diferença está no formato gerado."
+  }
+]}
+/>
+
+---
+
+Parabéns por concluir o quiz final! 🎓  
+Se quiser compartilhar feedback sobre o curso, preencha o [formulário](https://docs.google.com/forms/d/e/1FAIpQLSe9VaONn0eglax0uTwi29rIn4tM7H2sYmmybmG5jJNlE5v0xA/viewform?usp=dialog).  
+Pronto para a próxima etapa? Vamos em frente! 🚀

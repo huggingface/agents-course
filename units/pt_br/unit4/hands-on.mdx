@@ -1,0 +1,52 @@
+# Mão na massa
+
+Pronto para criar seu agente final? Vamos entender como enviar o resultado para avaliação.
+
+## O dataset
+
+O leaderboard usa 20 perguntas retiradas do nível 1 do conjunto de **validação** do GAIA.
+
+Selecionamos questões considerando o número de ferramentas e etapas necessárias para respondê-las.
+
+Pelo formato atual do benchmark, acreditamos que mirar em **30% de acerto** no nível 1 é um teste razoável.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="GAIA current status!" />
+
+## O processo
+
+Você deve estar se perguntando: “Como faço para enviar?”
+
+Para esta unidade, criamos uma API que disponibiliza perguntas e recebe respostas para pontuação.  
+Resumo das rotas (consulte a [documentação ao vivo](https://agents-course-unit4-scoring.hf.space/docs) para detalhes interativos):
+
+- **`GET /questions`**: lista completa das questões filtradas.  
+- **`GET /random-question`**: obtém uma questão aleatória.  
+- **`GET /files/{task_id}`**: baixa um arquivo associado a determinada tarefa.  
+- **`POST /submit`**: envia respostas, calcula a pontuação e atualiza o leaderboard.
+
+A comparação é feita por **EXACT MATCH**, então capriche no prompt!  
+O time GAIA compartilhou um exemplo de prompt [neste espaço](https://huggingface.co/spaces/gaia-benchmark/leaderboard). Para o curso, **não inclua “FINAL ANSWER”**; faça o agente responder apenas com o conteúdo final.
+
+🎨 **Customize o template**
+
+Disponibilizamos um [template simples](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) como ponto de partida.
+
+Fique à vontade (e **incentivado**) para alterar, adicionar ou reestruturar tudo da forma que preferir.
+
+Para enviar, a API exige 3 itens:
+
+- **Username**: seu usuário no Hugging Face (ex.: obtido via login no Gradio).  
+- **Link do código (`agent_code`)**: URL para o repositório da sua Space (`.../tree/main`). Mantenha a Space pública.  
+- **Respostas (`answers`)**: lista de objetos `{ "task_id": ..., "submitted_answer": ... }`.
+
+Sugerimos duplicar o [template](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) no seu perfil.
+
+🏆 Confira o leaderboard em [agents-course/Students_leaderboard](https://huggingface.co/spaces/agents-course/Students_leaderboard)
+
+*Aviso amigável:* o leaderboard é para diversão! Sabemos que é possível enviar pontuações sem verificação rígida. Se houver muitos placares altos sem link público, poderemos revisar ou remover entradas para manter os dados úteis. Como é um quadro de estudantes, mantenha a Space pública se quiser exibir seu resultado.
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
