@@ -77,7 +77,7 @@ from smolagents import CodeAgent, InferenceClientModel
 
 class PartyPlanningRetrieverTool(Tool):
     name = "party_planning_retriever"
-    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    description = "Uses BM25 keyword-based retrieval to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
     inputs = {
         "query": {
             "type": "string",
