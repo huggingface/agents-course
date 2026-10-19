@@ -30,7 +30,7 @@ We will need a few libraries that allow us to run, monitor, and evaluate our age
 
 
 ```python
-%pip install langfuse 'smolagents[telemetry]' openinference-instrumentation-smolagents datasets 'smolagents[gradio]' gradio --upgrade
+%pip install langfuse 'smolagents[telemetry]' openinference-instrumentation-smolagents datasets 'smolagents[gradio]' gradio ddgs --upgrade
 ```
 
 ## Step 1: Instrument Your Agent
@@ -164,6 +164,9 @@ You may also pass additional attributes to your spans. These can include `user_i
 
 ```python
 from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+from langfuse import get_client, propagate_attributes
+
+langfuse = get_client()
 
 search_tool = DuckDuckGoSearchTool()
 agent = CodeAgent(
@@ -171,23 +174,19 @@ agent = CodeAgent(
     model=InferenceClientModel()
 )
 
-with langfuse.start_as_current_span(
+with langfuse.start_as_current_observation(
+    as_type="span",
     name="Smolagent-Trace",
-    ) as span:
-    
-    # Run your application here
-    response = agent.run("What is the capital of Germany?")
- 
-    # Pass additional attributes to the span
-    span.update_trace(
-        input="What is the capital of Germany?",
-        output=response,
+) as span:
+    # Propagate additional attributes to all child observations
+    with propagate_attributes(
         user_id="smolagent-user-123",
         session_id="smolagent-session-123456789",
         tags=["city-question", "testing-agents"],
         metadata={"email": "user@langfuse.com"},
-        )
- 
+    ):
+        response = agent.run("What is the capital of Germany?")
+
 # Flush events in short-lived applications
 langfuse.flush()
 ```
