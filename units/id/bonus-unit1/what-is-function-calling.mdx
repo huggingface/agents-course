@@ -1,0 +1,77 @@
+# Apa Itu Function Calling?
+
+Function Calling adalah **cara bagi LLM untuk mengambil actions pada environment-nya**. Teknik ini pertama kali [diperkenalkan di GPT-4](https://openai.com/index/function-calling-and-other-api-updates/), lalu kemudian direproduksi di model lain.
+
+Mirip dengan tools pada Agent, Function Calling memberi model kemampuan untuk **mengambil action pada environment-nya**. Bedanya, kemampuan Function Calling **dipelajari oleh model**, sehingga **tidak terlalu bergantung pada prompting dibanding teknik agent lain**.
+
+Di Unit 1, Agent **tidak belajar menggunakan Tools**. Kita hanya memberi daftar tools, lalu mengandalkan kemampuan model untuk **melakukan generalisasi saat menyusun rencana dengan Tools tersebut**.
+
+Di sini berbeda. **Dengan Function Calling, Agent di-fine-tune, atau dilatih, untuk menggunakan Tools**.
+
+## Bagaimana model “belajar” mengambil action?
+
+Di Unit 1, kita sudah melihat workflow umum sebuah agent. Setelah user memberi beberapa tools kepada agent dan mengirim query melalui prompt, model akan melewati siklus berikut:
+
+1. *Think*: Action apa yang perlu saya ambil untuk memenuhi objective?
+2. *Act*: Format action dengan parameter yang benar, lalu hentikan generation.
+3. *Observe*: Ambil hasil dari execution.
+
+Dalam percakapan “typical” dengan model melalui API, percakapan akan bergantian antara pesan user dan assistant seperti ini:
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+Function Calling membawa **role baru ke dalam percakapan**!
+
+1. Satu role baru untuk **Action**
+2. Satu role baru untuk **Observation**
+
+Kalau kita memakai [Mistral API](https://docs.mistral.ai/capabilities/function_calling/) sebagai contoh, bentuknya akan seperti ini:
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "What's the status of my transaction T1001?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Your transaction T1001 has been successfully paid."
+    }
+]
+```
+
+> ... Tapi tadi katanya ada role baru untuk function calls?
+
+**Ya dan tidak**. Dalam kasus ini, dan juga di banyak API lain, model memformat action yang akan diambil sebagai pesan "assistant". Chat template lalu merepresentasikannya sebagai **special tokens** untuk Function Calling.
+
+- `[AVAILABLE_TOOLS]`: Mulai daftar tools yang tersedia
+- `[/AVAILABLE_TOOLS]`: Akhiri daftar tools yang tersedia
+- `[TOOL_CALLS]`: Memanggil tool, yaitu mengambil sebuah "Action"
+- `[TOOL_RESULTS]`: "Observe" hasil dari action
+- `[/TOOL_RESULTS]`: Akhir observation, sehingga model bisa melakukan decode lagi
+
+Kita akan membahas Function Calling lagi di kursus ini. Kalau ingin membaca lebih jauh, cek [bagian dokumentasi yang bagus ini](https://docs.mistral.ai/capabilities/function_calling/).
+
+---
+Sekarang kita sudah tahu apa itu Function Calling dan bagaimana cara kerjanya. Mari **menambahkan kemampuan Function Calling ke model yang belum punya kemampuan tersebut**: [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it), dengan menambahkan beberapa special tokens baru ke model.
+
+Untuk melakukannya, **kita perlu memahami fine-tuning dan LoRA lebih dulu**.

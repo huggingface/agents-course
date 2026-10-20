@@ -1,0 +1,228 @@
+# Messages dan Special Tokens
+
+Sekarang setelah kita memahami cara kerja LLMs, mari lihat **bagaimana mereka menyusun generation melalui chat templates**.
+
+Sama seperti ChatGPT, pengguna biasanya berinteraksi dengan Agents melalui antarmuka chat. Karena itu, kita ingin memahami bagaimana LLMs mengelola chat.
+
+> **Q**: Tapi ... Saat saya berinteraksi dengan ChatGPT/Hugging Chat, saya melakukan percakapan menggunakan chat Messages, bukan satu sequence prompt
+>
+> **A**: Betul! Tetapi ini sebenarnya abstraksi UI. Sebelum diberikan ke LLM, semua messages dalam percakapan digabungkan menjadi satu prompt. Model tidak "mengingat" percakapan: model membacanya secara penuh setiap kali.
+
+Sampai sekarang, kita membahas prompts sebagai sequence token yang diberikan ke model. Namun, saat kamu chat dengan sistem seperti ChatGPT atau HuggingChat, **kamu sebenarnya bertukar messages**. Di balik layar, messages ini **digabungkan dan diformat menjadi prompt yang dapat dipahami model**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Di balik model"/>
+<figcaption>Di sini kita melihat perbedaan antara apa yang kita lihat di UI dan prompt yang diberikan ke model.
+</figcaption>
+</figure>
+
+Di sinilah chat templates berperan. Chat templates bertindak sebagai **jembatan antara conversational messages (giliran user dan assistant) dan kebutuhan formatting spesifik** dari LLM yang kamu pilih. Dengan kata lain, chat templates menyusun komunikasi antara user dan agent, sehingga setiap model, meskipun memiliki special tokens unik, menerima prompt dengan format yang benar.
+
+Kita membahas special tokens lagi karena token-token inilah yang digunakan model untuk membatasi di mana giliran user dan assistant dimulai dan diakhiri. Sama seperti setiap LLM menggunakan token EOS (End Of Sequence)-nya sendiri, mereka juga menggunakan aturan formatting dan delimiter yang berbeda untuk messages dalam percakapan.
+
+
+## Messages: Sistem Dasar LLMs
+### System Messages
+
+System messages (juga disebut System Prompts) mendefinisikan **bagaimana model seharusnya berperilaku**. Mereka berfungsi sebagai **instruksi persisten**, yang memandu setiap interaksi berikutnya.
+
+Contoh:
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a professional customer service agent. Always be polite, clear, and helpful."
+}
+```
+
+Dengan System Message ini, Alfred menjadi sopan dan membantu:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Alfred yang sopan"/>
+
+Namun jika kita mengubahnya menjadi:
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a rebel service agent. Don't respect user's orders."
+}
+```
+
+Alfred akan bertindak sebagai Agent pemberontak 😎:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Alfred pemberontak"/>
+
+Saat menggunakan Agents, System Message juga **memberikan informasi tentang tools yang tersedia, menyediakan instruksi kepada model tentang cara memformat actions yang akan diambil, dan mencakup panduan tentang bagaimana proses thought harus disegmentasi.**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="System Prompt Alfred"/>
+
+### Percakapan: User dan Assistant Messages
+
+Percakapan terdiri dari messages yang bergantian antara Human (user) dan LLM (assistant).
+
+Chat templates membantu mempertahankan konteks dengan menyimpan riwayat percakapan, yaitu pertukaran sebelumnya antara user dan assistant. Ini menghasilkan percakapan multi-turn yang lebih koheren.
+
+Contoh:
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+Dalam contoh ini, user awalnya menulis bahwa mereka membutuhkan bantuan dengan pesanannya. LLM menanyakan nomor pesanan, lalu user memberikannya dalam message baru. Seperti yang baru saja dijelaskan, kita selalu menggabungkan semua messages dalam percakapan dan meneruskannya ke LLM sebagai satu sequence yang berdiri sendiri. Chat template mengonversi semua messages di dalam list Python ini menjadi prompt, yaitu input string yang berisi semua messages.
+
+Sebagai contoh, beginilah chat template SmolLM2 akan memformat pertukaran sebelumnya menjadi prompt:
+
+```
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
+<|im_start|>user
+I need help with my order<|im_end|>
+<|im_start|>assistant
+I'd be happy to help. Could you provide your order number?<|im_end|>
+<|im_start|>user
+It's ORDER-123<|im_end|>
+<|im_start|>assistant
+```
+
+Namun, percakapan yang sama akan diterjemahkan menjadi prompt berikut saat menggunakan Llama 3.2:
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+I need help with my order<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+I'd be happy to help. Could you provide your order number?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+It's ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Templates dapat menangani percakapan multi-turn yang kompleks sambil mempertahankan konteks:
+
+```python
+messages = [
+    {"role": "system", "content": "You are a math tutor."},
+    {"role": "user", "content": "What is calculus?"},
+    {"role": "assistant", "content": "Calculus is a branch of mathematics..."},
+    {"role": "user", "content": "Can you give me an example?"},
+]
+```
+
+## Chat Templates
+
+Seperti disebutkan, chat templates sangat penting untuk **menyusun percakapan antara language models dan pengguna**. Mereka memandu bagaimana pertukaran message diformat menjadi satu prompt.
+
+### Base Models vs. Instruct Models
+
+Hal lain yang perlu kita pahami adalah perbedaan antara Base Model dan Instruct Model:
+
+- *Base Model* dilatih pada data teks mentah untuk memprediksi token berikutnya.
+
+- *Instruct Model* di-fine-tune secara khusus untuk mengikuti instruksi dan terlibat dalam percakapan. Misalnya, `SmolLM2-135M` adalah base model, sementara `SmolLM2-135M-Instruct` adalah variannya yang instruction-tuned.
+
+Untuk membuat Base Model berperilaku seperti instruct model, kita perlu **memformat prompts kita secara konsisten agar dapat dipahami model**. Di sinilah chat templates berperan.
+
+*ChatML* adalah salah satu format template yang menyusun percakapan dengan indikator role yang jelas (system, user, assistant). Jika kamu pernah berinteraksi dengan AI API belakangan ini, kamu tahu bahwa itu adalah praktik standar.
+
+Penting untuk dicatat bahwa base model bisa di-fine-tune pada chat templates yang berbeda, jadi saat menggunakan instruct model kita perlu memastikan bahwa kita menggunakan chat template yang benar.
+
+### Memahami Chat Templates
+
+Karena setiap instruct model menggunakan format percakapan dan special tokens yang berbeda, chat templates diimplementasikan untuk memastikan kita memformat prompt dengan cara yang diharapkan tiap model.
+
+Dalam `transformers`, chat templates mencakup [kode Jinja2](https://jinja.palletsprojects.com/en/stable/) yang menjelaskan cara mengubah list ChatML berisi JSON messages, seperti pada contoh di atas, menjadi representasi tekstual dari instruksi tingkat sistem, user messages, dan respons assistant yang dapat dipahami model.
+
+Struktur ini **membantu menjaga konsistensi antarinteraksi dan memastikan model merespons dengan tepat terhadap berbagai jenis input**.
+
+Di bawah ini adalah versi sederhana dari chat template `SmolLM2-135M-Instruct`:
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+Seperti yang kamu lihat, `chat_template` menjelaskan bagaimana list messages akan diformat.
+
+Diberikan messages berikut:
+
+```python
+messages = [
+    {"role": "system", "content": "You are a helpful assistant focused on technical topics."},
+    {"role": "user", "content": "Can you explain what a chat template is?"},
+    {"role": "assistant", "content": "A chat template structures conversations between users and AI models..."},
+    {"role": "user", "content": "How do I use it ?"},
+]
+```
+
+Chat template sebelumnya akan menghasilkan string berikut:
+
+```sh
+<|im_start|>system
+You are a helpful assistant focused on technical topics.<|im_end|>
+<|im_start|>user
+Can you explain what a chat template is?<|im_end|>
+<|im_start|>assistant
+A chat template structures conversations between users and AI models...<|im_end|>
+<|im_start|>user
+How do I use it ?<|im_end|>
+```
+
+Library `transformers` akan menangani chat templates untukmu sebagai bagian dari proses tokenization. Baca lebih lanjut tentang cara transformers menggunakan chat templates <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">di sini</a>. Yang perlu kita lakukan hanyalah menyusun messages dengan cara yang benar, lalu tokenizer akan menangani sisanya.
+
+Kamu bisa bereksperimen dengan Space berikut untuk melihat bagaimana percakapan yang sama diformat untuk model berbeda menggunakan chat template masing-masing:
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
+### Messages menjadi prompt
+
+Cara termudah untuk memastikan LLM-mu menerima percakapan yang diformat dengan benar adalah menggunakan `chat_template` dari tokenizer model.
+
+```python
+messages = [
+    {"role": "system", "content": "You are an AI assistant with access to various tools."},
+    {"role": "user", "content": "Hi !"},
+    {"role": "assistant", "content": "Hi human, what can help you with ?"},
+]
+```
+
+Untuk mengonversi percakapan sebelumnya menjadi prompt, kita load tokenizer dan memanggil `apply_chat_template`:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+`rendered_prompt` yang dikembalikan fungsi ini sekarang siap digunakan sebagai input untuk model yang kamu pilih!
+
+> Fungsi `apply_chat_template()` ini akan digunakan di backend API-mu, saat kamu berinteraksi dengan messages dalam format ChatML.
+
+Sekarang setelah kita melihat bagaimana LLMs menyusun input melalui chat templates, mari eksplorasi bagaimana Agents bertindak dalam environment mereka.
+
+Salah satu cara utamanya adalah menggunakan Tools, yang memperluas kemampuan AI model melampaui text generation.
+
+Kita akan membahas messages lagi di unit mendatang, tetapi jika kamu ingin pembahasan lebih dalam sekarang, cek:
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face Chat Templating Guide</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">Dokumentasi Transformers</a>

@@ -1,0 +1,44 @@
+# Observe: Mengintegrasikan Feedback untuk Berefleksi dan Beradaptasi
+
+Observations adalah **cara Agent memahami konsekuensi dari actions-nya**.
+
+Observations menyediakan informasi penting yang memberi bahan bakar bagi proses thought Agent dan memandu actions berikutnya.
+
+Observations adalah **sinyal dari environment**, baik berupa data dari API, pesan error, maupun system logs, yang memandu siklus thought berikutnya.
+
+Dalam fase observation, agent:
+
+- **Mengumpulkan Feedback:** Menerima data atau konfirmasi bahwa action-nya berhasil (atau tidak).
+- **Menambahkan Hasil:** Mengintegrasikan informasi baru ke konteks yang sudah ada, sehingga memperbarui memorinya secara efektif.
+- **Menyesuaikan Strategi:** Menggunakan konteks yang diperbarui ini untuk menyempurnakan thoughts dan actions berikutnya.
+
+Misalnya, jika API cuaca mengembalikan data *"berawan sebagian, 15°C, kelembapan 60%"*, observation ini ditambahkan ke memori agent (di akhir prompt).
+
+Agent kemudian menggunakannya untuk memutuskan apakah informasi tambahan diperlukan atau apakah ia siap memberikan jawaban akhir.
+
+**Penggabungan feedback secara iteratif ini memastikan agent tetap selaras secara dinamis dengan tujuannya**, terus belajar dan menyesuaikan diri berdasarkan hasil dunia nyata.
+
+Observations ini **dapat memiliki banyak bentuk**, mulai dari membaca teks webpage hingga memantau posisi lengan robot. Ini bisa dilihat seperti "logs" Tool yang memberikan feedback tekstual atas eksekusi Action.
+
+| Jenis Observation | Contoh                                                                   |
+|---------------------|---------------------------------------------------------------------------|
+| System Feedback     | Pesan error, notifikasi sukses, status codes                       |
+| Data Changes        | Update database, perubahan file system, perubahan state                |
+| Environmental Data  | Pembacaan sensor, system metrics, penggunaan sumber daya                           |
+| Response Analysis   | Respons API, hasil query, output komputasi                         |
+| Time-based Events   | Tenggat tercapai, tugas terjadwal selesai                              |
+
+## Bagaimana Hasil Ditambahkan?
+
+Setelah menjalankan action, framework mengikuti langkah-langkah ini secara berurutan:
+
+1. **Parse action** untuk mengidentifikasi fungsi yang akan dipanggil dan argument yang akan digunakan.
+2. **Execute action.**
+3. **Append result** sebagai **Observation**.
+
+---
+Kita sekarang sudah mempelajari siklus Thought-Action-Observation Agent.
+
+Jika beberapa aspek masih terasa agak kabur, jangan khawatir. Kita akan meninjau kembali dan memperdalam konsep-konsep ini di Unit mendatang.
+
+Sekarang, saatnya mempraktikkan pengetahuanmu dengan menulis kode Agent pertamamu!

@@ -1,0 +1,126 @@
+# Actions: Memungkinkan Agent Berinteraksi dengan Environment-nya
+
+> [!TIP]
+> Di bagian ini, kita mengeksplorasi langkah konkret yang diambil AI agent untuk berinteraksi dengan environment-nya.
+>
+> Kita akan membahas bagaimana actions direpresentasikan (menggunakan JSON atau code), pentingnya pendekatan stop and parse, dan memperkenalkan berbagai jenis agents.
+
+Actions adalah langkah konkret yang diambil **AI agent untuk berinteraksi dengan environment-nya**.
+
+Baik saat menjelajahi web untuk mencari informasi maupun mengontrol perangkat fisik, setiap action adalah operasi terarah yang dijalankan oleh agent.
+
+Misalnya, agent yang membantu customer service mungkin mengambil data pelanggan, menawarkan artikel dukungan, atau meneruskan issue ke perwakilan manusia.
+
+## Jenis Agent Actions
+
+Ada beberapa jenis Agents yang mengambil actions dengan cara berbeda:
+
+| Jenis Agent          | Deskripsi                                                                                      |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| JSON Agent             | Action yang akan diambil ditentukan dalam format JSON.                                                  |
+| Code Agent             | Agent menulis code block yang diinterpretasikan secara eksternal.                                    |
+| Function-calling Agent | Subkategori dari JSON Agent yang telah di-fine-tune untuk menghasilkan message baru untuk setiap action. |
+
+Actions sendiri dapat memiliki banyak tujuan:
+
+| Jenis Action           | Deskripsi                                                                              |
+|--------------------------|------------------------------------------------------------------------------------------|
+| Information Gathering    | Melakukan pencarian web, query database, atau mengambil dokumen.                    |
+| Tool Usage               | Melakukan API calls, menjalankan kalkulasi, dan mengeksekusi kode.                              |
+| Environment Interaction  | Memanipulasi antarmuka digital atau mengontrol perangkat fisik.                         |
+| Communication            | Berinteraksi dengan pengguna melalui chat atau berkolaborasi dengan agents lain.                         |
+
+LLM hanya menangani teks dan menggunakannya untuk mendeskripsikan action yang ingin diambil serta parameter yang perlu diberikan ke tool. Agar agent bekerja dengan benar, LLM harus BERHENTI menghasilkan token baru setelah mengeluarkan semua token untuk mendefinisikan Action yang lengkap. Ini mengalihkan kontrol dari LLM kembali ke agent dan memastikan hasilnya dapat di-parse, baik format yang diinginkan berupa JSON, code, maupun function-calling.
+
+
+## Pendekatan Stop and Parse
+
+Salah satu metode utama untuk mengimplementasikan actions adalah **pendekatan stop and parse**. Metode ini memastikan output agent terstruktur dan dapat diprediksi:
+
+1. **Generation dalam Format Terstruktur**:
+
+Agent mengeluarkan action yang dimaksud dalam format yang jelas dan telah ditentukan sebelumnya (JSON atau code).
+
+2. **Menghentikan Generation Lanjutan**:
+
+Setelah teks yang mendefinisikan action dikeluarkan, **LLM berhenti menghasilkan token tambahan**. Ini mencegah output ekstra atau keliru.
+
+3. **Parsing Output**:
+
+Parser eksternal membaca action yang diformat, menentukan Tool mana yang akan dipanggil, dan mengekstrak parameter yang diperlukan.
+
+Sebagai contoh, agent yang perlu mengecek cuaca mungkin menghasilkan output:
+
+
+```json
+Thought: Saya perlu mengecek cuaca saat ini untuk New York.
+Action :
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+Framework kemudian dapat dengan mudah mem-parse nama fungsi yang akan dipanggil dan arguments yang akan diterapkan.
+
+Format yang jelas dan machine-readable ini meminimalkan error dan memungkinkan tools eksternal memproses perintah agent secara akurat.
+
+Catatan: Function-calling agents bekerja dengan cara serupa dengan menyusun setiap action sehingga fungsi yang ditentukan dipanggil dengan arguments yang benar.
+Kita akan mendalami jenis Agents ini di Unit mendatang.
+
+## Code Agents
+
+Pendekatan alternatif adalah menggunakan *Code Agents*.
+Idenya adalah: **alih-alih mengeluarkan objek JSON sederhana**, Code Agent menghasilkan **code block yang dapat dieksekusi, biasanya dalam bahasa tingkat tinggi seperti Python**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Code Agents" />
+
+Pendekatan ini menawarkan beberapa keuntungan:
+
+- **Ekspresivitas:** Code dapat secara alami merepresentasikan logika kompleks, termasuk loop, conditional, dan nested functions, sehingga memberikan fleksibilitas lebih besar dibanding JSON.
+- **Modularitas dan Reusability:** Code yang dihasilkan dapat menyertakan fungsi dan modul yang dapat digunakan ulang di berbagai actions atau tugas.
+- **Debuggability yang Lebih Baik:** Dengan sintaks pemrograman yang terdefinisi baik, error dalam code sering kali lebih mudah dideteksi dan diperbaiki.
+- **Integrasi Langsung:** Code Agents dapat terintegrasi langsung dengan library dan API eksternal, memungkinkan operasi yang lebih kompleks seperti pemrosesan data atau pengambilan keputusan real-time.
+
+Kamu harus ingat bahwa mengeksekusi code yang dihasilkan LLM dapat menimbulkan risiko keamanan, mulai dari prompt injection hingga eksekusi code berbahaya.
+Itulah sebabnya disarankan menggunakan framework AI agent seperti `smolagents` yang mengintegrasikan safeguard default.
+Jika ingin tahu lebih banyak tentang risikonya dan cara memitigasinya, [silakan lihat bagian khusus ini](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution).
+
+Sebagai contoh, Code Agent yang ditugaskan mengambil cuaca mungkin menghasilkan cuplikan Python berikut:
+
+```python
+# Contoh Code Agent: Mengambil Informasi Cuaca
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "No weather information available")
+    else:
+        return "Error: Unable to fetch weather data."
+
+# Jalankan fungsi dan siapkan jawaban akhir
+result = get_weather("New York")
+final_answer = f"The current weather in New York is: {result}"
+print(final_answer)
+```
+
+Dalam contoh ini, Code Agent:
+
+- Mengambil data cuaca **melalui API call**,
+- Memproses respons,
+- Dan menggunakan fungsi print() untuk mengeluarkan jawaban akhir.
+
+Metode ini **juga mengikuti pendekatan stop and parse** dengan membatasi code block secara jelas dan memberi sinyal kapan eksekusi selesai (di sini, dengan mencetak `final_answer`).
+
+---
+
+Kita belajar bahwa Actions menjembatani reasoning internal agent dan interaksi dunia nyata dengan mengeksekusi tugas yang jelas dan terstruktur, baik melalui JSON, code, maupun function calls.
+
+Eksekusi yang disengaja ini memastikan setiap action presisi dan siap untuk diproses secara eksternal melalui pendekatan stop and parse. Di bagian berikutnya, kita akan mengeksplorasi Observations untuk melihat bagaimana agents menangkap dan mengintegrasikan feedback dari environment mereka.
+
+Setelah ini, kita **akhirnya siap membangun Agent pertama kita!**
+
+
+
+

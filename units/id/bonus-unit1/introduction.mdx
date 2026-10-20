@@ -1,0 +1,53 @@
+# Pengantar
+
+![Thumbnail Bonus Unit 1](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit1/thumbnail.jpg)
+
+Selamat datang di **Bonus Unit** pertama. Di sini, kamu akan belajar **melakukan fine-tuning pada Large Language Model (LLM) untuk Function Calling**.
+
+Untuk LLM, Function Calling makin cepat menjadi teknik yang perlu kamu pahami.
+
+Idenya begini: alih-alih hanya mengandalkan pendekatan berbasis prompt seperti di Unit 1, Function Calling melatih model untuk **mengambil actions dan menafsirkan observations saat fase training**. Hasilnya, AI kamu jadi lebih tangguh.
+
+> **Kapan sebaiknya saya mengerjakan Bonus Unit ini?**
+>
+> Bagian ini **opsional** dan lebih advanced daripada Unit 1. Kamu bisa mengerjakannya sekarang, atau kembali lagi nanti setelah pemahamanmu bertambah selama mengikuti kursus ini.
+>
+> Tapi tenang, Bonus Unit ini tetap menyediakan informasi yang kamu butuhkan. Kita akan membahas konsep inti fine-tuning model untuk Function Calling, bahkan kalau kamu belum mempelajari detail cara kerja fine-tuning.
+
+Supaya lebih mudah mengikuti Bonus Unit ini, sebaiknya kamu:
+
+1. Memahami cara melakukan fine-tuning LLM dengan Transformers. Kalau belum, [cek materi ini](https://huggingface.co/learn/nlp-course/chapter3/1?fw=pt).
+
+2. Memahami cara menggunakan `SFTTrainer` untuk melakukan fine-tuning pada model kita. Untuk mempelajarinya, [cek dokumentasi ini](https://huggingface.co/learn/nlp-course/en/chapter11/1).
+
+---
+
+## Yang Akan Kamu Pelajari
+
+1. **Function Calling**
+   Cara LLM modern menyusun percakapan sehingga bisa memicu **Tools**.
+
+2. **LoRA (Low-Rank Adaptation)**
+   Metode fine-tuning yang **ringan dan efisien** untuk menekan beban komputasi dan storage. Dengan LoRA, training model besar bisa menjadi *lebih cepat, lebih murah, dan lebih mudah* di-deploy.
+
+3. **Siklus Thought → Act → Observe** dalam model Function Calling
+   Pendekatan sederhana untuk menyusun cara model memutuskan kapan dan bagaimana memanggil function, melacak langkah antara, serta menafsirkan hasil dari Tools atau API eksternal.
+
+4. **Special Tokens Baru**
+   Kita akan memperkenalkan **penanda khusus** yang membantu model membedakan:
+   - reasoning “chain-of-thought” internal
+   - function calls yang keluar dari model
+   - respons yang kembali dari tools eksternal
+
+---
+
+Di akhir bonus unit ini, kamu akan bisa:
+
+- **Memahami** cara kerja internal API dalam konteks Tools.
+- Melakukan **fine-tuning** model dengan teknik LoRA.
+- **Menerapkan** dan **memodifikasi** siklus Thought → Act → Observe untuk membuat workflow Function Calling yang tangguh dan mudah dirawat.
+- **Merancang dan menggunakan** special tokens untuk memisahkan reasoning internal model dari actions eksternal secara jelas.
+
+Dan kamu akan **berhasil melakukan fine-tuning modelmu sendiri untuk Function Calling.** 🔥
+
+Mari masuk ke **Function Calling**!

@@ -1,0 +1,132 @@
+# Kuis: Mengevaluasi AI Agents
+
+Mari ukur pemahamanmu tentang konsep agent tracing dan evaluation yang dibahas di bonus unit ini.
+
+Kuis ini opsional dan tidak dinilai.
+
+### Q1: Apa yang terutama dimaksud dengan observability pada AI agents?
+Pernyataan mana yang paling tepat menjelaskan tujuan observability untuk AI agents?
+
+<Question
+choices={[
+  {
+    text: "Melacak operasi internal melalui logs, metrics, dan spans untuk memahami perilaku agent.",
+    explain: "Benar! Observability berarti menggunakan logs, metrics, dan spans untuk memahami cara kerja internal agent.",
+    correct: true
+  },
+  {
+    text: "Hanya berfokus pada pengurangan biaya finansial untuk menjalankan agent.",
+    explain: "Observability mencakup cost, tetapi tidak terbatas pada itu."
+  },
+  {
+    text: "Hanya mengacu pada tampilan eksternal dan UI agent.",
+    explain: "Observability membahas proses internal, bukan UI."
+  },
+  {
+    text: "Hanya berkaitan dengan coding style dan estetika code.",
+    explain: "Code style tidak berkaitan dengan observability dalam konteks ini."
+  }
+]}
+/>
+
+### Q2: Mana dari pilihan berikut yang BUKAN metric umum dalam agent observability?
+Pilih metric yang biasanya tidak termasuk dalam cakupan observability.
+
+<Question
+choices={[
+  {
+    text: "Latency",
+    explain: "Latency umum dilacak untuk menilai responsivitas agent."
+  },
+  {
+    text: "Biaya per Agent Run",
+    explain: "Memantau cost adalah salah satu aspek utama observability."
+  },
+  {
+    text: "User Feedback dan Ratings",
+    explain: "User feedback penting untuk mengevaluasi performa agent."
+  },
+  {
+    text: "Jumlah Lines of Code pada Agent",
+    explain: "Jumlah baris code bukan metric observability yang umum.",
+    correct: true
+  }
+]}
+/>
+
+### Q3: Apa deskripsi terbaik untuk offline evaluation pada AI agent?
+Pilih pernyataan yang paling tepat menangkap inti offline evaluation.
+
+<Question
+choices={[
+  {
+    text: "Mengevaluasi agent menggunakan interaksi user nyata dalam environment live.",
+    explain: "Ini menggambarkan online evaluation, bukan offline."
+  },
+  {
+    text: "Menilai performa agent menggunakan curated datasets dengan ground truth yang diketahui.",
+    explain: "Benar! Offline evaluation menggunakan test datasets untuk mengukur performa terhadap jawaban yang sudah diketahui.",
+    correct: true
+  },
+  {
+    text: "Memantau logs internal agent secara real-time.",
+    explain: "Ini lebih berkaitan dengan observability daripada evaluation."
+  },
+  {
+    text: "Menjalankan agent tanpa evaluation metrics apa pun.",
+    explain: "Pendekatan ini tidak memberi insight yang berguna."
+  }
+]}
+/>
+
+### Q4: Kelebihan apa yang ditawarkan online evaluation untuk agents?
+Pilih pernyataan yang paling mencerminkan manfaat online evaluation.
+
+<Question
+choices={[
+  {
+    text: "Menyediakan skenario testing terkontrol menggunakan datasets yang sudah ditentukan.",
+    explain: "Testing terkontrol adalah manfaat offline evaluation, bukan online."
+  },
+  {
+    text: "Menangkap interaksi user live dan data performa dunia nyata.",
+    explain: "Benar! Online evaluation memberi insight dengan memantau agent dalam setting live.",
+    correct: true
+  },
+  {
+    text: "Menghilangkan kebutuhan akan offline testing dan benchmark.",
+    explain: "Offline dan online evaluation sama-sama penting dan saling melengkapi."
+  },
+  {
+    text: "Hanya berfokus pada pengurangan computational cost agent.",
+    explain: "Cost monitoring adalah bagian dari observability, bukan manfaat utama online evaluation."
+  }
+]}
+/>
+
+### Q5: Apa peran OpenTelemetry dalam observability dan evaluation AI agent?
+Pernyataan mana yang paling tepat menjelaskan peran OpenTelemetry dalam memantau AI agents?
+
+<Question
+choices={[
+  {
+    text: "Menyediakan framework standar untuk melakukan instrumentation pada code, sehingga traces, metrics, dan logs bisa dikumpulkan untuk observability.",
+    explain: "Benar! OpenTelemetry menstandarkan instrumentation untuk data telemetry, yang dibutuhkan untuk memantau dan mendiagnosis perilaku agent.",
+    correct: true
+  },
+  {
+    text: "Menggantikan manual debugging dengan memperbaiki masalah code secara otomatis.",
+    explain: "Salah. OpenTelemetry digunakan untuk mengumpulkan data telemetry, bukan untuk memperbaiki masalah code."
+  },
+  {
+    text: "Terutama berfungsi sebagai database untuk menyimpan historical logs tanpa kemampuan real-time.",
+    explain: "Salah. OpenTelemetry berfokus pada pengumpulan data telemetry real-time dan ekspor data ke tools analisis."
+  },
+  {
+    text: "Digunakan untuk memperbaiki performa komputasi AI agent dengan menyetel parameter model secara otomatis.",
+    explain: "Salah. OpenTelemetry berpusat pada observability, bukan performance tuning."
+  }
+]}
+/>
+
+Selamat, kamu sudah menyelesaikan kuis ini! 🎉 Kalau ada jawaban yang terlewat, coba tinjau lagi isi bonus unit ini supaya pemahamanmu lebih kuat. Kalau hasilmu sudah baik, kamu siap mempelajari topik yang lebih advanced dalam agent observability dan evaluation!

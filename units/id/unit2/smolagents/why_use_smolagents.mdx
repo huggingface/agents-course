@@ -1,0 +1,66 @@
+![banner smolagents](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/license_to_call.png)
+# Mengapa menggunakan smolagents
+
+Di modul ini, kita akan melihat kelebihan dan kekurangan menggunakan [smolagents](https://huggingface.co/docs/smolagents/en/index), supaya kamu bisa menilai apakah framework ini cocok untuk kebutuhanmu.
+
+## Apa itu `smolagents`?
+
+`smolagents` adalah framework yang sederhana, tapi kuat untuk membangun AI agents. Framework ini memberi LLM _agency_ untuk berinteraksi dengan dunia nyata, misalnya mencari informasi atau menghasilkan gambar.
+
+Seperti yang kita pelajari di Unit 1, AI agents adalah program yang menggunakan LLM untuk menghasilkan **'thoughts'** berdasarkan **'observations'** agar bisa melakukan **'actions'**. Mari kita lihat bagaimana hal ini diterapkan di smolagents.
+
+### Keunggulan Utama `smolagents`
+- **Sederhana:** Kompleksitas kode dan abstraksinya minimal, sehingga framework ini mudah dipahami, diadopsi, dan diperluas
+- **Dukungan LLM yang fleksibel:** Bekerja dengan LLM apa pun melalui integrasi dengan Hugging Face tools dan API eksternal
+- **Pendekatan code-first:** Dukungan kelas utama untuk Code Agents yang menulis actions langsung dalam kode, sehingga parsing tidak diperlukan dan tool calling jadi lebih sederhana
+- **Integrasi HF Hub:** Integrasi mulus dengan Hugging Face Hub, yang memungkinkan Gradio Spaces digunakan sebagai tools
+
+### Kapan menggunakan smolagents?
+
+Dengan keunggulan tersebut, kapan sebaiknya kita memilih smolagents dibanding framework lain?
+
+smolagents cocok ketika:
+- Kamu membutuhkan **solusi yang ringan dan minimal.**
+- Kamu ingin **bereksperimen dengan cepat** tanpa konfigurasi yang rumit.
+- **Logika aplikasimu cukup langsung.**
+
+### Code vs. JSON Actions
+Berbeda dari framework lain yang membuat agents menulis actions dalam JSON, `smolagents` **berfokus pada tool calls dalam kode**, sehingga proses eksekusinya lebih sederhana. Alasannya, kita tidak perlu mem-parsing JSON untuk membangun kode yang memanggil tools: output-nya bisa langsung dieksekusi.
+
+Diagram berikut menggambarkan perbedaan ini:
+
+![Actions dalam kode vs JSON](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+Untuk meninjau kembali perbedaan antara Code vs JSON Actions, kamu bisa membuka lagi [bagian Actions di Unit 1](https://huggingface.co/learn/agents-course/unit1/actions#actions-enabling-the-agent-to-engage-with-its-environment).
+
+### Tipe Agent di `smolagents`
+
+Agents di `smolagents` bekerja sebagai **multi-step agents**.
+
+Setiap [`MultiStepAgent`](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.MultiStepAgent) melakukan:
+- Satu thought
+- Satu tool call dan eksekusinya
+
+Selain menggunakan **[CodeAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.CodeAgent)** sebagai tipe agent utama, smolagents juga mendukung **[ToolCallingAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.ToolCallingAgent)**, yang menulis tool calls dalam JSON.
+
+Kita akan membahas tiap tipe agent lebih detail di bagian berikutnya.
+
+> [!TIP]
+> Di smolagents, tools didefinisikan menggunakan decorator <code>@tool</code> yang membungkus Python function, atau menggunakan class <code>Tool</code>.
+
+### Integrasi Model di `smolagents`
+`smolagents` mendukung integrasi LLM yang fleksibel, sehingga kamu bisa menggunakan callable model apa pun yang memenuhi [kriteria tertentu](https://huggingface.co/docs/smolagents/main/en/reference/models). Framework ini menyediakan beberapa class siap pakai untuk menyederhanakan koneksi model:
+
+- **[TransformersModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.TransformersModel):** Menerapkan pipeline `transformers` lokal untuk integrasi yang mulus.
+- **[InferenceClientModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.InferenceClientModel):** Mendukung panggilan [serverless inference](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference) melalui [infrastruktur Hugging Face](https://huggingface.co/docs/api-inference/index), atau melalui makin banyak [third-party inference providers](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks).
+- **[LiteLLMModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.LiteLLMModel):** Menggunakan [LiteLLM](https://www.litellm.ai/) untuk interaksi model yang ringan.
+- **[OpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.OpenAIServerModel):** Terhubung ke layanan apa pun yang menyediakan interface OpenAI API.
+- **[AzureOpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.AzureOpenAIServerModel):** Mendukung integrasi dengan deployment Azure OpenAI apa pun.
+
+Fleksibilitas ini membuat developer bisa memilih model dan layanan yang paling sesuai untuk use case tertentu, sekaligus memudahkan eksperimen.
+
+Sekarang kita sudah memahami alasan dan waktu yang tepat untuk memakai smolagents. Mari masuk lebih jauh ke library ini!
+
+## Referensi
+
+- [Blog smolagents](https://huggingface.co/blog/smolagents) - Pengantar smolagents dan interaksi berbasis kode

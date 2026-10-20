@@ -1,0 +1,112 @@
+# Cek Pemahaman Singkat (tidak dinilai) [[quiz2]]
+
+Apa?! Kuis lagi? Kami tahu, kami tahu, ... 😅 Tapi kuis singkat yang tidak dinilai ini ada untuk **membantumu menguatkan konsep utama yang baru saja dipelajari**.
+
+Kuis ini mencakup agent workflows dan interactions, yaitu components penting untuk membangun AI agents yang efektif.
+
+### Q1: Apa tujuan AgentWorkflow di LlamaIndex?
+
+<Question
+choices={[
+{
+text: "Untuk menjalankan satu atau beberapa agents dengan tools",
+explain: "Ya, AgentWorkflow adalah cara utama untuk membuat sistem dengan satu atau beberapa agents secara cepat.",
+correct: true
+},
+{
+text: "Untuk membuat satu agent yang bisa melakukan query ke datamu tanpa memory",
+explain: "Bukan. AgentWorkflow lebih mampu dari itu, sedangkan QueryEngine digunakan untuk query sederhana di atas datamu.",
+},
+{
+text: "Untuk otomatis membuat tools bagi agents",
+explain: "AgentWorkflow tidak membuat tools. Itu tugas developer.",
+},
+{
+text: "Untuk mengelola memory dan state agent",
+explain: "Mengelola memory dan state bukan tujuan utama AgentWorkflow.",
+}
+]}
+/>
+
+---
+
+### Q2: Objek apa yang dipakai untuk melacak state workflow?
+
+<Question
+choices={[
+{
+text: "State",
+explain: "State bukan objek yang tepat untuk workflow state management.",
+},
+{
+text: "Context",
+explain: "Context adalah objek yang tepat untuk melacak workflow state.",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowState bukan objek yang tepat.",
+},
+{
+text: "Management",
+explain: "Management bukan objek valid untuk workflow state.",
+}
+]}
+/>
+
+---
+
+### Q3: Method mana yang sebaiknya dipakai jika kamu ingin agent mengingat interaksi sebelumnya?
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str) tidak mempertahankan conversation history.",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat() bukan method yang valid pada workflows.",
+},
+{
+text: "interact(query_str)",
+explain: "interact() bukan method yang valid untuk agent interactions.",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "Dengan meneruskan dan mempertahankan context, kita bisa mempertahankan state!",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4: Apa fitur kunci Agentic RAG?
+
+<Question
+choices={[
+{
+text: "Hanya bisa memakai tools berbasis dokumen untuk menjawab pertanyaan dalam RAG workflow",
+explain: "Agentic RAG bisa memakai berbagai tools, termasuk tools berbasis dokumen.",
+},
+{
+text: "Otomatis menjawab pertanyaan tanpa tools, seperti chatbot",
+explain: "Agentic RAG memang memakai tools untuk menjawab pertanyaan.",
+},
+{
+text: "Bisa memutuskan untuk memakai tool apa pun untuk menjawab pertanyaan, termasuk RAG tools",
+explain: "Agentic RAG punya fleksibilitas untuk memakai tools berbeda dalam menjawab pertanyaan.",
+correct: true
+},
+{
+text: "Hanya bekerja dengan Function Calling Agents",
+explain: "Agentic RAG tidak terbatas pada Function Calling Agents.",
+}
+]}
+/>
+
+---
+
+
+Sudah paham? Bagus! Sekarang mari **membuat rekap singkat unit ini!**

@@ -1,0 +1,394 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord"
+ />
+
+# Membangun Agents yang Menggunakan Kode
+
+Code agents adalah tipe agent default di `smolagents`. Agents ini menghasilkan Python tool calls untuk melakukan actions, sehingga representasi action menjadi efisien, ekspresif, dan akurat.
+
+Pendekatan yang ringkas ini mengurangi jumlah actions yang dibutuhkan, menyederhanakan operasi yang rumit, dan memungkinkan penggunaan ulang functions kode yang sudah ada. `smolagents` menyediakan framework ringan untuk membangun code agents, yang diimplementasikan dalam sekitar 1.000 baris kode.
+
+![Actions dalam Code vs JSON](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+Grafik dari paper [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)
+
+> [!TIP]
+> Kalau kamu ingin memahami mengapa code agents efektif, lihat <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">panduan ini</a> dari dokumentasi smolagents.
+
+## Mengapa Code Agents?
+
+Dalam proses multi-step agent, LLM menulis dan mengeksekusi actions, biasanya dengan external tool calls. Pendekatan tradisional memakai format JSON untuk menentukan nama tool dan arguments sebagai string, **yang harus di-parse oleh sistem untuk menentukan tool mana yang perlu dieksekusi**.
+
+Namun, riset menunjukkan bahwa **tool-calling LLMs bekerja lebih efektif ketika langsung menggunakan kode**. Ini adalah prinsip inti `smolagents`, seperti terlihat pada diagram di atas dari [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030).
+
+Menulis actions dalam kode, bukan JSON, memberi beberapa keuntungan utama:
+
+* **Composability**: Mudah menggabungkan dan menggunakan ulang actions
+* **Object Management**: Bekerja langsung dengan struktur kompleks seperti gambar
+* **Generality**: Mengekspresikan tugas apa pun yang mungkin secara komputasi
+* **Natural for LLMs**: Kode berkualitas tinggi sudah ada di data training LLM
+
+## Bagaimana Cara Kerja Code Agent?
+
+![Dari https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+Diagram di atas menggambarkan cara kerja `CodeAgent.run()`, mengikuti framework ReAct yang kita sebutkan di Unit 1. Abstraksi utama untuk agents di `smolagents` adalah `MultiStepAgent`, yang menjadi blok penyusun inti. `CodeAgent` adalah jenis khusus dari `MultiStepAgent`, seperti yang akan kita lihat pada contoh di bawah.
+
+`CodeAgent` melakukan actions melalui siklus langkah. Variables dan pengetahuan yang sudah ada dimasukkan ke konteks agent, lalu disimpan dalam execution log:
+
+1. System prompt disimpan dalam `SystemPromptStep`, dan query user dicatat dalam `TaskStep`.
+
+2. Lalu, while loop berikut dieksekusi:
+
+    2.1 Method `agent.write_memory_to_messages()` menulis log agent ke daftar [chat messages](https://huggingface.co/docs/transformers/main/en/chat_templating) yang bisa dibaca LLM.
+
+    2.2 Messages tersebut dikirim ke `Model`, yang menghasilkan completion.
+
+    2.3 Completion di-parse untuk mengekstrak action. Dalam kasus kita, action itu seharusnya berupa potongan kode karena kita bekerja dengan `CodeAgent`.
+
+    2.4 Action dieksekusi.
+
+    2.5 Hasilnya dicatat ke memory dalam `ActionStep`.
+
+Di akhir setiap langkah, jika agent menyertakan function calls apa pun (di `agent.step_callback`), function calls tersebut akan dieksekusi.
+
+## Mari Lihat Beberapa Contoh
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb" target="_blank">notebook ini</a>, yang bisa kamu jalankan menggunakan Google Colab.
+
+Alfred sedang merencanakan pesta di rumah keluarga Wayne dan membutuhkan bantuanmu agar semuanya berjalan lancar. Untuk membantunya, kita akan menerapkan hal yang sudah kita pelajari tentang cara kerja multi-step `CodeAgent`.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-party.jpg" alt="Pesta Alfred"/>
+
+Kalau kamu belum menginstal `smolagents`, jalankan perintah berikut:
+
+```bash
+pip install smolagents -U
+```
+
+Kita juga perlu login ke Hugging Face Hub agar bisa mengakses Serverless Inference API.
+
+```python
+from huggingface_hub import login
+
+login()
+```
+
+### Memilih Playlist Pesta Menggunakan `smolagents`
+
+Musik adalah bagian penting dari pesta yang sukses! Alfred butuh bantuan memilih playlist. Untungnya, `smolagents` bisa membantu. Kita dapat membangun agent yang mampu mencari di web menggunakan DuckDuckGo. Agar agent punya akses ke tool ini, kita memasukkannya ke tool list saat membuat agent.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Playlist Alfred"/>
+
+Untuk model, kita akan memakai `InferenceClientModel`, yang menyediakan akses ke [Serverless Inference API](https://huggingface.co/docs/api-inference/index) milik Hugging Face. Model default-nya adalah `"Qwen/Qwen2.5-Coder-32B-Instruct"`, yang performanya baik dan tersedia untuk inference cepat, tetapi kamu bisa memilih model kompatibel apa pun dari Hub.
+
+Menjalankan agent cukup langsung:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+Saat kamu menjalankan contoh ini, output akan **menampilkan trace dari langkah-langkah workflow yang dieksekusi**. Output juga akan mencetak kode Python terkait dengan pesan:
+
+```python
+ ─ Executing parsed code: ────────────────────────────────────────────────────────────────────────────────────────
+  results = web_search(query="best music for a Batman party")
+  print(results)
+ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+Setelah beberapa langkah, kamu akan melihat playlist yang dihasilkan dan bisa digunakan Alfred untuk pesta! 🎵
+
+### Menggunakan Custom Tool untuk Menyiapkan Menu
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-menu.jpg" alt="Menu Alfred"/>
+
+Setelah playlist dipilih, kita perlu mengatur menu untuk para tamu. Lagi-lagi, Alfred bisa menggunakan `smolagents` untuk ini. Di sini, kita memakai decorator `@tool` untuk mendefinisikan custom function yang bertindak sebagai tool. Kita akan membahas pembuatan tool lebih detail nanti, jadi untuk sekarang kita cukup menjalankan kodenya.
+
+Seperti yang kamu lihat pada contoh di bawah, kita akan membuat tool menggunakan decorator `@tool` dan memasukkannya ke dalam list `tools`.
+
+```python
+from smolagents import CodeAgent, tool, InferenceClientModel
+
+# Tool untuk menyarankan menu berdasarkan acara
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion (str): The type of occasion for the party. Allowed values are:
+                        - "casual": Menu for casual party.
+                        - "formal": Menu for formal party.
+                        - "superhero": Menu for superhero party.
+                        - "custom": Custom menu.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+# Alfred, sang kepala pelayan, menyiapkan menu untuk pesta
+agent = CodeAgent(tools=[suggest_menu], model=InferenceClientModel())
+
+# Menyiapkan menu untuk pesta
+agent.run("Prepare a formal menu for the party.")
+```
+
+Agent akan berjalan beberapa langkah sampai menemukan jawaban. Menyebutkan nilai yang diizinkan dalam docstring membantu mengarahkan agent ke nilai argument `occasion` yang memang ada dan membatasi hallucinations.
+
+Menunya siap! 🥗
+
+### Menggunakan Python Imports di Dalam Agent
+
+Playlist dan menu sudah siap, tetapi masih ada satu detail penting yang perlu dicek: waktu persiapan!
+
+Alfred perlu menghitung kapan semuanya siap jika ia mulai sekarang, kalau-kalau mereka membutuhkan bantuan dari superhero lain.
+
+`smolagents` berfokus pada agents yang menulis dan mengeksekusi potongan kode Python, dengan sandboxed execution untuk keamanan.
+
+**Code execution memiliki aturan keamanan yang ketat**: imports di luar safe list yang sudah ditentukan akan diblokir secara default. Namun, kamu bisa mengizinkan imports tambahan dengan meneruskannya sebagai string di `additional_authorized_imports`.
+Untuk detail lebih lanjut tentang secure code execution, lihat [panduan](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution) resmi.
+
+Saat membuat agent, kita akan menggunakan `additional_authorized_imports` untuk mengizinkan import module `datetime`.
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=InferenceClientModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred needs to prepare for the party. Here are the tasks:
+    1. Prepare the drinks - 30 minutes
+    2. Decorate the mansion - 60 minutes
+    3. Set up the menu - 45 minutes
+    4. Prepare the music and playlist - 45 minutes
+
+    If we start right now, at what time will the party be ready?
+    """
+)
+```
+
+
+Contoh-contoh ini baru awal dari hal yang bisa kamu lakukan dengan code agents, dan kita sudah mulai melihat kegunaannya untuk menyiapkan pesta.
+Kamu bisa mempelajari lebih lanjut cara membangun code agents di [dokumentasi smolagents](https://huggingface.co/docs/smolagents).
+
+Singkatnya, `smolagents` berfokus pada agents yang menulis dan mengeksekusi potongan kode Python, dengan sandboxed execution untuk keamanan. Framework ini mendukung language model lokal maupun berbasis API, sehingga bisa menyesuaikan berbagai development environment.
+
+### Berbagi Custom Party Preparator Agent Kita ke Hub
+
+Bukankah menyenangkan kalau kita bisa **membagikan agent Alfred buatan kita sendiri ke komunitas**? Dengan begitu, siapa pun bisa dengan mudah men-download dan menggunakan agent langsung dari Hub, membawa party planner terbaik Gotham ke tangan mereka. Mari kita wujudkan! 🎉
+
+Library `smolagents` memungkinkan hal ini dengan membantumu berbagi agent lengkap ke komunitas dan men-download agent buatan orang lain untuk langsung digunakan. Caranya sesederhana ini:
+
+```python
+# Ganti dengan username dan nama repo kamu
+agent.push_to_hub('sergiopaniego/AlfredAgent')
+```
+
+Untuk men-download agent itu lagi, gunakan kode di bawah:
+
+```python
+# Ganti dengan username dan nama repo kamu
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")
+```
+
+Hal menarik lainnya: shared agents tersedia langsung sebagai Hugging Face Spaces, sehingga kamu bisa berinteraksi dengannya secara real-time. Kamu bisa menjelajahi agents lain [di sini](https://huggingface.co/spaces/davidberenstein1957/smolagents-and-tools).
+
+Sebagai contoh, _AlfredAgent_ tersedia [di sini](https://huggingface.co/spaces/sergiopaniego/AlfredAgent). Kamu bisa mencobanya langsung di bawah:
+
+<iframe
+	src="https://sergiopaniego-alfredagent.hf.space/"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Kamu mungkin bertanya-tanya: bagaimana Alfred membangun agent seperti ini menggunakan `smolagents`? Dengan mengintegrasikan beberapa tools, ia bisa membuat agent seperti berikut. Untuk sekarang, tidak perlu khawatir tentang tools-nya. Nanti di unit ini ada bagian khusus yang membahasnya lebih detail:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
+
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion: The type of occasion for the party.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    This tool returns the highest-rated catering service in Gotham City.
+
+    Args:
+        query: A search term for finding catering services.
+    """
+    # Example list of catering services and their ratings
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+
+    # Find the highest rated catering service (simulating search query filtering)
+    best_service = max(services, key=services.get)
+
+    return best_service
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    This tool suggests creative superhero-themed party ideas based on a category.
+    It returns a unique party theme idea."""
+
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
+        }
+    }
+
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: Guests come dressed as their favorite DC heroes with themed cocktails like 'The Kryptonite Punch'.",
+            "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
+            "futuristic gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
+        }
+
+        return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
+
+
+# Alfred, sang kepala pelayan, menyiapkan menu untuk pesta
+agent = CodeAgent(
+    tools=[
+        DuckDuckGoSearchTool(),
+        VisitWebpageTool(),
+        suggest_menu,
+        catering_service_tool,
+        SuperheroPartyThemeTool(),
+	FinalAnswerTool()
+    ],
+    model=InferenceClientModel(),
+    max_steps=10,
+    verbosity_level=2
+)
+
+agent.run("Give me the best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
+```
+
+Seperti yang kamu lihat, kita sudah membuat `CodeAgent` dengan beberapa tools yang memperkaya fungsi agent, mengubahnya menjadi party planner terbaik yang siap dibagikan ke komunitas! 🎉
+
+Sekarang giliranmu: bangun agent milikmu sendiri dan bagikan ke komunitas menggunakan pengetahuan yang baru kita pelajari! 🕵️‍♂️💡
+
+> [!TIP]
+> Kalau kamu ingin membagikan project agent-mu, buat Space dan tag <a href="https://huggingface.co/agents-course">agents-course</a> di Hugging Face Hub. Kami ingin melihat apa yang kamu buat!
+
+### Menginspeksi Party Preparator Agent Kita dengan OpenTelemetry dan Langfuse 📡
+
+Saat Alfred menyempurnakan Party Preparator Agent, ia mulai lelah melakukan debugging pada setiap run. Secara alami, agents sulit diprediksi dan tidak mudah diinspeksi. Karena ia ingin membangun Party Preparator Agent terbaik dan men-deploy-nya ke production, ia membutuhkan traceability yang kuat untuk monitoring dan analisis di masa depan.
+
+Sekali lagi, `smolagents` membantu. Library ini mengadopsi standar [OpenTelemetry](https://opentelemetry.io/) untuk instrumentasi agent runs, sehingga inspection dan logging menjadi mulus. Dengan bantuan [Langfuse](https://langfuse.com/) dan `SmolagentsInstrumentor`, Alfred bisa melacak dan menganalisis perilaku agent-nya dengan mudah.
+
+Setup-nya cukup langsung!
+
+Pertama, kita perlu menginstal dependencies yang diperlukan:
+
+```bash
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents langfuse
+```
+
+Berikutnya, Alfred sudah membuat akun di Langfuse dan menyiapkan API keys miliknya. Kalau kamu belum melakukannya, kamu bisa mendaftar Langfuse Cloud [di sini](https://cloud.langfuse.com/) atau melihat [alternatif](https://huggingface.co/docs/smolagents/tutorials/inspect_runs).
+
+Setelah API keys tersedia, konfigurasikan dengan benar seperti berikut:
+
+```python
+import os
+
+# Ambil keys untuk project-mu dari halaman project settings: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..."
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..."
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 Region EU
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 Region US
+```
+
+Setelah environment variables diatur, kita bisa menginisialisasi Langfuse client. `get_client()` menginisialisasi Langfuse client menggunakan credentials yang disediakan di environment variables.
+
+```python
+from langfuse import get_client
+
+langfuse = get_client()
+
+# Verifikasi koneksi
+if langfuse.auth_check():
+    print("Langfuse client is authenticated and ready!")
+else:
+    print("Authentication failed. Please check your credentials and host.")
+```
+
+Akhirnya, Alfred siap menginisialisasi `SmolagentsInstrumentor` dan mulai melacak performa agent-nya.
+
+```python
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+
+SmolagentsInstrumentor().instrument()
+```
+
+Alfred sekarang sudah terhubung 🔌! Runs dari `smolagents` dicatat di Langfuse, sehingga ia punya visibilitas penuh atas perilaku agent. Dengan setup ini, ia bisa meninjau run sebelumnya dan menyempurnakan Party Preparator Agent lebih jauh.
+
+> [!TIP]
+> Untuk mempelajari lebih lanjut tentang tracing agents dan penggunaan data yang terkumpul untuk mengevaluasi performanya, lihat <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Bonus Unit 2</a>.
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+agent = CodeAgent(tools=[], model=InferenceClientModel())
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")
+```
+
+Alfred sekarang bisa mengakses log ini [di sini](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z) untuk meninjau dan menganalisisnya.
+
+> [!TIP]
+> Sebenarnya, ada error kecil yang muncul saat eksekusi. Bisakah kamu menemukannya di log? Coba lacak bagaimana agent menanganinya dan tetap mengembalikan jawaban yang valid. <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">Di sini</a> ada link langsung ke error tersebut kalau kamu ingin memverifikasi jawabanmu. Error itu tentu sudah diperbaiki, dan detailnya bisa ditemukan di <a href="https://github.com/huggingface/smolagents/issues/838">issue</a> ini.
+
+Sementara itu, [playlist yang disarankan](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw) memberi suasana yang pas untuk persiapan pesta. Keren, kan? 🎶
+
+---
+
+Setelah membuat Code Agent pertama kita, mari **pelajari cara membuat Tool Calling Agents**, tipe agent kedua yang tersedia di `smolagents`.
+
+## Referensi
+
+- [Blog smolagents](https://huggingface.co/blog/smolagents) - Pengantar smolagents dan interaksi berbasis kode
+- [smolagents: Building Good Agents](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - Praktik terbaik untuk agents yang andal
+- [Building Effective Agents - Anthropic](https://www.anthropic.com/research/building-effective-agents) - Prinsip desain agent
+- [Sharing runs with OpenTelemetry](https://huggingface.co/docs/smolagents/tutorials/inspect_runs) - Detail tentang cara setup OpenTelemetry untuk melacak agents milikmu.

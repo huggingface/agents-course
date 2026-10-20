@@ -1,0 +1,321 @@
+# Apa itu Tools?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Perencanaan Unit 1"/>
+
+Salah satu aspek penting AI Agents adalah kemampuan mereka untuk mengambil **actions**. Seperti yang sudah kita lihat, ini terjadi melalui penggunaan **Tools**.
+
+Di bagian ini, kita akan mempelajari apa itu Tools, bagaimana merancangnya secara efektif, dan bagaimana mengintegrasikannya ke Agent-mu melalui System Message.
+
+Dengan memberikan Tools yang tepat kepada Agent-mu, plus menjelaskan dengan jelas bagaimana Tools tersebut bekerja, kamu dapat meningkatkan secara drastis apa yang bisa dilakukan AI-mu. Mari kita mulai!
+
+
+## Apa itu AI Tools?
+
+**Tool adalah fungsi yang diberikan kepada LLM**. Fungsi ini harus memenuhi **tujuan yang jelas**.
+
+Berikut beberapa tools yang umum digunakan dalam AI agents:
+
+| Tool            | Deskripsi                                                   |
+|----------------|---------------------------------------------------------------|
+| Web Search     | Memungkinkan agent mengambil informasi terbaru dari internet. |
+| Image Generation | Membuat gambar berdasarkan deskripsi teks.                  |
+| Retrieval      | Mengambil informasi dari sumber eksternal.                |
+| API Interface  | Berinteraksi dengan API eksternal (GitHub, YouTube, Spotify, dll.). |
+
+Itu hanya contoh, karena sebenarnya kamu bisa membuat tool untuk use case apa pun!
+
+Tool yang baik seharusnya menjadi sesuatu yang **melengkapi kekuatan LLM**.
+
+Misalnya, jika kamu perlu melakukan aritmetika, memberikan **calculator tool** kepada LLM akan memberi hasil yang lebih baik dibanding mengandalkan kemampuan bawaan model.
+
+**LLMs memprediksi kelanjutan prompt berdasarkan data training mereka**, yang berarti pengetahuan internal mereka hanya mencakup peristiwa sebelum training. Karena itu, jika agent-mu membutuhkan data terbaru, kamu harus menyediakannya melalui suatu tool.
+
+Misalnya, jika kamu bertanya langsung kepada LLM (tanpa search tool) tentang cuaca hari ini, LLM berpotensi hallucinate cuaca acak.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Cuaca"/>
+
+- Sebuah Tool harus berisi:
+
+  - **Deskripsi tekstual tentang apa yang dilakukan fungsi tersebut**.
+  - *Callable* (sesuatu untuk menjalankan action).
+  - *Arguments* beserta tipe.
+  - (Opsional) Outputs beserta tipe.
+
+## Bagaimana tools bekerja?
+
+LLMs, seperti yang kita lihat, hanya bisa menerima input teks dan menghasilkan output teks. Mereka tidak punya cara untuk memanggil tools sendiri. Saat kita berbicara tentang menyediakan tools kepada Agent, maksudnya adalah mengajarkan LLM tentang keberadaan tools tersebut dan menginstruksikannya untuk menghasilkan invocation berbasis teks saat dibutuhkan.
+
+Sebagai contoh, jika kita menyediakan tool untuk mengecek cuaca di suatu lokasi dari internet lalu bertanya kepada LLM tentang cuaca di Paris, LLM akan mengenali bahwa ini adalah kesempatan untuk menggunakan tool "weather". Alih-alih mengambil data cuaca sendiri, LLM akan menghasilkan teks yang merepresentasikan tool call, seperti `call weather_tool('Paris')`.
+
+**Agent** kemudian membaca respons ini, mengidentifikasi bahwa tool call diperlukan, menjalankan tool atas nama LLM, dan mengambil data cuaca yang sebenarnya.
+
+Langkah Tool-calling biasanya tidak ditampilkan kepada pengguna: Agent menambahkannya sebagai message baru sebelum meneruskan percakapan yang sudah diperbarui ke LLM lagi. LLM kemudian memproses konteks tambahan ini dan menghasilkan respons yang terdengar alami untuk pengguna. Dari sudut pandang pengguna, tampak seolah-olah LLM berinteraksi langsung dengan tool, padahal sebenarnya Agent-lah yang menangani seluruh proses eksekusi di belakang layar.
+
+Kita akan membahas proses ini lebih banyak di sesi mendatang.
+
+## Bagaimana kita memberikan tools kepada LLM?
+
+Jawaban lengkapnya mungkin terasa banyak, tetapi pada dasarnya kita menggunakan system prompt untuk memberikan deskripsi tekstual tentang tools yang tersedia kepada model:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="System prompt untuk tools"/>
+
+Agar ini bekerja, kita harus sangat presisi dan akurat tentang:
+
+1. **Apa yang dilakukan tool**
+2. **Input persis apa yang diharapkan**
+
+Inilah alasan mengapa deskripsi tool biasanya diberikan menggunakan struktur yang ekspresif tetapi presisi, seperti bahasa komputer atau JSON. Ini tidak _wajib_ dilakukan seperti itu; format apa pun yang presisi dan koheren bisa digunakan.
+
+Jika ini terasa terlalu teoretis, mari memahaminya lewat contoh konkret.
+
+Kita akan mengimplementasikan tool **calculator** yang disederhanakan, yang hanya mengalikan dua integer. Ini bisa menjadi implementasi Python kita:
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+```
+
+Jadi tool kita bernama `calculator`, ia **mengalikan dua integer**, dan membutuhkan input berikut:
+
+- **`a`** (*int*): Sebuah integer.
+- **`b`** (*int*): Sebuah integer.
+
+Output tool adalah angka integer lain yang dapat kita jelaskan seperti ini:
+- (*int*): Hasil perkalian `a` dan `b`.
+
+Semua detail ini penting. Mari gabungkan dalam string teks yang menjelaskan tool kita agar LLM dapat memahaminya.
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+> **Pengingat:** Deskripsi tekstual ini adalah *hal yang kita ingin LLM ketahui tentang tool tersebut*.
+
+Saat kita meneruskan string sebelumnya sebagai bagian dari input ke LLM, model akan mengenalinya sebagai tool, dan akan tahu apa yang perlu diberikan sebagai input serta apa yang diharapkan dari output.
+
+Jika kita ingin menyediakan tools tambahan, kita harus konsisten dan selalu menggunakan format yang sama. Proses ini bisa rapuh, dan kita mungkin tanpa sengaja melewatkan beberapa detail.
+
+Apakah ada cara yang lebih baik?
+
+### Auto-formatting bagian Tool
+
+Tool kita ditulis dalam Python, dan implementasinya sudah menyediakan semua yang kita butuhkan:
+
+- Nama deskriptif tentang apa yang dilakukannya: `calculator`
+- Deskripsi yang lebih panjang, diberikan oleh komentar docstring fungsi: `Multiply two integers.`
+- Input dan tipenya: fungsi ini jelas mengharapkan dua `int`.
+- Tipe output.
+
+Ada alasan mengapa orang menggunakan bahasa pemrograman: bahasa pemrograman ekspresif, ringkas, dan presisi.
+
+Kita bisa memberikan source code Python sebagai _spesifikasi_ tool kepada LLM, tetapi cara tool tersebut diimplementasikan tidak penting. Yang penting hanyalah namanya, apa yang dilakukannya, input yang diharapkan, dan output yang diberikannya.
+
+Kita akan menggunakan fitur introspection Python untuk membaca source code dan membangun deskripsi tool secara otomatis. Yang kita butuhkan hanyalah implementasi tool menggunakan type hints, docstrings, dan nama fungsi yang masuk akal. Kita akan menulis beberapa kode untuk mengekstrak bagian yang relevan dari source code.
+
+Setelah selesai, kita hanya perlu menggunakan decorator Python untuk menunjukkan bahwa fungsi `calculator` adalah tool:
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Perhatikan decorator `@tool` sebelum definisi fungsi.
+
+Dengan implementasi yang akan kita lihat berikutnya, kita akan dapat mengambil teks berikut secara otomatis dari source code melalui fungsi `to_string()` yang disediakan decorator:
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+Seperti yang kamu lihat, ini sama dengan yang sebelumnya kita tulis secara manual!
+
+### Implementasi Tool generik
+
+Kita membuat class `Tool` generik yang dapat digunakan ulang kapan pun kita perlu menggunakan tool.
+
+> **Disclaimer:** Implementasi contoh ini fiktif, tetapi sangat mirip dengan implementasi nyata di sebagian besar library.
+
+```python
+from typing import Callable
+
+
+class Tool:
+    """
+    A class representing a reusable piece of code (Tool).
+
+    Attributes:
+        name (str): Name of the tool.
+        description (str): A textual description of what the tool does.
+        func (callable): The function this tool wraps.
+        arguments (list): A list of arguments.
+        outputs (str or list): The return type(s) of the wrapped function.
+    """
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: Callable,
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Return a string representation of the tool,
+        including its name, description, arguments, and outputs.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoke the underlying function (callable) with provided arguments.
+        """
+        return self.func(*args, **kwargs)
+```
+
+Ini mungkin terlihat rumit, tetapi jika kita membahasnya perlahan, kita bisa melihat apa yang dilakukannya. Kita mendefinisikan class **`Tool`** yang mencakup:
+
+- **`name`** (*str*): Nama tool.
+- **`description`** (*str*): Deskripsi singkat tentang apa yang dilakukan tool.
+- **`function`** (*callable*): Fungsi yang dijalankan tool.
+- **`arguments`** (*list*): Parameter input yang diharapkan.
+- **`outputs`** (*str* atau *list*): Output yang diharapkan dari tool.
+- **`__call__()`**: Memanggil fungsi saat instance tool dipanggil.
+- **`to_string()`**: Mengonversi atribut tool menjadi representasi tekstual.
+
+Kita bisa membuat Tool dengan class ini menggunakan kode seperti berikut:
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # nama
+    "Multiply two integers.",       # deskripsi
+    calculator,                     # fungsi yang dipanggil
+    [("a", "int"), ("b", "int")],   # input (nama dan tipe)
+    "int",                          # output
+)
+```
+
+Namun, kita juga bisa menggunakan modul `inspect` Python untuk mengambil semua informasi tersebut untuk kita! Inilah yang dilakukan decorator `@tool`.
+
+> Jika kamu tertarik, kamu bisa membuka bagian berikut untuk melihat implementasi decorator.
+
+<details>
+<summary> kode decorator</summary>
+
+```python
+import inspect
+
+def tool(func):
+    """
+    A decorator that creates a Tool instance from the given function.
+    """
+    # Ambil signature fungsi
+    signature = inspect.signature(func)
+
+    # Ekstrak pasangan (param_name, param_annotation) untuk input
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+
+    # Tentukan return annotation
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "No return annotation"
+    else:
+        outputs = (
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
+            else str(return_annotation)
+        )
+
+    # Gunakan docstring fungsi sebagai deskripsi (default jika None)
+    description = func.__doc__ or "No description provided."
+
+    # Nama fungsi menjadi nama Tool
+    name = func.__name__
+
+    # Kembalikan instance Tool baru
+    return Tool(
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
+        outputs=outputs
+    )
+```
+
+</details>
+
+Sekadar menegaskan kembali, dengan decorator ini kita dapat mengimplementasikan tool seperti berikut:
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Dan kita bisa menggunakan metode `to_string` milik `Tool` untuk otomatis mengambil teks yang cocok digunakan sebagai deskripsi tool bagi LLM:
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+Deskripsi tersebut **disisipkan** ke dalam system prompt. Mengambil contoh yang kita gunakan di awal bagian ini, beginilah tampilannya setelah mengganti `tools_description`:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="System prompt untuk tools"/>
+
+Di bagian [Actions](actions), kita akan belajar lebih banyak tentang bagaimana Agent dapat **Call** tool yang baru saja kita buat.
+
+### Model Context Protocol (MCP): antarmuka tool terpadu
+
+Model Context Protocol (MCP) adalah **protokol terbuka** yang menstandardisasi cara aplikasi **menyediakan tools kepada LLMs**.
+MCP menyediakan:
+
+- Daftar integrasi siap pakai yang terus bertambah dan dapat langsung dihubungkan ke LLM-mu
+- Fleksibilitas untuk berpindah antar provider dan vendor LLM
+- Best practices untuk mengamankan datamu di dalam infrastrukturmu
+
+Ini berarti **framework apa pun yang mengimplementasikan MCP dapat menggunakan tools yang didefinisikan dalam protokol tersebut**, sehingga tidak perlu mengimplementasikan ulang antarmuka tool yang sama untuk setiap framework.
+
+Jika kamu ingin mendalami MCP, kamu bisa mengecek [MCP Course gratis kami](https://huggingface.co/learn/mcp-course/).
+
+---
+
+Tools memainkan peran penting dalam meningkatkan kemampuan AI agents.
+
+Sebagai rangkuman, kita mempelajari:
+
+- *Apa itu Tools*: Fungsi yang memberi LLMs kemampuan tambahan, seperti melakukan kalkulasi atau mengakses data eksternal.
+
+- *Cara Mendefinisikan Tool*: Dengan menyediakan deskripsi tekstual yang jelas, input, output, dan fungsi callable.
+
+- *Mengapa Tools Penting*: Tools memungkinkan Agents mengatasi keterbatasan training model statis, menangani tugas real-time, dan menjalankan actions khusus.
+
+Sekarang, kita bisa lanjut ke [Agent Workflow](agent-steps-and-structure), tempat kamu akan melihat bagaimana Agent mengamati, berpikir, dan bertindak. Ini **menyatukan semua yang telah kita bahas sejauh ini** dan menyiapkan landasan untuk membuat AI Agent milikmu sendiri yang berfungsi penuh.
+
+Tapi sebelumnya, saatnya quiz singkat lagi!

@@ -1,0 +1,172 @@
+- title: Unit 0. Selamat datang di kursus
+  sections:
+  - local: unit0/introduction
+    title: Selamat datang di kursus 🤗
+  - local: unit0/onboarding
+    title: Onboarding
+  - local: unit0/discord101
+    title: (Opsional) Discord 101
+- title: Live 1. Cara kerja kursus dan Q&A
+  sections:
+  - local: communication/live1
+    title: Live 1. Cara kerja kursus dan Q&A
+- title: Unit 1. Pengantar Agents
+  sections:
+  - local: unit1/introduction
+    title: Pengantar
+  - local: unit1/what-are-agents
+    title: Apa itu Agent?
+  - local: unit1/quiz1
+    title: Kuis Singkat 1
+  - local: unit1/what-are-llms
+    title: Apa itu LLM?
+  - local: unit1/messages-and-special-tokens
+    title: Messages dan Special Tokens
+  - local: unit1/tools
+    title: Apa itu Tools?
+  - local: unit1/quiz2
+    title: Kuis Singkat 2
+  - local: unit1/agent-steps-and-structure
+    title: Memahami AI Agents lewat siklus Thought-Action-Observation
+  - local: unit1/thoughts
+    title: Thought, internal reasoning, dan pendekatan ReAct
+  - local: unit1/actions
+    title: Actions, cara Agent berinteraksi dengan environment
+  - local: unit1/observations
+    title: Observe, mengolah feedback untuk berefleksi dan beradaptasi
+  - local: unit1/dummy-agent-library
+    title: Dummy Agent Library
+  - local: unit1/tutorial
+    title: Mari membuat Agent pertama kita dengan smolagents
+  - local: unit1/final-quiz
+    title: Kuis Akhir Unit 1
+  - local: unit1/conclusion
+    title: Penutup
+- title: Unit 2. Frameworks untuk AI Agents
+  sections:
+  - local: unit2/introduction
+    title: Frameworks untuk AI Agents
+- title: Unit 2.1 Framework smolagents
+  sections:
+  - local: unit2/smolagents/introduction
+    title: Pengantar smolagents
+  - local: unit2/smolagents/why_use_smolagents
+    title: Kenapa memakai smolagents?
+  - local: unit2/smolagents/quiz1
+    title: Kuis Singkat 1
+  - local: unit2/smolagents/code_agents
+    title: Membuat Agents yang memakai code
+  - local: unit2/smolagents/tool_calling_agents
+    title: Menulis actions sebagai cuplikan code atau blob JSON
+  - local: unit2/smolagents/tools
+    title: Tools
+  - local: unit2/smolagents/retrieval_agents
+    title: Retrieval Agents
+  - local: unit2/smolagents/quiz2
+    title: Kuis Singkat 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: Multi-Agent Systems
+  - local: unit2/smolagents/vision_agents
+    title: Vision dan browser agents
+  - local: unit2/smolagents/final_quiz
+    title: Kuis Akhir
+  - local: unit2/smolagents/conclusion
+    title: Penutup
+- title: Unit 2.2 Framework LlamaIndex
+  sections:
+  - local: unit2/llama-index/introduction
+    title: Pengantar LlamaIndex
+  - local: unit2/llama-index/llama-hub
+    title: Pengantar LlamaHub
+  - local: unit2/llama-index/components
+    title: Apa itu Components di LlamaIndex?
+  - local: unit2/llama-index/tools
+    title: Memakai Tools di LlamaIndex
+  - local: unit2/llama-index/quiz1
+    title: Kuis Singkat 1
+  - local: unit2/llama-index/agents
+    title: Memakai Agents di LlamaIndex
+  - local: unit2/llama-index/workflows
+    title: Membuat Agentic Workflows di LlamaIndex
+  - local: unit2/llama-index/quiz2
+    title: Kuis Singkat 2
+  - local: unit2/llama-index/conclusion
+    title: Penutup
+- title: Unit 2.3 Framework LangGraph
+  sections:
+  - local: unit2/langgraph/introduction
+    title: Pengantar LangGraph
+  - local: unit2/langgraph/when_to_use_langgraph
+    title: Apa itu LangGraph?
+  - local: unit2/langgraph/building_blocks
+    title: Building Blocks LangGraph
+  - local: unit2/langgraph/first_graph
+    title: Membuat LangGraph pertama kamu
+  - local: unit2/langgraph/document_analysis_agent
+    title: Document Analysis Graph
+  - local: unit2/langgraph/quiz1
+    title: Kuis Singkat 1
+  - local: unit2/langgraph/conclusion
+    title: Penutup
+- title: Unit 3. Use Case untuk Agentic RAG
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Pengantar use case Agentic RAG
+  - local: unit3/agentic-rag/agentic-rag
+    title: Agentic Retrieval Augmented Generation (RAG)
+  - local: unit3/agentic-rag/invitees
+    title: Membuat RAG Tool untuk cerita tamu
+  - local: unit3/agentic-rag/tools
+    title: Membuat dan menghubungkan Tools untuk Agent kamu
+  - local: unit3/agentic-rag/agent
+    title: Membuat Gala Agent
+  - local: unit3/agentic-rag/conclusion
+    title: Penutup
+- title: Unit 4. Final Project, buat, uji, dan sertifikasi Agent kamu
+  sections:
+  - local: unit4/introduction
+    title: Pengantar Unit terakhir
+  - local: unit4/what-is-gaia
+    title: Apa itu GAIA?
+  - local: unit4/hands-on
+    title: Praktik langsung terakhir
+  - local: unit4/get-your-certificate
+    title: Dapatkan Certificate of Excellence
+  - local: unit4/conclusion
+    title: Penutup kursus
+  - local: unit4/additional-readings
+    title: Apa yang sebaiknya kamu pelajari setelah ini?
+- title: Bonus Unit 1. Fine-tuning LLM untuk Function Calling
+  sections:
+  - local: bonus-unit1/introduction
+    title: Pengantar
+  - local: bonus-unit1/what-is-function-calling
+    title: Apa itu Function Calling?
+  - local: bonus-unit1/fine-tuning
+    title: Mari fine-tune model kamu untuk Function Calling
+  - local: bonus-unit1/conclusion
+    title: Penutup
+- title: Bonus Unit 2. Agent Observability dan Evaluation
+  sections:
+  - local: bonus-unit2/introduction
+    title: Pengantar
+  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+    title: Apa itu agent observability dan evaluation?
+  - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
+    title: Monitoring dan evaluating agents
+  - local: bonus-unit2/quiz
+    title: Kuis
+- title: Bonus Unit 3. Agents di game dengan Pokémon
+  sections:
+  - local: bonus-unit3/introduction
+    title: Pengantar
+  - local: bonus-unit3/state-of-art
+    title: State-of-the-art penggunaan LLM di game
+  - local: bonus-unit3/from-llm-to-agents
+    title: Dari LLM ke AI Agents
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: Buat Pokémon Battle Agent kamu sendiri
+  - local: bonus-unit3/launching_agent_battle
+    title: Meluncurkan Pokémon Battle Agent kamu
+  - local: bonus-unit3/conclusion
+    title: Penutup

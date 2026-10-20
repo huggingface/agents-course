@@ -1,0 +1,118 @@
+# Uji Pemahamanmu tentang LangGraph
+
+Mari uji pemahamanmu tentang `LangGraph` dengan kuis singkat! Ini akan membantu menguatkan konsep utama yang sudah kita bahas sejauh ini.
+
+Kuis ini opsional dan tidak dinilai.
+
+### Q1: Apa tujuan utama LangGraph?
+Pernyataan mana yang paling tepat menggambarkan untuk apa LangGraph dirancang?
+
+<Question
+choices={[
+  {
+    text: "Framework untuk membangun control flows bagi aplikasi yang berisi LLM",
+    explain: "LangGraph secara khusus dirancang untuk membantu membangun dan mengelola control flow aplikasi yang memakai LLM.",
+    correct: true
+  },
+  {
+    text: "Library yang menyediakan interfaces untuk berinteraksi dengan berbagai model LLM",
+    explain: "Ini lebih tepat menggambarkan peran LangChain, yang menyediakan interface standar untuk interaksi model. LangGraph fokus pada control flow.",
+  },
+  {
+    text: "Library Agent untuk tool calling",
+    explain: "Walaupun LangGraph bekerja dengan agents, tujuan utama LangGraph adalah 'Orchestration'.",
+  }
+]}
+/>
+
+---
+
+### Q2: Dalam konteks trade-off "Control vs Freedom", di mana posisi LangGraph?
+Pernyataan mana yang paling tepat menggambarkan pendekatan LangGraph terhadap desain agent?
+
+<Question
+choices={[
+  {
+    text: "LangGraph memaksimalkan freedom, sehingga LLM bisa mengambil semua keputusan secara mandiri",
+    explain: "LangGraph sebenarnya lebih fokus pada control daripada freedom, dengan menyediakan struktur untuk LLM workflows.",
+  },
+  {
+    text: "LangGraph memberi control yang kuat atas execution flow sambil tetap memakai kemampuan LLM untuk pengambilan keputusan",
+    explain: "LangGraph unggul saat kamu membutuhkan control atas eksekusi agent, dengan perilaku yang lebih prediktabel melalui structured workflows.",
+    correct: true
+  },
+]}
+/>
+
+---
+
+### Q3: Apa peran State di LangGraph?
+Pilih deskripsi State yang paling akurat di LangGraph.
+
+<Question
+choices={[
+  {
+    text: "State adalah generation terbaru dari LLM",
+    explain: "State adalah class yang didefinisikan pengguna di LangGraph, bukan hasil generation LLM. Fields-nya ditentukan pengguna, sementara values-nya bisa diisi oleh LLM.",
+  },
+  {
+    text: "State hanya dipakai untuk melacak error selama eksekusi",
+    explain: "State punya tujuan yang jauh lebih luas daripada sekadar error tracking. Meski begitu, error tracking tetap berguna.",
+  },
+  {
+    text: "State merepresentasikan informasi yang mengalir melalui aplikasi agent",
+    explain: "State adalah inti LangGraph dan berisi semua informasi yang dibutuhkan untuk pengambilan keputusan antar langkah. Kamu menyediakan fields yang perlu dihitung, dan nodes bisa mengubah values untuk menentukan branching.",
+    correct: true
+  },
+  {
+    text: "State hanya relevan saat bekerja dengan API eksternal",
+    explain: "State bersifat fundamental untuk semua aplikasi LangGraph, bukan hanya yang bekerja dengan API eksternal.",
+  }
+]}
+/>
+
+### Q4: Apa itu Conditional Edge di LangGraph?
+Pilih deskripsi yang paling akurat.
+
+<Question
+choices={[
+    {
+    text: "Edge yang menentukan node mana yang dieksekusi berikutnya berdasarkan evaluasi kondisi",
+    explain: "Conditional edges memungkinkan graph membuat keputusan routing dinamis berdasarkan current state, sehingga menciptakan branching logic dalam workflow.",
+    correct: true
+  },
+  {
+    text: "Edge yang hanya diikuti saat kondisi tertentu terjadi",
+    explain: "Conditional edges mengontrol flow aplikasi berdasarkan output-nya, bukan input-nya.",
+  },
+  {
+    text: "Edge yang membutuhkan konfirmasi pengguna sebelum lanjut",
+    explain: "Conditional edges didasarkan pada kondisi programatik, bukan kebutuhan interaksi pengguna.",
+  }
+]}
+/>
+
+---
+
+### Q5: Bagaimana LangGraph membantu mengatasi masalah hallucination pada LLM?
+Pilih jawaban terbaik.
+
+<Question
+choices={[
+  {
+    text: "LangGraph menghilangkan hallucinations sepenuhnya dengan membatasi respons LLM",
+    explain: "Tidak ada framework yang bisa sepenuhnya menghilangkan hallucinations dari LLM. LangGraph juga demikian.",
+  },
+  {
+    text: "LangGraph menyediakan structured workflows yang dapat memvalidasi dan memverifikasi output LLM",
+    explain: "Dengan membuat structured workflows berisi validation steps, verification nodes, dan error handling paths, LangGraph membantu mengurangi dampak hallucinations.",
+    correct: true
+  },
+  {
+    text: "LangGraph tidak punya pengaruh terhadap hallucinations",
+    explain: "Pendekatan LangGraph yang terstruktur terhadap workflows dapat cukup membantu mengurangi hallucinations, dengan trade-off pada kecepatan.",
+  }
+]}
+/>
+
+Selamat sudah menyelesaikan kuis ini! 🎉 Kalau ada pertanyaan yang terlewat, coba tinjau lagi bagian sebelumnya untuk memperkuat pemahamanmu. Berikutnya, kita akan menjelajahi fitur LangGraph yang lebih advanced dan melihat cara membangun agent workflows yang lebih kompleks.
