@@ -405,7 +405,7 @@ messages = [HumanMessage(content="Cuéntame sobre nuestra invitada llamada 'Lady
 response = alfred.invoke({"messages": messages})
 
 print("🎩 Respuesta de Alfred:")
-print(messages['messages'][-1].content)
+print(response['messages'][-1].content)
 ```
 
 Salida esperada:
