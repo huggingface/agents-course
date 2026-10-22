@@ -1,0 +1,67 @@
+# `smolagents` ကို မိတ်ဆက်ခြင်း
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/thumbnail.jpg" alt="Unit 2.1 Thumbnail"/>
+
+ဒီ Module ကို ကြိုဆိုပါတယ်။ ဒီနေရာမှာ သင်ဟာ စွမ်းဆောင်ရည်ရှိတဲ့ AI Agent တွေကို ဘယ်လိုတည်ဆောက်ရမလဲဆိုတာကို [`smolagents`](https://github.com/huggingface/smolagents) Library ကို အသုံးပြုပြီး လေ့လာသွားရမှာ ဖြစ်ပါတယ်။ `smolagents` ဟာ စွမ်းဆောင်ရည်မြင့် AI Agent တွေ ဖန်တီးဖို့အတွက် ပေါ့ပါးတဲ့ Framework တစ်ခုကို ပံ့ပိုးပေးထားပါတယ်။
+
+`smolagents` ဟာ Hugging Face ရဲ့ Library တစ်ခုဖြစ်တဲ့အတွက်၊ `smolagents` ရဲ့ [`repository`](https://github.com/huggingface/smolagents) ကို **Star ပေးခြင်း** ဖြင့် ကျွန်တော်တို့ကို ကူညီပံ့ပိုးပေးနိုင်ပါတယ်ခင်ဗျာ။
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/star_smolagents.gif" alt="staring smolagents"/>
+
+## Module ခြုံငုံသုံးသပ်ချက် (Module Overview)
+
+ဒီ Module ဟာ `smolagents` ကို အသုံးပြုပြီး အသိဉာဏ်ရှိတဲ့ Agent တွေ တည်ဆောက်ဖို့အတွက် အဓိက သဘောတရားတွေနဲ့ လက်တွေ့ကျတဲ့ နည်းဗျူဟာတွေကို ပြည့်စုံစွာ ခြုံငုံသုံးသပ်ပေးထားပါတယ်။
+
+Open-source Framework တွေ အများကြီးရှိတဲ့အထဲက `smolagents` ကို ဘာကြောင့် ရွေးချယ်သင့်သလဲ၊ ဘယ်လို အစိတ်အပိုင်းတွေနဲ့ စွမ်းဆောင်ရည်တွေက `smolagents` ကို အသုံးဝင်တဲ့ ရွေးချယ်မှုတစ်ခု ဖြစ်စေသလဲ၊ ဒါမှမဟုတ် ဘယ်အချိန်မှာ တခြား Framework တွေက ပိုသင့်တော်မလဲဆိုတာကို နားလည်ဖို့ အရေးကြီးပါတယ်။
+
+ကျွန်တော်တို့ဟာ အဓိက Agent အမျိုးအစားတွေကို လေ့လာသွားပါမယ်။ ဥပမာအားဖြင့်၊ Software Development လုပ်ငန်းများအတွက် ဒီဇိုင်းထုတ်ထားတဲ့ **Code Agent** များ၊ Modular (စနစ်တကျ ဖွဲ့စည်းထားသော) Function-driven Workflow များ ဖန်တီးရန်အတွက် **Tool Calling Agent** များ၊ နှင့် အချက်အလက်များကို ရှာဖွေပြီး ပေါင်းစပ်ပေးနိုင်တဲ့ **Retrieval Agent** များ ပါဝင်ပါတယ်။
+
+ဒါ့အပြင်၊ Agent အများအပြားကို စနစ်တကျ စီမံခန့်ခွဲခြင်း (Orchestration)၊ Vision စွမ်းဆောင်ရည်များ (ပုံရိပ်များကို နားလည်နိုင်ခြင်း) နှင့် Web Browsing (အင်တာနက် ရှာဖွေခြင်း) တို့ကို ပေါင်းစပ်ခြင်းဖြင့် Dynamic ဖြစ်ပြီး Context ကို သိရှိနိုင်တဲ့ Application တွေအတွက် ဖြစ်နိုင်ခြေအသစ်တွေကို ဖွင့်ပေးပါမယ်။
+
+ဒီ Unit မှာတော့ Unit 1 က Agent ဖြစ်တဲ့ Alfred ပြန်ရောက်လာပါပြီ။ ဒီတစ်ခါတော့ သူဟာ သူ့ရဲ့ အတွင်းပိုင်း လုပ်ဆောင်ချက်တွေအတွက် `smolagents` Framework ကို အသုံးပြုနေပါတယ်။ Alfred ဟာ Wayne မိသားစု 🦇 ခရီးထွက်နေချိန်မှာ Wayne Manor မှာ ပါတီပွဲတစ်ခု စီစဉ်နေပြီး၊ သူလုပ်စရာတွေ အများကြီးရှိပါတယ်။ Alfred ရဲ့ ခရီးစဉ်နဲ့ `smolagents` ကို အသုံးပြုပြီး သူဘယ်လို အလုပ်တွေကို ကိုင်တွယ်ဖြေရှင်းသလဲဆိုတာကို လေ့လာကြည့်ကြပါစို့!
+
+> [!TIP]
+> ဒီ Unit မှာ၊ သင်ဟာ `smolagents` Library ကို အသုံးပြုပြီး AI Agent တွေကို တည်ဆောက်တတ်လာပါမယ်။ သင့် Agent တွေဟာ ဒေတာ ရှာဖွေနိုင်ခြင်း၊ Code များကို လုပ်ဆောင်နိုင်ခြင်း၊ နှင့် Web Page များနှင့် ထိတွေ့ဆက်ဆံနိုင်ခြင်း စတဲ့ စွမ်းရည်တွေ ရှိလာပါမယ်။ ဒါ့အပြင်၊ ပိုမိုစွမ်းအားကြီးတဲ့ စနစ်တွေ ဖန်တီးဖို့အတွက် Agent အများအပြားကို ဘယ်လို ပေါင်းစပ်ရမလဲဆိုတာကိုလည်း သင်ယူရပါမယ်။
+
+![Alfred the agent](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg)
+
+## ပါဝင်သော အကြောင်းအရာများ (Contents)
+
+`smolagents` နှင့် ပတ်သက်သော ဤ Unit အတွင်းတွင် ကျွန်တော်တို့ အောက်ပါ အကြောင်းအရာများကို လေ့လာသွားပါမယ်။
+
+### 1️⃣ [smolagents ကို ဘာကြောင့် အသုံးပြုသင့်သလဲ](./why_use_smolagents)
+
+`smolagents` ဟာ Application Development အတွက် ရရှိနိုင်တဲ့ Open-source Agent Framework များစွာထဲက တစ်ခုဖြစ်ပါတယ်။ အခြား ရွေးချယ်စရာများမှာ `LlamaIndex` နှင့် `LangGraph` တို့ ပါဝင်ပြီး၊ ၎င်းတို့ကိုလည်း ဒီ Course ရဲ့ အခြား Module များမှာ ထည့်သွင်းထားပါတယ်။ `smolagents` ဟာ သီးခြား Use Case များအတွက် အလွန်သင့်တော်စေမယ့် အဓိက Features များစွာကို ပေးစွမ်းနိုင်ပါတယ်။ ဒါပေမယ့် Framework တစ်ခုကို ရွေးချယ်တဲ့အခါ ရွေးချယ်စရာအားလုံးကို အမြဲတမ်း ထည့်သွင်းစဉ်းစားသင့်ပါတယ်။ သင့် Project ရဲ့ လိုအပ်ချက်များအပေါ် အခြေခံပြီး အသိဉာဏ်ရှိတဲ့ ဆုံးဖြတ်ချက် ချနိုင်ဖို့အတွက် `smolagents` ကို အသုံးပြုခြင်းရဲ့ အားသာချက်များနှင့် အားနည်းချက်များကို လေ့လာသွားပါမယ်။
+
+### 2️⃣ [CodeAgents များ](./code_agents)
+
+`CodeAgents` များဟာ `smolagents` မှာ အဓိကကျတဲ့ Agent အမျိုးအစား ဖြစ်ပါတယ်။ ၎င်းတို့ဟာ JSON သို့မဟုတ် စာသား ထုတ်ပေးမယ့်အစား၊ လုပ်ဆောင်ချက်များ လုပ်ဆောင်ဖို့အတွက် Python Code များကို ထုတ်ပေးပါတယ်။ ဒီ Module မှာ ၎င်းတို့ရဲ့ ရည်ရွယ်ချက်၊ လုပ်ဆောင်နိုင်စွမ်းနှင့် ၎င်းတို့ ဘယ်လို အလုပ်လုပ်သလဲဆိုတာကို လက်တွေ့ဥပမာများနဲ့အတူ လေ့လာသွားပါမယ်။
+
+### 3️⃣ [ToolCallingAgents များ](./tool_calling_agents)
+
+`ToolCallingAgents` များဟာ `smolagents` မှ ပံ့ပိုးပေးထားတဲ့ ဒုတိယ Agent အမျိုးအစား ဖြစ်ပါတယ်။ Python Code ထုတ်ပေးတဲ့ `CodeAgents` တွေနဲ့ မတူဘဲ၊ ဒီ Agent တွေဟာ စနစ်က စစ်ဆေးအတည်ပြုပြီး လုပ်ဆောင်ချက်များ လုပ်ဆောင်ဖို့အတွက် JSON/Text Blob များအပေါ် မှီခိုပါတယ်။ ဒီ Module မှာ ၎င်းတို့ရဲ့ လုပ်ဆောင်နိုင်စွမ်း၊ `CodeAgents` တွေနဲ့ အဓိက ကွာခြားချက်များ၊ နှင့် ၎င်းတို့ရဲ့ အသုံးပြုပုံကို သရုပ်ဖော်ထားတဲ့ ဥပမာတစ်ခုကို ဖော်ပြပေးထားပါတယ်။
+
+### 4️⃣ [Tools များ](./tools)
+
+Unit 1 မှာ ကျွန်တော်တို့ မြင်ခဲ့ရတဲ့အတိုင်း Tools တွေဟာ LLM တစ်ခုက Agent စနစ်အတွင်းမှာ အသုံးပြုနိုင်တဲ့ Functions တွေဖြစ်ပြီး၊ Agent ရဲ့ အပြုအမူအတွက် မရှိမဖြစ် အခြေခံအုတ်မြစ်များအဖြစ် လုပ်ဆောင်ပါတယ်။ ဒီ Module မှာ Tool တွေကို ဘယ်လို ဖန်တီးရမယ်၊ ၎င်းတို့ရဲ့ ဖွဲ့စည်းပုံနှင့် `Tool` Class သို့မဟုတ် `@tool` Decorator ကို အသုံးပြုပြီး မတူညီတဲ့ အကောင်အထည်ဖော်မှု နည်းလမ်းတွေကို လေ့လာသွားပါမယ်။ ဒါ့အပြင် Default Toolbox အကြောင်း၊ Community နဲ့ Tools တွေကို ဘယ်လို မျှဝေရမယ်၊ နှင့် သင့် Agent တွေမှာ အသုံးပြုဖို့ Community မှ ပံ့ပိုးထားတဲ့ Tools တွေကို ဘယ်လို Load လုပ်ရမယ်ဆိုတာကိုလည်း သင်ယူရပါမယ်။
+
+### 5️⃣ [Retrieval Agents များ](./retrieval_agents)
+
+Retrieval Agent များက Model များကို Knowledge Base များသို့ ဝင်ရောက်ခွင့်ပေးပြီး၊ အချက်အလက်များကို အရင်းအမြစ်များစွာမှ ရှာဖွေခြင်း၊ ပေါင်းစပ်ခြင်းနှင့် ပြန်လည်ရယူခြင်းတို့ကို ဖြစ်နိုင်စေပါတယ်။ ၎င်းတို့သည် ထိရောက်စွာ ပြန်လည်ရယူနိုင်ရန် Vector Store များကို အသုံးပြုပြီး **Retrieval-Augmented Generation (RAG)** ပုံစံများကို အကောင်အထည်ဖော်ပါတယ်။ ဒီ Agent တွေဟာ Web Search ကို Custom Knowledge Base တွေနဲ့ ပေါင်းစပ်ရာမှာ အထူးအသုံးဝင်ပြီး၊ Memory စနစ်များမှတစ်ဆင့် စကားပြောဆိုမှု Context ကို ထိန်းသိမ်းထားပါတယ်။ ဒီ Module မှာ ခိုင်မာတဲ့ အချက်အလက် ပြန်လည်ရယူမှုအတွက် Fallback ယန္တရားများ အပါအဝင် အကောင်အထည်ဖော်မှု နည်းဗျူဟာများကို လေ့လာသွားပါမယ်။
+
+### 6️⃣ [Multi-Agent Systems များ](./multi_agent_systems)
+
+စွမ်းအားကြီးတဲ့ Multi-Agent System တွေ တည်ဆောက်ဖို့အတွက် Agent အများအပြားကို ထိရောက်စွာ စီမံခန့်ခွဲခြင်း (Orchestrating) ဟာ အရေးကြီးပါတယ်။ မတူညီတဲ့ စွမ်းဆောင်ရည်များရှိတဲ့ Agent တွေကို ပေါင်းစပ်ခြင်းဖြင့် (ဥပမာ - Web Search Agent ကို Code Execution Agent နဲ့ ပေါင်းစပ်ခြင်း) ပိုမိုရှုပ်ထွေးတဲ့ ဖြေရှင်းနည်းများကို ဖန်တီးနိုင်ပါတယ်။ ဒီ Module ဟာ ထိရောက်မှုနှင့် ယုံကြည်စိတ်ချရမှုကို အမြင့်ဆုံးဖြစ်စေရန် Multi-Agent System များကို ဒီဇိုင်းဆွဲခြင်း၊ အကောင်အထည်ဖော်ခြင်းနှင့် စီမံခန့်ခွဲခြင်းတို့အပေါ် အာရုံစိုက်ထားပါတယ်။
+
+### 7️⃣ [Vision နှင့် Browser Agent များ](./vision_agents)
+
+Vision Agent များက **Vision-Language Model (VLM)** များကို ပေါင်းစပ်ခြင်းဖြင့် ရိုးရာ Agent စွမ်းရည်များကို ချဲ့ထွင်ပေးပြီး၊ ပုံရိပ်ဆိုင်ရာ အချက်အလက်များကို စီမံဆောင်ရွက်ခြင်းနှင့် အဓိပ္ပာယ်ဖွင့်ဆိုခြင်းတို့ကို လုပ်ဆောင်နိုင်စေပါတယ်။ ဒီ Module မှာ VLM-powered Agent များကို ဘယ်လို ဒီဇိုင်းဆွဲပြီး ပေါင်းစပ်ရမယ်ဆိုတာကို လေ့လာသွားပါမယ်။ ဒါက ပုံရိပ်အခြေခံ ဆင်ခြင်သုံးသပ်ခြင်း၊ Visual Data Analysis နှင့် Multimodal Interaction များကဲ့သို့သော အဆင့်မြင့် လုပ်ဆောင်ချက်များကို ဖွင့်ပေးပါတယ်။ ကျွန်တော်တို့ဟာ Web ကို ရှာဖွေပြီး အချက်အလက်များ ထုတ်ယူနိုင်တဲ့ Browser Agent တစ်ခု တည်ဆောက်ဖို့အတွက် Vision Agent များကိုလည်း အသုံးပြုသွားပါမယ်။
+
+## အရင်းအမြစ်များ (Resources)
+
+*   [smolagents Documentation](https://huggingface.co/docs/smolagents) - smolagents Library အတွက် တရားဝင် Document များ
+*   [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) - Agent Architecture များဆိုင်ရာ သုတေသန စာတမ်း
+*   [Agent Guidelines](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - ယုံကြည်စိတ်ချရသော Agent များ တည်ဆောက်ရန်အတွက် အကောင်းဆုံး လုပ်ဆောင်မှုများ
+*   [LangGraph Agents](https://langchain-ai.github.io/langgraph/) - Agent အကောင်အထည်ဖော်မှုများ၏ နောက်ထပ် ဥပမာများ
+*   [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling) - LLM များတွင် Function Calling ကို နားလည်ခြင်း
+*   [RAG Best Practices](https://www.pinecone.io/learn/retrieval-augmented-generation/) - ထိရောက်သော RAG ကို အကောင်အထည်ဖော်ရန် လမ်းညွှန်

@@ -1,0 +1,224 @@
+# Vision Agents များကို smolagents ဖြင့် အသုံးပြုခြင်း
+
+> [!TIP]
+> သင်ဟာ ဒီသင်ခန်းစာကို လေ့လာနေတဲ့သူတစ်ယောက်ဆိုရင်၊ ကျွန်တော်တို့ရဲ့ Organization ရဲ့ Style Guide ကို အသုံးပြုပြီး ဘာသာပြန်ထားတာဖြစ်တဲ့အတွက် ဝေါဟာရတွေကို တစ်သမတ်တည်း တွေ့ရပါလိမ့်မယ်။
+
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Vision Agents များကို smolagents ဖြင့် အသုံးပြုခြင်း
+
+> [!WARNING]
+> ဒီအပိုင်းက ဥပမာတွေကို လုပ်ဆောင်ဖို့အတွက် စွမ်းဆောင်ရည်မြင့် VLM (Vision-Language Model) ကို အသုံးပြုဖို့ လိုအပ်ပါတယ်။ ကျွန်တော်တို့ကတော့ GPT-4o API ကို အသုံးပြုပြီး စမ်းသပ်ထားပါတယ်။
+> သို့သော်လည်း၊ `smolagents` နဲ့ Hugging Face က ပံ့ပိုးပေးထားတဲ့ အခြားရွေးချယ်စရာ နည်းလမ်းတွေကို [Why use smolagents](./why_use_smolagents) အခန်းမှာ ဆွေးနွေးထားပါတယ်။ တခြားနည်းလမ်းတွေကို လေ့လာချင်တယ်ဆိုရင် အဲဒီအပိုင်းကို ကြည့်ရှုဖို့ မမေ့ပါနဲ့။
+
+Agent တွေကို မြင်နိုင်စွမ်း (Visual Capabilities) တွေ ပေးအပ်ခြင်းဟာ စာသားစီမံဆောင်ရွက်ခြင်းထက် ကျော်လွန်တဲ့ လုပ်ငန်းတွေကို ဖြေရှင်းဖို့အတွက် အရေးကြီးပါတယ်။ ဝက်ဘ်ဘရောက်ဆာ အသုံးပြုခြင်း (Web Browsing) သို့မဟုတ် Document များကို နားလည်ခြင်းကဲ့သို့သော လက်တွေ့ကမ္ဘာ ပြဿနာများစွာဟာ မြင်ကွင်းဆိုင်ရာ ကြွယ်ဝတဲ့ Content တွေကို ခွဲခြမ်းစိတ်ဖြာဖို့ လိုအပ်ပါတယ်။ ကံကောင်းစွာနဲ့ပဲ၊ `smolagents` ဟာ VLM (Vision-Language Models) တွေအတွက် Built-in Support ကို ပံ့ပိုးပေးထားပါတယ်။ ဒါကြောင့် Agent တွေဟာ ပုံရိပ်တွေကို ထိရောက်စွာ စီမံဆောင်ရွက်ပြီး အဓိပ္ပာယ်ပြန်ဆိုနိုင်ပါတယ်။
+
+ဒီဥပမာမှာ၊ Wayne Manor က အိမ်တော်ထိန်း Alfred ကို စိတ်ကူးကြည့်ရအောင်။ သူဟာ ပါတီပွဲကို လာရောက်တဲ့ ဧည့်သည်တွေရဲ့ ကိုယ်ရေးအချက်အလက်တွေကို စစ်ဆေးအတည်ပြုဖို့ တာဝန်ပေးခံထားရပါတယ်။ Alfred ဟာ ရောက်လာတဲ့ လူတိုင်းကို ရင်းနှီးချင်မှ ရင်းနှီးပါလိမ့်မယ်။ သူ့ကို ကူညီဖို့အတွက်၊ ကျွန်တော်တို့ဟာ VLM ကို အသုံးပြုပြီး ဧည့်သည်တွေရဲ့ ပုံပန်းသဏ္ဌာန်ဆိုင်ရာ မြင်ကွင်းအချက်အလက်တွေကို ရှာဖွေခြင်းဖြင့် သူတို့ရဲ့ ကိုယ်ရေးအချက်အလက်ကို စစ်ဆေးအတည်ပြုပေးမယ့် Agent တစ်ခုကို အသုံးပြုနိုင်ပါတယ်။ ဒါက Alfred ကို ဘယ်သူဝင်ခွင့်ပြုရမယ်ဆိုတဲ့ ဆုံးဖြတ်ချက်တွေကို ပိုမိုတိကျစွာ ချမှတ်နိုင်စေပါလိမ့်မယ်။ ဒီဥပမာကို စတင်တည်ဆောက်ကြည့်ရအောင်!
+
+## Agent စတင် လုပ်ဆောင်ချိန်တွင် ပုံရိပ်များ ထည့်သွင်းပေးခြင်း
+
+> [!TIP]
+> သင်ဟာ Google Colab ကို အသုံးပြုပြီး [ဒီ Notebook](https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb) ထဲက Code တွေကို လိုက်လံလုပ်ဆောင်နိုင်ပါတယ်။
+
+ဒီနည်းလမ်းမှာတော့ ပုံရိပ်တွေကို Agent စတင်လုပ်ဆောင်တဲ့ အချိန်မှာပဲ **`task_images`** အဖြစ် Task Prompt နဲ့အတူ ပေးပို့ပြီး သိမ်းဆည်းထားပါတယ်။ ထို့နောက် Agent ဟာ သူ့ရဲ့ လုပ်ဆောင်မှုတစ်လျှောက်လုံးမှာ ဒီပုံရိပ်တွေကို စီမံဆောင်ရွက်သွားပါမယ်။
+
+Alfred က ပါတီပွဲကို လာရောက်တဲ့ Superheroes တွေရဲ့ ကိုယ်ရေးအချက်အလက်တွေကို စစ်ဆေးအတည်ပြုချင်တဲ့ ကိစ္စကို စဉ်းစားကြည့်ပါ။ သူ့မှာ အရင်ပါတီပွဲတွေက ဧည့်သည်တွေရဲ့ နာမည်တွေနဲ့ ပုံရိပ်တွေပါတဲ့ ဒေတာအစုအဝေး (Dataset) ရှိပြီးသားပါ။ ဧည့်သည်အသစ်တစ်ဦးရဲ့ ပုံရိပ်ကို ပေးလိုက်တဲ့အခါ၊ Agent ဟာ ရှိပြီးသား ဒေတာအစုအဝေးနဲ့ နှိုင်းယှဉ်ပြီး ဝင်ခွင့်ပြုသင့်၊ မပြုသင့် ဆုံးဖြတ်ချက်ချနိုင်ပါတယ်။
+
+ဒီကိစ္စမှာ၊ ဧည့်သည်တစ်ဦးက ဝင်ဖို့ ကြိုးစားနေပြီး Alfred က ဒီဧည့်သည်ဟာ Wonder Woman အယောင်ဆောင်ထားတဲ့ The Joker ဖြစ်နိုင်တယ်လို့ သံသယရှိနေပါတယ်။ မလိုလားအပ်တဲ့သူတွေ ဝင်ရောက်လာခြင်းကို တားဆီးဖို့အတွက် Alfred ဟာ သူတို့ရဲ့ ကိုယ်ရေးအချက်အလက်ကို စစ်ဆေးအတည်ပြုဖို့ လိုအပ်ပါတယ်။
+
+ဒီဥပမာကို စတင်တည်ဆောက်ကြည့်ရအောင်။ ပထမဆုံးအနေနဲ့ ပုံရိပ်တွေကို Load လုပ်ရပါမယ်။ ဒီဥပမာကို ရိုးရှင်းစေဖို့အတွက် Wikipedia က ပုံရိပ်တွေကို အသုံးပြုထားပေမယ့်၊ လက်တွေ့အသုံးချ ကိစ္စရပ် (Use-case) တွေကို စဉ်းစားကြည့်နိုင်ပါတယ်။
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg", # Joker image
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg" # Joker image
+]
+
+images = []
+for url in image_urls:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    }
+    response = requests.get(url,headers=headers)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+ပုံရိပ်တွေ ရရှိပြီးတဲ့နောက်၊ Agent ဟာ ဒီဧည့်သည်ဟာ တကယ်ပဲ Superhero (Wonder Woman) လား၊ ဒါမှမဟုတ် ဗီလိန် (The Joker) လားဆိုတာကို ပြောပြပါလိမ့်မယ်။
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+# Agent ကို စတင်တည်ဆောက်ခြင်း (Instantiate the agent)
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Describe the costume and makeup that the comic character in these photos is wearing and return the description.
+    Tell me if the guest is The Joker or Wonder Woman.
+    """,
+    images=images
+)
+```
+
+ကျွန်တော် စမ်းသပ်လုပ်ဆောင်ခဲ့တဲ့ ရလဒ်ကတော့ အောက်ပါအတိုင်း ထွက်ပေါ်လာပါတယ်။ သင့်ရဲ့ ရလဒ်ကတော့ အနည်းငယ် ကွဲပြားနိုင်ပါတယ်။
+
+```python
+    {
+        'Costume and Makeup - First Image': (
+            'Purple coat and a purple silk-like cravat or tie over a mustard-yellow shirt.',
+            'White face paint with exaggerated features, dark eyebrows, blue eye makeup, red lips forming a wide smile.'
+        ),
+        'Costume and Makeup - Second Image': (
+            'Dark suit with a flower on the lapel, holding a playing card.',
+            'Pale skin, green hair, very red lips with an exaggerated grin.'
+        ),
+        'Character Identity': 'This character resembles known depictions of The Joker from comic book media.'
+    }
+```
+
+ဒီကိစ္စမှာ၊ ရလဒ်က ဒီလူဟာ တခြားတစ်ယောက်ကို အယောင်ဆောင်နေတယ်ဆိုတာကို ဖော်ပြနေတဲ့အတွက် The Joker ကို ပါတီပွဲထဲ ဝင်ရောက်ခြင်းမှ တားဆီးနိုင်ပါပြီ!
+
+## Dynamic Retrieval ဖြင့် ပုံရိပ်များ ထည့်သွင်းပေးခြင်း
+
+> [!TIP]
+> သင်ဟာ [ဒီ Python file](https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py) ထဲက Code တွေကို လိုက်လံလုပ်ဆောင်နိုင်ပါတယ်။
+
+အရင်နည်းလမ်းက အသုံးဝင်ပြီး အလားအလာရှိတဲ့ အသုံးချ ကိစ္စရပ်များစွာ ရှိပါတယ်။ သို့သော်လည်း၊ ဧည့်သည်ဟာ ဒေတာဘေ့စ်ထဲမှာ မရှိတဲ့ အခြေအနေမျိုးမှာ၊ သူတို့ကို ဖော်ထုတ်ဖို့အတွက် တခြားနည်းလမ်းတွေကို ရှာဖွေဖို့ လိုအပ်ပါတယ်။ ဖြစ်နိုင်တဲ့ ဖြေရှင်းနည်းတစ်ခုကတော့ ပြင်ပ အရင်းအမြစ်တွေကနေ ပုံရိပ်တွေနဲ့ အချက်အလက်တွေကို **Dynamic (ပြောင်းလဲနေသော)** ပုံစံဖြင့် ရယူခြင်းပဲ ဖြစ်ပါတယ်။ ဥပမာအားဖြင့်၊ အသေးစိတ်အချက်အလက်တွေအတွက် ဝက်ဘ်ဘရောက်ဆာကို အသုံးပြုပြီး ရှာဖွေခြင်းမျိုးပါ။
+
+ဒီနည်းလမ်းမှာတော့ ပုံရိပ်တွေကို Agent ရဲ့ လုပ်ဆောင်မှုအတွင်းမှာပဲ သူ့ရဲ့ Memory ထဲကို Dynamic ပုံစံဖြင့် ထည့်သွင်းပါတယ်။ ကျွန်တော်တို့ သိထားတဲ့အတိုင်း `smolagents` ထဲက Agent တွေဟာ ReAct Framework ကို အခြေခံထားတဲ့ `MultiStepAgent` Class ကို အခြေခံထားပါတယ်။ ဒီ Class ဟာ အမျိုးမျိုးသော Variables တွေနဲ့ Knowledge တွေကို အဆင့်အမျိုးမျိုးမှာ မှတ်တမ်းတင်ထားတဲ့ စနစ်တကျ Cycle တစ်ခုနဲ့ လုပ်ဆောင်ပါတယ်။
+
+1.  **SystemPromptStep:** System Prompt ကို သိမ်းဆည်းထားပါတယ်။
+2.  **TaskStep:** အသုံးပြုသူရဲ့ မေးမြန်းချက် (Query) နဲ့ ပေးထားတဲ့ Input တွေကို မှတ်တမ်းတင်ပါတယ်။
+3.  **ActionStep:** Agent ရဲ့ လုပ်ဆောင်ချက်တွေနဲ့ ရလဒ်တွေကနေ မှတ်တမ်းများကို ဖမ်းယူပါတယ်။
+
+ဒီလို စနစ်တကျ ချဉ်းကပ်မှုက Agent တွေဟာ မြင်ကွင်းဆိုင်ရာ အချက်အလက်တွေကို Dynamic ပုံစံဖြင့် ပေါင်းစပ်နိုင်ပြီး၊ ပြောင်းလဲလာတဲ့ Tasks တွေကို လိုက်လျောညီထွေ တုံ့ပြန်နိုင်စေပါတယ်။ အောက်မှာ ဖော်ပြထားတဲ့ Diagram ဟာ Dynamic Workflow လုပ်ငန်းစဉ်နဲ့ မတူညီတဲ့ အဆင့်တွေဟာ Agent ရဲ့ Lifecycle ထဲမှာ ဘယ်လို ပေါင်းစပ်ထားတယ်ဆိုတာကို သရုပ်ဖော်ထားပါတယ်။ ဝက်ဘ်ဘရောက်ဆာကို အသုံးပြုတဲ့အခါ၊ Agent ဟာ Screenshots တွေ ရိုက်ယူပြီး ၎င်းတို့ကို `ActionStep` ထဲမှာ **`observation_images`** အဖြစ် သိမ်းဆည်းနိုင်ပါတယ်။
+
+![Dynamic image retrieval](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/smolagents-can-see/diagram_adding_vlms_smolagents.png)
+
+လိုအပ်ချက်ကို နားလည်ပြီးတဲ့နောက်၊ ကျွန်တော်တို့ရဲ့ ဥပမာကို အပြည့်အစုံ တည်ဆောက်ကြည့်ရအောင်။ ဒီကိစ္စမှာ Alfred က ဧည့်သည် စစ်ဆေးအတည်ပြုခြင်း လုပ်ငန်းစဉ်ကို အပြည့်အဝ ထိန်းချုပ်ချင်တဲ့အတွက်၊ အသေးစိတ်အချက်အလက်တွေအတွက် Browsing လုပ်ခြင်းဟာ အကောင်းဆုံး ဖြေရှင်းနည်း ဖြစ်လာပါတယ်။ ဒီဥပမာကို ပြီးမြောက်ဖို့အတွက် Agent အတွက် Tool အသစ်တွေ လိုအပ်ပါတယ်။ ဒါ့အပြင်၊ Browser Automation Tool တွေဖြစ်တဲ့ Selenium နဲ့ Helium ကို အသုံးပြုပါမယ်။ ဒါက ကျွန်တော်တို့ကို ဝက်ဘ်ကို စူးစမ်းလေ့လာပြီး၊ ဖြစ်နိုင်ချေရှိတဲ့ ဧည့်သည်တစ်ဦးအကြောင်း အသေးစိတ်အချက်အလက်တွေ ရှာဖွေကာ၊ မြင်ကွင်းဆိုင်ရာ စစ်ဆေးအတည်ပြုခြင်း အချက်အလက်တွေကို ရယူမယ့် Agent တစ်ခုကို တည်ဆောက်နိုင်စေပါလိမ့်မယ်။ လိုအပ်တဲ့ Tool တွေကို Install လုပ်ရအောင်။
+
+```bash
+pip install "smolagents[all]" helium selenium python-dotenv
+```
+
+ကျွန်တော်တို့ဟာ Browsing အတွက် အထူးဒီဇိုင်းထုတ်ထားတဲ့ `search_item_ctrl_f`၊ `go_back` နဲ့ `close_popups` ကဲ့သို့သော Agent Tool အစုအဝေးတစ်ခု လိုအပ်ပါတယ်။ ဒီ Tool တွေက Agent ကို ဝက်ဘ်ကို သွားလာနေတဲ့ လူတစ်ဦးလို လုပ်ဆောင်နိုင်စေပါတယ်။
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Ctrl + F မှတစ်ဆင့် လက်ရှိ Page ပေါ်ရှိ စာသားကို ရှာဖွေပြီး nth ရလဒ်သို့ ခုန်သွားသည်။
+    Args:
+        text: ရှာဖွေရန် စာသား
+        nth_result: မည်သည့် အကြိမ်မြောက် ရလဒ်သို့ ခုန်သွားမည် (default: 1)
+    """
+    elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{text}')]")
+    if nth_result > len(elements):
+        raise Exception(f"Match n°{nth_result} not found (only {len(elements)} matches found)")
+    result = f"Found {len(elements)} matches for '{text}'."
+    elem = elements[nth_result - 1]
+    driver.execute_script("arguments[0].scrollIntoView(true);", elem)
+    result += f"Focused on element {nth_result} of {len(elements)}"
+    return result
+
+
+@tool
+def go_back() -> None:
+    """ယခင် Page သို့ ပြန်သွားသည်။"""
+    driver.back()
+
+
+@tool
+def close_popups() -> str:
+    """
+    Page ပေါ်ရှိ မြင်နိုင်သော Modal သို့မဟုတ် Pop-up များကို ပိတ်သည်။ Pop-up Window များကို ဖယ်ရှားရန် ၎င်းကို အသုံးပြုပါ။ (Cookie Consent Banner များတွင် အလုပ်မလုပ်ပါ)။
+    """
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+```
+
+ဒါ့အပြင်၊ Screenshots တွေ သိမ်းဆည်းဖို့အတွက် Functionality လည်း လိုအပ်ပါတယ်။ ဒါဟာ ကျွန်တော်တို့ရဲ့ VLM Agent က Task ကို ပြီးမြောက်ဖို့အတွက် အသုံးပြုမယ့် အရေးပါတဲ့ အစိတ်အပိုင်း ဖြစ်လာပါလိမ့်မယ်။ ဒီ Functionality ဟာ Screenshot ကို ဖမ်းယူပြီး `step_log.observations_images = [image.copy()]` ထဲမှာ သိမ်းဆည်းပါတယ်။ ဒါက Agent ကို ပုံရိပ်တွေကို Dynamic ပုံစံဖြင့် သိမ်းဆည်းပြီး စီမံဆောင်ရွက်နိုင်စေပါတယ်။
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)  # JavaScript animations များ လုပ်ဆောင်ရန် အချိန်ပေးခြင်း
+    driver = helium.get_driver()
+    current_step = step_log.step_number
+    if driver is not None:
+        for step_logs in agent.logs:  # ပိုမိုရှင်းလင်းသော စီမံဆောင်ရွက်မှုအတွက် ယခင် Screenshots များကို Logs မှ ဖယ်ရှားခြင်း
+            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+                step_logs.observations_images = None
+        png_bytes = driver.get_screenshot_as_png()
+        image = Image.open(BytesIO(png_bytes))
+        print(f"Captured a browser screenshot: {image.size} pixels")
+        step_log.observations_images = [image.copy()]  # ဆက်လက်တည်ရှိစေရန် Copy တစ်ခု ဖန်တီးခြင်း၊ အရေးကြီးသည်!
+
+    # လက်ရှိ URL ဖြင့် Observations များကို Update လုပ်ခြင်း
+    url_info = f"Current url: {driver.current_url}"
+    step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
+    return
+```
+
+ဒီ Function ကို Agent သို့ `step_callback` အဖြစ် ပေးပို့ပါတယ်။ ဒါက Agent ရဲ့ လုပ်ဆောင်မှုအတွင်း အဆင့်တိုင်းရဲ့ အဆုံးမှာ အစပျိုးစေပါတယ်။ ဒါက Agent ကို သူ့ရဲ့ လုပ်ငန်းစဉ်တစ်လျှောက်လုံးမှာ Screenshots တွေကို Dynamic ပုံစံဖြင့် ဖမ်းယူပြီး သိမ်းဆည်းနိုင်စေပါတယ်။
+
+အခုဆိုရင် ကျွန်တော်တို့ရဲ့ Vision Agent ကို ဝက်ဘ်ဘရောက်ဆာ အသုံးပြုဖို့အတွက် ဖန်တီးနိုင်ပါပြီ။ ကျွန်တော်တို့ ဖန်တီးထားတဲ့ Tool တွေအပြင် ဝက်ဘ်ကို စူးစမ်းလေ့လာဖို့အတွက် `DuckDuckGoSearchTool` ကိုလည်း ထည့်သွင်းပေးရပါမယ်။ ဒီ Tool က ဧည့်သည်တွေရဲ့ ကိုယ်ရေးအချက်အလက်ကို မြင်ကွင်းဆိုင်ရာ အချက်အလက်တွေအပေါ် အခြေခံပြီး စစ်ဆေးအတည်ပြုဖို့ လိုအပ်တဲ့ အချက်အလက်တွေကို Agent ကို ရယူနိုင်အောင် ကူညီပေးပါလိမ့်မယ်။
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+ဒီလိုပြင်ဆင်ပြီးတဲ့နောက်၊ Alfred ဟာ ဧည့်သည်တွေရဲ့ ကိုယ်ရေးအချက်အလက်တွေကို စစ်ဆေးပြီး ပါတီပွဲထဲ ဝင်ခွင့်ပြုသင့်၊ မပြုသင့် ဆုံးဖြတ်ချက်ချဖို့ အသင့်ဖြစ်ပါပြီ။
+
+```python
+agent.run("""
+I am Alfred, the butler of Wayne Manor, responsible for verifying the identity of guests at party. A superhero has arrived at the entrance claiming to be Wonder Woman, but I need to confirm if she is who she says she is.
+
+Please search for images of Wonder Woman and generate a detailed visual description based on those images. Additionally, navigate to Wikipedia to gather key details about her appearance. With this information, I can determine whether to grant her access to the event.
+""" + helium_instructions)
+```
+
+Task ရဲ့ တစ်စိတ်တစ်ပိုင်းအဖြစ် `helium_instructions` ကို ထည့်သွင်းထားတာကို တွေ့ရပါလိမ့်မယ်။ ဒီအထူး Prompt ဟာ Agent ရဲ့ Navigation ကို ထိန်းချုပ်ဖို့ ရည်ရွယ်ပြီး၊ ဝက်ဘ်ဘရောက်ဆာ အသုံးပြုနေစဉ်မှာ မှန်ကန်တဲ့ အဆင့်တွေကို လိုက်နာစေဖို့ သေချာစေပါတယ်။
+
+အောက်ပါ ဗီဒီယိုမှာ ဒါတွေ ဘယ်လို အလုပ်လုပ်လဲဆိုတာကို ကြည့်ရှုနိုင်ပါတယ်။
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+ဒါကတော့ နောက်ဆုံး ထွက်ရှိလာတဲ့ ရလဒ်ပါ။
+
+```python
+Final answer: Wonder Woman is typically depicted wearing a red and gold bustier, blue shorts or skirt with white stars, a golden tiara, silver bracelets, and a golden Lasso of Truth. She is Princess Diana of Themyscira, known as Diana Prince in the world of men.
+```
+
+ဒီအချက်အလက်တွေ အားလုံးနဲ့အတူ၊ ကျွန်တော်တို့ဟာ ပါတီပွဲအတွက် ကိုယ်ရေးအချက်အလက် စစ်ဆေးအတည်ပြုသူကို အောင်မြင်စွာ ဖန်တီးနိုင်ခဲ့ပါပြီ! Alfred ဟာ မှန်ကန်တဲ့ ဧည့်သည်တွေသာ ဝင်ခွင့်ရဖို့အတွက် လိုအပ်တဲ့ Tool တွေ ရရှိသွားပါပြီ။ Wayne Manor မှာ ပျော်ရွှင်စရာ အချိန်လေးတွေ ပိုင်ဆိုင်ဖို့ အားလုံး အဆင်သင့်ဖြစ်ပါပြီ!
+
+## ထပ်မံလေ့လာရန်
+
+*   [We just gave sight to smolagents](https://huggingface.co/blog/smolagents-can-see) - Vision Agent Functionality ကို ဖော်ပြထားသော Blog။
+*   [Web Browser Automation with Agents 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - Vision Agent ကို အသုံးပြု၍ Web Browsing အတွက် ဥပမာ။
+*   [Web Browser Vision Agent Example](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - Vision Agent ကို အသုံးပြု၍ Web Browsing အတွက် ဥပမာ။
