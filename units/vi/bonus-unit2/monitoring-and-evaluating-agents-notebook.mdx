@@ -1,0 +1,85 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/bonus-unit2/monitoring-and-evaluating-agents.ipynb"},
+]} />
+
+# Chương bổ trợ 2: Quan sát và đánh giá Agent
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit2/monitoring-and-evaluating-agents-notebook.ipynb" target="_blank">notebook này</a> và chạy trên Google Colab.
+</Tip>
+
+Trong notebook này, chúng ta sẽ học cách **giám sát các bước nội bộ (traces) của AI Agent** và **đánh giá hiệu suất** bằng các công cụ quan sát mã nguồn mở.
+
+Khả năng quan sát và đánh giá hành vi của Agent là cực kỳ quan trọng để:
+- Gỡ lỗi khi tác vụ thất bại hoặc cho kết quả không tối ưu
+- Theo dõi chi phí và hiệu suất theo thời gian thực
+- Cải thiện độ tin cậy và an toàn thông qua phản hồi liên tục
+
+## Yêu cầu trước khi thực hành 🏗️
+
+Trước khi chạy notebook này, hãy đảm bảo bạn đã:
+
+🔲 📚  **Học xong** [Giới thiệu về Agent](https://huggingface.co/learn/agents-course/unit1/introduction)
+
+🔲 📚  **Học xong** [Framework smolagents](https://huggingface.co/learn/agents-course/unit2/smolagents/introduction)
+
+## Bước 0: Cài đặt thư viện cần thiết
+
+Chúng ta cần một số thư viện để chạy, giám sát và đánh giá Agent:
+
+```python
+%pip install 'smolagents[telemetry]'
+%pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+%pip install langfuse datasets 'smolagents[gradio]'
+```
+
+## Bước 1: Thiết lập instrumentation cho Agent
+
+Trong notebook này, chúng ta dùng [Langfuse](https://langfuse.com/) làm công cụ quan sát, nhưng bạn có thể dùng **bất kỳ dịch vụ tương thích OpenTelemetry nào**. Code dưới đây hướng dẫn cách thiết lập biến môi trường cho Langfuse (hoặc endpoint OTel khác) và cách instrumentation cho smolagent.
+
+**Lưu ý:** Nếu dùng LlamaIndex hoặc LangGraph, bạn có thể xem tài liệu instrumentation [tại đây](https://langfuse.com/docs/integrations/llama-index/workflows) và [tại đây](https://langfuse.com/docs/integrations/langchain/example-python-langgraph).
+
+Đầu tiên, hãy cấu hình biến môi trường để kết nối tới endpoint OpenTelemetry của Langfuse.
+
+```python
+import os
+import base64
+
+# Lấy key của bạn từ https://cloud.langfuse.com
+LANGFUSE_PUBLIC_KEY = "pk-lf-..." 
+LANGFUSE_SECRET_KEY = "sk-lf-..." 
+os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
+os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"  # 🇪🇺 Ví dụ cho khu vực EU
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com"  # 🇺🇸 Ví dụ cho khu vực US
+
+LANGFUSE_AUTH = base64.b64encode(
+    f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()
+).decode()
+
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = os.environ.get("LANGFUSE_HOST") + "/api/public/otel"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+```
+Chúng ta cũng cần cấu hình Hugging Face token cho các lệnh inference.
+
+```python
+# Thiết lập Hugging Face token và các secret khác dưới dạng biến môi trường
+os.environ["HF_TOKEN"] = "hf_..." 
+```
+Tiếp theo, thiết lập tracer-provider cho OpenTelemetry đã cấu hình.
+
+```python
+from opentelemetry.sdk.trace import TracerProvider
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+ 
+# Tạo TracerProvider cho OpenTelemetry
+trace_provider = TracerProvider()
+
+# Thêm SimpleSpanProcessor với OTLPSpanExporter để gửi traces
+trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+
+# Thiết lập tracer provider mặc định toàn cục

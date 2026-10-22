@@ -1,0 +1,39 @@
+# Giới thiệu về Agentic Framework
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+Chào mừng bạn đến với Chương thứ hai, nơi **chúng ta sẽ khám phá các agentic framework khác nhau** để xây dựng các ứng dụng agentic mạnh mẽ.
+
+Chúng ta sẽ tìm hiểu:
+
+- Trong Chương 2.1: [smolagents](https://huggingface.co/docs/smolagents/en/index)  
+- Trong Chương 2.2: [LlamaIndex](https://www.llamaindex.ai/)
+- Trong Chương 2.3: [LangGraph](https://www.langchain.com/langgraph)
+
+Cùng bắt đầu nào! 🕵
+
+## Khi nào nên dùng Agentic Framework
+
+Agentic framework **không phải lúc nào cũng cần thiết** khi xây dựng ứng dụng xung quanh mô hình ngôn ngữ lớn (LLM). Chúng cung cấp tính linh hoạt trong quy trình làm việc (workflow) để giải quyết các tác vụ cụ thể, nhưng không phải luôn cần dùng đến.
+
+Đôi khi **các workflow được định nghĩa sẵn là đủ** để đáp ứng yêu cầu người dùng, và không cần framework agentic. Nếu cách xây dựng agent đơn giản như một chuỗi prompt, việc dùng code thuần có thể đủ. Ưu điểm là nhà phát triển sẽ **có toàn quyền kiểm soát và hiểu rõ hệ thống mà không cần abstraction**.
+
+Tuy nhiên khi workflow trở nên phức tạp hơn như cho LLM gọi function hay dùng nhiều agent, các abstraction này bắt đầu phát huy tác dụng.
+
+Từ những ý trên, ta có thể xác định nhu cầu về các tính năng:
+
+* *LLM engine* làm nền tảng hệ thống
+* *Danh sách tools* mà agent có thể truy cập
+* *Parser* để trích xuất tool calls từ đầu ra LLM
+* *System prompt* đồng bộ với parser
+* Hệ thống *memory* (bộ nhớ)
+* *Cơ chế log lỗi và thử lại* để kiểm soát lỗi từ LLM
+Chúng ta sẽ khám phá cách các framework như `smolagents`, `LlamaIndex` và `LangGraph` giải quyết những vấn đề này.
+
+## Các Chương về Agentic Framework
+
+| Framework  | Mô tả | Tác giả Chương |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introduction) | Các Framework Agent do Hugging Face phát triển | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | Công cụ toàn diện để triển khai AI agent tăng cường ngữ cảnh vào production | David Berenstein - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | Agents cho phép điều phối trạng thái của các agent | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |
