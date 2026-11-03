@@ -1,0 +1,28 @@
+# RAG agentique
+
+Dans cette unité, nous allons examiner comment nous pouvons utiliser le *RAG agentique* pour aider Alfred à préparer l'incroyable gala.
+
+> [!TIP]
+> Nous avons déjà discuté du RAG et du RAG agentique dans l'unité précédente, donc n'hésitez pas à passer directement à la suite si vous êtes déjà familier avec ces concepts.
+
+Les LLM sont entraînés sur d'énormes corpus de données pour apprendre des connaissances générales.
+Cependant, ce modèle de connaissance du monde peut ne pas toujours être des informations pertinentes et à jour.
+**Le RAG résout ce problème en trouvant et récupérant des informations pertinentes à partir de vos données et en les transmettant au LLM.**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Maintenant, pensez à comment Alfred fonctionne :
+
+1. Nous lui avons demandé d'aider à planifier un gala
+2. Il doit trouver les dernières nouvelles et informations météorologiques
+3. Il doit structurer et rechercher les informations sur les invités
+
+Tout comme Alfred a besoin de chercher dans vos informations domestiques pour être utile, tout agent a besoin d'un moyen de trouver et comprendre les données pertinentes.
+**Le RAG agentique est un moyen puissant d'utiliser les agents pour répondre aux questions sur vos données.** Nous pouvons passer divers outils à Alfred pour l'aider à répondre aux questions.
+Cependant, au lieu de répondre automatiquement à la question sur la base de documents, Alfred peut décider d'utiliser tout autre outil ou flux pour répondre à la question.
+
+![RAG agentique](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+Commençons **à construire notre *workflow* de RAG agentique !**
+
+Tout d'abord, nous allons créer un outil de RAG pour récupérer les détails à jour sur les invités. Ensuite, nous développerons des outils pour la recherche web, les mises à jour météorologiques et les statistiques de téléchargement de modèles sur le Hub d'Hugging Face. Enfin, nous intégrerons le tout pour donner vie à notre agent de RAG agentique !

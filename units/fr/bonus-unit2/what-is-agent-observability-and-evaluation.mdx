@@ -1,0 +1,91 @@
+# Qu'est-ce que l'observabilité et l'évaluation des agents ?
+
+## 🔎 Qu'est-ce que l'Observabilité ?
+
+L'observabilité consiste à comprendre ce qui se passe à l'intérieur de votre agent en regardant des signaux externes comme les logs, les métriques et les traces. Pour les agents, cela signifie suivre les actions, l'utilisation des outils, les appels de modèles et les réponses pour déboguer et améliorer les performances de l'agent.
+
+![Observability dashboard](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/langfuse-dashboard.png)
+
+## 🔭 Pourquoi l'observabilité des agents est importante
+
+Sans observabilité, les agents sont des « boîtes noires ». Les outils d'observabilité rendent les agents transparents, vous permettant de :
+
+- Comprendre les compromis entre coûts et précision
+- Mesurer la latence
+- Détecter le langage nuisible et l'injection de *prompts*
+- Surveiller les retours utilisateur
+
+En d'autres termes, cela permet de passer votre agent de démonstration à de la production !
+
+## 🔨 Outils d'observabilité
+
+Les outils d'observabilité courants pour les agents incluent des plateformes comme [Langfuse](https://langfuse.com) et [Arize](https://www.arize.com). Ces outils aident à collecter des traces détaillées et offrent des tableaux de bord pour surveiller les métriques en temps réel, facilitant la détection de problèmes et l'optimisation des performances.
+
+Les outils d'observabilité varient largement dans leurs fonctionnalités et capacités. Certains outils sont *open source*, bénéficiant de grandes communautés qui façonnent leurs feuilles de route et de nombreuses intégrations. De plus, certains outils se spécialisent dans des aspects spécifiques des LLMOps (comme l'observabilité, les évaluations ou la gestion des prompts) tandis que d'autres sont conçus pour couvrir l'ensemble du *workflow* LLMOps. Nous vous encourageons à explorer la documentation de différentes options pour choisir la solution qui fonctionne bien pour vous.
+
+De nombreux *frameworks* d'agents tels que [smolagents](https://huggingface.co/docs/smolagents/v1.12.0/en/index) utilisent le standard [OpenTelemetry](https://opentelemetry.io/docs/) pour exposer les métadonnées aux outils d'observabilité. En plus de cela, les outils d'observabilité construisent des instrumentations personnalisées pour permettre plus de flexibilité dans le monde en mouvement rapide des LLM. Vous devriez consulter la documentation de l'outil que vous utilisez pour voir ce qui est pris en charge.
+
+## 🔬Traces et *Spans*
+
+Les outils d'observabilité représentent généralement les exécutions d'agents comme des traces et des *spans*.
+
+- **Les traces** représentent une tâche d'agent complète du début à la fin (comme traiter une requête utilisateur).
+- **Les spans** sont des étapes individuelles dans la trace (comme appeler un modèle de langage ou récupérer des données).
+
+![Example of a smolagent trace in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/trace-tree.png)
+
+## 📊 Métriques clés à surveiller
+
+Voici quelques-unes des métriques les plus courantes que les outils d'observabilité surveillent :
+
+**Latence :** À quelle vitesse l'agent répond-il ? Les longs temps d'attente impactent négativement l'expérience utilisateur. Vous devriez mesurer la latence pour les tâches et les étapes individuelles en traçant les exécutions d'agent. Par exemple, un agent qui prend 20 secondes pour tous les appels de modèle pourrait être accéléré en utilisant un modèle plus rapide ou en exécutant les appels de modèle en parallèle.
+
+**Coûts :** Quelle est la dépense par exécution d'agent ? Les agents IA s'appuient sur des LLM facturés par *token* ou des API externes. L'utilisation fréquente d'outils ou de beaucoup de *prompts* peut rapidement augmenter les coûts. Par exemple, si un agent appelle un *LLM* cinq fois pour une amélioration de qualité marginale, vous devez évaluer si le coût est justifié ou si vous pourriez réduire le nombre d'appels ou utiliser un modèle moins cher. La surveillance en temps réel peut aussi aider à identifier des pics inattendus (par exemple, des bugs causant des boucles d'API excessives).
+
+**Erreurs de requête :** Combien de requêtes l'agent a-t-il échouées ? Cela peut inclure des erreurs d'API ou des appels d'outils échoués. Pour rendre votre agent plus robuste contre ceux-ci en production, vous pouvez ensuite mettre en place des solutions de secours ou des tentatives. Par exemple, si le fournisseur de LLM A est en panne, vous basculez vers le fournisseur de LLM B comme *backup*.
+
+**Retours utilisateur :** Implémenter des évaluations utilisateur directes fournit des informations précieuses. Cela peut inclure des évaluations explicites (pouces levés 👍/baissés 👎, ⭐1-5 étoiles) ou des commentaires textuels. Des commentaires négatifs devraient vous alerter car c'est un signe que l'agent ne fonctionne pas comme prévu. 
+
+**Retours utilisateur implicites :** Les comportements utilisateur fournissent des commentaires indirects même sans évaluations explicites. Cela peut inclure la reformulation immédiate de questions, des requêtes répétées ou cliquer sur un bouton de réessai. Par exemple, si vous voyez que les utilisateurs posent répétitivement la même question, c'est un signe que l'agent ne fonctionne pas comme prévu.
+
+**Précision :** À quelle fréquence l'agent produit-il des sorties correctes ou souhaitables ? Les définitions de précision varient (par exemple, exactitude de résolution de problèmes, précision de récupération d'informations, satisfaction utilisateur). La première étape est de définir à quoi ressemble le succès pour votre agent. Vous pouvez suivre la précision via des vérifications automatisées, des scores d'évaluation ou des labels de réussite de tâches. Par exemple, marquer les traces comme « réussies » ou « échouées ». 
+
+**Métriques d'évaluation automatisée :** Vous pouvez aussi mettre en place des évaluations automatisées. Par exemple, vous pouvez utiliser un LLM pour noter la sortie de l'agent, par exemple si elle est utile, précise ou non. Il existe aussi plusieurs bibliothèques *open source* qui vous aident à noter différents aspects de l'agent. Par exemple [RAGAS](https://docs.ragas.io/) pour les agents RAG ou [LLM Guard](https://llm-guard.com/) pour détecter le langage nuisible ou l'injection de *prompts*. 
+
+En pratique, une combinaison de ces métriques donne la meilleure couverture de la santé d'un agent IA. Dans le [*notebook* d'exemple](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/fr/bonus-unit2/monitoring-and-evaluating-agents.ipynb) de ce chapitre, nous vous montrerons à quoi ressemblent ces métriques dans des exemples réels mais d'abord, nous apprendrons à quoi ressemble un *workflow* d'évaluation typique.
+
+## 👍 Évaluation des agents
+
+L'observabilité nous donne des métriques, mais l'évaluation est le processus d'analyser ces données (et d'effectuer des tests) pour déterminer à quel point un agent performe et comment il peut être amélioré. En d'autres termes, une fois que vous avez ces traces et métriques, comment les utilisez-vous pour juger l'agent et prendre des décisions ? 
+
+L'évaluation standard est importante car les agents sont souvent non-déterministes et peuvent évoluer (par des mises à jour ou un comportement de modèle dérivant) – sans évaluation, vous ne sauriez pas si votre agent fait réellement bien son travail ou s'il a régressé.
+
+Il y a deux catégories d'évaluations pour les agents : **l'évaluation en ligne** et **l'évaluation hors ligne**. Les deux sont précieuses, et elles se complètent. Nous commençons généralement par l'évaluation hors ligne, car c'est l'étape minimum nécessaire avant de déployer tout agent.
+
+### 🥷 Évaluation hors ligne
+
+![Dataset items in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/example-dataset.png)
+
+Cela implique d'évaluer l'agent dans un environnement contrôlé, typiquement en utilisant des jeux de données de test, pas des requêtes utilisateur en direct. Vous utilisez des jeux de données organisés où vous savez quelle est la sortie attendue ou le comportement correct, puis vous exécutez votre agent sur ceux-ci. 
+
+Par exemple, si vous avez construit un agent résolvant des problèmes mathématiques, vous pourriez avoir un [jeu de données de test](https://huggingface.co/datasets/gsm8k) de 100 problèmes avec des réponses connues. L'évaluation hors ligne est souvent effectuée pendant le développement (et peut faire partie des pipelines CI/CD) pour vérifier les améliorations ou se protéger contre les régressions. L'avantage est que c'est **répétable et vous pouvez obtenir des métriques de précision claires puisque vous avez la vérité terrain**. Vous pourriez aussi simuler des requêtes utilisateur et mesurer les réponses de l'agent contre des réponses idéales ou utiliser des métriques automatisées comme décrit ci-dessus. 
+
+Le défi clé avec l'évaluation hors ligne est d'assurer que votre jeu de données de test est complet et reste pertinent : l'agent pourrait bien performer sur un jeu de test fixe mais rencontrer des requêtes très différentes en production. Par conséquent, vous devriez garder les jeux de test mis à jour avec de nouveaux cas limites et des exemples qui reflètent des scénarios du monde réel. Un mélange de petits cas de *smoke test* et de plus grands jeux d'évaluation est utile : les petits jeux pour des vérifications rapides et les plus grands pour des métriques de performance plus larges.
+
+### 🔄 Évaluation en ligne 
+
+Cela se réfère à l'évaluation de l'agent dans un environnement en direct, du monde réel, c'est-à-dire pendant l'utilisation réelle en production. L'évaluation en ligne implique de surveiller les performances de l'agent sur de vraies interactions utilisateur et d'analyser les résultats en continu. 
+
+Par exemple, vous pourriez suivre les taux de succès, les scores de satisfaction utilisateur, ou d'autres métriques sur le trafic en direct. L'avantage de l'évaluation en ligne est qu'elle **capture des choses que vous pourriez ne pas anticiper dans un environnement de laboratoire**. Vous pouvez observer la dérive du modèle au fil du temps (si l'efficacité de l'agent se dégrade quand les entrées changent) et attraper des requêtes ou situations inattendues qui n'étaient pas dans vos données de test. Elle fournit une vraie image de comment l'agent se comporte dans la nature. 
+
+L'évaluation en ligne implique souvent de collecter des retours utilisateur implicites et explicites, comme discuté, et possiblement d'exécuter des *shadow tests* ou des tests A/B (où une nouvelle version de l'agent fonctionne en parallèle pour comparer à l'ancienne). Le défi est qu'il peut être délicat d'obtenir des labels ou scores fiables pour les interactions en direct. Vous pourriez vous appuyer sur les retours utilisateur ou des métriques en aval (comme est-ce que l'utilisateur a cliqué sur le résultat). 
+
+### 🤝 Combiner les deux
+
+En pratique, l'évaluation réussie d'agent mélange les méthodes **en ligne** et **hors ligne**. Vous pourriez exécuter des *benchmarks* hors ligne standards pour noter quantitativement votre agent sur des tâches définies et surveiller continuellement l'utilisation en direct pour attraper des choses que les *benchmarks* ratent. Par exemple, les tests hors ligne peuvent attraper si le taux de succès d'un agent de génération de code sur un jeu connu de problèmes s'améliore, tandis que la surveillance en ligne pourrait vous alerter que les utilisateurs ont commencé à poser une nouvelle catégorie de question avec laquelle l'agent lutte. Combiner les deux donne une image plus robuste. 
+
+En fait, de nombreuses équipes adoptent une boucle : _évaluation hors ligne → déployer une nouvelle version d'agent → surveiller les métriques en ligne et collecter de nouveaux exemples d'échec → ajouter ces exemples au jeu de test hors ligne → itérer_. De cette façon, l'évaluation est continue et s'améliore constamment.
+
+## 🧑‍💻 Voyons comment cela fonctionne en pratique
+
+Dans la prochaine section, nous verrons des exemples de comment nous pouvons utiliser des outils d'observabilité pour surveiller et évaluer notre agent.

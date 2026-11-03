@@ -1,0 +1,49 @@
+# 让我们为函数调用微调模型 (Let's Fine-Tune your model for function-calling)
+
+我们现在准备好为函数调用微调我们的第一个模型了 🔥。
+
+## 我们如何训练模型进行函数调用？
+
+> 答案：我们需要**数据**
+
+模型训练可以分为3个步骤：
+
+1. **模型在大量数据上进行预训练 (pretrained)**。这一步的输出是一个**预训练模型 (pre-trained model)**。例如 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b)。这是一个基础模型，只知道**如何预测下一个词元(token)，而没有良好的指令跟随能力**。
+
+2. 然后，为了在对话环境中发挥作用，模型需要进行**微调 (fine-tuned)**以遵循指令。在这一步中，可以由模型创建者、开源社区、你或任何人进行训练。例如 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) 是由 Gemma 项目背后的谷歌团队进行的指令微调模型。
+
+3. 然后可以将模型**对齐 (aligned)**到创建者的偏好。例如，一个必须永远不能对客户无礼的客户服务聊天模型。
+
+通常，像 Gemini 或 Mistral 这样的完整产品**会经历所有这3个步骤**，而你在 Hugging Face 上找到的模型可能已经经过了这些训练步骤中的一个或多个。
+
+在本教程中，我们将基于 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) 构建一个函数调用模型。基础模型是 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b)，谷歌团队在指令跟随方面对基础模型进行了微调：产生了 **"google/gemma-2-2b-it"**。
+
+在这种情况下，我们将使用 **"google/gemma-2-2b-it"** 作为基础，**而不是基础模型，因为它之前经历的微调对我们的用例很重要**。
+
+由于我们想要通过消息对话与我们的模型进行交互，从基础模型开始**需要更多的训练才能学习指令跟随、聊天和函数调用**。
+
+通过从指令微调模型开始，**我们最小化了模型需要学习的信息量**。
+
+## LoRA（大语言模型的低秩适应）
+
+LoRA（大语言模型的低秩适应，Low-Rank Adaptation of Large Language Models）是一种流行的轻量级训练技术，它显著**减少了可训练参数的数量**。
+
+它的工作原理是**将较少数量的新权重作为适配器插入到模型中进行训练**。这使得使用 LoRA 进行训练更快、内存效率更高，并产生更小的模型权重（几百 MB），更易于存储和共享。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
+
+LoRA 通过向 Transformer 层添加秩分解矩阵对来工作，通常关注线性层。在训练期间，我们将"冻结"模型的其余部分，只更新那些新添加的适配器的权重。
+
+通过这样做，我们需要训练的参数数量大大减少，因为我们只需要更新适配器的权重。
+
+在推理过程中，输入通过适配器传递，基础模型或这些适配器权重可以与基础模型合并，不会产生额外的延迟开销。
+
+LoRA 特别适用于将**大型**语言模型适应特定任务或领域，同时保持资源需求可控。这有助于减少训练模型所需的内存。
+
+如果你想了解更多关于 LoRA 如何工作的信息，你应该查看这个[教程](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt)。
+
+## 为函数调用微调模型
+
+你可以在这里访问教程笔记本 👉 [点击这里](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb)。
+
+然后，点击  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) 以便在 Colab Notebook 中运行它。

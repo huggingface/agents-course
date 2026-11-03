@@ -1,0 +1,167 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Building Agentic RAG Systems
+
+> [!TIP]
+> You can follow the code in <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">this notebook</a> that you can run using Google Colab.
+
+Retrieval Augmented Generation (RAG) systems combine the capabilities of data retrieval and generation models to provide context-aware responses. For example, a user's query is passed to a search engine, and the retrieved results are given to the model along with the query. The model then generates a response based on the query and retrieved information.
+
+Agentic RAG (Retrieval-Augmented Generation) extends traditional RAG systems by **combining autonomous agents with dynamic knowledge retrieval**. 
+
+While traditional RAG systems use an LLM to answer queries based on retrieved data, agentic RAG **enables intelligent control of both retrieval and generation processes**, improving efficiency and accuracy.
+
+Traditional RAG systems face key limitations, such as **relying on a single retrieval step** and focusing on direct semantic similarity with the user’s query, which may overlook relevant information. 
+
+Agentic RAG addresses these issues by allowing the agent to autonomously formulate search queries, critique retrieved results, and conduct multiple retrieval steps for a more tailored and comprehensive output.
+
+## Basic Retrieval with DuckDuckGo
+
+Let's build a simple agent that can search the web using DuckDuckGo. This agent will retrieve information and synthesize responses to answer queries. With Agentic RAG, Alfred's agent can:
+
+* Search for latest superhero party trends
+* Refine results to include luxury elements
+* Synthesize information into a complete plan
+
+Here's how Alfred's agent can achieve this:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+# Initialize the search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Initialize the model
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+# Example usage
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+The agent follows this process:
+
+1. **Analyzes the Request:** Alfred’s agent identifies the key elements of the query—luxury superhero-themed party planning, with focus on decor, entertainment, and catering.
+2. **Performs Retrieval:**  The agent leverages DuckDuckGo to search for the most relevant and up-to-date information, ensuring it aligns with Alfred’s refined preferences for a luxurious event.
+3. **Synthesizes Information:** After gathering the results, the agent processes them into a cohesive, actionable plan for Alfred, covering all aspects of the party.
+4. **Stores for Future Reference:** The agent stores the retrieved information for easy access when planning future events, optimizing efficiency in subsequent tasks.
+
+## Custom Knowledge Base Tool
+
+For specialized tasks, a custom knowledge base can be invaluable. Let's create a tool that queries a vector database of technical documentation or specialized knowledge. Using semantic search, the agent can find the most relevant information for Alfred's needs.
+
+A vector database stores numerical representations (embeddings) of text or other data, created by machine learning models. It enables semantic search by identifying similar meanings in high-dimensional space.
+
+This approach combines predefined knowledge with semantic search to provide context-aware solutions for event planning. With specialized knowledge access, Alfred can perfect every detail of the party.
+
+In this example, we'll create a tool that retrieves party planning ideas from a custom knowledge base. We'll use a BM25 retriever to search the knowledge base and return the top results, and `RecursiveCharacterTextSplitter` to split the documents into smaller chunks for more efficient search.
+
+```python
+from langchain_community.docstore.document import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The query to perform. This should be a query related to party planning or superhero themes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Retrieve the top 5 documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Your search query must be a string"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nRetrieved ideas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Simulate a knowledge base about party planning
+party_ideas = [
+    {"text": "A superhero-themed masquerade ball with luxury decor, including gold accents and velvet curtains.", "source": "Party Ideas 1"},
+    {"text": "Hire a professional DJ who can play themed music for superheroes like Batman and Wonder Woman.", "source": "Entertainment Ideas"},
+    {"text": "For catering, serve dishes named after superheroes, like 'The Hulk's Green Smoothie' and 'Iron Man's Power Steak.'", "source": "Catering Ideas"},
+    {"text": "Decorate with iconic superhero logos and projections of Gotham and other superhero cities around the venue.", "source": "Decoration Ideas"},
+    {"text": "Interactive experiences with VR where guests can engage in superhero simulations or compete in themed games.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Split the documents into smaller chunks for more efficient search
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Create the retriever tool
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Initialize the agent
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+# Example usage
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+This enhanced agent can:
+1. First check the documentation for relevant information
+2. Combine insights from the knowledge base
+3. Maintain conversation context in memory
+
+## Enhanced Retrieval Capabilities
+
+When building agentic RAG systems, the agent can employ sophisticated strategies like:
+
+1. **Query Reformulation:** Instead of using the raw user query, the agent can craft optimized search terms that better match the target documents
+2. **Query Decomposition:** Instead of using the user query directly, if it contains multiple pieces of information to query, it can be decomposed to multiple queries
+3. **Query Expansion:** Somehow similar to Query Reformulation but done multiple times to put the query in multiple wordings to query them all
+4. **Reranking:** Using Cross-Encoders to assign more comprehensive and semantic relevance scores between retrieved documents and search query
+5. **Multi-Step Retrieval:** The agent can perform multiple searches, using initial results to inform subsequent queries
+6. **Source Integration:** Information can be combined from multiple sources like web search and local documentation
+7. **Result Validation:** Retrieved content can be analyzed for relevance and accuracy before being included in responses
+
+Effective agentic RAG systems require careful consideration of several key aspects. The agent **should select between available tools based on the query type and context**. Memory systems help maintain conversation history and avoid repetitive retrievals. Having fallback strategies ensures the system can still provide value even when primary retrieval methods fail. Additionally, implementing validation steps helps ensure the accuracy and relevance of retrieved information.
+
+## Resources
+
+- [Agentic RAG: turbocharge your RAG with query reformulation and self-query! 🚀](https://huggingface.co/learn/cookbook/agent_rag) - Recipe for developing an Agentic RAG system using smolagents.

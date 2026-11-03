@@ -1,0 +1,110 @@
+# Autoevaluación Rápida (sin calificar) [[quiz2]]
+
+¿Qué?! Otra autoevaluación? Lo sabemos, lo sabemos, ... 😅 Pero esta breve autoevaluación no calificada está aquí  para **ayudarte a reforzar conceptos clave que acabas de aprender**.
+
+Esta evaluación cubre flujos de trabajo de agentes y interacciones - componentes esenciales para construir agentes de IA efectivos.
+
+### Q1: ¿Cuál es el propósito de AgentWorkflow en LlamaIndex?
+
+<Question
+choices={[
+{
+text: "Ejecutar uno o más agentes con herramientas",
+explain: "Sí, el AgentWorkflow es la principal forma de crear un sistema con uno o más agentes.",
+correct: true
+},
+{
+text: "Crear un agente nico que pueda consultar tus datos sin memoria",
+explain: "No, el AgentWorkflow es más capaz que eso, el QueryEngine es para consultas simples sobre tus datos.",
+},
+{
+text: "Construir herramientas automáticamente para agentes",
+explain: "El AgentWorkflow no construye herramientas, ese es el trabajo del desarrollador.",
+},
+{
+text: "Administrar la memoria y el estado de los agentes",
+explain: "Administrar la memoria y el estado no es el propósito principal del AgentWorkflow.",
+}
+]}
+/>
+
+---
+
+### Q2: ¿Qué objeto se utiliza para mantener el estado del flujo de trabajo?
+
+<Question
+choices={[
+{
+text: "Estado",
+explain: "Estado no es el objeto correcto para la gestión de estado del flujo de trabajo.",
+},
+{
+text: "Contexto",
+explain: "Contexto es el objeto correcto utilizado para mantener el estado del flujo de trabajo.",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowState no es el objeto correcto.",
+},
+{
+text: "Administración",
+explain: "Administración no es un objeto válido para el estado del flujo de trabajo.",
+}
+]}
+/>
+
+---
+
+### Q3: ¿Qué  método debe utilizarse si deseas que un agente recuerde interacciones previas?
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str) no mantiene el historial de conversaciones.",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat() no es un método válido en workflows.",
+},
+{
+text: "interact(query_str)",
+explain: "interact() no es un método válido para interacciones de agentes.",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "Al pasar y mantener el contexto, podemos mantener el estado!",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4: ¿Qué  es una característica clave de Agentic RAG?
+
+<Question
+choices={[
+{
+text: "Solo puede usar herramientas basadas en documentos para responder a preguntas en un flujo de trabajo RAG",
+explain: "Agentic RAG puede usar diferentes herramientas, incluyendo herramientas basadas en documentos.",
+},
+{
+text: "Responde a preguntas automáticamente sin herramientas, como un chatbot",
+explain: "Agentic RAG utiliza herramientas para responder a preguntas.",
+},
+{
+text: "Puede decidir usar cualquier herramienta para responder a preguntas, incluyendo herramientas RAG",
+explain: "Agentic RAG tiene la flexibilidad de usar diferentes herramientas para responder a preguntas.",
+correct: true
+},
+{
+text: "Solo funciona con Agentes de Llamada de Funciones",
+explain: "Agentic RAG no est  limitado a Agentes de Llamada de Funciones.",
+}
+]}
+/>
+
+---
+¿Entendido? Genial! Ahora hagamos un **resumen breve de la unidad!**

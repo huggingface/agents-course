@@ -1,0 +1,255 @@
+# 什么是大语言模型（LLMs）？
+
+<img
+  src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg"
+  alt="Unit 1 planning"
+/>
+
+在上一节中，我们了解到每个智能体都需要一个核心的人工智能模型，而大语言模型 (LLM) 是实现这一目标最常见的 AI 模型类型。
+
+现在，我们将学习什么是大语言模型，以及它们如何为智能体提供动力。
+
+本节将提供一个简洁的技术解释，说明大语言模型的用途。如果你想更深入地了解相关内容，可以参考我们的 <a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">免费自然语言处理课程</a>。
+
+## 什么是大语言模型？
+
+大语言模型 (LLM) 是一种擅长理解和生成人类语言的人工智能模型。它们通过大量文本数据的训练，能够学习语言中的模式、结构，甚至细微差别。这些模型通常包含数千万甚至更多的参数。
+
+如今，大多数大语言模型都是基于 Transformer 架构构建的 —— 这是一种基于“注意力”算法的深度学习架构。自 2018 年 Google 推出 BERT 以来，这种架构引起了广泛关注。
+
+<figure>
+  <img
+    src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg"
+    alt="Transformer"
+  />
+  <figcaption>
+    原始的 Transformer
+    架构如下所示，左侧是编码器（encoder），右侧是解码器（decoder）。
+  </figcaption>
+</figure>
+
+Transformer 有三种类型：
+
+1. **编码器（Encoders）**  
+   基于编码器的 Transformer 接收文本（或其他数据）作为输入，并输出该文本的密集表示（或嵌入）。
+
+   - **示例**：Google 的 BERT
+   - **用例**：文本分类、语义搜索、命名实体识别
+   - **典型规模**：数百万个参数
+
+2. **解码器（Decoders）**  
+   基于解码器的 Transformer 专注于**逐个生成 token 以完成序列**。
+
+   - **示例**：Meta 的 Llama
+   - **用例**：文本生成、聊天机器人、代码生成
+   - **典型规模**：数十亿（按美国用法，即 10^9）个参数
+
+3. **序列到序列（编码器-解码器，Seq2Seq（Encoder–Decoder））**  
+   序列到序列的 Transformer *结合*了编码器和解码器。编码器首先将输入序列处理成上下文表示，然后解码器生成输出序列。
+
+   - **示例**：T5、BART
+   - **用例**：翻译、摘要、改写
+   - **典型规模**：数百万个参数
+
+虽然大语言模型 (LLMs) 有多种形式，但它们通常是基于解码器的模型，拥有数十亿个参数。以下是一些最知名的大语言模型：
+
+| **模型**        | **提供商**                   |
+| --------------- | ---------------------------- |
+| **Deepseek-R1** | DeepSeek                     |
+| **GPT4**        | OpenAI                       |
+| **Llama 3**     | Meta（Facebook AI Research） |
+| **SmolLM2**     | Hugging Face                 |
+| **Gemma**       | Google                       |
+| **Mistral**     | Mistral                      |
+
+大语言模型 (LLM) 的基本原理简单却极其有效：**其目标是在给定一系列前一个 token 的情况下，预测下一个 token**。这里的“token”是 LLM 处理信息的基本单位。你可以把 “token”想象成“单词”，但出于效率考虑，LLM 并不直接使用整个单词。
+
+例如，虽然英语估计有 60 万个单词，但一个 LLM 的词汇表可能只有大约 32,000 个 token（如 Llama 2 的情况）。Tokenization 通常作用于可以组合的子词单元。
+
+举个例子，考虑如何将 token“interest”和“ing”组合成“interesting”，或者添加“ed”形成“interested”。
+
+你可以在下面的交互式游乐场中尝试不同的 tokenizer 来实验：
+
+<iframe
+  src="https://agents-course-the-tokenizer-playground.static.hf.space"
+  frameborder="0"
+  width="850"
+  height="450"
+></iframe>
+
+每个大语言模型 (LLM) 都有一些特定于该模型的**特殊 token**。LLM 使用这些 token 来开启和关闭其生成过程中的结构化组件。例如，用于指示序列、消息或响应的开始或结束。此外，我们传递给模型的输入提示也使用特殊 token 进行结构化。其中最重要的是**序列结束 token** (EOS，End of Sequence token)。
+
+不同模型提供商使用的特殊 token 形式差异很大。
+
+下表展示了特殊 token 的多样性：
+
+<table>
+  <thead>
+    <tr>
+      <th>
+        <strong>Model</strong>
+      </th>
+      <th>
+        <strong>Provider</strong>
+      </th>
+      <th>
+        <strong>EOS Token</strong>
+      </th>
+      <th>
+        <strong>Functionality</strong>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>GPT4</strong>
+      </td>
+      <td>OpenAI</td>
+      <td>
+        <code>&lt;|endoftext|&gt;</code>
+      </td>
+      <td>End of message text</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Llama 3</strong>
+      </td>
+      <td>Meta (Facebook AI Research)</td>
+      <td>
+        <code>&lt;|eot_id|&gt;</code>
+      </td>
+      <td>End of sequence</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Deepseek-R1</strong>
+      </td>
+      <td>DeepSeek</td>
+      <td>
+        <code>&lt;|end_of_sentence|&gt;</code>
+      </td>
+      <td>End of message text</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>SmolLM2</strong>
+      </td>
+      <td>Hugging Face</td>
+      <td>
+        <code>&lt;|im_end|&gt;</code>
+      </td>
+      <td>End of instruction or message</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Gemma</strong>
+      </td>
+      <td>Google</td>
+      <td>
+        <code>&lt;end_of_turn&gt;</code>
+      </td>
+      <td>End of conversation turn</td>
+    </tr>
+  </tbody>
+</table>
+
+> [!TIP]
+> 我们并不期望你记住这些特 token，但重要的是要理解它们的多样性以及它们在大语言模型 (LLM) 文本生成中所扮演的角色。如果你想了解更多关于特殊 token 的信息，可以查看模型在其 Hub 仓库中的配置。例如，你可以在[SmolLM2 模型的 tokenizer_config.json 文件](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json)中找到该模型的特殊 token。
+
+## 理解下一个词元预测
+
+大语言模型 (LLM) 被认为是**自回归**的，这意味着**一次通过的输出成为下一次的输入**。这个循环持续进行，直到模型预测下一个词元为 EOS（结束符）词元，此时模型可以停止。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="自回归解码的视觉 GIF 图" width="60%">
+
+换句话说，LLM 会解码文本，直到达到 EOS。但在单个解码循环中会发生什么？
+
+虽然对于学习智能体而言，整个过程可能相当技术化，但以下是简要概述：
+
+- 一旦输入文本被**词元化**，模型就会计算序列的表示，该表示捕获输入序列中每个词元的意义和位置信息。
+- 这个表示被输入到模型中，模型输出分数，这些分数对词汇表中每个词元作为序列中下一个词元的可能性进行排名。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="解码的视觉 GIF 图" width="60%">
+
+基于这些分数，我们有多种策略来选择词元以完成句子。
+
+- 最简单的解码策略是总是选择分数最高的词元。
+
+您可以在此 Space 中使用 SmolLM2 自己与解码过程进行交互（记住，它会一直解码，直到达到 **EOS** 词元，对于这个模型来说，EOS 词元是**<|im_end|>**）：
+
+<iframe
+  src="https://agents-course-decoding-visualizer.hf.space"
+  frameborder="0"
+  width="850"
+  height="450"
+></iframe>
+
+- 但还有更先进的解码策略。例如， _束搜索（beam search）_ 会探索多个候选序列，以找到总分数最高的序列——即使其中一些单个词元的分数较低。
+
+<iframe
+  src="https://agents-course-beam-search-visualizer.hf.space"
+  frameborder="0"
+  width="850"
+  height="450"
+></iframe>
+
+如果你想了解更多关于解码的信息，可以查看[NLP 课程](https://huggingface.co/learn/nlp-course)。
+
+## 注意力机制就是你的全部所需
+
+Transformer 架构的一个关键方面是**注意力机制**。在预测下一个词时，句子中的每个词并不是同等重要的；例如，在句子 _“The capital of France is ...”_ 中，“France” 和 “capital” 这样的词携带了最多的意义。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AttentionSceneFinal.gif" alt="注意力机制的视觉 GIF 图" width="60%">
+
+这种识别最相关词以预测下一个词元的过程已被证明是非常有效的。
+
+尽管自 GPT-2 以来，大语言模型（LLM）的基本原理——预测下一个词元——一直保持不变，但在扩展神经网络以及使注意力机制能够处理越来越长的序列方面已经取得了显著进展。
+
+如果你与大语言模型交互过，你可能对*上下文长度*这个术语很熟悉，它指的是大语言模型能够处理的最大词元数，以及其最大的*注意力跨度*。
+
+## 提示大语言模型很重要
+
+考虑到大语言模型（LLM）的唯一工作是通过查看每个输入词元来预测下一个词元，并选择哪些词元是“重要的”，因此你提供的输入序列的措辞非常重要。
+
+你提供给大语言模型的输入序列被称为*提示*。精心设计提示可以更容易地**引导大语言模型的生成朝着期望的输出方向进行**。
+
+## 大语言模型是如何训练的？
+
+大语言模型是在大型文本数据集上进行训练的，它们通过自监督或掩码语言建模目标来学习预测序列中的下一个词。
+
+通过这种无监督学习，模型学习了语言的结构以及**文本中的潜在模式，使模型能够泛化到未见过的数据**。
+
+在这个初始的*预训练*之后，大语言模型可以在监督学习目标上进行微调，以执行特定任务。例如，一些模型被训练用于对话结构或工具使用，而其他模型则专注于分类或代码生成。
+
+## 我如何使用大语言模型？
+
+你有两个主要选择：
+
+1. **本地运行**（如果你有足够的硬件资源）。
+
+2. **使用云服务/API**（例如，通过 Hugging Face 的无服务器推理 API）。
+
+在本课程中，我们将主要通过 Hugging Face Hub 上的 API 使用模型。稍后，我们将探讨如何在你的本地硬件上运行这些模型。
+
+## 大语言模型在 AI 智能体中是如何使用的？
+
+大语言模型是 AI 智能体的关键组件，**为理解和生成人类语言提供了基础**。
+
+它们可以解释用户指令，在对话中保持上下文，制定计划并决定使用哪些工具。
+
+我们将在本单元中更详细地探讨这些步骤，但现在你需要理解的是，大语言模型是**智能体的大脑**。
+
+---
+
+那信息量可真不小！我们已经涵盖了大语言模型（LLM）的基本概念、工作原理以及它们在驱动 AI 智能体中的作用。
+
+如果你想更深入地探索语言模型和自然语言处理这个迷人的世界，不妨查看我们的<a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">免费 NLP 课程</a>。
+
+现在我们已经了解了大语言模型的工作原理，接下来是时候看看**大语言模型如何在对话语境中构建其生成内容**了。
+
+要运行<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb" target="_blank">这个笔记本</a>，**你需要一个 Hugging Face token**，你可以从<a href="https://hf.co/settings/tokens" target="_blank"> https://hf.co/settings/tokens </a>获取。
+
+有关如何运行 Jupyter Notebook 的更多信息，请查看<a href="https://huggingface.co/docs/hub/notebooks"> Hugging Face Hub 上的 Jupyter Notebook</a>。
+
+你还需要请求访问<a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank"> Meta Llama 模型</a>。

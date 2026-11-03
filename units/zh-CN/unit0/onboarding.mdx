@@ -1,0 +1,90 @@
+# 启航准备：开启学习之旅 ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="启程时刻" width="100%"/>
+
+万事俱备，即刻启程！请完成以下四个步骤：
+
+1. **注册 Hugging Face 账户**（如未完成）
+2. **加入 Discord 社区并自我介绍**（无需拘谨 🤗）
+3. **在 Hub 平台关注智能体课程**
+4. **助力课程推广**
+
+### 步骤一：创建 Hugging Face 账户
+
+（如未注册）请点击<a href='https://huggingface.co/join' target='_blank'>此处</a>创建账户
+
+### 步骤二：加入 Discord 学习社区
+
+👉🏻 点击<a href="https://discord.gg/UrrTSsSyjb" target="_blank">此链接</a>加入服务器
+
+有关所有课程相关的问题和咨询，请访问 `Hugging Face Hub` 下的 `courses` 频道。
+
+若您是 Discord 新用户，我们准备了《Discord 基础操作指南》供参考，详见[下一章节](discord101)
+
+### 步骤三：关注 Hugging Face 智能体课程组织
+
+通过关注课程组织，实时获取**最新课程资料、更新通知与重要公告**
+
+👉 访问<a href="https://huggingface.co/agents-course" target="_blank">课程主页</a>点击 **Follow**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="关注操作演示" width="100%"/>
+
+### 步骤四：助力课程推广
+
+两种方式支持课程发展：
+1. 为课程代码仓库点亮 ⭐ <a href="https://github.com/huggingface/agents-course" target="_blank">GitHub 项目主页</a>
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="点亮星标"/>
+
+2. 分享学习宣言：使用专属宣传图在社交媒体宣告**你的学习计划**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png">
+
+点击 👉 [此处](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)下载宣传图
+
+### 步骤五：在本地使用Ollama运行模型（如果遇到信用额度问题）
+
+1. 安装Ollama
+
+    请按照<a href="https://ollama.com/download" target="_blank">官方说明</a>安装Ollama
+
+2. 本地拉取模型
+
+```bash
+ollama pull qwen2:7b #访问ollama网站获取更多模型信息
+```
+3. 在后台启动Ollama（在一个终端中）
+
+```bash
+ollama serve 
+```
+
+    如果遇到`listen tcp 127.0.0.1:11434: bind: address already in use`错误，你可以使用命令`sudo lsof -i :11434`来识别当前占用该端口的进程ID（PID）。若该进程是`ollama`，则可能是上述安装脚本已启动了ollama服务，因此可以跳过此命令直接使用Ollama。
+
+4. 使用`LiteLLMModel`替代`InferenceClientModel`
+
+   要在`smolagents`中使用`LiteLLMModel`模块，可运行`pip`命令安装该模块。
+
+```bash
+pip install smolagents[litellm]
+```
+
+```bash
+from smolagents import LiteLLMModel
+
+model = LiteLLMModel(
+    model_id="ollama_chat/qwen2:7b",  # 或尝试其他Ollama支持的模型
+    api_base="http://127.0.0.1:11434",  # 默认的Ollama本地服务器地址
+    num_ctx=8192,
+)
+```
+
+5. 为什么这种方式可行？
+
+- Ollama通过`http://localhost:11434`提供一个与OpenAI兼容的API，用于本地模型服务。
+- `LiteLLMModel`设计用于与任何支持OpenAI chat/completion API格式的模型进行通信。
+- 这意味着你可以无缝地将`InferenceClientModel`替换为`LiteLLMModel`，无需其他代码改动从而实现即插即用的解决方案。
+
+恭喜！🎉 **您已完成启航准备**！现在可以正式开启智能体技术的学习之旅，祝您探索愉快！
+
+保持学习热情，继续闪耀 🤗

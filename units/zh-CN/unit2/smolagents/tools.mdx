@@ -1,0 +1,269 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb"},
+]} />
+
+# 工具
+
+正如我们在[第一单元](https://huggingface.co/learn/agents-course/unit1/tools)所探讨的，智能体通过工具执行各类操作。在`smolagents`框架中，工具被视为 **LLM 可以在智能体系统中调用的函数**。
+
+要使LLM能够调用工具，需要为其提供包含以下关键要素的**接口描述**：
+
+- **名称**：工具的标识名称
+- **工具描述**：工具的功能说明  
+- **输入类型及描述**：工具接受的参数说明
+- **输出类型**：工具的返回结果类型
+
+以韦恩庄园筹备派对为例，Alfred 需要多种工具来收集信息——从搜索餐饮服务到寻找派对主题创意。以下是一个简单搜索工具的接口示例：
+
+- **名称:** `web_search`
+- **工具描述:** 根据特定查询进行网络搜索
+- **输入:** `query` (字符串) - 需要查找的搜索关键词
+- **输出:** 包含搜索结果的字符串
+
+通过使用这些工具，Alfred 能够做出明智决策并收集派对筹备所需的所有信息。
+
+下方动画展示了工具调用的管理流程：
+
+![来自 https://huggingface.co/docs/smolagents/conceptual_guides/react 的智能体流程](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/Agent_ManimCE.gif)
+
+## 工具创建方法
+
+在`smolagents`中，可以通过两种方式定义工具：  
+1. **使用`@tool`装饰器**创建基于函数的简单工具
+2. **创建`Tool`的子类**实现复杂功能    
+
+### `@tool`装饰器
+
+`@tool`装饰器是**定义简单工具的推荐方式**。在底层，smolagents 会从 Python 函数解析基本信息。因此，清晰的函数命名和规范的文档字符串（docstring）能让 LLM 更易理解工具用途。
+
+使用此方法时，我们需要定义包含以下要素的函数：  
+
+- **明确描述性的函数名称**：帮助LLM理解其用途  
+- **输入输出的类型提示**：确保正确使用  
+- **详细描述**：包含明确描述各参数的`Args:`部分，这些描述为 LLM 提供关键上下文信息
+
+#### 创建餐饮评分查询工具
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-catering.jpg" alt="Alfred Catering"/>
+
+> [!TIP]
+> 您可以通过 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb" target="_blank">此 Notebook</a> 跟随代码实践，该文件支持在 Google Colab 中运行。
+
+假设 Alfred 已确定派对菜单，但需要为大量宾客准备食物。为此，他希望雇佣餐饮服务并需要找到当地评分最高的选择。
+
+以下是通过`@tool`装饰器实现该功能的示例：
+
+```python
+from smolagents import CodeAgent, InferenceClientModel, tool
+
+# 假设我们有一个获取最高评分餐饮服务的函数
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    This tool returns the highest-rated catering service in Gotham City.
+    
+    Args:
+        query: A search term for finding catering services.
+    """
+   # 示例餐饮服务及评分列表
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+    
+    # 查找评分最高的餐饮服务（模拟搜索查询过滤）
+    best_service = max(services, key=services.get)
+    
+    return best_service
+
+
+agent = CodeAgent(tools=[catering_service_tool], model=InferenceClientModel())
+
+# 运行智能体寻找最佳餐饮服务
+result = agent.run(
+    "Can you give me the name of the highest-rated catering service in Gotham City?"
+)
+
+print(result)   # Output: Gotham Catering Co.
+```
+
+### 通过Python类定义工具
+
+此方法需要创建[`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool)的子类。对于复杂工具，我们可以通过类封装函数及其元数据来帮助 LLM 理解使用方式。在类中需要定义：
+
+- `name`: 工具名称  
+- `description`: 用于构建智能体系统提示的描述  
+- `inputs`: 包含`type`和`description`的字典，帮助Python解释器处理输入  
+- `output_type`: 指定期望的输出类型  
+- `forward`: 包含执行逻辑的方法  
+
+以下是通过`Tool`类构建工具并与`CodeAgent`集成的示例：
+
+#### 创建超级英雄主题派对创意生成工具
+
+Alfred 计划在庄园举办**超级英雄主题派对**，但需要独特创意让活动与众不同。作为完美管家，他希望用新颖主题给宾客带来惊喜。
+
+为此，我们可以创建根据类别生成派对创意的工具，帮助 Alfred 找到最惊艳的主题方案：
+
+```python
+from smolagents import Tool, CodeAgent, InferenceClientModel
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    This tool suggests creative superhero-themed party ideas based on a category.
+    It returns a unique party theme idea."""
+    
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
+        }
+    }
+    
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: Guests come dressed as their favorite DC heroes with themed cocktails like 'The Kryptonite Punch'.",
+            "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
+            "futuristic Gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
+        }
+        
+        return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
+
+# 实例化工具
+party_theme_tool = SuperheroPartyThemeTool()
+agent = CodeAgent(tools=[party_theme_tool], model=InferenceClientModel())
+
+# 运行智能体生成派对主题
+result = agent.run(
+    "What would be a good superhero party idea for a 'villain masquerade' theme?"
+)
+
+print(result)  # Output: "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains."
+```
+
+借助此工具，Alfred 将成为终极超级管家，为宾客呈现难忘的超级英雄主题派对！🦸♂️🦸♀️
+
+## 默认工具箱  
+
+`smolagents` 自带一组预构建工具，可直接注入到您的智能体中。[默认工具箱](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) 包含:  
+
+- **PythonInterpreterTool**  
+- **FinalAnswerTool**  
+- **UserInputTool**  
+- **DuckDuckGoSearchTool**  
+- **GoogleSearchTool**  
+- **VisitWebpageTool**  
+
+Alfred 可以使用多种工具来确保韦恩庄园的完美派对:
+
+- 首先，他可以使用 `DuckDuckGoSearchTool` 搜索创意超级英雄主题派对灵感  
+
+- 对于餐饮，他依赖 `GoogleSearchTool` 查找哥谭市评分最高的服务  
+
+- 要管理座位安排，Alfred 可以通过 `PythonInterpreterTool` 运行计算  
+
+- 收集完所有信息后，他使用 `FinalAnswerTool` 整合计划  
+
+通过这些工具，Alfred 确保派对既出众又顺利。🦇💡  
+
+## 共享与导入工具  
+
+**smolagents** 最强大的功能之一是能够将自定义工具共享到 Hub 并无缝集成社区创建的工具。这包括与 **HF Spaces** 和 **LangChain 工具**的连接，显著增强了 Alfred 策划难忘韦恩庄园派对的能力。🎭  
+
+通过这些集成，Alfred 可以利用高级活动策划工具——无论是调整灯光营造完美氛围、为派对策划理想歌单，还是与哥谭市最优秀的餐饮服务商协调。  
+
+以下是展示这些功能如何提升派对体验的示例:  
+
+### 向 Hub 共享工具  
+
+与社区分享自定义工具非常简单！只需使用 `push_to_hub()` 方法将其上传到您的 Hugging Face 账户。  
+
+例如，Alfred 可以分享他的 `party_theme_tool` 以帮助其他人找到哥谭市最好的餐饮服务。具体操作如下:  
+
+```python
+party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HUGGINGFACEHUB_API_TOKEN>")
+```
+
+### 从 Hub 导入工具
+
+您可以使用 `load_tool()` 函数轻松导入其他用户创建的工具。例如，Alfred 可能希望使用 AI 生成派对的宣传图片。无需从头构建工具，他可以直接使用社区预定义的方案:
+
+```python
+from smolagents import load_tool, CodeAgent, InferenceClientModel
+
+image_generation_tool = load_tool(
+    "m-ric/text-to-image",
+    trust_remote_code=True
+)
+
+agent = CodeAgent(
+    tools=[image_generation_tool],
+    model=InferenceClientModel()
+)
+
+agent.run("Generate an image of a luxurious superhero-themed party at Wayne Manor with made-up superheros.")
+```
+
+### 将 Hugging Face Space 导入为工具
+
+您可以使用 `Tool.from_space()` 将 HF Space 作为工具导入。这开启了与社区数千个 Space 集成的可能性，从图像生成到数据分析均可实现。
+
+工具将通过 `gradio_client` 连接 Space 的后端，请确保已通过 `pip` 安装该依赖（如果尚未安装）。
+
+对于本次派对，Alfred 可以使用现有的 HF Space 生成公告所需的 AI 图像（替代之前提到的预建工具）。让我们开始构建：
+
+```python
+from smolagents import CodeAgent, InferenceClientModel, Tool
+
+image_generation_tool = Tool.from_space(
+    "black-forest-labs/FLUX.1-schnell",
+    name="image_generator",
+    description="Generate an image from a prompt"
+)
+
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+agent = CodeAgent(tools=[image_generation_tool], model=model)
+
+agent.run(
+    "Improve this prompt, then generate an image of it.", 
+    additional_args={'user_prompt': 'A grand superhero-themed party at Wayne Manor, with Alfred overseeing a luxurious gala'}
+)
+```
+
+### 导入 LangChain 工具
+
+
+我们将在后续章节讨论 `LangChain` 框架。目前需要注意的是，您可以在 smolagents 工作流中复用 LangChain 工具！
+
+您可以使用 `Tool.from_langchain()` 方法轻松加载 LangChain 工具。
+
+追求完美的 Alfred 正在筹备一场盛大的超级英雄之夜活动（趁韦恩一家外出时），为确保每个细节都超出预期，他借助 LangChain 工具来寻找顶级的娱乐创意。
+
+具体实现如下：
+
+```python
+from langchain.agents import load_tools
+from smolagents import CodeAgent, InferenceClientModel, Tool
+
+search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
+
+agent = CodeAgent(tools=[search_tool], model=model)
+
+agent.run("Search for luxury entertainment ideas for a superhero-themed event, such as live performances and interactive experiences.")
+```
+
+通过此设置，Alfred 能快速发现高端娱乐选项，确保哥谭的精英宾客获得难忘体验。该工具帮助他策划韦恩庄园的完美超级英雄主题活动！🎉
+
+## 资源
+
+- [工具教程](https://huggingface.co/docs/smolagents/tutorials/tools) - 通过本教程学习如何高效使用工具
+- [工具文档](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools) - 全面的工具参考文档
+- [工具使用导览](https://huggingface.co/docs/smolagents/v1.8.1/en/guided_tour#tools) - 逐步指导如何构建和使用工具
+- [构建高效智能体](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 关于开发可靠高性能自定义函数智能体的最佳实践指南

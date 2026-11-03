@@ -1,0 +1,72 @@
+# Qu'est-ce que GAIA ?
+
+[GAIA](https://huggingface.co/papers/2311.12983) est un ***benchmark* conçu pour évaluer les assistants IA sur des tâches du monde réel** nécessitant une combinaison de capacités fondamentales comme le raisonnement, la compréhension multimodale, la navigation *web* et l'utilisation d'outils.
+
+Il a été introduit dans l'article _"[GAIA: A Benchmark for General AI Assistants](https://huggingface.co/papers/2311.12983)"_.
+
+Le *benchmark* comprend **466 questions soigneusement sélectionnées** qui sont **conceptuellement simples pour les humains**, mais **remarquablement difficiles pour les systèmes d'IA actuels**. 
+
+Pour illustrer l'écart :
+- **Humains** : ~92% de taux de réussite  
+- **GPT-4 avec *plugins*** : ~15%  
+- ***Deep Research* (OpenAI)** : 67,36% sur le jeu de validation
+
+GAIA souligne les limitations actuelles des modèles et fournit un *benchmark* rigoureux pour évaluer les progrès vers des assistants vraiment polyvalents.
+
+## 🌱 Principes Fondamentaux de GAIA
+
+GAIA est soigneusement conçu autour des piliers suivants :
+
+- 🔍 **Difficulté du monde réel** : Les tâches nécessitent un raisonnement en plusieurs étapes, une compréhension multimodale et une interaction avec des outils.
+- 🧾 **Interprétabilité humaine** : Malgré leur difficulté pour l'IA, les tâches restent conceptuellement simples et faciles à suivre pour les humains.
+- 🛡️ **Absence de jeu** : Les réponses correctes exigent l'exécution complète de la tâche, rendant la force brute inefficace.
+- 🧰 **Simplicité d'évaluation** : Les réponses sont concises, factuelles et non ambiguës, idéales pour l'évaluation comparative.
+
+## Niveaux de Difficulté
+
+Les tâches de GAIA sont organisées en **trois niveaux de complexité croissante**, chacun testant des compétences spécifiques :
+
+- **Niveau 1** : Nécessite moins de 5 étapes et une utilisation minimale d'outils.
+- **Niveau 2** : Implique un raisonnement plus complexe et une coordination entre plusieurs outils et 5-10 étapes.
+- **Niveau 3** : Exige une planification à long terme et une intégration avancée de divers outils.
+
+![GAIA levels](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_levels.png)
+
+## Exemple d'une question difficile 
+
+> *Which of the fruits shown in the 2008 painting "Embroidery from Uzbekistan" were served as part of the October 1949 breakfast menu for the ocean liner that was later used as a floating prop for the film "The Last Voyage"? Give the items as a comma-separated list, ordering them in clockwise order based on their arrangement in the painting starting from the 12 o'clock position. Use the plural form of each fruit.*
+
+> Parmi les fruits représentés dans le tableau de 2008 intitulé « Broderie d'Ouzbékistan », quels sont ceux qui figuraient au menu du petit-déjeuner servi en octobre 1949 à bord du paquebot qui a ensuite servi d'accessoire flottant pour le film « Le dernier voyage » ? Donnez les éléments sous forme de liste séparée par des virgules, en les classant dans le sens des aiguilles d'une montre, en fonction de leur disposition dans le tableau, en commençant par la position 12 heures. Utilisez la forme plurielle de chaque fruit.
+
+Comme vous pouvez le voir, cette question défie les systèmes d'IA de plusieurs manières :
+
+- Nécessite un **format de réponse structuré**
+- Implique un **raisonnement multimodal** (par exemple, analyser des images)
+- Exige une **récupération multi-saut** de faits interdépendants :
+  - Identifier les fruits dans la peinture
+  - Découvrir quel paquebot a été utilisé dans *The Last Voyage*
+  - Rechercher le menu du petit-déjeuner d'octobre 1949 pour ce navire
+- Nécessite un **séquençage correct** et une planification de haut niveau pour résoudre dans le bon ordre
+
+Ce type de tâche souligne où les LLM autonomes échouent souvent, faisant de GAIA un *benchmark* idéal pour **les systèmes basés sur des agents** qui peuvent raisonner, récupérer et exécuter sur plusieurs étapes et modalités.
+
+![GAIA capabilities plot](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_capabilities.png)
+
+## Évaluation en direct
+
+Pour encourager l'évaluation comparative continue, **GAIA fournit un classement public hébergé sur Hugging Face** où vous pouvez tester vos modèles contre **300 questions de test**.
+
+👉 Consultez le classement [ici](https://huggingface.co/spaces/gaia-benchmark/leaderboard)
+
+<iframe
+	src="https://gaia-benchmark-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Vous voulez plus loin sur le sujet de GAIA ?
+
+- 📄 [Lire l'article complet](https://huggingface.co/papers/2311.12983)
+- 📄 [Article de présentation de *Deep Research* par OpenAI](https://openai.com/index/introducing-deep-research/)
+- 📄 [*DeepResearch open-source* – Libérer nos agents de recherche](https://huggingface.co/blog/open-deep-research)

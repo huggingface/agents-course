@@ -1,0 +1,167 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/retrieval_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Construction de systèmes de RAG agentiques
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/retrieval_agents.ipynb" target="_blank">ce <i>notebook</i></a> que vous pouvez exécuter avec Google Colab.
+
+Les systèmes de RAG (*Retrieval Augmented Generation*) combinent les capacités de récupération de données et de modèles de génération pour fournir des réponses contextuelles. Par exemple, la requête d'un utilisateur est transmise à un moteur de recherche puis les résultats récupérés sont fournis au LLM avec la requête. Le modèle génère ensuite une réponse basée sur la requête et les informations récupérées.
+
+Le RAG agentique (*Agentic RAG*) étend les systèmes de RAG traditionnels en **combinant des agents autonomes avec une récupération dynamique des connaissances**. 
+
+Alors que les systèmes de RAG traditionnels utilisent un LLM pour répondre aux requêtes basées sur des données récupérées, le RAG agentique **permet un contrôle intelligent des processus de récupération et de génération**, améliorant l'efficacité et la précision.
+
+Les systèmes de RAG traditionnels font face à des limitations clés, telles que **s'appuyer sur une seule étape de récupération** et se concentrer sur la similarité sémantique directe avec la requête de l'utilisateur, ce qui peut négliger des informations pertinentes.
+
+Le RAG agentique résout ces problèmes en permettant à l'agent de formuler de manière autonome des requêtes, de critiquer les résultats récupérés et de mener plusieurs étapes de récupération pour une sortie plus adaptée et complète.
+
+## Récupération de base avec DuckDuckGo
+
+Construisons un agent simple qui peut rechercher sur le web en utilisant DuckDuckGo. Cet agent récupérera des informations et synthétisera des réponses pour répondre aux requêtes. Avec le RAG agentique, l'agent d'Alfred peut :
+
+* Rechercher des dernières tendances en matière de fêtes de super-héros
+* Affiner les résultats pour inclure des éléments luxueux
+* Synthétiser les informations en un plan complet
+
+Voici comment l'agent d'Alfred peut y parvenir :
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+# Initialiser l'outil de recherche
+search_tool = DuckDuckGoSearchTool()
+
+# Initialiser le modèle
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+# Exemple d'utilisation
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+L'agent suit ce processus :
+
+1. **Analyse la requête :** identifie les éléments clés de la requête - organisation de fêtes de luxe sur le thème des super-héros, en mettant l'accent sur la décoration, les divertissements et la restauration.
+2. **Effectue la récupération :** exploite DuckDuckGo pour rechercher les informations les plus pertinentes et à jour, en s'assurant qu'elles correspondent aux préférences d'Alfred pour un événement luxueux.
+3. **Synthétise l'information :** après avoir rassemblé les résultats, l'agent les traite en un plan cohérent et actionnable pour Alfred, couvrant tous les aspects de la fête.
+4. **Stocke pour référence future :** stocke les informations récupérées pour un accès facile lors de la planification d'événements futurs, optimisant l'efficacité des tâches ultérieures.
+
+## Outil de base de connaissances personnalisé
+
+Pour des tâches spécialisées, une base de connaissances personnalisée peut être inestimable. Créons un outil qui interroge une base de données vectorielle de documentation technique ou de connaissances spécialisées. En utilisant la recherche sémantique, l'agent peut trouver les informations les plus pertinentes pour les besoins d'Alfred.
+
+Une base de données vectorielle stocke des représentations numériques (*embeddings*) de texte ou d'autres données, créées par des modèles d'apprentissage automatique. Elle permet la recherche sémantique en identifiant des significations similaires dans un espace de haute dimension.
+
+Cette approche combine des connaissances prédéfinies avec une recherche sémantique pour fournir des solutions contextuelles pour la planification d'événements. Avec un accès à des connaissances spécialisées, Alfred peut perfectionner chaque détail de la fête.
+
+Dans cet exemple, nous allons créer un outil qui récupère des idées de planification de fête à partir d'une base de connaissances personnalisée. Nous utiliserons un modèle BM25 pour rechercher dans la base de connaissances et retourner les meilleurs résultats, et `RecursiveCharacterTextSplitter` pour diviser les documents en morceaux plus petits pour une recherche plus efficace.
+
+```python
+from langchain.docstore.document import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Utilise la recherche sémantique pour trouver des idées pertinentes pour l'organisation de la fête d'Alfred au Manoir Wayne sur le thème des super-héros."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "La requête à effectuer. Celle-ci doit être liée à l'organisation de fêtes ou à des thèmes de super-héros.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Récupérer les 5 meilleurs documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Votre requête doit être une chaîne de caractères"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nIdées récupérées :\n" + "".join(
+            [
+                f"\n\n===== Idée {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Simuler une base de connaissances sur la planification de la fête
+party_ideas = [
+    {"text": "Un bal masqué sur le thème des super-héros avec un décor luxueux, notamment des accents dorés et des rideaux de velours.", "source": "Idées de fête 1"},
+    {"text": "Engagez un DJ professionnel qui peut jouer de la musique sur le thème des super-héros comme Batman et Wonder Woman.", "source": "Idées de divertissement"},
+    {"text": "Pour la restauration, servez des plats portant le nom de super-héros, comme 'Le smoothie vert de Hulk' et 'Le steak de puissance d'Iron Man'", "source": "Idées de traiteur"},
+    {"text": "Décorez le lieu avec des logos de super-héros emblématiques et des projections de Gotham et d'autres villes de super-héros.", "source": "Idées de décoration"},
+    {"text": "Expériences interactives avec la VR où les invités peuvent participer à des simulations de super-héros ou à des jeux à thème.", "source": "Idées de divertissement"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Découper les documents en morceaux plus petits pour une recherche plus efficace
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Créer l'outil de récupération
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Initialiser l'agent
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+# Exemple d'utilisation
+response = agent.run(
+    "Trouver des idées pour une fête de luxe sur le thème des super-héros, y compris des options de divertissement, de restauration et de décoration."
+)
+
+print(response)
+```
+
+Cet agent amélioré peut :
+1. D'abord vérifier la documentation pour des informations pertinentes
+2. Combiner les informations de la base de connaissances
+3. Maintenir le contexte de conversation en mémoire
+
+## Capacités de récupération améliorées
+
+Lors de la construction de systèmes de RAG agentiques, l'agent peut employer des stratégies sophistiquées comme :
+
+1. **La reformulation de requête :** Au lieu d'utiliser la requête brute de l'utilisateur, l'agent peut élaborer des termes de recherche optimisés qui correspondent mieux aux documents cibles
+2. **La décomposition de requête :** Au lieu d'utiliser directement la requête de l'utilisateur, si elle contient plusieurs éléments d'information à interroger, elle peut être décomposée en plusieurs requêtes
+3. **L'expansion de requête :** Similaire à la reformulation de requête mais effectuée plusieurs fois pour formuler la requête de plusieurs façons et les interroger toutes
+4. **Le reclassement :** Utiliser des [*Cross-Encoders*](https://huggingface.co/models?pipeline_tag=text-ranking&sort=trending) pour attribuer des scores de pertinence sémantique plus complets entre les documents récupérés et la requête
+5. **La récupération multi-étapes :** L'agent peut effectuer plusieurs recherches, en utilisant les résultats initiaux pour informer les requêtes suivantes
+6. **L'intégration de sources :** Les informations peuvent être combinées à partir de plusieurs sources comme la recherche web et la documentation locale
+7. **La validation des résultats :** Le contenu récupéré peut être analysé pour sa pertinence et son exactitude avant d'être inclus dans les réponses
+
+Les systèmes de RAG agentiques efficaces nécessitent une considération attentive de plusieurs aspects clés. L'agent **devrait sélectionner entre les outils disponibles en fonction du type de requête et du contexte**. Les systèmes de mémoire aident à maintenir l'historique de conversation et évitent les récupérations répétitives. Avoir des stratégies de secours garantit que le système peut toujours fournir de la valeur même lorsque les méthodes de récupération principales échouent. De plus, l'implémentation d'étapes de validation aide à assurer l'exactitude et la pertinence des informations récupérées.
+
+## Ressources
+
+- [Agentic RAG : boostez votre RAG avec la reformulation de requête et l'auto-requête ! 🚀](https://huggingface.co/learn/cookbook/agent_rag) - Recette pour développer un système de RAG agentique en utilisant `smolagents`.

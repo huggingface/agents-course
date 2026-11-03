@@ -1,0 +1,322 @@
+# Que sont les outils ?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Planification de l'Unité 1"/>
+
+Un aspect crucial des agents est leur capacité à prendre des **actions**. Comme nous l'avons vu, cela se fait par l'utilisation d'**outils**.
+
+Dans cette section, nous verrons ce que sont les outils, comment les concevoir efficacement, et comment les intégrer à votre agent via le message système.
+
+En fournissant à votre agent les bons outils — et en décrivant clairement le fonctionnement de ces outils — vous pouvez augmenter de manière spectaculaire ce que votre IA peut accomplir. Plongeons-nous dedans !
+
+##  Que sont les outils d'IA ?
+
+Un **outil est une fonction fournie au LLM**. Cette fonction doit remplir un **objectif clair**.
+
+Voici quelques outils couramment utilisés dans les agents :
+
+| Outil               | Description                                                                                     |
+|---------------------|-------------------------------------------------------------------------------------------------|
+| Recherche Web       | Permet à l'agent de récupérer des informations à jour depuis Internet.                          |
+| Génération d'images | Crée des images à partir de descriptions textuelles.                                          |
+| Recherche           | Récupère des informations à partir d'une source externe.                                        |
+| Interface API       | Interagit avec une API externe (GitHub, YouTube, Spotify, etc.).                                |
+
+Ce ne sont que des exemples, car en réalité, vous pouvez créer un outil pour n'importe quel cas d'utilisation !
+
+Un bon outil doit être quelque chose qui **complémente la puissance d'un LLM**. 
+
+Par exemple, si vous devez effectuer des opérations arithmétiques, fournir une **calculatrice** à votre LLM donnera de meilleurs résultats que de se fier aux capacités natives du modèle.
+
+De plus, **les LLM prédisent la complétion du *prompt* en se basant sur leurs données d'entraînement**, ce qui signifie que leur connaissance interne n'inclut que les événements antérieurs à leur entraînement. Par conséquent, si votre agent a besoin de données à jour, vous devez les fournir via un outil.
+
+Par exemple, si vous demandez directement à un LLM (sans outil de recherche) la météo d'aujourd'hui, le LLM pourrait inventer une météo aléatoire.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Météo"/>
+
+- Un outil doit contenir :
+
+  - Une **description textuelle de ce que fait la fonction**.
+  - Un *appeleur* (quelque chose pour effectuer une action).
+  - Des *arguments* avec typage.
+  - (Optionnel) Des sorties avec typage.
+
+## Comment fonctionnent les outils ?
+
+Comme nous l'avons vu, les LLM ne peuvent recevoir que des entrées textuelles et générer des sorties textuelles. Ils ne peuvent pas appeler des outils par eux-mêmes. 
+Lorsque nous parlons de fournir des outils à un agent, nous entendons enseigner au LLM l'existence de ces outils et lui demander de générer des invocations textuelles en cas de besoin.
+
+Par exemple, si nous fournissons un outil pour vérifier le temps qu'il fait à un endroit donné à partir d'internet et que nous demandons ensuite au LLM le temps qu'il fait à Paris, le LLM reconnaîtra qu'il s'agit d'une occasion d'utiliser l'outil « météo ». Au lieu de récupérer les données météorologiques elles-mêmes, le LLM générera un texte pour appeller l'outil, tel que ``call weather_tool("Paris")`.
+
+L'agent lit alors cette réponse, identifie qu'un appel d'outil est nécessaire, exécute l'outil au nom du LLM et récupère les données météorologiques réelles.
+
+Les étapes de l'appel d'outil ne sont généralement pas montrées à l'utilisateur : l'agent les ajoute à un nouveau message avant de transmettre à nouveau la conversation mise à jour au LLM. Le LLM traite alors ce contexte supplémentaire et génère une réponse naturelle pour l'utilisateur. Du point de vue de l'utilisateur, il semble que le LLM interagisse directement avec l'outil, mais en réalité, c'est l'agent qui gère l'ensemble du processus d'exécution en arrière-plan.
+
+Nous reviendrons plus en détail sur ce processus dans les prochaines sessions.
+
+## Comment fournir des outils à un LLM ?
+
+La réponse complète peut sembler complexe, mais nous utilisons essentiellement le *prompt* système pour fournir au modèle des descriptions textuelles des outils disponibles :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="Prompt système pour les outils"/>
+
+Pour que cela fonctionne, nous devons être très précis et rigoureux concernant :
+
+1. **Ce que fait l'outil**
+2. **Les entrées exactes qu'il attend**
+
+C'est la raison pour laquelle les descriptions d'outils sont généralement fournies en utilisant des structures expressives mais précises, telles que des langages informatiques ou du JSON. Il n'est pas _nécessaire_ de procéder ainsi, tout format précis et cohérent fonctionnerait.
+
+Si cela semble trop théorique, voyons cela à travers un exemple concret.
+
+Nous allons implémenter un outil simplifié **calculatrice** qui se contentera de multiplier deux entiers. Voici une implémentation en Python :
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiplie deux entiers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Ainsi, notre outil s'appelle `calculator`, il **multiplie deux entiers**, et il requiert les entrées suivantes :
+
+- **`a`** (*int*): Un entier.
+- **`b`** (*int*): Un entier.
+
+La sortie de l'outil est un autre nombre entier que nous pouvons décrire ainsi :
+- (*int*): Le produit de `a` et `b`.
+
+Tous ces détails sont importants. Rassemblons-les dans une chaîne de texte qui décrit notre outil pour que le LLM puisse le comprendre.
+
+```
+Nom de l'outil: calculator, Description: Multiplie deux entiers., Arguments: a: int, b: int, Sorties: int
+```
+
+> **Rappel :** Cette description textuelle est *ce que nous voulons que le LLM sache à propos de l'outil*.
+
+Lorsque nous passons la chaîne précédente dans l'entrée du LLM, le modèle la reconnaîtra comme un outil et saura quelles entrées fournir et ce qu'il doit attendre en sortie.
+
+Si nous souhaitons fournir des outils supplémentaires, nous devons rester cohérents et utiliser toujours le même format. Ce processus peut être fragile, et nous pourrions accidentellement négliger certains détails.
+
+Existe-t-il une meilleure méthode ?
+
+### Sections d'auto-formatage des outils
+
+Notre outil a été écrit en Python, et l'implémentation fournit déjà tout ce dont nous avons besoin :
+
+- Un nom descriptif de ce qu'il fait : `calculator`
+- Une description plus détaillée, fournie par le commentaire docstring de la fonction : `Multiplie deux entiers.`
+- Les entrées et leur type : la fonction attend clairement deux `int`.
+- Le type de la sortie.
+
+Il y a une raison pour laquelle on utilise des langages de programmation : ils sont expressifs, concis et précis.
+
+Nous pourrions fournir le code source Python comme _spécification_ de l'outil pour le LLM, mais la manière dont l'outil est implémenté n'a pas d'importance. Tout ce qui compte, c'est son nom, ce qu'il fait, les entrées qu'il attend et la sortie qu'il fournit.
+
+Nous tirerons parti des fonctionnalités d'introspection de Python pour exploiter le code source et construire automatiquement une description de l'outil. Tout ce dont nous avons besoin, c'est que l'implémentation de l'outil utilise des annotations de types, des docstrings et des noms de fonction pertinents. Nous écrirons un peu de code pour extraire les parties pertinentes du code source.
+
+Une fois cela fait, il nous suffira d'utiliser un décorateur Python pour indiquer que la fonction `calculator` est un outil :
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiplie deux entiers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Notez le décorateur `@tool` avant la définition de la fonction.
+
+Avec l'implémentation que nous verrons ensuite, nous serons capables d'extraire automatiquement le texte suivant à partir du code source :
+
+```
+Nom de l'outil: calculator, Description: Multiplie deux entiers., Arguments: a: int, b: int, Sorties: int
+```
+
+Comme vous pouvez le constater, c'est la même chose que nous avons écrit manuellement précédemment !
+
+### Implémentation générique d'un outil
+
+Nous créons une classe générique `Tool` que nous pouvons réutiliser chaque fois que nous avons besoin d'utiliser un outil.
+
+> **Avertissement :** Cette implémentation à titre d'exemple est fictive mais ressemble de près aux implémentations réelles dans la plupart des bibliothèques.
+
+```python
+class Tool:
+    """
+    Une classe représentant un morceau de code réutilisable (Outil).
+    
+    Attributs:
+        name (str): Nom de l'outil.
+        description (str): Une description textuelle de ce que fait l'outil.
+        func (callable): La fonction que cet outil encapsule.
+        arguments (list): Une liste d'arguments.
+        outputs (str ou list): Le(s) type(s) de retour de la fonction encapsulée.
+    """
+    def __init__(self, 
+                 name: str, 
+                 description: str, 
+                 func: callable, 
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Retourne une représentation sous forme de chaîne de l'outil, 
+        incluant son nom, sa description, ses arguments, et ses sorties.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+        
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoque la fonction sous-jacente (callable) avec les arguments fournis.
+        """
+        return self.func(*args, **kwargs)
+```
+
+Cela peut sembler compliqué, mais en y allant pas à pas, nous pouvons voir ce qu'elle fait. Nous définissons une classe **`Tool`** qui inclut :
+
+- **`name`** (*str*): Le nom de l'outil.
+- **`description`** (*str*): Une brève description de ce que fait l'outil.
+- **`function`** (*callable*): La fonction que l'outil exécute.
+- **`arguments`** (*list*): Les paramètres d'entrée attendus.
+- **`outputs`** (*str* ou *list*): Les sorties attendues de l'outil.
+- **`__call__()`** : Appelle la fonction lorsque l'instance de l'outil est invoquée.
+- **`to_string()`** : Convertit les attributs de l'outil en une représentation textuelle.
+
+Nous pourrions créer un outil avec cette classe en utilisant le code suivant :
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # nom
+    "Multiplie deux entiers.",      # description
+    calculator,                     # fonction à appeler
+    [("a", "int"), ("b", "int")],   # entrées (noms et types)
+    "int",                          # sortie
+)
+```
+
+Mais nous pouvons également utiliser le module `inspect` de Python pour récupérer toutes les informations pour nous ! C'est ce que fait le décorateur `@tool`.
+
+> Si cela vous intéresse, vous pouvez afficher la section suivante pour voir l'implémentation du décorateur.
+
+<details>
+<summary>code du décorateur</summary>
+
+```python
+def tool(func):
+    """
+    Un décorateur qui crée une instance de Tool à partir de la fonction donnée.
+    """
+    # Récupérer la signature de la fonction
+    signature = inspect.signature(func)
+    
+    # Extraire les paires (nom_param, annotation_param) pour les entrées
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__ 
+            if hasattr(param.annotation, '__name__') 
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+    
+    # Déterminer l'annotation de retour
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "Pas d'annotation de retour"
+    else:
+        outputs = (
+            return_annotation.__name__ 
+            if hasattr(return_annotation, '__name__') 
+            else str(return_annotation)
+        )
+    
+    # Utiliser la docstring de la fonction comme description (par défaut si vide)
+    description = func.__doc__ or "No description provided."
+    
+    # Le nom de la fonction devient le nom de l'outil
+    name = func.__name__
+    
+    # Retourner une nouvelle instance de Tool
+    return Tool(
+        name=name, 
+        description=description, 
+        func=func, 
+        arguments=arguments, 
+        outputs=outputs
+    )
+```
+
+</details>
+
+Pour réitérer, avec ce décorateur en place, nous pouvons implémenter notre outil comme ceci :
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiplie deux entiers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Et nous pouvons utiliser la méthode `to_string` de `Tool` pour récupérer automatiquement un texte adapté à être utilisé comme description d'un outil pour un LLM :
+
+```
+Nom de l'outil: calculator, Description: Multiplie deux entiers., Arguments: a: int, b: int, Sorties: int
+```
+
+La description est **injectée** dans le *prompt* système. En reprenant l'exemple avec lequel nous avons commencé cette section, voici à quoi cela ressemblerait après avoir remplacé le `tools_description` :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Prompt système pour les outils"/>
+
+Dans la section sur les [actions](actions), nous en apprendrons davantage sur la façon dont un agent peut **appeler** cet outil que nous venons de créer.
+
+---
+
+Les outils jouent un rôle crucial dans l'amélioration des capacités des agents.
+
+### *Model Context Protocol* (MCP) : une interface d'outils unifiée
+
+*Model Context Protocol* (MCP) est un **protocole ouvert** qui standardise la manière dont les applications **fournissent des outils aux LLM**.
+MCP offre :
+
+- Une liste croissante d'intégrations pré-construites que votre LLM peut directement utiliser
+- La flexibilité de changer entre fournisseurs et vendeurs de LLM
+- Les meilleures pratiques pour sécuriser vos données dans votre infrastructure
+
+Cela signifie que **tout *framework* intégrant MCP peut utiliser les outils définis dans le protocole**, éliminant le besoin de réimplémenter la même interface d'outils pour chaque *framework*.
+
+Si vous voulez approfondir MCP, vous pouvez consulter notre [cours gratuit sur MCP](https://huggingface.co/learn/mcp-course/).
+
+---
+
+Les outils jouent un rôle crucial dans l'amélioration des capacités des agents.
+
+Pour résumer, nous avons appris :
+
+- *Ce que sont les outils* : des fonctions qui offrent des capacités supplémentaires aux LLM, comme effectuer des calculs ou accéder à des données externes.
+
+- *Comment définir un outil* : en fournissant une description textuelle claire, des entrées, des sorties, et une fonction exécutable.
+
+- *Pourquoi les outils sont essentiels* : ils permettent aux agents de surmonter les limites de l'entraînement statique des modèles, de gérer des tâches en temps réel, et d'effectuer des actions spécialisées.
+
+Maintenant, nous pouvons passer au [*workflow* de l'agent](agent-steps-and-structure) où vous verrez comment un agent observe, réfléchit et agit. Cela **rassemble tout ce que nous avons vu jusqu'à présent** et prépare le terrain pour créer votre propre agent entièrement fonctionnel.
+
+Mais d'abord, il est temps pour un autre court quiz !

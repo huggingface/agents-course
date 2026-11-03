@@ -1,0 +1,40 @@
+# 에이전틱 프레임워크 소개
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+Unit 2에 오신 것을 환영합니다! **이번 유닛에서는 다양한 에이전틱 프레임워크**를 살펴보고, 이를 활용해 강력한 에이전트 기반 애플리케이션을 만드는 방법을 배웁니다.
+
+이번 유닛에서 다룰 내용은 다음과 같습니다:
+
+- 2.1: [smolagents](https://huggingface.co/docs/smolagents/en/index)  
+- 2.2: [LlamaIndex](https://www.llamaindex.ai/)
+- 2.3: [LangGraph](https://www.langchain.com/langgraph)
+
+함께 시작해봅시다! 🕵
+
+## 에이전틱 프레임워크는 언제 필요할까?
+
+에이전틱 프레임워크는 **LLM 기반 애플리케이션을 만들 때 항상 필요한 것은 아닙니다.** 프레임워크는 특정 작업을 효율적으로 해결할 수 있도록 워크플로우에 유연성을 제공하지만, 항상 필수적인 것은 아닙니다.
+
+때로는 **미리 정의된 워크플로우만으로도** 사용자 요청을 충분히 처리할 수 있으며, 굳이 에이전틱 프레임워크가 필요하지 않을 수 있습니다. 에이전트 구조가 단순하다면, 프롬프트 체이닝 등 일반 코드만으로도 충분합니다. 이 경우 개발자는 **추상화 없이 시스템을 완전히 이해하고 제어**할 수 있다는 장점이 있습니다.
+
+하지만 워크플로우가 복잡해져 LLM이 함수를 호출하거나, 여러 에이전트를 활용해야 하는 경우에는 이러한 추상화가 도움이 되기 시작합니다.
+
+이러한 점을 고려하면, 다음과 같은 기능이 필요함을 알 수 있습니다:
+
+* 시스템을 구동할 *LLM 엔진*
+* 에이전트가 접근할 수 있는 *도구 목록*  
+* LLM 출력에서 도구 호출을 추출하는 *파서*
+* 파서와 동기화된 *시스템 프롬프트*
+* *메모리 시스템*
+* LLM의 실수를 제어할 *에러 로깅 및 재시도 메커니즘*
+
+이러한 주제들이 각 프레임워크에서 어떻게 해결되는지, `smolagents`, `LlamaIndex`, `LangGraph`를 통해 살펴볼 예정입니다.
+
+## 에이전틱 프레임워크별 유닛 안내
+
+| 프레임워크  | 설명 | 유닛 저자 |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introduction) | Hugging Face에서 개발한 에이전트 프레임워크 | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | 컨텍스트 증강 AI 에이전트를 프로덕션에 배포할 수 있는 엔드-투-엔드 툴링 | David Berenstein - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | 상태 기반 에이전트 오케스트레이션을 지원하는 프레임워크 | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |

@@ -1,0 +1,39 @@
+# Introduction au cas d'usage sur la RAG agentique
+
+![Bannière RAG agentique](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit3/agentic-rag/thumbnail.jpg)
+
+Dans cette unité, nous aiderons Alfred, notre sympathique agent qui organise le gala, en utilisant le RAG agentique pour créer un outil qui peut être utilisé pour répondre aux questions sur les invités du gala.
+
+> [!TIP]
+> Il s'agit d'un cas d'usage concret pour le RAG agentique, que vous pourriez utiliser pour vos propres projets ou à votre travail. Si vous souhaitez tirer davantage parti de ce projet, pourquoi ne pas l'essayer sur votre propre cas d'usage et partager sur Discord ?
+
+Vous pouvez choisir n'importe lequel des *frameworks* abordés dans le cours pour ce cas d'usage. Nous fournissons des exemples de code pour chacun dans des onglets séparés.
+
+## Un gala mémorable
+
+Maintenant, il est temps de se salir les mains avec un vrai cas d'usage. Plantons le décor !
+
+**Vous avez décidé d'organiser la fête la plus extravagante et opulente du siècle.** Cela signifie des festins somptueux, des danseurs enchanteurs, des DJ renommés, des boissons exquises, un spectacle de feux d'artifice époustouflant, et bien plus encore.
+
+Alfred, votre agent, se prépare à veiller sur tous vos besoins pour cette fête, et **il va tout gérer lui-même**. Pour ce faire, il doit avoir accès à toutes les informations sur la fête, y compris le menu, les invités, le programme, les prévisions météorologiques, etc.
+
+Non seulement cela, mais il doit aussi s'assurer que la fête va être un succès, donc **il doit être capable de répondre à toutes les questions sur la fête pendant celle-ci**, tout en gérant les situations imprévues qui peuvent survenir.
+
+Alfred ne peut pas le faire seul, donc nous devons nous assurer qu'il a accès à toutes les informations et outils dont il a besoin.
+
+Tout d'abord, donnons-lui une liste d'exigences strictes pour le gala.
+
+## Les exigences du gala
+
+Une personne correctement éduquée de l'époque de la **Renaissance** devait avoir trois traits principaux.
+Elle devait avoir une connaissance approfondie en **sport, culture et science**. Donc, nous devons nous assurer que nous pouvons impressionner nos invités avec notre connaissance et leur offrir un gala vraiment inoubliable.
+Cependant, pour éviter tout conflit, il y a **certains sujets, comme la politique et la religion, qui doivent être évités lors d'un gala.** Il doit s'agir d'une fête amusante sans conflits liés aux croyances et aux idéaux.
+
+Selon l'étiquette, **un bon hôte doit connaître les antécédents des invités**, y compris leurs centres d'intérêt et leurs activités. Un bon hôte fait aussi des commérages et partage des histoires sur les invités les uns avec les autres.
+
+Enfin, nous devons nous assurer que nous avons **des connaissances générales sur la météo** afin de pouvoir trouver en permanence une mise à jour en temps réel pour garantir un timing parfait pour le lancement du feu d'artifice pour terminer le gala en beauté ! 🎆
+
+Comme vous pouvez le voir, Alfred a besoin de beaucoup d'informations pour organiser le gala.
+Heureusement, nous pouvons l'aider et le préparer en lui donnant un entraînement en ***Retrieval Augmented Generation* (RAG) !**
+
+Commençons par créer les outils dont Alfred a besoin pour pouvoir organiser le gala !

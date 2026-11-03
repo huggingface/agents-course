@@ -1,0 +1,117 @@
+# Quiz rapide 1 (non noté) [[quiz1]]
+
+Jusqu'à présent, nous avons discuté des *components* et outils clés utilisés dans LlamaIndex.
+Il est temps de faire un petit quiz, car **se tester soi-même** est la meilleure façon d'apprendre et [d'éviter l'illusion de compétence](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf).
+Cela vous aidera à trouver **où vous devez renforcer vos connaissances**.
+
+Ceci est un quiz optionnel et il n'est pas noté.
+
+### Q1 : Qu'est-ce qu'un `QueryEngine` ?
+Laquelle des affirmations suivantes décrit le mieux un *component* `QueryEngine` ?
+
+<Question
+choices={[
+{
+text: "Un système qui traite uniquement du texte statique sans aucune capacité de récupération.",
+explain: "Un <code>QueryEngine</code> doit être capable de récupérer et traiter des informations pertinentes.",
+},
+{
+text: "Un component qui trouve et récupère des informations pertinentes dans le cadre du processus de RAG.",
+explain: "Cela capture l'objectif principal d'un <code>QueryEngine</code>.",
+correct: true
+},
+{
+text: "Un outil qui ne fait que stocker des embeddings vectoriels sans fonctionnalité de recherche.",
+explain: "Un <code>QueryEngine</code> fait plus que simplement stocker des embeddings ; il recherche et récupère activement des informations.",
+},
+{
+text: "Un component qui évalue uniquement la qualité des réponses.",
+explain: "L'évaluation est séparée de l'objectif principal de récupération du <code>QueryEngine</code>.",
+}
+]}
+/>
+
+---
+
+### Q2 : Quel est le but des `FunctionTools` ?
+Pourquoi les <code>FunctionTools</code> sont-ils importants pour un agent ?
+
+<Question
+choices={[
+{
+text: "Pour gérer de grandes quantités de stockage de données.",
+explain: "Les <code>FunctionTools</code> ne sont pas principalement pour le stockage de données.",
+},
+{
+text: "Pour convertir des fonctions Python en outils qu'un agent peut utiliser.",
+explain: "Les <code>FunctionTools</code> enveloppent les fonctions Python pour les rendre accessibles aux agents.",
+correct: true
+},
+{
+text: "Pour permettre aux agents de créer des définitions de fonctions aléatoires.",
+explain: "Les <code>FunctionTools</code> servent l'objectif spécifique de rendre les fonctions disponibles aux agents.",
+},
+{
+text: "Pour traiter uniquement des données textuelles.",
+explain: "Les <code>FunctionTools</code> peuvent fonctionner avec différents types de fonctions, pas seulement le traitement de texte.",
+}
+]}
+/>
+
+---
+
+### Q3 : Que sont les `Toolspecs` dans LlamaIndex ?
+Quel est l'objectif principal des `Toolspecs` ?
+
+<Question
+choices={[
+{
+text: "Ce sont des components redondants qui n'ajoutent pas de fonctionnalité.",
+explain: "Les <code>Toolspecs</code> servent un objectif important dans l'écosystème LlamaIndex.",
+},
+{
+text: "Ce sont des ensembles d'outils créés par la communauté qui étendent les capacités des agents.",
+explain: "Les <code>Toolspecs</code> permettent à la communauté de partager et réutiliser des outils.",
+correct: true
+},
+{
+text: "Ils sont utilisés uniquement pour la gestion mémoire.",
+explain: "Les <code>Toolspecs</code> concernent la fourniture d'outils, pas la gestion mémoire.",
+},
+{
+text: "Ils ne fonctionnent qu'avec le traitement de texte.",
+explain: "Les <code>Toolspecs</code> peuvent inclure différents types d'outils, pas seulement le traitement de texte.",
+}
+]}
+/>
+
+---
+
+### Q4 : Qu'est-ce qui est requis pour créer un outil ?
+Quelles informations doivent être incluses lors de la création d'un outil ?
+
+<Question
+choices={[
+{
+text: "Une fonction, un nom et une description doivent être définis.",
+explain: "Bien que tous ceux-ci constituent un outil, le nom et la description peuvent être analysés à partir de la fonction et de la <i>docstring</i>.",
+},
+{
+text: "Seul le nom est requis.",
+explain: "Une fonction et une description/<i>docstring</i> sont également requises pour une documentation appropriée de l'outil.",
+},
+{
+text: "Seule la description est requise.",
+explain: "Une fonction est requise pour que nous ayons du code à exécuter quand un agent sélectionne un outil",
+},
+{
+text: "Seule la fonction est requise.",
+explain: "Le nom et la description sont par défaut le nom et la <i>docstring</i> de la fonction fournie",
+correct: true
+}
+]}
+/>
+
+---
+
+Félicitations pour avoir terminé ce Quiz 🥳, si vous avez manqué certains éléments, prenez le temps de relire le chapitre pour renforcer vos connaissances. Si vous le réussissez, vous êtes prêt à plonger plus profondément dans la construction avec ces *components* !

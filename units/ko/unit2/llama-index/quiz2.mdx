@@ -1,0 +1,112 @@
+# 셀프 체크 (채점되지 않음) [[quiz2]]
+
+뭐?! 또 다른 퀴즈? 알겠습니다, 알겠습니다... 😅 하지만 이 짧은, 채점되지 않는 퀴즈는 **방금 배운 핵심 개념을 강화하는 데 도움이** 되기 위해 여기 있습니다.
+
+이 퀴즈는 효과적인 AI 에이전트를 구축하기 위한 필수 구성 요소인 에이전트 워크플로우와 상호작용을 다룹니다.
+
+### Q1: LlamaIndex에서 AgentWorkflow의 목적은 무엇인가요?
+
+<Question
+choices={[
+{
+text: "툴과 함께 하나 이상의 에이전트를 실행하기 위해",
+explain: "네, AgentWorkflow는 하나 이상의 에이전트로 시스템을 빠르게 만드는 주요 방법입니다.",
+correct: true
+},
+{
+text: "메모리 없이 데이터를 쿼리할 수 있는 단일 에이전트를 만들기 위해",
+explain: "아니요, AgentWorkflow는 그보다 더 능력이 있습니다. QueryEngine은 데이터에 대한 간단한 쿼리용입니다.",
+},
+{
+text: "에이전트를 위한 툴을 자동으로 구축하기 위해",
+explain: "AgentWorkflow는 툴을 구축하지 않습니다. 그것은 개발자의 작업입니다.",
+},
+{
+text: "에이전트 메모리와 상태를 관리하기 위해",
+explain: "메모리와 상태 관리는 AgentWorkflow의 주요 목적이 아닙니다.",
+}
+]}
+/>
+
+---
+
+### Q2: 워크플로우의 상태를 추적하는 데 사용되는 객체는 무엇인가요?
+
+<Question
+choices={[
+{
+text: "State",
+explain: "State는 워크플로우 상태 관리에 올바른 객체가 아닙니다.",
+},
+{
+text: "Context",
+explain: "Context는 워크플로우 상태를 추적하는 데 사용되는 올바른 객체입니다.",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowState는 올바른 객체가 아닙니다.",
+},
+{
+text: "Management",
+explain: "Management는 워크플로우 상태에 대한 유효한 객체가 아닙니다.",
+}
+]}
+/>
+
+---
+
+### Q3: 에이전트가 이전 상호작용을 기억하게 하려면 어떤 메서드를 사용해야 하나요?
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str)는 대화 기록을 유지하지 않습니다.",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat()은 워크플로우에서 유효한 메서드가 아닙니다.",
+},
+{
+text: "interact(query_str)",
+explain: "interact()은 에이전트 상호작용에 대한 유효한 메서드가 아닙니다.",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "맥락을 전달하고 유지함으로써 상태를 유지할 수 있습니다!",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4: 에이전트 RAG의 주요 특징은 무엇인가요?
+
+<Question
+choices={[
+{
+text: "RAG 워크플로우에서 질문에 답하기 위해 문서 기반 툴만 사용할 수 있습니다",
+explain: "에이전트 RAG는 문서 기반 툴을 포함한 다양한 툴을 사용할 수 있습니다.",
+},
+{
+text: "챗봇처럼 툴 없이 자동으로 질문에 답합니다",
+explain: "에이전트 RAG는 질문에 답하기 위해 툴을 사용합니다.",
+},
+{
+text: "RAG 툴을 포함한 모든 툴을 사용하여 질문에 답할지 결정할 수 있습니다",
+explain: "에이전트 RAG는 질문에 답하기 위해 다양한 툴을 사용할 수 있는 유연성을 가집니다.",
+correct: true
+},
+{
+text: "Function Calling Agents와만 작동합니다",
+explain: "에이전트 RAG는 Function Calling Agents에만 국한되지 않습니다.",
+}
+]}
+/>
+
+---
+
+
+이해하셨나요? 훌륭합니다! 이제 **단원에 대한 간단한 요약을 해보겠습니다!**

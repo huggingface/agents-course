@@ -1,0 +1,111 @@
+# Quiz rapide 2 (non noté) [[quiz2]]
+
+Quoi ?! Un autre Quiz ? Nous savons, nous savons, ... 😅 Mais ce court quiz non noté est là pour **vous aider à renforcer les concepts clés que vous venez d'apprendre**.
+
+Ce quiz couvre les *workflows* d'agents et les interactions, composants essentiels pour construire des agents efficaces.
+
+### Q1 : Quel est le but de l'`AgentWorkflow` dans LlamaIndex ?
+
+<Question
+choices={[
+{
+text: "Pour exécuter un ou plusieurs agents avec des outils",
+explain: "Oui, l'<code>AgentWorkflow</code> est la façon principale de créer rapidement un système avec un ou plusieurs agents.",
+correct: true
+},
+{
+text: "Pour créer un seul agent qui peut interroger vos données sans mémoire",
+explain: "Non, l'<code>AgentWorkflow</code> est peut faire plus que cela, le  <code>QueryEngine</code> est pour des requêtes simples sur vos données.",
+},
+{
+text: "Pour construire automatiquement des outils pour les agents",
+explain: "L'<code>AgentWorkflow</code> ne construit pas d'outils, c'est le travail du développeur.",
+},
+{
+text: "Pour gérer la mémoire et l'état des agents",
+explain: "Gérer la mémoire et l'état n'est pas l'objectif principal de l'<code>AgentWorkflow</code>.",
+}
+]}
+/>
+
+---
+
+### Q2 : Quel objet est utilisé pour garder une trace de l'état du *workflow* ?
+
+<Question
+choices={[
+{
+text: "<code>State</code>",
+explain: "<code>State</code> n'est pas le bon objet pour la gestion d'état du <i>workflow</i>.",
+},
+{
+text: "<code>Context</code>",
+explain: "<code>Context</code> est le bon objet utilisé pour garder une trace de l'état du workflow.",
+correct: true
+},
+{
+text: "<code>WorkflowState</code>",
+explain: "<code>WorkflowState</code> n'est pas le bon objet.",
+},
+{
+text: "<code>Management</code>",
+explain: "<code>Management</code> n'est pas un objet valide pour l'état du <i>workflow</i>.",
+}
+]}
+/>
+
+---
+
+### Q3 : Quelle méthode devrait être utilisée si vous voulez qu'un agent se souvienne des interactions précédentes ?
+
+<Question
+choices={[
+{
+text: "<code>run(query_str)</code>",
+explain: "<code>.run(query_str)</code> ne maintient pas l'historique de conversation.",
+},
+{
+text: "<code>chat(query_str, ctx=ctx)</code>",
+explain: "<code>chat()</code> n'est pas une méthode valide sur les <i>workflows</i>.",
+},
+{
+text: "<code>interact(query_str)</code>",
+explain: "<code>interact()</code> n'est pas une méthode valide pour les interactions d'agents.",
+},
+{
+text: "<code>run(query_str, ctx=ctx)</code>",
+explain: "En passant et maintenant le contexte, nous pouvons maintenir l'état !",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4 : Quelle est une caractéristique clé du RAG agentique ?
+
+<Question
+choices={[
+{
+text: "Il ne peut utiliser que des outils basés sur des documents, pour répondre aux questions dans un <i>workflow</i> RAG",
+explain: "Le RAG agentique peut utiliser différents outils, incluant les outils basés sur des documents.",
+},
+{
+text: "Il répond automatiquement aux questions sans outils, comme un chatbot",
+explain: "Le RAG agentique utilise bien des outils pour répondre aux questions.",
+},
+{
+text: "Il peut décider d'utiliser n'importe quel outil pour répondre aux questions, incluant les outils RAG",
+explain: "Le RAG agentique a la flexibilité d'utiliser différents outils pour répondre aux questions.",
+correct: true
+},
+{
+text: "Il ne fonctionne qu'avec les <i>Function Calling Agents</i>",
+explain: "Le RAG agentique n'est pas limité aux <i>Function Calling Agents</i>.",
+}
+]}
+/>
+
+---
+
+Vous avez compris ? Parfait ! Maintenant faisons **un bref récapitulatif de l'unité !**

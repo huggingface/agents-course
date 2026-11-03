@@ -1,0 +1,142 @@
+# 소규모 퀴즈(비채점) [[quiz2]]
+
+*Code Agents*, *Tool Calling Agents*, *Tools* 섹션에 대한 이해도를 테스트해봅시다. 이 퀴즈는 선택 사항이며 점수화되지 않습니다.
+
+---
+
+### Q1: smolagents에서 `@tool` 데코레이터로 도구를 만드는 것과 `Tool` 서브클래스를 만드는 것의 핵심 차이는?
+두 방식의 도구 정의 차이를 가장 잘 설명하는 문장을 고르세요.
+
+<Question
+choices={[
+  {
+    text: "<code>@tool</code> 데코레이터는 리트리벌 기반 도구에만 필수이고, <code>Tool</code> 서브클래스는 텍스트 생성 작업에만 사용된다",
+    explain: "두 방식 모두 어떤 유형의 도구에도 사용할 수 있습니다.",
+  },
+  {
+    text: "<code>@tool</code> 데코레이터는 간단한 함수형 도구에 권장되고, <code>Tool</code> 서브클래스는 복잡한 기능이나 커스텀 메타데이터가 필요할 때 더 유연하다",
+    explain: "정답입니다. 데코레이터 방식이 더 간단하고, 서브클래싱은 맞춤 동작에 적합합니다.",
+    correct: true
+  },
+  {
+    text: "<code>@tool</code>은 멀티 에이전트 시스템에서만 쓸 수 있고, <code>Tool</code> 서브클래스는 단일 에이전트에만 쓸 수 있다",
+    explain: "모든 에이전트(단일/멀티)에서 두 방식 모두 사용할 수 있습니다.",
+  },
+  {
+    text: "<code>@tool</code>로 함수에 데코레이터를 달면 docstring이 필요 없고, 서브클래스는 docstring을 포함하면 안 된다",
+    explain: "두 방식 모두 명확한 docstring이 필요합니다.",
+  }
+]}
+/>
+
+---
+
+### Q2: CodeAgent는 ReAct(Reason + Act) 접근법으로 다단계 작업을 어떻게 처리하나요?
+CodeAgent가 일련의 단계를 실행해 문제를 푸는 방식을 올바르게 설명한 문장을 고르세요.
+
+<Question
+choices={[
+  {
+    text: "각 단계를 멀티 에이전트 시스템의 다른 에이전트에 넘기고, 결과를 합친다",
+    explain: "멀티 에이전트 시스템에서는 분산이 가능하지만, CodeAgent 자체도 ReAct로 여러 단계를 처리할 수 있습니다.",
+  },
+  {
+    text: "모든 액션을 JSON에 저장해 한 번에 실행한다",
+    explain: "이 방식은 ToolCallingAgent의 JSON 기반 접근에 가깝습니다.",
+  },
+  {
+    text: "내부 사고를 작성하고, 파이썬 코드를 생성·실행하며, 결과를 기록하는 과정을 반복해 최종 답에 도달한다",
+    explain: "정답입니다. CodeAgent는 ReAct 패턴(사고-행동-관찰-반복)으로 동작합니다.",
+    correct: true
+  },
+  {
+    text: "비전 모듈로 코드 출력을 검증한 뒤 다음 단계로 넘어간다",
+    explain: "비전 기능은 지원되지만, CodeAgent나 ReAct의 기본 요구사항은 아닙니다.",
+  }
+]}
+/>
+
+---
+
+### Q3: 도구를 Hugging Face Hub에 공유할 때의 주요 장점은?
+개발자가 커스텀 도구를 업로드·공유하는 가장 큰 이유를 고르세요.
+
+<Question
+choices={[
+  {
+    text: "도구가 자동으로 MultiStepAgent와 통합되어 RAG가 구현된다",
+    explain: "도구 공유는 자동으로 리트리벌이나 멀티스텝 로직을 설정하지 않습니다.",
+  },
+  {
+    text: "다른 사람이 내 도구를 쉽게 발견·재사용·통합할 수 있다",
+    explain: "정답입니다. Hub에 공유하면 누구나 빠르게 다운로드·재사용할 수 있습니다.",
+    correct: true
+  },
+  {
+    text: "CodeAgent만 도구를 호출할 수 있고, ToolCallingAgent는 불가능하다",
+    explain: "두 에이전트 모두 공유 도구를 호출할 수 있습니다.",
+  },
+  {
+    text: "도구가 자동으로 비전 기능을 갖춘 이미지 처리 함수로 변환된다",
+    explain: "도구 공유는 기능을 바꾸거나 비전 기능을 추가하지 않습니다.",
+  }
+]}
+/>
+
+---
+
+### Q4: ToolCallingAgent와 CodeAgent의 액션 실행 방식 차이에 대해 올바른 설명은?
+ToolCallingAgent의 동작 방식을 가장 잘 설명한 문장을 고르세요.
+
+<Question
+choices={[
+  {
+    text: "ToolCallingAgent는 멀티 에이전트 시스템에서만 쓸 수 있고, CodeAgent는 단독 실행이 가능하다",
+    explain: "두 에이전트 모두 단독 또는 멀티 시스템에서 사용할 수 있습니다.",
+  },
+  {
+    text: "ToolCallingAgent는 모든 추론을 리트리버 에이전트에 위임한 뒤 최종 답을 반환한다",
+    explain: "ToolCallingAgent도 메인 LLM이 추론을 담당합니다.",
+  },
+  {
+    text: "ToolCallingAgent는 도구 호출과 인자를 JSON으로 출력하고, 이를 파싱해 실행한다",
+    explain: "정답입니다. ToolCallingAgent는 JSON 방식으로 도구 호출을 정의합니다.",
+    correct: true
+  },
+  {
+    text: "ToolCallingAgent는 단일 단계 작업만 가능하며, 한 번 도구 호출 후 자동 종료된다",
+    explain: "ToolCallingAgent도 필요에 따라 여러 단계를 수행할 수 있습니다.",
+  }
+]}
+/>
+
+---
+
+### Q5: smolagents 기본 도구 상자에는 무엇이 포함되어 있고, 왜 사용할까요?
+기본 도구 상자의 목적과 내용을 가장 잘 설명한 문장을 고르세요.
+
+<Question
+choices={[
+  {
+    text: "DuckDuckGo 검색, PythonInterpreterTool, 최종 답변 도구 등 자주 쓰는 도구를 제공해 빠른 프로토타이핑이 가능하다",
+    explain: "정답입니다. 기본 도구 상자에는 바로 쓸 수 있는 도구들이 포함되어 있습니다.",
+    correct: true
+  },
+  {
+    text: "기본적으로 이미지 분류, OCR 등 비전 기반 작업만 지원한다",
+    explain: "비전 기능도 통합할 수 있지만, 기본 도구 상자는 비전 전용이 아닙니다.",
+  },
+  {
+    text: "멀티 에이전트 시스템 전용이며, 단일 CodeAgent와는 호환되지 않는다",
+    explain: "기본 도구 상자는 모든 에이전트 유형에서 사용할 수 있습니다.",
+  },
+  {
+    text: "대규모 벡터 스토어 기반 고급 RAG 기능을 자동 제공한다",
+    explain: "리트리벌 도구를 만들 수 있지만, 기본 상자에 고급 RAG 기능이 자동 포함되진 않습니다.",
+  }
+]}
+/>
+
+---
+
+퀴즈를 모두 마쳤습니다! 🎉 어려웠던 문제는 *Code Agents*, *Tool Calling Agents*, *Tools* 섹션을 복습해보세요. 모두 맞췄다면, robust한 smolagents 애플리케이션을 만들 준비가 된 것입니다!

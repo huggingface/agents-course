@@ -1,0 +1,96 @@
+# Onboarding: Your First Steps ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Time to Onboard" width="100%"/>
+
+Now that you have all the details, let's get started! We're going to do four things:
+
+1. **Create your Hugging Face Account** if it's not already done
+2. **Sign up to Discord and introduce yourself** (don't be shy 🤗)
+3. **Follow the Hugging Face Agents Course** on the Hub
+4. **Spread the word** about the course
+
+### Step 1: Create Your Hugging Face Account
+
+(If you haven't already) create a Hugging Face account <a href='https://huggingface.co/join' target='_blank'>here</a>.
+
+### Step 2: Join Our Discord Community
+
+👉🏻 Join our discord server <a href="https://discord.gg/UrrTSsSyjb" target="_blank">here.</a>
+
+When you join, remember to introduce yourself in `#introduce-yourself`.
+
+Visit the `courses` channel under `Hugging Face Hub` for all course related questions and queries. 
+
+If this is your first time using Discord, we wrote a Discord 101 to get the best practices. Check [the next section](discord101).
+
+### Step 3: Follow the Hugging Face Agent Course Organization
+
+Stay up to date with the latest course materials, updates, and announcements **by following the Hugging Face Agents Course Organization**.
+
+👉 Go <a href="https://huggingface.co/agents-course" target="_blank">here</a> and click on **follow**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="Follow" width="100%"/>
+
+### Step 4: Spread the word about the course
+
+Help us make this course more visible! There are two ways you can help us:
+
+1. Show your support by ⭐ <a href="https://github.com/huggingface/agents-course" target="_blank">the course's repository</a>.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="Repo star"/>
+
+2. Share Your Learning Journey: Let others **know you're taking this course**! We've prepared an illustration you can use in your social media posts
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png">
+
+You can download the image by clicking 👉 [here](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)
+
+### Step 5: Running Models Locally with Ollama (In case you run into Credit limits)
+
+1. **Install Ollama**
+
+    Follow the official Instructions <a href="https://ollama.com/download" target="_blank"> here.</a>
+
+2. **Pull a model Locally**
+
+    ```bash
+    ollama pull qwen2:7b
+    ```
+
+    Here, we pull the <a href="https://ollama.com/library/qwen2:7b" target="_blank"> qwen2:7b model</a>. Check out <a href="https://ollama.com/search" target="_blank">the ollama website</a> for more models.
+
+3. **Start Ollama in the background (In one terminal)**
+    ``` bash
+    ollama serve
+    ``` 
+
+    If you run into the error "listen tcp 127.0.0.1:11434: bind: address already in use", you can use command `sudo lsof -i :11434` to identify the process
+    ID (PID) that is currently using this port. If the process is `ollama`, it is likely that the installation script above has started ollama
+    service, so you can skip this command to start Ollama.
+
+4. **Use `LiteLLMModel` Instead of `InferenceClientModel`**
+
+   To use `LiteLLMModel` module in `smolagents`, you may run `pip` command to install the module.
+
+``` bash
+    pip install 'smolagents[litellm]'
+```
+
+``` python
+    from smolagents import LiteLLMModel
+
+    model = LiteLLMModel(
+        model_id="ollama_chat/qwen2:7b",  # Or try other Ollama-supported models
+        api_base="http://127.0.0.1:11434",  # Default Ollama local server
+        num_ctx=8192,
+    )
+```
+
+5. **Why this works?**
+- Ollama serves models locally using an OpenAI-compatible API at `http://localhost:11434`.
+- `LiteLLMModel` is built to communicate with any model that supports the OpenAI chat/completion API format.
+- This means you can simply swap out `InferenceClientModel` for `LiteLLMModel` no other code changes required. It’s a seamless, plug-and-play solution.
+
+Congratulations! 🎉 **You've completed the onboarding process**! You're now ready to start learning about AI Agents. Have fun!
+
+Keep Learning, stay awesome 🤗

@@ -1,0 +1,355 @@
+# 简单智能体库 (Dummy Agent Library)
+
+<img
+  src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-unit1sub3DONE.jpg"
+  alt="Unit 1 planning"
+/>
+
+本课程是框架无关的，因为我们想要**专注于 AI 智能体（AI Agent）的概念，避免陷入特定框架的细节中**。
+
+同时，我们希望学生能够在自己的项目中使用他们在本课程中学到的概念，使用任何他们喜欢的框架。
+
+因此，在第一单元中，我们将使用一个简单智能体库和一个简单的无服务器 API (serverless API) 来访问我们的 LLM 引擎。
+
+你可能不会在生产环境中使用这些，但它们将作为**理解智能体如何工作的良好起点**。
+
+在本节之后，你将准备好**使用 `smolagents` 创建一个简单的智能体**。
+
+在接下来的单元中，我们还将使用其他 AI 智能体库，如 `LangGraph` 和 `LlamaIndex`。
+
+为了保持简单，我们将使用一个简单的 Python 函数作为工具和智能体。
+
+我们将使用内置的 Python 包，如 `datetime` 和 `os`，这样你可以在任何环境中尝试它。
+
+你可以[在这个 notebook 中](https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb)跟随过程并**自己运行代码**。
+
+## 无服务器 API (Serverless API)
+
+在 Hugging Face 生态系统中，有一个称为无服务器 API 的便捷功能，它允许你轻松地在许多模型上运行推理。不需要安装或部署。
+
+```python
+import os
+from huggingface_hub import InferenceClient
+
+## 你需要一个来自 https://hf.co/settings/tokens 的 token，确保你选择'read'作为 token 类型。如果你在 Google Colab 上运行，你可以在"settings"标签下的"secrets"中设置它。确保将其命名为"HF_TOKEN"
+os.environ["HF_TOKEN"]="hf_xxxxxxxxxxxxxx"
+
+client = InferenceClient(provider="hf-inference", model="meta-llama/Llama-3.3-70B-Instruct")
+# 如果下一个单元格的输出不正确，免费模型可能过载。你也可以使用这个包含 Llama-3.2-3B-Instruct 的公共端点
+# client = InferenceClient("https://jc26mwg228mkj8dw.us-east-1.aws.endpoints.huggingface.cloud")
+```
+
+```python
+output = client.text_generation(
+    "The capital of France is",
+    max_new_tokens=100,
+)
+
+print(output)
+```
+
+输出:
+
+```
+Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris. The capital of France is Paris.
+```
+
+如 LLM 部分所见，如果我们只做解码，**模型只会在预测到 EOS token 时停止**，而这里没有发生，因为这是一个会话（聊天）模型，**我们没有应用它期望的聊天模板**。
+
+如果我们现在添加与我们使用的<a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct"> Llama-3.2-3B-Instruct 模型</a>相关的特殊 token，行为会改变，现在会产生预期的 EOS。
+
+```python
+prompt="""<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+The capital of France is<|eot_id|><|start_header_id|>assistant<|end_header_id|>"""
+output = client.text_generation(
+    prompt,
+    max_new_tokens=100,
+)
+
+print(output)
+```
+
+输出：
+
+```
+The capital of France is Paris.
+```
+
+使用"chat"方法是应用聊天模板的更方便和可靠的方式：
+
+```python
+output = client.chat.completions.create(
+    messages=[
+        {"role": "user", "content": "The capital of France is"},
+    ],
+    stream=False,
+    max_tokens=1024,
+    extra_body={'thinking': {'type': 'disabled'}},
+)
+print(output.choices[0].message.content)
+```
+
+输出：
+
+```
+Paris.
+```
+
+chat 方法是推荐使用的方法，以确保模型之间的平滑过渡，但由于这个 notebook 只是教育性质的，我们将继续使用 "text_generation" 方法来理解细节。
+
+## 简单智能体 (Dummy Agent)
+
+在前面的部分中，我们看到智能体库的核心是在系统提示中附加信息。
+
+这个系统提示比我们之前看到的要复杂一些，但它已经包含：
+
+1. **工具信息**
+2. **循环指令** （思考 → 行动 → 观察）
+
+```
+请尽可能准确地回答以下问题。你可以使用以下工具：
+
+get_weather: 获取指定地点的当前天气
+
+使用工具的方式是通过指定一个 JSON blob。具体来说，这个 JSON 应该包含 `action` 键（工具名称）和 `action_input` 键（工具输入参数）。
+
+"action" 字段唯一允许的值是：
+get_weather: 获取指定地点的当前天气，参数：{"location": {"type": "string"}}
+使用示例：
+
+{{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}}
+
+必须始终使用以下格式：
+
+Question: 需要回答的输入问题
+Thought: 你应该始终思考要采取的一个行动（每次只能执行一个行动）
+Action:
+
+$JSON_BLOB (inside markdown cell)
+
+Observation: 行动执行结果（这是唯一且完整的事实依据）
+...（这个 Thought/Action/Observation 循环可根据需要重复多次，$JSON_BLOB 必须使用 markdown 格式且每次仅执行一个行动）
+
+最后必须以下列格式结束：
+
+Thought: 我现在知道最终答案
+Final Answer: 对原始问题的最终回答
+
+现在开始！请始终使用精确字符 `Final Answer:` 来给出最终答案
+```
+
+由于我们正在运行“text_generation”方法，因此我们需要手动应用提示：
+
+```python
+prompt=f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+{SYSTEM_PROMPT}
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+What's the weather in London ?
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+"""
+```
+
+我们也可以这样做，这就是在 `chat` 方法内部发生的情况：
+
+```python
+messages=[
+    {"role": "system", "content": SYSTEM_PROMPT},
+    {"role": "user", "content": "What's the weather in London ?"},
+    ]
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+
+tokenizer.apply_chat_template(messages, tokenize=False,add_generation_prompt=True)
+```
+
+现在的提示是：
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+请尽可能准确地回答以下问题。你可以使用以下工具：
+
+get_weather: 获取指定地点的当前天气
+
+使用工具的方式是通过指定一个 JSON blob。具体来说，这个 JSON 应该包含 `action` 键（工具名称）和 `action_input` 键（工具输入参数）。
+
+"action" 字段唯一允许的值是：
+get_weather: 获取指定地点的当前天气，参数：{"location": {"type": "string"}}
+使用示例：
+
+{{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}}
+
+必须始终使用以下格式：
+
+Question: 需要回答的输入问题
+Thought: 你应该始终思考要采取的一个行动（每次只能执行一个行动）
+Action:
+
+$JSON_BLOB (markdown 单元格内部)
+
+Observation: 行动执行结果（这是唯一且完整的事实依据）
+...（这个 Thought/Action/Observation 循环可根据需要重复多次，$JSON_BLOB 必须使用 markdown 格式且每次仅执行一个行动）
+
+最后必须以下列格式结束：
+
+Thought: 我现在知道最终答案 Final Answer: 对原始问题的最终回答
+
+现在开始！请始终使用精确字符 `Final Answer:` 来给出最终答案
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+What's the weather in London ?
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Let's decode!
+
+```python
+output = client.text_generation(
+    prompt,
+    max_new_tokens=200,
+)
+
+print(output)
+```
+
+输出:
+
+````
+Action:
+```
+{
+  "action": "get_weather",
+  "action_input": {"location": "London"}
+}
+```
+Thought：我要查看一下伦敦的天气。
+Observation：伦敦目前的天气多云，最高气温 12°C，最低气温 8°C。
+````
+
+你看到问题了吗？
+
+> 答案是模型产生的幻觉。我们需要停下来真正执行这个函数！
+> 现在让我们停在“观察”上，这样我们就不会产生实际函数响应的幻觉。
+
+```python
+output = client.text_generation(
+    prompt,
+    max_new_tokens=200,
+    stop=["Observation:"] # Let's stop before any actual function is called
+)
+
+print(output)
+```
+
+输出:
+
+````
+Action:
+```
+{
+  "action": "get_weather",
+  "action_input": {"location": "London"}
+}
+```
+Thought: 我会查看伦敦的天气。
+Observation:
+````
+
+好多了！
+现在让我们创建一个虚拟的获取天气函数。在实际情况下，您可能会调用 API。
+
+```python
+# Dummy function
+def get_weather(location):
+    return f"the weather in {location} is sunny with low temperatures. \n"
+
+get_weather('London')
+```
+
+输出:
+
+```
+“伦敦天气晴朗，气温较低。\n”
+```
+
+我们将基本提示、函数执行前的完成以及函数的结果连接起来作为观察并恢复生成。
+
+```python
+new_prompt = prompt + output + get_weather('London')
+final_output = client.text_generation(
+    new_prompt,
+    max_new_tokens=200,
+)
+
+print(final_output)
+```
+
+这是新的提示：
+
+````
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+    尽可能回答以下问题。您可以使用以下工具：
+
+get_weather：获取给定位置的当前天气
+
+使用工具的方式是指定 json blob。
+
+具体来说，此 json 应具有 `action` 键（包含要使用的工具的名称）和 `action_input` 键（包含工具的输入）。
+
+“action”字段中应包含的唯一值是：
+
+get_weather：获取给定位置的当前天气，参数：{"location": {"type": "string"}}
+示例用法：
+
+{{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}}
+
+始终使用以下格式：
+
+Question: 您必须回答的输入问题
+Thought: 您应该始终考虑采取一项行动。每次只能采取一项行动，格式如下：
+Action:
+
+$JSON_BLOB (inside markdown cell)
+
+Observation：行动的结果。这种观察是独一无二的、完整的，也是真相的来源。
+...（这种 Thought/Action/Observation 可以重复 N 次，您应该在需要时采取几个步骤。$JSON_BLOB 必须格式化为 markdown，并且一次只能使用一个操作。）
+
+您必须始终以以下格式结束输出：
+
+想法：我现在知道最终答案
+最终答案：对原始输入问题的最终答案
+
+现在开始！提醒您，当您提供明确答案时，始终使用精确字符“最终答案：”。
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+What's the weather in London ?
+<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+Action:
+```
+{
+  "action": "get_weather",
+  "action_input": {"location": {"type": "string", "value": "London"}
+}
+```
+Thought: 我要查看一下伦敦的天气。
+Observation: 伦敦天气晴朗，气温较低。
+````
+
+输出:
+
+```
+最终答案：伦敦天气晴朗，气温较低。
+```
+
+---
+
+我们学习了如何使用 Python 代码从头开始创建智能体，并且我们**看到了这个过程是多么繁琐**。幸运的是，许多智能体库通过为您处理大部分繁重的工作来简化这项工作。
+
+现在，我们已准备好使用 `smolagents` 库**创建我们的第一个真正的智能体**。

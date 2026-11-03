@@ -1,0 +1,12 @@
+[project]
+name = "agents-course"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "datasets>=3.2.0",
+    "huggingface-hub>=0.27.1",
+    "ipykernel>=6.29.5",
+    "requests>=2.32.3",
+]

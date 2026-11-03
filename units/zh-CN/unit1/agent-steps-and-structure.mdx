@@ -1,0 +1,145 @@
+# 通过思考-行动-观察循环理解 AI 智能体 (Understanding AI Agents through the Thought-Action-Observation Cycle)
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Unit 1 planning"/>
+
+在前面的章节中，我们学习了：
+
+- **如何在系统提示中向智能体提供工具 (tools)**。
+- **AI 智能体 (AI agents) 是如何能够"推理"、规划并与其环境交互的系统**。
+
+在本节中，**我们将探索完整的 AI 智能体工作流程**，这是我们定义的思考-行动-观察 (Thought-Action-Observation) 循环。
+
+然后，我们将深入探讨这些步骤中的每一个。
+
+## 核心组件 (Core Components)
+
+智能体在一个持续的循环中工作：**思考 (Thought) → 行动 (Act) 和观察 (Observe)**。
+
+让我们一起分解这些行动：
+
+1. **思考 (Thought)**：智能体的大语言模型 (LLM) 部分决定下一步应该是什么。
+2. **行动 (Action)**：智能体通过使用相关参数调用工具来采取行动。
+3. **观察 (Observation)**：模型对工具的响应进行反思。
+
+## 思考-行动-观察循环 (The Thought-Action-Observation Cycle)
+
+这三个组件在一个持续的循环中协同工作。用编程的类比来说，智能体使用一个 **while 循环**：循环持续进行，直到智能体的目标被实现。
+
+视觉上，它看起来是这样的：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Think, Act, Observe cycle"/>
+
+在许多智能体框架中，**规则和指南直接嵌入到系统提示中**，确保每个循环都遵循定义的逻辑。
+
+在一个简化版本中，我们的系统提示可能看起来像这样：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Think, Act, Observe cycle"/>
+
+我们在这里看到，在系统消息中我们定义了：
+
+- *智能体的行为*。
+- *我们的智能体可以访问的工具*，就像我们在上一节中描述的那样。
+- *思考-行动-观察循环*，我们将其融入到大语言模型指令中。
+
+让我们看一个小例子，在深入研究每个步骤之前理解这个过程。
+
+## 阿尔弗雷德，天气智能体 (Alfred, the Weather Agent)
+
+我们创建了阿尔弗雷德，天气智能体。
+
+用户问阿尔弗雷德："今天纽约的天气如何？"
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Alfred Agent"/>
+
+阿尔弗雷德的工作是使用天气 API 工具回答这个查询。
+
+以下是循环的展开过程：
+
+### 思考 (Thought)
+
+**内部推理：**
+
+在收到查询后，阿尔弗雷德的内部对话可能是：
+
+*"用户需要纽约的当前天气信息。我可以访问一个获取天气数据的工具。首先，我需要调用天气API来获取最新的详细信息。"*
+
+这一步显示了智能体将问题分解成步骤：首先，收集必要的数据。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Alfred Agent"/>
+
+### 行动 (Action)
+
+**工具使用：**
+
+基于其推理和阿尔弗雷德知道有一个`get_weather`工具的事实，阿尔弗雷德准备一个 JSON 格式的命令来调用天气 API 工具。例如，它的第一个动作可能是：
+
+思考：我需要检查纽约的当前天气。
+
+```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+```
+
+在这里，动作清楚地指定了要调用哪个工具（如get_weather）和要传递的参数（"location": "New York"）。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
+
+### 观察 (Observation)
+
+**来自环境的反馈：**
+
+在工具调用之后，阿尔弗雷德接收到一个观察结果。这可能是来自API的原始天气数据，如：
+
+*"纽约当前天气：多云，15°C，湿度60%。"*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Alfred Agent"/>
+
+这个观察结果然后被添加到提示中作为额外的上下文。它作为现实世界的反馈，确认行动是否成功并提供所需的细节。
+
+### 更新的思考 (Updated thought)
+
+**反思：**
+
+获得观察结果后，阿尔弗雷德更新其内部推理：
+
+*"现在我有了纽约的天气数据，我可以为用户编写答案了。"*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Alfred Agent"/>
+
+### 最终行动 (Final Action)
+
+然后阿尔弗雷德生成一个按照我们告诉它的方式格式化的最终响应：
+
+思考：我现在有了天气数据。纽约当前天气多云，温度15°C，湿度60%。
+
+最终答案：纽约当前天气多云，温度15°C，湿度60%。
+
+这个最终行动将答案发送回用户，完成循环。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Alfred Agent"/>
+
+我们在这个例子中看到：
+
+- **智能体在目标实现之前不断迭代循环：**
+    
+**阿尔弗雷德的过程是循环的**。它从思考开始，然后通过调用工具采取行动，最后观察结果。如果观察结果表明有错误或数据不完整，阿尔弗雷德可以重新进入循环来纠正其方法。
+    
+- **工具集成 (Tool Integration)：**
+
+调用工具（如天气 API）的能力使阿尔弗雷德能够**超越静态知识并检索实时数据**，这是许多 AI 智能体的重要方面。
+
+- **动态适应 (Dynamic Adaptation)：**
+
+每个循环都允许智能体将新信息（观察）整合到其推理（思考）中，确保最终答案是明智和准确的。
+    
+这个例子展示了 *ReAct 循环*背后的核心概念（这是我们将在下一节中发展的概念）：**思考、行动和观察的相互作用使 AI 智能体（AI Agent）能够迭代地解决复杂任务**。
+
+通过理解和应用这些原则，你可以设计出不仅能够推理其任务，而且能够**有效利用外部工具来完成它们**的智能体，同时基于环境反馈不断改进其输出。
+
+---
+
+现在让我们深入了解过程中的各个步骤：思考、行动、观察。

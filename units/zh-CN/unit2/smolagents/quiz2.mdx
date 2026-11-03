@@ -1,0 +1,147 @@
+# 小测验（不计分）[[quiz2]]
+
+现在该测试您对*代码智能体*、*工具调用智能体*和*工具*章节的理解了。本测验为可选且不计分。
+
+---
+
+### Q1: 使用 `@tool` 装饰器创建工具与创建 `Tool` 的子类之间的主要区别是什么？
+
+以下哪个陈述最能描述这两种定义工具方法的区别？
+
+<Question
+choices={[
+  {
+    text: "使用 <code>@tool</code> 装饰器是检索类工具的强制要求，而 <code>Tool</code> 的子类仅用于文本生成任务",
+    explain: "两种方法都适用于任何类型的工具，包括检索类和文本生成类工具。",
+  },
+  {
+    text: "推荐使用 <code>@tool</code> 装饰器创建简单的基于函数的工具，而 <code>Tool</code> 的子类能为复杂功能或自定义元数据提供更大灵活性",
+    explain: "正确。装饰器方法更简单，但子类化允许更定制化的行为。",
+    correct: true
+  },
+  {
+    text: "<code>@tool</code> 只能用于多智能体系统，而创建 <code>Tool</code> 的子类适用于单智能体场景",
+    explain: "所有智能体（单或多）都可以使用这两种方法定义工具，没有此类限制。",
+  },
+  {
+    text: "用 <code>@tool</code> 装饰函数可以替代文档字符串，而子类工具必须不包含文档字符串",
+    explain: "两种方法都需要清晰的文档字符串。装饰器不会替代它们，子类仍然可以包含文档字符串。",
+  }
+]}
+/>
+
+---
+
+### Q2: CodeAgent 如何使用 ReAct（推理+行动）方法处理多步骤任务？
+
+哪个陈述正确描述了 CodeAgent 执行系列步骤来解决任务的方式？
+
+<Question
+choices={[
+  {
+    text: "它将每个步骤传递给多智能体系统中的不同智能体，然后合并结果",
+    explain: "尽管多智能体系统可以分配任务，但 CodeAgent 本身可以使用 ReAct 独立处理多个步骤。",
+  },
+  {
+    text: "它将所有操作存储为 JSON 格式以便解析，然后一次性执行所有操作",
+    explain: "此行为匹配 ToolCallingAgent 的基于 JSON 的方法，而非 CodeAgent。",
+  },
+  {
+    text: "它循环执行以下流程：编写内部思考、生成 Python 代码、执行代码并记录结果，直到得出最终答案",
+    explain: "正确。这描述了 CodeAgent 使用的 ReAct 模式，包括迭代推理和代码执行。",
+    correct: true
+  },
+  {
+    text: "它依赖视觉模块验证代码输出后才能继续下一步",
+    explain: "smolagents 支持视觉能力，但它们不是 CodeAgent 或 ReAct 方法的默认要求。",
+  }
+]}
+/>
+
+---
+
+### Q3: 在 Hugging Face Hub 上共享工具的主要优势是什么？
+
+选择开发者可能上传和共享自定义工具的最佳原因。
+
+<Question
+choices={[
+  {
+    text: "它会自动将工具与 MultiStepAgent 集成以实现检索增强生成",
+    explain: "共享工具不会自动设置检索或多步逻辑，只是使工具可用。",
+  },
+  {
+    text: "它允许他人在无需额外设置的情况下发现、重用并将您的工具集成到他们的 smolagents 中",
+    explain: "正确。在 Hub 上共享使工具可供任何人（包括您自己）快速下载和重用。",
+    correct: true
+  },
+  {
+    text: "它确保只有 CodeAgent 可以调用该工具，而 ToolCallingAgent 无法调用",
+    explain: "CodeAgent 和 ToolCallingAgent 都可以调用共享工具，没有基于智能体类型的限制。",
+  },
+  {
+    text: "它会将您的工具转换为具备完整视觉能力的图像处理函数",
+    explain: "工具共享不会自动改变工具功能或增加视觉能力。",
+  }
+]}
+/>
+
+---
+
+### Q4: ToolCallingAgent 在执行操作方面与 CodeAgent 有何不同？
+
+选择准确描述 ToolCallingAgent 工作方式的选项。
+
+<Question
+choices={[
+  {
+    text: "ToolCallingAgent 仅兼容多智能体系统，而 CodeAgent 可以单独运行",
+    explain: "两种智能体都可以单独使用或作为多智能体系统的一部分。",
+  },
+  {
+    text: "ToolCallingAgent 将所有推理委托给单独的检索智能体，然后返回最终答案",
+    explain: "ToolCallingAgent 仍然使用主 LLM 进行推理，不完全依赖检索智能体。",
+  },
+  {
+    text: "ToolCallingAgent 输出指定工具调用和参数的 JSON 指令，这些指令会被解析并执行",
+    explain: "正确。ToolCallingAgent 使用 JSON 方法来定义工具调用。",
+    correct: true
+  },
+  {
+    text: "ToolCallingAgent 仅适用于单步任务，在调用一个工具后自动停止",
+    explain: "ToolCallingAgent 可以像 CodeAgent 一样根据需要执行多个步骤。",
+  }
+]}
+/>
+
+---
+
+### Q5: smolagents 默认工具箱包含哪些内容？为什么要使用它？
+
+哪个陈述最能体现 smolagents 默认工具箱的目的和内容？
+
+<Question
+choices={[
+  {
+    text: "它提供常用工具集（如 DuckDuckGo 搜索、PythonInterpreterTool 和最终答案工具）用于快速原型开发",
+    explain: "正确。默认工具箱包含这些现成工具，便于在构建智能体时快速集成。",
+    correct: true
+  },
+  {
+    text: "它默认仅支持基于视觉的任务（如图像分类或 OCR）",
+    explain: "尽管 smolagents 可以集成视觉功能，但默认工具箱并非专门面向视觉任务。",
+  },
+  {
+    text: "它专门为多智能体系统设计，与单 CodeAgent 不兼容",
+    explain: "默认工具箱适用于任何智能体类型，包括单智能体和多智能体设置。",
+  },
+  {
+    text: "它添加了基于检索的高级功能，支持来自向量存储的大规模问答",
+    explain: "虽然可以构建检索工具，但默认工具箱不会自动提供高级 RAG 功能。",
+  }
+]}
+/>
+
+---
+
+恭喜完成测验！🎉 如果有任何问题让您感到困难，请重新访问*代码智能体*、*工具调用智能体*或*工具*章节以加强理解。如果您表现出色，那么您已踏上构建强大 smolagents 应用的道路！

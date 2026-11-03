@@ -1,0 +1,147 @@
+# Petit Quiz (non noté) [[quiz2]]
+
+Il est temps de tester votre compréhension des sections sur `CodeAgent`, `ToolCalling Agent` et les *Outils*. Ce quiz est optionnel et non noté.
+
+---
+
+### Q1 : Quelle est la différence clé entre créer un outil avec le décorateur `@tool` et créer une sous-classe de `Tool` dans smolagents ?
+
+Quelle déclaration décrit le mieux la distinction entre ces deux approches pour définir des outils ?
+
+<Question
+choices={[
+  {
+    text: "L'utilisation du décorateur <code>@tool</code> est obligatoire pour les outils basés sur la récupération, tandis que les sous-classes de <code>Tool</code> sont uniquement pour les tâches de génération de texte",
+    explain: "Les deux approches peuvent être utilisées pour tout type d'outil, y compris les outils basés sur la récupération ou la génération de texte.",
+  },
+  {
+    text: "Le décorateur <code>@tool</code> est recommandé pour les outils simples basés sur des fonctions, tandis que les sous-classes de <code>Tool</code> offrent plus de flexibilité pour des fonctionnalités complexes ou des métadonnées personnalisées",
+    explain: "C'est correct. L'approche par décorateur est plus simple, mais la sous-classe permet un comportement plus personnalisé.",
+    correct: true
+  },
+  {
+    text: "<code>@tool</code> ne peut être utilisé que dans des systèmes multi-agents, tandis que créer une sous-classe de <code>Tool</code> est pour les scénarios à un seul agent",
+    explain: "Tous les agents (simples ou multiples) peuvent utiliser l'une ou l'autre approche pour définir des outils ; il n'y a pas de telle restriction.",
+  },
+  {
+    text: "Décorer une fonction avec <code>@tool</code> remplace le besoin d'une <i>docstring</i>, tandis que les sous-classes ne doivent pas inclure de <i>docstring</i>",
+    explain: "Les deux méthodes bénéficient de <i>docstrings</i> claires. Le décorateur ne les remplace pas, et une sous-classe peut toujours avoir des <i>docstrings</i>.",
+  }
+]}
+/>
+
+---
+
+### Q2 : Comment un `CodeAgent` gère-t-il les tâches multi-étapes en utilisant l'approche ReAct (*Reason + Act*) ?
+
+Quelle déclaration décrit correctement comment le <code>CodeAgent</code> exécute une série d'étapes pour résoudre une tâche ?
+
+<Question
+choices={[
+  {
+    text: "Il passe chaque étape à un agent différent dans un système multi-agents, puis combine les résultats",
+    explain: "Bien que les systèmes multi-agents puissent distribuer les tâches, <code>CodeAgent</code> lui-même peut gérer plusieurs étapes de manière autonome en utilisant <i>ReAct</i>.",
+  },
+  {
+    text: "Il stocke chaque action en JSON pour une analyse facile avant de les exécuter toutes en même temps",
+    explain: "Ce comportement correspond à l'approche basée sur JSON du <code>ToolCallingAgent</code>, pas du <code>CodeAgent</code>.",
+  },
+  {
+    text: "Il alterne entre l'écriture de raisonnements internes, la génération de code Python, l'exécution du code et l'enregistrement des résultats jusqu'à arriver à une réponse finale",
+    explain: "Correct. Cela décrit le schéma <i>ReAct</i> que <code>CodeAgent</code> utilise, incluant le raisonnement itératif et l'exécution de code.",
+    correct: true
+  },
+  {
+    text: "Il s'appuie sur un module de vision pour valider la sortie du code avant de continuer à l'étape suivante",
+    explain: "Les capacités de vision sont supportées dans <code>smolagents</code>, mais elles ne sont pas une exigence par défaut pour <code>CodeAgent</code> ou l'approche <i>ReAct</i>.",
+  }
+]}
+/>
+
+---
+
+### Q3 : Lequel des éléments suivants est un avantage principal du partage d'un outil sur le Hub d'Hugging Face ?
+
+Sélectionnez la meilleure raison pour laquelle un développeur pourrait télécharger et partager son outil personnalisé.
+
+<Question
+choices={[
+  {
+    text: "Cela intègre automatiquement l'outil avec un <code>MultiStepAgent</code> pour la génération augmentée par récupération",
+    explain: "Partager un outil ne configure pas automatiquement la récupération ou la logique multi-étapes. Il s'agit simplement de rendre l'outil disponible.",
+  },
+  {
+    text: "Cela permet aux autres de découvrir, réutiliser et intégrer votre outil dans leurs agent construit avec <code>smolagents</code> sans configuration supplémentaire",
+    explain: "Oui. Partager sur le Hub rend les outils accessibles pour quiconque (y compris vous-même) de les télécharger et les réutiliser rapidement.",
+    correct: true
+  },
+  {
+    text: "Cela garantit que seuls les <code>CodeAgent</code> peuvent invoquer l'outil tandis que les <code>ToolCallingAgent</code> ne le peuvent pas",
+    explain: "Les <code>CodeAgents</code> et les <code>ToolCallingAgents</code> peuvent tous deux invoquer des outils partagés. Il n'y a pas de restriction par type d'agent.",
+  },
+  {
+    text: "Cela convertit votre outil en une fonction entièrement capable de vision pour le traitement d'images",
+    explain: "Le partage d'outils ne modifie pas la fonctionnalité de l'outil ni n'ajoute automatiquement des capacités de vision.",
+  }
+]}
+/>
+
+---
+
+### Q4 : `ToolCallingAgent` diffère de `CodeAgent` dans la façon dont il exécute les actions. Quelle déclaration est correcte ?
+
+Choisissez l'option qui décrit avec précision comment ToolCallingAgent fonctionne.
+
+<Question
+choices={[
+  {
+    text: "<code>ToolCallingAgent</code> est uniquement compatible avec un système multi-agents, tandis que <code>CodeAgent</code> peut fonctionner seul",
+    explain: "L'un ou l'autre agent peut être utilisé seul ou dans le cadre d'un système multi-agents.",
+  },
+  {
+    text: "<code>ToolCallingAgent</code> délègue tout le raisonnement à un agent de récupération séparé, puis retourne une réponse finale",
+    explain: "<code>ToolCallingAgent</code> utilise toujours un LLM principal pour le raisonnement ; il ne se fie pas uniquement aux agents de récupération.",
+  },
+  {
+    text: "<code>ToolCallingAgent</code> génère des instructions JSON spécifiant les appels d'outils et les arguments, qui sont ensuite analysés et exécutés",
+    explain: "C'est correct. <code>ToolCallingAgent</code> utilise l'approche JSON pour définir les appels d'outils.",
+    correct: true
+  },
+  {
+    text: "<code>ToolCallingAgent</code> est uniquement destiné aux tâches à une seule étape et s'arrête automatiquement après avoir appelé un outil",
+    explain: "<code>ToolCallingAgent</code> peut effectuer plusieurs étapes si nécessaire, tout comme <code>CodeAgent</code>.",
+  }
+]}
+/>
+
+---
+
+### Q5 : Qu'est-ce qui est inclus dans la boîte à outils par défaut de smolagents, et pourquoi pourriez-vous l'utiliser ?
+
+Quelle déclaration capture le mieux l'objectif et le contenu de la boîte à outils par défaut dans smolagents ?
+
+<Question
+choices={[
+  {
+    text: "Elle fournit un ensemble d'outils couramment utilisés tels que la recherche DuckDuckGo, <code>PythonInterpreterTool</code> et un outil de réponse finale pour un prototypage rapide",
+    explain: "Correct. La boîte à outils par défaut contient ces outils prêts à l'emploi pour une intégration facile lors de la construction d'agents.",
+    correct: true
+  },
+  {
+    text: "Elle ne supporte que les tâches basées sur la vision comme la classification d'images ou l'OCR par défaut",
+    explain: "Bien que smolagents puisse intégrer des fonctionnalités basées sur la vision, la boîte à outils par défaut n'est pas exclusivement orientée vision.",
+  },
+  {
+    text: "Elle est destinée uniquement aux systèmes multi-agents et est incompatible avec un seul <code>CodeAgent</code>",
+    explain: "La boîte à outils par défaut peut être utilisée par tout type d'agent, configurations simples ou multi-agents.",
+  },
+  {
+    text: "Elle ajoute des fonctionnalités avancées basées sur la récupération pour la réponse à des questions à grande échelle à partir d'un magasin de vecteurs",
+    explain: "Bien que vous puissiez construire des outils de récupération, la boîte à outils par défaut ne fournit pas automatiquement des fonctionnalités de RAG avancées.",
+  }
+]}
+/>
+
+---
+
+Félicitations pour avoir terminé ce quiz ! 🎉 Si des questions vous ont posé des difficultés, revisitez les sections `CodeAgent`, `ToolCalling Agent` ou *Outils* pour renforcer votre compréhension. Si vous l'avez réussi, vous êtes bien parti pour construire des applications robustes avec `smolagents` !

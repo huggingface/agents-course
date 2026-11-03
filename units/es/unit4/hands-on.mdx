@@ -1,0 +1,50 @@
+# Práctica
+
+Ahora que estás listo/a para profundizar en la creación de tu agente final, veamos cómo puedes enviarlo para su revisión.
+
+## El Conjunto de Datos (Dataset)
+
+El conjunto de datos utilizado en esta tabla de clasificación consta de 20 preguntas extraídas de las preguntas de nivel 1 del conjunto de **validación** de GAIA.
+Las preguntas elegidas se filtraron según la cantidad de herramientas y pasos necesarios para responder una pregunta.
+
+Basándonos en el estado actual del benchmark GAIA, creemos que intentar alcanzar un 30% en las preguntas de nivel 1 es una prueba justa.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="¡Estado actual de GAIA!" />
+
+## El Proceso
+
+Ahora, la gran pregunta en tu mente probablemente sea: "¿Cómo empiezo a enviar?"
+
+Para esta Unidad, creamos una API que te permitirá obtener las preguntas y enviar tus respuestas para su puntuación.
+Aquí tienes un resumen de las rutas (consulta la [documentación en vivo](https://agents-course-unit4-scoring.hf.space/docs) para detalles interactivos):
+
+*   **`GET /questions`**: Recupera la lista completa de preguntas de evaluación filtradas.
+*   **`GET /random-question`**: Obtiene una única pregunta aleatoria de la lista.
+*   **`GET /files/{task_id}`**: Descarga un archivo específico asociado con un ID de tarea determinado.
+*   **`POST /submit`**: Envía las respuestas del agente, calcula la puntuación y actualiza la tabla de clasificación.
+
+La función de envío comparará la respuesta con la verdad fundamental (ground truth) de manera de **COINCIDENCIA EXACTA** (exact match), ¡así que dale un buen prompt! El equipo de GAIA compartió un ejemplo de prompting para tu agente [aquí](https://huggingface.co/spaces/gaia-benchmark/leaderboard).
+
+🎨 **¡Haz Tuya la Plantilla!**
+
+Para demostrar el proceso de interacción con la API, hemos incluido una [plantilla básica](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) como punto de partida.
+Por favor, siéntete libre —y te **animamos activamente**— a cambiarla, agregarle elementos o reestructurarla por completo. Modifícala de cualquier manera que se adapte mejor a tu enfoque y creatividad.
+
+Para enviar usando esta plantilla, calcula 3 cosas necesarias para la API:
+
+*   **Nombre de usuario (`Username`):** Tu nombre de usuario de Hugging Face (aquí obtenido mediante el inicio de sesión de Gradio), que se utiliza para identificar tu envío.
+*   **Enlace al Código (`agent_code`):** La URL que enlaza al código de tu Space de Hugging Face (`.../tree/main`) para fines de verificación, así que por favor mantén tu Space público.
+*   **Respuestas (`answers`):** La lista de respuestas (`{"task_id": ..., "submitted_answer": ...}`) generadas por tu Agente para la puntuación.
+
+Por lo tanto, te animamos a comenzar duplicando esta [plantilla](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) en tu propio perfil de Hugging Face.
+
+🏆 Revisa la tabla de clasificación [aquí](https://huggingface.co/spaces/agents-course/Students_leaderboard)
+
+*Nota amistosa: ¡Esta tabla de clasificación es por diversión! Sabemos que es posible enviar puntuaciones sin una verificación completa. Si vemos demasiadas puntuaciones altas publicadas sin un enlace público que las respalde, es posible que necesitemos revisar, ajustar o eliminar algunas entradas para mantener la tabla de clasificación útil.*
+La tabla de clasificación mostrará el enlace a la base de código de tu Space; dado que esta tabla es solo para estudiantes, por favor mantén tu Space público si obtienes una puntuación de la que estés orgulloso/a.
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>

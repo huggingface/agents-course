@@ -1,0 +1,117 @@
+# Quiz rapide 2 [[quiz2]]
+
+Hein ?! Un autre quiz ? On sait, on sait, ... 😅 Mais ce court quiz non noté est là pour **vous aider à renforcer les concepts clés que vous venez d'apprendre**.
+
+Ce quiz porte sur les LLM, les systèmes de messages et les outils ; des composants essentiels pour comprendre et construire des agents.
+
+### Q1 : Laquelle des propositions suivantes décrit le mieux un outil ?
+
+<Question
+choices={[
+{
+text: "Un processus qui ne génère que des réponses textuelles",
+explain: "",
+},
+{
+text: "Un processus exécutable ou une API externe qui permet aux agents d'effectuer des tâches spécifiques et d'interagir avec des environnements externes",
+explain: "Les outils sont des fonctions exécutables que les agents peuvent utiliser pour effectuer des tâches spécifiques et interagir avec des environnements externes.",
+correct: true
+},
+{
+text: "Une fonctionnalité qui stocke les conversations de l'agent",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q2 : Comment les agents utilisent-ils les outils comme moyen d'« agir » dans un environnement ?
+
+<Question
+choices={[
+{
+text: "En attendant passivement les instructions de l'utilisateur",
+explain: "",
+},
+{
+text: "En utilisant uniquement des réponses préprogrammées",
+explain: "",
+},
+{
+text: "En demandant au LLM de générer du code d'invocation d'outil lorsque cela est approprié et en exécutant les outils pour le compte du modèle",
+explain: "Les agents peuvent invoquer des outils et utiliser leur capacité de raisonnement pour planifier et replanifier en fonction des informations obtenues.",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q3 : Qu'est-ce qu'un LLM ?
+
+<Question
+choices={[
+{
+text: "Un simple chatbot conçu pour répondre avec des réponses prédéfinies",
+explain: "",
+},
+{
+text: "Un modèle d'apprentissage profond entraîné sur de grandes quantités de texte pour comprendre et générer un langage semblable à celui des humains",
+explain: "",
+correct: true
+},
+{
+text: "Une IA basée sur des règles qui suit des commandes strictement prédéfinies",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q4 : Laquelle des propositions suivantes décrit le mieux le rôle des <i>tokens</i> spéciaux dans les LLM ?
+
+<Question
+choices={[
+{
+text: "Ce sont des mots supplémentaires stockés dans le vocabulaire du modèle pour améliorer la qualité de la génération de texte",
+explain: "",
+},
+{
+text: "Ils remplissent des fonctions spécifiques, comme marquer la fin d'une séquence (EOS) ou séparer les différents rôles de message dans les gabarits de chat",
+explain: "",
+correct: true
+},
+{
+text: "Ce sont des <i>tokens</i> insérés aléatoirement pour améliorer la variabilité des réponses",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q5 : Comment les gabarits de chat d'IA traitent-ils les messages des utilisateurs en interne ?
+
+<Question
+choices={[
+{
+text: "Ils interprètent directement les messages comme des commandes structurées sans transformation",
+explain: "",
+},
+{
+text: "Ils convertissent les messages des utilisateurs en un <i>prompt</i> formaté en concaténant les messages système, utilisateur et assistant",
+explain: "",
+correct: true
+},
+{
+text: "Ils génèrent des réponses de manière aléatoire en se basant sur des conversations précédentes",
+explain: "",
+}
+]}
+/>
+
+---
+
+Vous avez compris ? Super ! Maintenant, **plongeons dans le flux complet de l'agent et construisons notre premier !**

@@ -1,0 +1,38 @@
+# Introduction aux frameworks agentiques
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+Bienvenue dans cette deuxième unité, où **nous explorerons différents frameworks agentiques** qui peuvent être utilisés pour construire de puissantes applications agentiques. 
+
+Nous étudierons :
+
+- Dans l'unité 2.1 : [smolagents](https://huggingface.co/docs/smolagents/en/index)  
+- Dans l'unité 2.2 : [LlamaIndex](https://www.llamaindex.ai/)
+- Dans l'unité 2.3 : [LangGraph](https://www.langchain.com/langgraph)
+
+Plongeons-y ! 🕵
+
+## Quand utiliser un *framework* agentique
+
+Parfois, **des *workflows* prédéfinis sont suffisants** pour répondre aux demandes des utilisateurs, et il n'y a pas vraiment besoin d'un *framework* agentique. Si l'approche pour construire un agent est simple, comme une chaîne de *prompts*, utiliser du code simple peut suffire. L'avantage est que le développeur aura **un contrôle total et une compréhension de son système sans abstractions**.
+
+Cependant, lorsque le *workflow* devient plus complexe, comme laisser un LLM appeler des fonctions ou utiliser plusieurs agents, ces abstractions commencent à devenir utiles.
+
+En considérant ces idées, nous pouvons déjà identifier le besoin de certaines fonctionnalités :
+
+* Un *moteur LLM* qui alimente le système.
+* Une *liste d'outils* auxquels l'agent peut accéder.  
+* Un *analyseur* pour extraire les appels d'outils de la sortie du LLM.
+* Un *prompt système* synchronisé avec l'analyseur.
+* Un *système de mémoire*.
+* Des *mécanismes de journalisation des erreurs et de réessai* pour contrôler les erreurs du LLM.
+
+Nous explorerons comment ces sujets sont résolus dans divers *frameworks* comme `smolagents`, `LlamaIndex` et `LangGraph`.
+
+## Unités des frameworks agentiques
+
+| *Framework*  | Description | Auteur de l'unité |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introduction) | *Framework* d'agents développé par Hugging Face. | Sergio PANIEGO - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | Outils de bout en bout pour déployer un agent IA augmenté par le contexte en production | David BERENSTEIN - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | Agents permettant l'orchestration étatique des agents | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |

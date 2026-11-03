@@ -1,0 +1,37 @@
+# Des LLM aux agents
+
+Nous avons appris dans la [première unité](https://huggingface.co/learn/agents-course/unit1/introduction) du cours que les agents sont capables de planifier et prendre des décisions.  
+Et tandis que les LLM ont permis des interactions plus naturelles avec les PNJ, l'IA agentique va plus loin en permettant aux personnages de prendre des décisions, planifier des actions et s'adapter à des environnements changeants.
+
+Pour illustrer la différence, pensez à un PNJ de RPG classique :
+
+- Avec un LLM : le PNJ pourrait répondre à vos questions de manière plus naturelle et variée. C'est génial pour le dialogue, mais le PNJ reste statique, il n'agira pas à moins que vous fassiez quelque chose en premier.
+- Avec l'IA Agentique : le PNJ peut décider d'aller chercher de l'aide, tendre un piège, ou vous éviter complètement, même si vous n'interagissez pas directement avec lui.
+
+Cette petite modification change tout. Nous passons de répondants scriptés à des acteurs autonomes dans le monde du jeu.
+
+Ce changement signifie que les PNJ peuvent maintenant interagir directement avec leur environnement à travers des comportements dirigés par des objectifs, menant finalement à un gameplay plus dynamique et imprévisible.
+
+L'IA agentique donne aux PNJ :
+
+- **L'autonomie** : Prendre des décisions indépendantes basées sur l'état du jeu.
+- **L'adaptabilité** : Ajuster les stratégies en réponse aux actions du joueur.
+- **La persistance** : Se souvenir d'interactions passées pour informer le comportement futur.
+
+Cela transforme les PNJ d'entités réactives (réagissant à vos entrées) en participants proactifs dans le monde du jeu, ouvrant la porte à un *gameplay* innovant.
+
+## La grande limitation des agents : **c'est lent** (pour l'instant)
+
+Cependant, ne soyons pas trop optimistes pour l'instant. Malgré son potentiel, l'IA agentique fait actuellement face à des défis dans les applications temps réel. 
+
+Les processus de raisonnement et planification peuvent introduire de la latence, la rendant moins adaptée aux jeux rapides comme *Doom* ou *Super Mario Bros*.
+
+Prenez l'exemple de [_Claude Plays Pokémon_](https://www.twitch.tv/claudeplayspokemon). Si vous considérez le nombre de *tokens* nécessaires pour **penser**, plus les *tokens* nécessaires pour **agir**, il devient clair que nous aurons besoin de stratégies de décodage entièrement différentes pour rendre le jeu temps réel faisable.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit3/claude-plays-pokemon.png" alt="Claude plays Pokémon"/>
+
+La plupart des jeux ont besoin de tourner autour de 30 FPS, ce qui signifie qu'un agent en temps réel aura besoin d'agir 30 fois par seconde, ce qui n'est pas actuellement faisable avec les LLM d'aujourd'hui.
+
+Cependant, les jeux au tour par tour comme *Pokémon* sont des candidats idéaux, car ils permettent à l'IA suffisamment de temps pour délibérer et prendre des décisions stratégiques.
+
+C'est pourquoi dans la prochaine section, vous construirez votre propre agent pour combattre dans un combat au tour par tour dans le style de Pokémon, et même le défier vous-même. C'est parti !

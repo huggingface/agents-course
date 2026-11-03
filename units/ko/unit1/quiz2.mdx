@@ -1,0 +1,119 @@
+# 셀프 체크! (업데이트됨) [[quiz2]] 
+
+
+뭐라고요?! 또 퀴즈라고요? 우리도 알아요... 😅 하지만 걱정 마세요! 이 퀴즈는 **방금 배운 핵심 개념을 확실히 이해**하는 데 도움을 주기 위해 준비되었습니다.
+
+이번 퀴즈에서는 대규모 언어 모델(LLM), 메시지 시스템, 도구(tool) 등 AI 에이전트를 이해하고 구축하는 데 필수적인 요소들을 다룹니다.
+
+### Q1:  AI 도구(tool)를 가장 잘 설명하는 것은 무엇인가요? [[q1-which-of-the-following-best-describes-an-ai-tool]]
+
+<Question
+choices={[
+{
+text: "텍스트 응답만 생성하는 프로세스",
+explain: "",
+},
+{
+text: " 에이전트가 특정 작업을 수행하고 외부 환경과 상호작용할 수 있도록 하는 실행 가능한 프로세스 또는 외부 API",
+explain: "도구는 에이전트가 특정 작업을 수행하고 외부 환경과 상호작용할 수 있도록 해주는 기능입니다.",
+correct: true
+},
+{
+text: "에이전트의 대화를 저장하는 기능",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q2: AI 에이전트는 환경에서 "행동(act)"하기 위해 도구를 어떻게 활용하나요? [[q2-how-do-ai-agents-use-tools-as-a-form-of-acting-in-an-environment]]
+
+<Question
+choices={[
+{
+text: "사용자의 명령을 수동적으로 기다린다",
+explain: "",
+},
+{
+text: "미리 프로그래밍된 응답만 사용한다",
+explain: "",
+},
+{
+text: "LLM이 적절할 때 도구 호출 코드를 생성하도록 요청하고, 모델을 대신하여 도구를 실행한다",
+explain: "에이전트는 도구를 호출하고, 이를 통해 얻은 정보를 바탕으로 계획을 세우거나 재조정할 수 있습니다.",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q3: 대규모 언어 모델(LLM)이란? [[q3-what-is-a-large-language-model-llm]]
+
+<Question
+choices={[
+{
+text: "사전 정의된 답변을 제공하는 단순한 챗봇",
+explain: "",
+},
+{
+text: "방대한 텍스트 데이터로 학습된 딥러닝 모델로, 인간과 유사한 언어를 이해하고 생성할 수 있다",
+explain: "",
+correct: true
+},
+{
+text: "엄격하게 사전 정의된 명령만 따르는 규칙 기반 AI",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q4: LLM에서 특수 토큰(special tokens)의 역할을 가장 잘 설명하는 것은 무엇인가요? [[q4-which-of-the-following-best-describes-the-role-of-special-tokens-in-llms]]
+
+<Question
+choices={[
+{
+text: "텍스트 생성 품질을 향상시키기 위해 모델의 어휘에 추가된 단어들이다",
+explain: "",
+},
+{
+text: "문장 종료(EOS) 표시나 챗봇 모델에서 서로 다른 메시지 역할을 구분하는 기능을 한다",
+explain: "",
+correct: true
+},
+{
+text: "응답의 다양성을 높이기 위해 무작위로 삽입되는 토큰이다",
+explain: "",
+}
+]}
+/>
+
+---
+
+### Q5: AI 챗봇 모델은 사용자 메시지를 내부적으로 어떻게 처리하나요? [[q5-how-do-ai-chat-models-process-user-messages-internally]]
+
+<Question
+choices={[
+{
+text: "사용자 메시지를 변형 없이 구조화된 명령으로 직접 해석한다",
+explain: "",
+},
+{
+text: "시스템 메시지, 사용자 메시지, 어시스턴트 메시지를 구조화된 하나의 프롬프트로 변환하여 처리한다",
+explain: "",
+correct: true
+},
+{
+text: "이전 대화를 기반으로 무작위로 응답을 생성한다",
+explain: "",
+}
+]}
+/>
+
+---
+
+
+이해되셨나요? 좋습니다! 이제 **전체 에이전트의 흐름을 살펴보고, 직접 AI 에이전트를 만들어 봅시다!**

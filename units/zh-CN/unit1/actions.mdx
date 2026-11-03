@@ -1,0 +1,119 @@
+# 动作：使智能体能够与环境交互
+
+> [!TIP]
+> 在本节中，我们将探讨 AI 智能体 (AI agent) 与其环境交互的具体步骤。
+>
+> 我们将介绍动作 (actions) 如何被表示（使用 JSON 或代码），停止和解析方法 (stop and parse approach) 的重要性，以及不同类型的智能体。
+
+动作是**AI 智能体 (AI agent) 与其环境交互的具体步骤**。
+
+无论是浏览网络获取信息还是控制物理设备，每个动作都是智能体执行的一个特定操作。
+
+例如，一个协助客户服务的智能体可能会检索客户数据、提供支持文章或将问题转交给人工代表。
+
+## 智能体动作的类型 (Types of Agent Actions)
+
+有多种类型的智能体采用不同的方式执行动作：
+
+| 智能体类型 | 描述 |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| JSON 智能体 (JSON Agent) | 要执行的动作以 JSON 格式指定。 |
+| 代码智能体 (Code Agent) | 智能体编写代码块，由外部解释执行。 |
+| 函数调用智能体 (Function-calling Agent) | 这是 JSON 智能体的一个子类别，经过微调以为每个动作生成新消息。 |
+
+动作本身可以服务于多种目的：
+
+| 动作类型 | 描述 |
+|--------------------------|------------------------------------------------------------------------------------------|
+| 信息收集 (Information Gathering) | 执行网络搜索、查询数据库或检索文档。 |
+| 工具使用 (Tool Usage) | 进行 API 调用、运行计算和执行代码。 |
+| 环境交互 (Environment Interaction) | 操作数字界面或控制物理设备。 |
+| 通信 (Communication) | 通过聊天与用户互动或与其他智能体协作。 |
+
+智能体的一个关键部分是**在动作完成时能够停止生成新的标记 (tokens)**，这对所有格式的智能体都适用：JSON、代码或函数调用。这可以防止意外输出并确保智能体的响应清晰准确。
+
+大语言模型 (LLM) 只处理文本，并使用它来描述它想要采取的动作以及要提供给工具的参数。
+
+## 停止和解析方法 (The Stop and Parse Approach)
+
+实现动作的一个关键方法是**停止和解析方法**。这种方法确保智能体的输出具有结构性和可预测性：
+
+1. **以结构化格式生成 (Generation in a Structured Format)**：
+
+智能体以清晰、预定义的格式（JSON或代码）输出其预期动作。
+
+2. **停止进一步生成 (Halting Further Generation)**：
+
+一旦动作完成，**智能体停止生成额外的标记**。这可以防止额外或错误的输出。
+
+3. **解析输出 (Parsing the Output)**：
+
+外部解析器读取格式化的动作，确定要调用哪个工具，并提取所需的参数。
+
+例如，需要检查天气的智能体可能输出：
+
+```json
+Thought: I need to check the current weather for New York.
+Action :
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+
+然后框架可以轻松解析要调用的函数名称和要应用的参数。
+
+这种清晰的、机器可读的格式最大限度地减少了错误，并使外部工具能够准确处理智能体的命令。
+
+注意：函数调用智能体的操作方式类似，通过构造每个动作，使指定的函数能够使用正确的参数被调用。
+我们将在未来的单元中深入探讨这些类型的智能体。
+
+## 代码智能体 (Code Agents)
+
+另一种方法是使用*代码智能体*。
+这个想法是：**代码智能体不是输出简单的 JSON 对象**，而是生成一个**可执行的代码块——通常使用 Python 等高级语言**。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Code Agents" />
+
+这种方法提供了几个优势：
+
+- **表达能力 (Expressiveness)：** 代码可以自然地表示复杂的逻辑，包括循环、条件和嵌套函数，提供比 JSON 更大的灵活性。
+- **模块化和可重用性 (Modularity and Reusability)：** 生成的代码可以包含在不同动作或任务中可重用的函数和模块。
+- **增强的可调试性 (Enhanced Debuggability)：** 使用明确定义的编程语法，代码错误通常更容易检测和纠正。
+- **直接集成 (Direct Integration)：** 代码智能体可以直接与外部库和 API 集成，实现更复杂的操作，如数据处理或实时决策。
+
+例如，一个负责获取天气的代码智能体可能生成以下 Python 代码片段：
+
+```python
+# Code Agent Example: Retrieve Weather Information
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "No weather information available")
+    else:
+        return "Error: Unable to fetch weather data."
+
+# Execute the function and prepare the final answer
+result = get_weather("New York")
+final_answer = f"The current weather in New York is: {result}"
+print(final_answer)
+```
+
+在这个例子中，代码智能体：
+
+- **通过API调用**获取天气数据，
+- 处理响应，
+- 并使用print()函数输出最终答案。
+
+这种方法**也遵循停止和解析方法**，通过明确划定代码块并表明执行完成的时间（在这里，通过打印 final_answer）。
+
+---
+
+我们了解到动作通过执行清晰、结构化的任务（无论是通过 JSON、代码还是函数调用）来连接智能体的内部推理和其现实世界的交互。
+
+这种深思熟虑的执行确保每个动作都是精确的，并通过停止和解析方法准备好进行外部处理。在下一节中，我们将探索观察 (Observations)，看看智能体如何捕获和整合来自其环境的反馈。
+
+在此之后，我们将**最终准备好构建我们的第一个智能体！**

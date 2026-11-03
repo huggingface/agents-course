@@ -1,0 +1,53 @@
+# Le projet pratique final
+
+Maintenant que vous êtes prêt à plonger plus profondément dans la création de votre agent, voyons comment vous pouvez le soumettre pour l'évaluer.
+
+## Le jeu de données
+
+Le jeu de données utilisé pour le classement se compose de 20 questions extraites des questions de niveau 1 de la partie **validation** de GAIA. 
+
+Les questions choisies ont été filtrées en fonction du nombre d'outils et d'étapes nécessaires pour répondre à une question.
+
+Sur la base de l'état actuel du *benchmark* GAIA, nous pensons que vous faire viser 30% sur les questions de niveau 1 est un test équitable.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="GAIA current status!" />
+
+## Le processus 
+
+Maintenant, la grande question dans votre esprit est probablement : « Comment puis-je commencer à soumettre ? »
+
+Pour cette unité, nous avons créé une API qui vous permettra d'obtenir les questions et d'envoyer vos réponses pour évaluation.
+Voici un résumé des routes (voir la [documentation en direct](https://agents-course-unit4-scoring.hf.space/docs) pour les détails interactifs) :
+
+* **`GET /questions`** : Récupérer la liste complète des questions d'évaluation filtrées.
+* **`GET /random-question`** : Récupérer une seule question aléatoire de la liste.
+* **`GET /files/{task_id}`** : Télécharger un fichier spécifique associé à un ID de tâche donné.
+* **`POST /submit`** : Soumettre les réponses de l'agent, calculer le score et mettre à jour le classement.
+
+La fonction de soumission comparera votre réponse à la vérité terrain via une **CORRESPONDANCE EXACTE**, donc formulez bien vos *prompts* ! L'équipe GAIA a partagé un exemple de formulation pour votre agent [ici](https://huggingface.co/spaces/gaia-benchmark/leaderboard) (pour les besoins de ce cours, assurez-vous de ne pas inclure le texte "FINAL ANSWER" dans votre soumission, faites simplement que votre agent réponde avec la réponse et rien d'autre).
+
+🎨 **Personnalisez le gabarit !**
+
+Pour démontrer le processus d'interaction avec l'API, nous avons inclus un [gabarit de base](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) comme point de départ.
+
+N'hésitez pas à le changer, et **nous vous encourageons activement à le faire**, y ajouter ou le restructurer complètement ! Modifiez-le de la manière qui convient le mieux à votre approche et à votre créativité.
+
+Pour soumettre ces gabarits, calculez 3 éléments nécessaires à l'API :
+
+* **Nom d'utilisateur :** Votre nom d'utilisateur Hugging Face (ici obtenu via la connexion Gradio), qui est utilisé pour identifier votre soumission.
+* **Lien de code (`agent_code`) :** l'URL pointant vers le code de votre *Space* Hugging Face (`.../tree/main`) à des fins de vérification, alors veuillez garder votre *Space* public.
+* **Réponses (`answers`) :** La liste des réponses (`{"task_id": ..., "submitted_answer": ...}`) générées par votre agent pour la notation.
+
+Nous vous encourageons donc à commencer par dupliquer ce [gabarit](https://huggingface.co/spaces/agents-course/Final_Assignment_Template) sur votre propre profil Hugging Face.
+
+🏆 Consultez le classement [ici](https://huggingface.co/spaces/agents-course/Students_leaderboard)
+
+*Une note amicale :  
+Ce classement est destiné à s'amuser ! Nous savons qu'il est possible de soumettre des scores sans vérification complète. Si nous constatons qu'un trop grand nombre de scores élevés sont affichés sans lien public pour les étayer, il se peut que nous devions revoir, ajuster ou supprimer certaines entrées afin de préserver l'utilité du classement.* Le classement montrera le lien vers votre *Space* et le code qu'il contient. Puisque ce classement est réservé aux étudiants, veuillez le garder public si vous obtenez un score dont vous êtes fier.
+
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>

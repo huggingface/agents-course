@@ -1,0 +1,118 @@
+# Testez votre compréhension de LangGraph
+
+Testons votre compréhension de `LangGraph` avec un quiz rapide ! Cela aidera à renforcer les concepts clés que nous avons couverts jusqu'à présent.
+
+Ce quiz est optionnel et il n'est pas noté.
+
+### Q1 : Quel est l'objectif principal de LangGraph ?
+Quelle déclaration décrit le mieux ce pour quoi LangGraph est conçu ?
+
+<Question
+choices={[
+  {
+    text: "Un framework pour construire des flux de contrôle pour les applications contenant des LLM",
+    explain: "LangGraph est spécifiquement conçu pour aider à construire et gérer le flux de contrôle des applications qui utilisent des LLM.",
+    correct: true
+  },
+  {
+    text: "Une bibliothèque qui fournit des interfaces pour interagir avec différents modèles LLM",
+    explain: "Cela décrit mieux le rôle de LangChain, qui fournit des interfaces standard pour l'interaction avec les modèles. LangGraph se concentre sur le flux de contrôle.",
+  },
+  {
+    text: "Une bibliothèque d'agents pour l'appel d'outils",
+    explain: "Bien que LangGraph fonctionne avec des agents, l'objectif principal de langGraph est l'Orchestration.",
+  }
+]}
+/>
+
+---
+
+### Q2 : Dans le contexte du compromis « Contrôle vs Liberté », où se situe LangGraph ?
+Quelle déclaration caractérise le mieux l'approche de LangGraph pour la conception d'agents ?
+
+<Question
+choices={[
+  {
+    text: "LangGraph maximise la liberté, permettant aux LLM de prendre toutes les décisions de manière indépendante",
+    explain: "LangGraph se concentre en fait plus sur le contrôle que sur la liberté, fournissant une structure pour les workflows de LLM.",
+  },
+  {
+    text: "LangGraph fournit un contrôle fort sur le flux d'exécution tout en exploitant les capacités des LLM pour la prise de décision",
+    explain: "LangGraph brille lorsque vous avez besoin de contrôle sur l'exécution de votre agent, fournissant un comportement prévisible grâce à des workflows structurés.",
+    correct: true
+  },
+]}
+/>
+
+---
+
+### Q3 : Quel rôle joue l'état dans LangGraph ?
+Choisissez la description la plus précise de l'état dans LangGraph.
+
+<Question
+choices={[
+  {
+    text: "L'état est la dernière génération du LLM",
+    explain: "L'état est une classe définie par l'utilisateur dans LangGraph, non générée par le LLM. Ses champs sont définis par l'utilisateur, les valeurs peuvent être remplies par le LLM",
+  },
+  {
+    text: "L'état est seulement utilisé pour suivre les erreurs pendant l'exécution",
+    explain: "L'état a un objectif beaucoup plus large que le simple suivi des erreurs. Mais cela reste utile.",
+  },
+  {
+    text: "L'état représente l'information qui circule à travers votre application d'agent",
+    explain: "L'état est central dans LangGraph et contient toutes les informations nécessaires pour la prise de décision entre les étapes. Vous fournissez les champs dont vous avez besoin pour calculer et les nœuds peuvent modifier les valeurs pour décider d'un embranchement.",
+    correct: true
+  },
+  {
+    text: "L'état n'est pertinent que lors du travail avec des API externes",
+    explain: "L'état est fondamental pour toutes les applications LangGraph, pas seulement celles travaillant avec des API externes.",
+  }
+]}
+/>
+
+### Q4 : Qu'est-ce qu'une arête conditionnelle dans LangGraph ?
+Sélectionnez la description la plus précise.
+
+<Question
+choices={[
+    {
+    text: "Une arête qui détermine quel nœud exécuter ensuite basé sur l'évaluation d'une condition",
+    explain: "Les arêtes conditionnelles permettent à votre graphe de prendre des décisions de routage dynamiques basées sur l'état actuel, créant une logique d'embranchement dans votre <i>workflow</i>.",
+    correct: true
+  },
+  {
+    text: "Une arête qui n'est suivie que lorsqu'une condition spécifique se produit",
+    explain: "Les arêtes conditionnelles contrôlent le flux de l'application sur ses sorties, pas sur l'entrée.",
+  },
+  {
+    text: "Une arête qui nécessite une confirmation utilisateur avant de continuer",
+    explain: "Les arêtes conditionnelles sont basées sur des conditions programmatiques, pas sur des exigences d'interaction utilisateur.",
+  }
+]}
+/>
+
+---
+
+### Q5 : Comment LangGraph aide-t-il à résoudre le problème d'hallucination dans les LLM ?
+Choisissez la meilleure réponse.
+
+<Question
+choices={[
+  {
+    text: "LangGraph élimine entièrement les hallucinations en limitant les réponses des LLM",
+    explain: "Aucun framework ne peut complètement éliminer les hallucinations des LLM, LangGraph ne fait pas exception.",
+  },
+  {
+    text: "LangGraph fournit des workflows structurés qui peuvent valider et vérifier les sorties des LLM",
+    explain: "En créant des workflows structurés avec des étapes de validation, des nœuds de vérification et des chemins de gestion d'erreurs, LangGraph aide à réduire l'impact des hallucinations.",
+    correct: true
+  },
+  {
+    text: "LangGraph n'a aucun effet sur les hallucinations",
+    explain: "L'approche structurée de LangGraph pour les workflows peut aider significativement à atténuer les hallucinations au coût de la vitesse.",
+  }
+]}
+/>
+
+Félicitations pour avoir terminé le quiz ! 🎉 Si vous avez manqué des questions, considérez réviser les sections précédentes pour renforcer votre compréhension. Ensuite, nous explorerons des fonctionnalités plus avancées de LangGraph et verrons comment construire des *workflows* d'agents plus complexes.

@@ -1,0 +1,172 @@
+- title: Unité 0. Bienvenue dans le cours
+  sections:
+  - local: unit0/introduction
+    title: Bienvenue dans le cours 🤗
+  - local: unit0/onboarding
+    title: Embarquement
+  - local: unit0/discord101
+    title: (Optionnel) Introduction à Discord 
+- title: Live 1. Comment fonctionne le cours et Q&R
+  sections:
+  - local: communication/live1
+    title: Live 1. Comment fonctionne le cours et Q&R
+- title: Unité 1. Introduction aux Agents
+  sections:
+  - local: unit1/introduction
+    title: Introduction aux agents
+  - local: unit1/what-are-agents
+    title: Qu'est-ce qu'un agent ?
+  - local: unit1/quiz1
+    title: Quiz rapide 1
+  - local: unit1/what-are-llms
+    title: Qu'est-ce qu'un LLM ?
+  - local: unit1/messages-and-special-tokens
+    title: Messages et tokens spéciaux
+  - local: unit1/tools
+    title: Que sont les outils ?
+  - local: unit1/quiz2
+    title: Quiz rapide 2
+  - local: unit1/agent-steps-and-structure
+    title: Comprendre les agents à travers le cycle Réflexion-Action-Observation
+  - local: unit1/thoughts
+    title: Réflexions, raisonnement interne et l'approche Re-Act
+  - local: unit1/actions
+    title: Actions, permettre à l'agent d'interagir avec son environnement
+  - local: unit1/observations
+    title: Observer, intégrer le retour d'information pour réfléchir et s'adapter
+  - local: unit1/dummy-agent-library
+    title: Bibliothèque d'agents factices
+  - local: unit1/tutorial
+    title: Créons notre premier agent avec smolagents
+  - local: unit1/final-quiz
+    title: Quiz final de l'Unité 1
+  - local: unit1/conclusion
+    title: Conclusion
+- title: Unité 2. Frameworks pour les agents
+  sections:
+  - local: unit2/introduction
+    title: Frameworks pour les agents
+- title: Unité 2.1 Le framework smolagents
+  sections:
+  - local: unit2/smolagents/introduction
+    title: Introduction à smolagents
+  - local: unit2/smolagents/why_use_smolagents
+    title: Pourquoi utiliser smolagents ?
+  - local: unit2/smolagents/quiz1
+    title: Quiz rapide 1
+  - local: unit2/smolagents/code_agents
+    title: Construire des agents qui utilisent du code
+  - local: unit2/smolagents/tool_calling_agents
+    title: Écrire des actions sous forme d'extraits de code ou de blobs JSON
+  - local: unit2/smolagents/tools
+    title: Outils
+  - local: unit2/smolagents/retrieval_agents
+    title: Construction de systèmes de RAG agentiques
+  - local: unit2/smolagents/quiz2
+    title: Quiz rapide 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: Systèmes multi-agents
+  - local: unit2/smolagents/vision_agents
+    title: Agents visuel avec smolagents
+  - local: unit2/smolagents/final_quiz
+    title: Quiz final
+  - local: unit2/smolagents/conclusion
+    title: Conclusion
+- title: Unité 2.2 Le framework LlamaIndex
+  sections:
+  - local: unit2/llama-index/introduction
+    title: Introduction à LlamaIndex
+  - local: unit2/llama-index/llama-hub
+    title: Introduction au LlamaHub
+  - local: unit2/llama-index/components
+    title: Que sont les components dans LlamaIndex ?
+  - local: unit2/llama-index/tools
+    title: Utiliser des outils dans LlamaIndex
+  - local: unit2/llama-index/quiz1
+    title: Quiz rapide 1
+  - local: unit2/llama-index/agents
+    title: Utiliser des agents dans LlamaIndex
+  - local: unit2/llama-index/workflows
+    title: Créer des workflows agentiques dans LlamaIndex
+  - local: unit2/llama-index/quiz2
+    title: Quiz rapide 2
+  - local: unit2/llama-index/conclusion
+    title: Conclusion
+- title: Unité 2.3 Le framework LangGraph
+  sections:
+  - local: unit2/langgraph/introduction
+    title: Introduction à LangGraph
+  - local: unit2/langgraph/when_to_use_langgraph
+    title: Qu'est-ce que LangGraph ?
+  - local: unit2/langgraph/building_blocks
+    title: Les blocs de construction de LangGraph
+  - local: unit2/langgraph/first_graph
+    title: Construire votre premier LangGraph
+  - local: unit2/langgraph/document_analysis_agent
+    title: Graphe d'analyse de documents
+  - local: unit2/langgraph/quiz1
+    title: Quiz rapide 1
+  - local: unit2/langgraph/conclusion
+    title: Conclusion
+- title: Unité 3. Cas d'usage pour le RAG agentique
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Introduction au cas d'usage de RAG agentique
+  - local: unit3/agentic-rag/agentic-rag
+    title: RAG agentique
+  - local: unit3/agentic-rag/invitees
+    title: Création d'un RAG pour converser avec les invités
+  - local: unit3/agentic-rag/tools
+    title: Création et intégration d'outils pour votre agent
+  - local: unit3/agentic-rag/agent
+    title: Création de l'agent pour le gala
+  - local: unit3/agentic-rag/conclusion
+    title: Conclusion
+- title: Unité 4. Projet final - Créer, tester et certifier votre agent
+  sections:
+  - local: unit4/introduction
+    title: Introduction à l'unité finale
+  - local: unit4/what-is-gaia
+    title: Qu'est-ce que GAIA ?
+  - local: unit4/hands-on
+    title: Le projet pratique final
+  - local: unit4/get-your-certificate
+    title: Obtenez votre certificat
+  - local: unit4/conclusion
+    title: Conclusion du cours
+  - local: unit4/additional-readings
+    title: Et maintenant ? Quels sujets devrais-je apprendre ?
+- title: Unité bonus 1. Affiner un LLM pour l'appel de fonctions
+  sections:
+  - local: bonus-unit1/introduction
+    title: Introduction
+  - local: bonus-unit1/what-is-function-calling
+    title: Qu'est-ce que l'appel de fonctions ?
+  - local: bonus-unit1/fine-tuning
+    title: Finetunons un modèle pour pouvoir faire de l'appel de fonctions
+  - local: bonus-unit1/conclusion
+    title: Conclusion
+- title: Unité bonus 2. Observabilité et évaluation des agents
+  sections:
+  - local: bonus-unit2/introduction
+    title: Introduction
+  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+    title: Qu'est-ce que l'observabilité et l'évaluation des agents ?
+  - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
+    title: Observer et évaluer des agents
+  - local: bonus-unit2/quiz
+    title: Quiz
+- title: Unité bonus 3. Agents dans les jeux avec Pokémon
+  sections:
+  - local: bonus-unit3/introduction
+    title: Introduction
+  - local: bonus-unit3/state-of-art
+    title: L'état de l'art de l'utilisation des LLM dans les jeux
+  - local: bonus-unit3/from-llm-to-agents
+    title: Des LLM aux agents
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: Construire un agent de combat Pokémon
+  - local: bonus-unit3/launching_agent_battle
+    title: Lancer l'agent de combat Pokémon
+  - local: bonus-unit3/conclusion
+    title: Conclusion

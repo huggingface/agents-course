@@ -1,0 +1,160 @@
+# LlamaIndex에서 에이전트 사용하기
+
+이전에 나왔던 도움이 되는 집사 에이전트 알프레드를 기억하시나요? 이제 그가 업그레이드를 받을 차례입니다!
+이제 LlamaIndex에서 사용할 수 있는 툴들을 이해했으니, 알프레드에게 더 나은 서비스를 제공할 수 있는 새로운 기능들을 부여할 수 있습니다.
+
+하지만 계속하기 전에, 알프레드 같은 에이전트가 어떻게 작동하는지 다시 한번 상기해봅시다.
+1단원에서 우리는 다음을 배웠습니다:
+
+> 에이전트는 사용자가 정의한 목표를 달성하기 위해 AI 모델을 활용하여 환경과 상호작용하는 시스템입니다. 작업을 수행하기 위해 추론, 계획, 액션 실행(종종 외부 툴을 통해)을 결합합니다.
+
+LlamaIndex는 **세 가지 주요 유형의 추론 에이전트**를 지원합니다:
+
+![에이전트](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agents.png)
+
+1. `Function Calling Agents` - 특정 함수를 호출할 수 있는 AI 모델과 함께 작동합니다.
+2. `ReAct Agents` - 채팅이나 텍스트 엔드포인트를 수행하는 모든 AI와 함께 작동할 수 있으며, 복잡한 추론 작업을 처리합니다.
+3. `Advanced Custom Agents` - 더 복잡한 작업과 워크플로우를 처리하기 위해 더 복잡한 방법을 사용합니다.
+
+<Tip>고급 에이전트에 대한 더 많은 정보는 <a href="https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/agent/workflow/base_agent.py">BaseWorkflowAgent</a>에서 찾을 수 있습니다.</Tip>
+
+## 에이전트 초기화
+
+<Tip>
+<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb" target="_blank">이 노트북</a>을 따라가며 Google Colab에서 코드를 실행해볼 수 있습니다.
+</Tip>
+
+에이전트를 만들기 위해, 먼저 **기능을 정의하는 함수/툴 세트**를 제공합니다.
+몇 가지 기본 툴로 에이전트를 만드는 방법을 살펴보겠습니다. 현재로서는 에이전트가 자동으로 함수 호출 API(사용 가능한 경우) 또는 표준 ReAct 에이전트 루프를 사용합니다.
+
+툴/함수 API를 지원하는 LLM들은 비교적 최신이지만, 특정 프롬프팅을 피하고 제공된 스키마를 기반으로 LLM이 툴 호출을 생성할 수 있게 하여 툴을 호출하는 강력한 방법을 제공합니다.
+
+ReAct 에이전트는 또한 복잡한 추론 작업에 능숙하며, 채팅이나 텍스트 완성 기능이 있는 모든 LLM과 함께 작동할 수 있습니다. 더 상세하며, 수행하는 특정 액션의 추론 과정을 보여줍니다.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.core.tools import FunctionTool
+
+# 샘플 툴 정의 -- 타입 어노테이션, 함수 이름, 독스트링이 모두 파싱된 스키마에 포함됩니다!
+def multiply(a: int, b: int) -> int:
+    """두 정수를 곱하고 결과 정수를 반환합니다"""
+    return a * b
+
+# llm 초기화
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# 에이전트 초기화
+agent = AgentWorkflow.from_tools_or_functions(
+    [FunctionTool.from_defaults(multiply)],
+    llm=llm
+)
+```
+
+**에이전트는 기본적으로 상태가 없으며**, 과거 상호작용을 기억하는 것은 `Context` 객체를 사용하여 선택사항입니다.
+이는 여러 메시지에 걸쳐 맥락을 유지하는 챗봇이나 시간이 지남에 따라 진행 상황을 추적해야 하는 작업 관리자처럼 이전 상호작용을 기억해야 하는 에이전트를 사용하고 싶을 때 유용할 수 있습니다.
+
+```python
+# 상태 없음
+response = await agent.run("2 곱하기 2는 무엇인가요?")
+
+# 상태 기억
+from llama_index.core.workflow import Context
+
+ctx = Context(agent)
+
+response = await agent.run("내 이름은 Bob입니다.", ctx=ctx)
+response = await agent.run("내 이름이 뭐였지?", ctx=ctx)
+```
+
+`LlamaIndex`의 에이전트들이 Python의 `await` 연산자를 사용하기 때문에 비동기라는 것을 알 수 있습니다. Python의 비동기 코드가 처음이거나 복습이 필요하다면, [훌륭한 비동기 가이드](https://docs.llamaindex.ai/en/stable/getting_started/async_python/)가 있습니다.
+
+이제 기본을 마스터했으니, 에이전트에서 더 복잡한 툴을 사용하는 방법을 살펴보겠습니다.
+
+## QueryEngineTools로 RAG 에이전트 만들기
+
+**에이전트 RAG는 에이전트를 사용하여 데이터에 대한 질문에 답하는 강력한 방법입니다.** 알프레드가 질문에 답하는 데 도움이 되도록 다양한 툴을 전달할 수 있습니다.
+하지만 문서 위에서 자동으로 질문에 답하는 대신, 알프레드는 질문에 답하기 위해 다른 툴이나 흐름을 사용할지 결정할 수 있습니다.
+
+![에이전트 RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+에이전트를 위해 **`QueryEngine`을 툴로 래핑**하는 것은 쉽습니다.
+이렇게 할 때, **이름과 설명을 정의**해야 합니다. LLM은 이 정보를 사용하여 툴을 올바르게 사용합니다.
+[구성 요소 섹션](components)에서 만든 `QueryEngine`을 사용하여 `QueryEngineTool`을 로드하는 방법을 살펴보겠습니다.
+
+```python
+from llama_index.core.tools import QueryEngineTool
+
+query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # LlamaIndex의 구성 요소 섹션에서 보여진 대로
+
+query_engine_tool = QueryEngineTool.from_defaults(
+    query_engine=query_engine,
+    name="name",
+    description="a specific description",
+    return_direct=False,
+)
+query_engine_agent = AgentWorkflow.from_tools_or_functions(
+    [query_engine_tool],
+    llm=llm,
+    system_prompt="You are a helpful assistant that has access to a database containing persona descriptions. "
+)
+```
+
+## 다중 에이전트 시스템 만들기
+
+`AgentWorkflow` 클래스는 다중 에이전트 시스템도 직접 지원합니다. 각 에이전트에 이름과 설명을 부여함으로써, 시스템은 단일 활성 발화자를 유지하며, 각 에이전트는 다른 에이전트에게 작업을 넘길 수 있는 능력을 가집니다.
+
+각 에이전트의 범위를 좁힘으로써, 사용자 메시지에 응답할 때 일반적인 정확도를 높이는 데 도움이 될 수 있습니다.
+
+**LlamaIndex의 에이전트들은 더 복잡하고 사용자 정의 시나리오를 위해 다른 에이전트의 툴로도 직접 사용될 수 있습니다.**
+
+```python
+from llama_index.core.agent.workflow import (
+    AgentWorkflow,
+    FunctionAgent,
+    ReActAgent,
+)
+
+# 몇 가지 툴 정의
+def add(a: int, b: int) -> int:
+    """두 숫자를 더합니다."""
+    return a + b
+
+
+def subtract(a: int, b: int) -> int:
+    """두 숫자를 뺍니다."""
+    return a - b
+
+
+# 에이전트 설정 생성
+# 참고: 여기서 FunctionAgent 또는 ReActAgent를 사용할 수 있습니다.
+# FunctionAgent는 함수 호출 API가 있는 LLM용입니다.
+# ReActAgent는 모든 LLM용입니다.
+calculator_agent = ReActAgent(
+    name="calculator",
+    description="기본 산술 연산을 수행합니다",
+    system_prompt="당신은 계산기 어시스턴트입니다. 모든 수학 연산에 툴을 사용하세요.",
+    tools=[add, subtract],
+    llm=llm,
+)
+
+query_agent = ReActAgent(
+    name="info_lookup",
+    description="XYZ에 대한 정보를 찾습니다",
+    system_prompt="XYZ에 대한 정보를 답하기 위해 RAG 시스템을 쿼리하는 툴을 사용하세요",
+    tools=[query_engine_tool],
+    llm=llm
+)
+
+# 워크플로우 생성 및 실행
+agent = AgentWorkflow(
+    agents=[calculator_agent, query_agent], root_agent="calculator"
+)
+
+# 시스템 실행
+response = await agent.run(user_msg="5와 3을 더할 수 있나요?")
+```
+
+<Tip>아직 충분히 배우지 못했나요? <a href="https://docs.llamaindex.ai/en/stable/examples/agent/agent_workflow_basic/">AgentWorkflow 기본 소개</a> 또는 <a href="https://docs.llamaindex.ai/en/stable/understanding/agent/">에이전트 학습 가이드</a>에서 LlamaIndex의 에이전트와 툴에 대해 더 많은 것을 발견할 수 있으며, 스트리밍, 맥락 직렬화, 사람 개입에 대해 더 읽을 수 있습니다!</Tip>
+
+이제 LlamaIndex에서 에이전트와 툴의 기본을 이해했으니, LlamaIndex를 사용하여 **구성 가능하고 관리 가능한 워크플로우를 만드는** 방법을 살펴보겠습니다!

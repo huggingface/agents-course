@@ -1,0 +1,52 @@
+# 动手实践
+
+现在你已经准备好更深入地创建你的最终智能体了，让我们看看如何提交它以供评审。
+
+## 数据集
+
+此排行榜使用的数据集包含从 GAIA **验证**集的一级问题中所提取的 20 个问题。
+
+这些问题是根据回答问题所需的工具和步骤数量进行筛选的。
+
+根据 GAIA 基准目前的状况，我们认为让你尝试在一级问题中达到 30% 的准确率是一个相对好的测试。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="GAIA current status!" />
+
+## 流程
+
+现在你脑海中最大的问题可能是：“我如何开始提交？”
+
+对于本单元，我们创建了一个 API，你可以通过它获取问题并发送答案进行评分。
+以下是路由摘要（请参阅[实时文档](https://agents-course-unit4-scoring.hf.space/docs)以获取交互式详细信息）：
+
+* **`GET /questions`**：检索过滤后的评估问题完整列表。
+* **`GET /random-question`**：从列表中获取一个随机问题。
+* **`GET /files/{task_id}`**：下载与给定任务 ID 关联的特定文件。
+* **`POST /submit`**：提交智能体的答案，计算分数，并更新排行榜。
+
+提交函数将以**完全匹配**的方式将答案与真实答案进行比较，因此请好好作出提示！GAIA 团队在此处分享了一个代理提示示例（为了本课程的目的，请确保你的提交中不包含文本“FINAL ANSWER”，只需让你的代理回复答案而无需其他内容）。
+
+🎨 **打造你自己的模板！**
+
+为了演示与 API 交互的过程，我们提供了一个[基本模板](https://huggingface.co/spaces/agents-course/Final_Assignment_Template)作为开始的部分。
+
+我们请您随意的去更改、添加或完全重构它！以最适合你的方法和具有创造力的方式修改它。这也是我们所**积极鼓励**的方式。
+
+为了提交此模板，请需要计算 API 所需的 3 个内容：
+
+* **用户名：** 你的 Hugging Face 用户名（此处通过 Gradio 登录获取），用于识别你的提交。
+* **代码链接 (`agent_code`)：** 指向你的 Hugging Face Space 代码（`.../tree/main`）的 URL，用于验证目的，因此请保持你的 Space 为公开。
+* **答案 (`answers`)：** 你的代理生成的响应列表（`{"task_id": ..., "submitted_answer": ...}`），用于评分。
+
+因此，我们鼓励你从复制此[模板](https://huggingface.co/spaces/agents-course/Final_Assignment_Template)到你自己的 huggingface 个人资料开始。
+
+🏆 在[此处](https://huggingface.co/spaces/agents-course/Students_leaderboard)查看排行榜
+
+*温馨提示：此排行榜仅供娱乐！我们知道可以在没有完全验证的情况下提交分数。如果我们看到太多没有公开链接支持的高分，我们可能需要审查、调整或删除一些条目，以保持排行榜的有用性。*
+排行榜将显示你的 Space 代码库链接，由于此排行榜仅供学生使用，如果你获得了一个令你骄傲的分数，请保持你的 Space 公开。
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>

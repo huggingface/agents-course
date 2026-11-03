@@ -1,0 +1,127 @@
+# LangGraph 的核心构建模块
+
+要使用 LangGraph 构建应用程序，需要理解其核心组件。让我们探索构成 LangGraph 应用程序的基础构建模块。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Building_blocks.png" alt="Building Blocks" width="70%"/>
+
+LangGraph 应用程序从 **entrypoint** 开始，根据执行情况，流程可能流向不同的函数直到抵达 END。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/application.png" alt="Application"/>
+
+## 1. 状态（State）
+
+**State** 是 LangGraph 中的核心概念，表示流经应用程序的所有信息。
+
+```python
+from typing_extensions import TypedDict
+
+class State(TypedDict):
+    graph_state: str
+```
+
+状态是 **用户自定义** 的，因此需要仔细设计字段以包含决策过程所需的所有数据！
+
+> 💡 **提示:** 仔细考虑应用程序需要在步骤之间跟踪哪些信息。
+
+## 2. 节点（Nodes）
+
+**Nodes** 是 Python 函数。每个节点：
+- 接收状态作为输入
+- 执行某些操作
+- 返回状态更新
+
+```python
+def node_1(state):
+    print("---Node 1---")
+    return {"graph_state": state['graph_state'] +" I am"}
+
+def node_2(state):
+    print("---Node 2---")
+    return {"graph_state": state['graph_state'] +" happy!"}
+
+def node_3(state):
+    print("---Node 3---")
+    return {"graph_state": state['graph_state'] +" sad!"}
+```
+
+举例, 节点可以包含：
+- **LLM 调用**: 生成文本或做出决策
+- **工具调用**: 与外部系统交互
+- **条件逻辑**: 决定后续步骤
+- **人工干预**: 获取用户输入
+
+> 💡 **信息:** 像 START 和 END 这样的必要节点已直接包含在 LangGraph 中。
+
+
+## 3. 边（Edges）
+
+**Edges** 连接节点并定义图中的可能路径：
+
+```python
+import random
+from typing import Literal
+
+def decide_mood(state) -> Literal["node_2", "node_3"]:
+    
+    # 通常我们会根据状态决定下一个节点
+    user_input = state['graph_state'] 
+    
+    # 这里我们在节点2和节点3之间简单实现 50/50 的概率分配
+    if random.random() < 0.5:
+
+        # 50% 时间， 我们返回节点2
+        return "node_2"
+    
+    # 50% 时间， 我们返回节点3
+    return "node_3"
+```
+
+边可以是：
+- **直接边**: 始终从节点 A 到节点 B
+- **条件边**: 根据当前状态选择下一个节点
+
+## 4. 状态图（StateGraph）
+
+**StateGraph** 是包含整个 agent 工作流的容器：
+
+```python
+from IPython.display import Image, display
+from langgraph.graph import StateGraph, START, END
+
+# 构建图表
+builder = StateGraph(State)
+builder.add_node("node_1", node_1)
+builder.add_node("node_2", node_2)
+builder.add_node("node_3", node_3)
+
+# 连接逻辑
+builder.add_edge(START, "node_1")
+builder.add_conditional_edges("node_1", decide_mood)
+builder.add_edge("node_2", END)
+builder.add_edge("node_3", END)
+
+# 编译
+graph = builder.compile()
+```
+
+可以可视化图表： 
+```python
+# 可视化
+display(Image(graph.get_graph().draw_mermaid_png()))
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/basic_graph.jpeg" alt="图可视化"/>
+
+最重要的是可以调用：
+```python
+graph.invoke({"graph_state" : "Hi, this is Lance."})
+```
+output :
+```
+---Node 1---
+---Node 3---
+{'graph_state': 'Hi, this is Lance. I am sad!'}
+```
+
+## 下一步？
+
+下一节我们将通过构建第一个图表来实践这些概念。该图表将让 Alfred 能够处理电子邮件，进行分类，并在邮件真实时起草初步回复。

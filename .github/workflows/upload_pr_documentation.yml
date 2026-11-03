@@ -1,0 +1,24 @@
+name: Upload PR Documentation
+
+on:
+  workflow_run:
+    workflows: ["Build PR Documentation"]
+    types:
+      - completed
+
+permissions:
+  actions: write
+  contents: write
+  deployments: write
+  pull-requests: write
+
+
+jobs:
+  build:
+    uses: huggingface/doc-builder/.github/workflows/upload_pr_documentation.yml@9fc8a41d7729c424fdb2192f2f85ff63102ec9a3  # main
+    with:
+      package_name: agents-course
+      hub_base_path: https://moon-ci-docs.huggingface.co/learn
+    secrets:
+      hf_token: ${{ secrets.HF_DOC_BUILD_PUSH }}
+      comment_bot_token: ${{ secrets.COMMENT_BOT_TOKEN }}

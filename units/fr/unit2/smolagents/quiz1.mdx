@@ -1,0 +1,142 @@
+# Petit Quiz (non noté) [[quiz1]]
+
+Testons votre compréhension de `smolagents` avec un rapide quiz ! N'oubliez pas, se tester aide à renforcer l'apprentissage et à identifier les domaines qui pourraient nécessiter une révision.
+
+Ceci est un quiz optionnel et il n'est pas noté.
+
+### Q1 : Quel est l'un des principaux avantages de choisir `smolagents` par rapport à d'autres *frameworks* ?
+Quelle affirmation capture le mieux une force fondamentale de l'approche `smolagents` ?
+
+<Question
+choices={[
+  {
+    text: "Il utilise des fichiers de configuration hautement spécialisés et une courbe d'apprentissage abrupte pour s'assurer que seuls les développeurs experts peuvent l'utiliser",
+    explain: "smolagents est conçu pour la simplicité et une complexité de code minimale, pas pour des courbes d'apprentissage abruptes.",
+  },
+  {
+    text: "Il supporte une approche orientée code avec des abstractions minimales, permettant aux agents d'interagir directement via des appels de fonctions Python",
+    explain: "Oui, smolagents met l'accent sur une conception simple et centrée sur le code avec des abstractions minimales.",
+    correct: true
+  },
+  {
+    text: "Il se concentre sur des actions basées sur du JSON, éliminant le besoin pour les agents d'écrire du code",
+    explain: "Bien que smolagents supporte les appels d'outils basés sur du JSON (ToolCallingAgents), la bibliothèque met l'accent sur les approches basées sur le code avec CodeAgents.",
+  },
+  {
+    text: "Il s'intègre profondément avec un seul fournisseur de LLM et du matériel spécialisé",
+    explain: "smolagents supporte plusieurs fournisseurs de modèles et ne nécessite pas de matériel spécialisé.",
+  }
+]}
+/>
+
+---
+
+### Q2 : Dans quel scénario bénéficieriez-vous probablement le plus de l'utilisation de smolagents ?
+Quelle situation s'aligne bien avec ce que *smolagents* fait de mieux ?
+
+<Question
+choices={[
+  {
+    text: "Prototyper ou expérimenter rapidement avec la logique d'agent, particulièrement quand votre application est relativement simple",
+    explain: "Oui. smolagents est conçu pour la création d'agents simple et agile sans surcharge de configuration importante.",
+    correct: true
+  },
+  {
+    text: "Construire un système à grande échelle pour une entreprise où vous avez besoin de dizaines de microservices et de pipelines de données en temps réel",
+    explain: "Bien que possible, smolagents est plus axé sur l'expérimentation légère et centrée sur le code plutôt que sur l'infrastructure lourde nécessaire aux entreprises.",
+  },
+  {
+    text: "Avoir besoin d'un framework qui ne supporte que les LLM basés sur le cloud et interdit l'inférence locale",
+    explain: "smolagents offre une intégration flexible avec des modèles locaux ou hébergés, pas exclusivement des LLM basés sur le cloud.",
+  },
+  {
+    text: "Un scénario qui nécessite une orchestration avancée, une perception multimodale et des fonctionnalités à l'échelle de l'entreprise prêtes à l'emploi",
+    explain: "Bien que vous puissiez intégrer des capacités avancées, smolagents lui-même est léger et minimal dans son cœur.",
+  }
+]}
+/>
+
+---
+
+### Q3 : smolagents offre de la flexibilité dans l'intégration des modèles. Quelle affirmation reflète le mieux son approche ?
+Choisissez la description la plus précise de la façon dont *smolagents* interagit avec les LLM.
+
+<Question
+choices={[
+  {
+    text: "Il ne fournit qu'un seul modèle intégré et ne permet pas d'intégrations personnalisées",
+    explain: "smolagents supporte plusieurs backends différents et des modèles définis par l'utilisateur.",
+  },
+  {
+    text: "Il vous oblige à implémenter votre propre connecteur de modèle pour chaque utilisation de LLM",
+    explain: "Il existe plusieurs connecteurs préconçus qui rendent l'intégration LLM simple.",
+  },
+  {
+    text: "Il s'intègre uniquement avec des LLM open-source mais pas avec des API commerciales",
+    explain: "smolagents peut s'intégrer à la fois avec des API de modèles open-source et commerciales.",
+  },
+  {
+    text: "Il peut être utilisé avec une large gamme de LLM, offrant des classes prédéfinies comme TransformersModel, InferenceClientModel et LiteLLMModel",
+    explain: "C'est correct. smolagents supporte une intégration flexible des modèles à travers diverses classes.",
+    correct: true
+  }
+]}
+/>
+
+---
+
+### Q4 : Comment smolagents gère-t-il le débat entre les actions basées sur le code et les actions basées sur du JSON ?
+Quelle affirmation caractérise correctement la philosophie de *smolagents* concernant les formats d'action ?
+
+<Question
+choices={[
+  {
+    text: "Il n'autorise que des actions basées sur du JSON pour toutes les tâches d'agent, nécessitant un analyseur pour extraire les appels d'outils",
+    explain: "ToolCallingAgent utilise des appels basés sur du JSON, mais smolagents fournit également une option CodeAgent principale qui écrit du code Python.",
+  },
+  {
+    text: "Il se concentre sur les actions basées sur le code via un CodeAgent mais supporte également les appels d'outils basés sur du JSON avec un ToolCallingAgent",
+    explain: "Oui, smolagents recommande principalement les actions basées sur le code mais inclut une alternative basée sur JSON pour les utilisateurs qui la préfèrent ou en ont besoin.",
+    correct: true
+  },
+  {
+    text: "Il interdit tout appel de fonction externe, exigeant plutôt que toute la logique réside entièrement dans le LLM",
+    explain: "smolagents est spécifiquement conçu pour accorder aux LLM la capacité d'appeler des outils ou du code de manière externe.",
+  },
+  {
+    text: "Il oblige les utilisateurs à convertir manuellement chaque extrait de code en objet JSON avant d'exécuter l'agent",
+    explain: "smolagents peut gérer automatiquement la création d'extraits de code dans le chemin CodeAgent, aucune conversion JSON manuelle n'est nécessaire.",
+  }
+]}
+/>
+
+---
+
+### Q5 : Comment smolagents s'intègre-t-il avec le Hub d'Hugging Face pour des bénéfices supplémentaires ?
+Quelle affirmation décrit avec précision l'un des avantages principaux de l'intégration avec le Hub ?
+
+<Question
+choices={[
+  {
+    text: "Il met automatiquement à niveau tous les modèles publics vers des niveaux de licence commerciale",
+    explain: "L'intégration avec le Hub ne change pas le niveau de licence pour les modèles ou les outils.",
+  },
+  {
+    text: "Il désactive entièrement l'inférence locale, forçant uniquement l'utilisation de modèles distants",
+    explain: "Les utilisateurs peuvent toujours faire de l'inférence locale s'ils le préfèrent ; pousser vers le Hub ne remplace pas l'utilisation locale.",
+  },
+  {
+    text: "Il vous permet de pousser et partager des agents ou des outils, les rendant facilement découvrables et réutilisables par d'autres développeurs",
+    explain: "smolagents supporte le téléversement d'agents et d'outils sur le Hub pour que d'autres puissent les réutiliser.",
+    correct: true
+  },
+  {
+    text: "Il stocke de manière permanente tous vos agents basés sur le code, empêchant toute mise à jour ou versioning",
+    explain: "Les dépôts sur le Hub supportent les mises à jour et le contrôle de version, vous pouvez donc réviser vos agents basés sur le code à tout moment.",
+  }
+]}
+/>
+
+---
+
+Félicitations d'avoir terminé ce quiz ! 🎉 Si vous avez manqué des questions, envisagez de revoir la section *Pourquoi utiliser smolagents* pour une compréhension plus approfondie. Si vous avez bien réussi, vous êtes prêt à explorer des sujets plus avancés dans *smolagents* !

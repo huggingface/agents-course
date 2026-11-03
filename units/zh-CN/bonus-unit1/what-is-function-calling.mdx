@@ -1,0 +1,78 @@
+# 什么是函数调用？(What is Function Calling?)
+
+函数调用是**大语言模型 (LLM) 对其环境采取行动的一种方式**。它最初在 [GPT-4中引入](https://openai.com/index/function-calling-and-other-api-updates/)，然后被其他模型复制。
+
+就像智能体 (Agent) 的工具一样，函数调用赋予了模型**对其环境采取行动的能力**。然而，函数调用能力是**由模型学习的**，并且**比其他智能体技术更少依赖提示**。
+
+在第1单元中，智能体**没有学习使用工具 (Tools)**，我们只是提供了工具列表，并依赖模型**能够泛化使用这些工具定义计划**的事实。
+
+而在这里，**通过函数调用，智能体被微调（训练）来使用工具**。
+
+## 模型如何"学习"采取行动？
+
+在第1单元中，我们探讨了智能体的一般工作流程。一旦用户向智能体提供了一些工具并用查询提示它，模型将循环执行：
+
+1. *思考(Think)*：为了实现目标，我需要采取什么行动。
+2. *行动(Act)*：使用正确的参数格式化行动并停止生成。
+3. *观察(Observe)*：从执行中获取结果。
+
+在通过 API 与模型进行的"典型"对话中，对话将在用户和助手消息之间交替进行，如下所示：
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+函数调用为对话带来了**新的角色**！
+
+1. 一个用于 **行动(Action)** 的新角色
+2. 一个用于 **观察(Observation)** 的新角色
+
+如果我们以 [Mistral API](https://docs.mistral.ai/capabilities/function_calling/) 为例，它看起来像这样：
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "What's the status of my transaction T1001?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Your transaction T1001 has been successfully paid."
+    }
+]
+```
+
+> ...但你说函数调用有一个新角色？
+
+**是也不是**，在这种情况下和许多其他API中，模型将要采取的行动格式化为"助手"消息。聊天模板然后将此表示为函数调用的**特殊词元 (special tokens)**。
+
+- `[AVAILABLE_TOOLS]` – 开始可用工具列表  
+- `[/AVAILABLE_TOOLS]` – 结束可用工具列表  
+- `[TOOL_CALLS]` – 调用工具（即采取"行动"）  
+- `[TOOL_RESULTS]` – "观察"行动的结果  
+- `[/TOOL_RESULTS]` – 观察结束（即模型可以再次解码）
+
+我们将在本课程中再次讨论函数调用，但如果你想深入了解，可以查看[这个优秀的文档部分](https://docs.mistral.ai/capabilities/function_calling/)
+
+---
+
+现在我们已经了解了什么是函数调用以及它是如何工作的，让我们**为一个尚未具有这些能力的模型添加一些函数调用功能**：通过向模型添加一些新的特殊词元来增强： [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)。
+
+要能够做到这一点，**我们首先需要理解微调和LoRA**。

@@ -1,0 +1,452 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit2/monitoring-and-evaluating-agents.ipynb"},
+]} />
+
+# Unidad Extra 2: Observabilidad y Evaluación de Agentes
+
+> [!TIP]
+> Puedes seguir el código en <a href="https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit2/monitoring-and-evaluating-agents-notebook.ipynb" target="_blank">este notebook</a> que puedes ejecutar usando Google Colab.
+
+En este notebook, aprenderemos cómo **monitorear los pasos internos (trazos) de nuestro agente de IA** y **evaluar su rendimiento** utilizando herramientas de observabilidad de código abierto.
+
+La capacidad de observar y evaluar el comportamiento de un agente es esencial para:
+- Depurar problemas cuando las tareas fallan o producen resultados subóptimos
+- Monitorear costos y rendimiento en tiempo real
+- Mejorar la fiabilidad y seguridad a través de retroalimentación continua
+
+## Requisitos del Ejercicio 🏗️
+
+Antes de ejecutar este notebook, asegúrate de que has:
+
+🔲 📚  **Estudiado** [Introducción a los Agentes](https://huggingface.co/learn/agents-course/unit1/introduction)
+
+🔲 📚  **Estudiado** [El framework smolagents](https://huggingface.co/learn/agents-course/unit2/smolagents/introduction)
+
+## Paso 0: Instalar las Librerías Necesarias
+
+Necesitaremos algunas librerías que nos permitan ejecutar, monitorear y evaluar nuestros agentes:
+
+
+```python
+%pip install 'smolagents[telemetry]'
+%pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+%pip install langfuse datasets 'smolagents[gradio]'
+```
+
+## Paso 1: Instrumentar tu Agente
+
+En este notebook, utilizaremos [Langfuse](https://langfuse.com/) como nuestra herramienta de observabilidad, pero puedes usar **cualquier otro servicio compatible con OpenTelemetry**. El código a continuación muestra cómo configurar variables de entorno para Langfuse (o cualquier endpoint OTel) y cómo instrumentar tu smolagent.
+
+**Nota:** Si estás utilizando LlamaIndex o LangGraph, puedes encontrar documentación sobre cómo instrumentarlos [aquí](https://langfuse.com/docs/integrations/llama-index/workflows) y [aquí](https://langfuse.com/docs/integrations/langchain/example-python-langgraph). 
+
+Primero, vamos a configurar la variable de entorno correcta para establecer la conexión con el endpoint OpenTelemetry de Langfuse. 
+
+```python
+import os
+import base64
+
+# Obtén tus propias claves desde https://cloud.langfuse.com
+LANGFUSE_PUBLIC_KEY = = "pk-lf-..." 
+LANGFUSE_SECRET_KEY = "sk-lf-..." 
+os.environ["LANGFUSE_PUBLIC_KEY"] = LANGFUSE_PUBLIC_KEY
+os.environ["LANGFUSE_SECRET_KEY"] = LANGFUSE_SECRET_KEY
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"  # 🇪🇺 ejemplo de región EU
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com"  # 🇺🇸 ejemplo de región US
+
+LANGFUSE_AUTH = base64.b64encode(
+    f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()
+).decode()
+
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = os.environ.get("LANGFUSE_HOST") + "/api/public/otel"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+```
+También necesitamos configurar nuestro token de Hugging Face para las llamadas de inferencia.
+
+```python
+# Configura tu token de Hugging Face y otros tokens/secretos como variables de entorno
+os.environ["HF_TOKEN"] = "hf_..." 
+```
+A continuación, podemos configurar un proveedor de trazoss para nuestro OpenTelemetry configurado.
+
+```python
+from opentelemetry.sdk.trace import TracerProvider
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+ 
+# Crear un TracerProvider para OpenTelemetry
+trace_provider = TracerProvider()
+
+# Añadir un SimpleSpanProcessor con el OTLPSpanExporter para enviar trazoss
+trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+
+# Establecer el proveedor de trazas predeterminado global
+from opentelemetry import trace
+trace.set_tracer_provider(trace_provider)
+tracer = trace.get_tracer(__name__)
+
+# Instrumentar smolagents con el proveedor configurado
+SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+```
+
+## Paso 2: Probar tu Instrumentación
+
+Aquí hay un simple CodeAgent de smolagents que calcula `1+1`. Lo ejecutamos para confirmar que la instrumentación está funcionando correctamente. Si todo está configurado correctamente, verás registros/spans en tu panel de observabilidad.
+
+
+```python
+from smolagents import InferenceClientModel, CodeAgent
+
+# Crear un agente simple para probar la instrumentación
+agent = CodeAgent(
+    tools=[],
+    model=InferenceClientModel()
+)
+
+agent.run("1+1=")
+```
+
+Revisa tu [Panel de rastros de Langfuse](https://cloud.langfuse.com/traces) (o tu herramienta de observabilidad elegida) para confirmar que los spans y registros han sido grabados.
+
+Captura de pantalla de ejemplo de Langfuse:
+
+![Ejemplo de rastros en Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/first-example-trace.png)
+
+_[Enlace a  los rastros](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1b94d6888258e0998329cdb72a371155?timestamp=2025-03-10T11%3A59%3A41.743Z)_
+
+## Paso 3: Observar y Evaluar un Agente Más Complejo
+
+Ahora que has confirmado que tu instrumentación funciona, probemos una consulta más compleja para ver cómo se rastrean las métricas avanzadas (uso de tokens, latencia, costos, etc.).
+
+
+```python
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+
+search_tool = DuckDuckGoSearchTool()
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
+
+agent.run("¿Cuántos cubos de Rubik podrías meter dentro de la Catedral de Notre Dame?")
+```
+
+### Estructura de Rastros
+
+La mayoría de las herramientas de observabilidad registran una **rastro** que contiene **spans**, que representan cada paso de la lógica de tu agente. Aquí, el rastro contiene la ejecución general del agente y sub-spans para:
+- Las llamadas a herramientas (DuckDuckGoSearchTool)
+- Las llamadas al LLM (InferenceClientModel)
+
+Puedes inspeccionarlos para ver precisamente dónde se gasta el tiempo, cuántos tokens se utilizan, etc.:
+
+![Árbol de rastros en Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/trace-tree.png)
+
+_[Enlace a los rastros](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1ac33b89ffd5e75d4265b62900c348ed?timestamp=2025-03-07T13%3A45%3A09.149Z&display=preview)_
+
+## Evaluación en Línea
+
+En la sección anterior, aprendimos sobre la diferencia entre evaluación en línea y fuera de línea. Ahora, veremos cómo monitorear tu agente en producción y evaluarlo en vivo.
+
+### Métricas Comunes para Seguir en Producción
+
+1. **Costos** — La instrumentación de smolagents captura el uso de tokens, que puedes transformar en costos aproximados asignando un precio por token.
+2. **Latencia** — Observa el tiempo que toma completar cada paso, o la ejecución completa.
+3. **Retroalimentación del Usuario** — Los usuarios pueden proporcionar retroalimentación directa (pulgar arriba/abajo) para ayudar a refinar o corregir el agente.
+4. **LLM-como-Juez** — Utiliza un LLM separado para evaluar la salida de tu agente en tiempo casi real (por ejemplo, verificando toxicidad o corrección).
+
+A continuación, mostramos ejemplos de estas métricas.
+
+#### 1. Costos
+
+A continuación se muestra una captura de pantalla que muestra el uso para llamadas a `Qwen2.5-Coder-32B-Instruct`. Esto es útil para ver pasos costosos y optimizar tu agente. 
+
+![Costos](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-costs.png)
+
+_[Enlace a los rastros](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1ac33b89ffd5e75d4265b62900c348ed?timestamp=2025-03-07T13%3A45%3A09.149Z&display=preview)_
+
+#### 2. Latencia
+
+También podemos ver cuánto tiempo tomó completar cada paso. En el ejemplo a continuación, toda la conversación tomó 32 segundos, que puedes desglosar por paso. Esto te ayuda a identificar cuellos de botella y optimizar tu agente.
+
+![Latencia](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-latency.png)
+
+_[Enlace a los rastros](https://cloud.langfuse.com/project/cloramnkj0002jz088vzn1ja4/traces/1ac33b89ffd5e75d4265b62900c348ed?timestamp=2025-03-07T13%3A45%3A09.149Z&display=preview)_
+
+#### 3. Atributos Adicionales
+
+También puedes pasar atributos adicionales, como IDs de usuario, IDs de sesión o etiquetas, configurándolos en los spans. Por ejemplo, la instrumentación de smolagents utiliza OpenTelemetry para adjuntar atributos como `langfuse.user.id` o etiquetas personalizadas.
+
+
+```python
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+from opentelemetry import trace
+
+search_tool = DuckDuckGoSearchTool()
+agent = CodeAgent(
+    tools=[search_tool],
+    model=InferenceClientModel()
+)
+
+with tracer.start_as_current_span("Smolagent-Trace") as span:
+    span.set_attribute("langfuse.user.id", "smolagent-user-123")
+    span.set_attribute("langfuse.session.id", "smolagent-session-123456789")
+    span.set_attribute("langfuse.tags", ["city-question", "testing-agents"])
+
+    agent.run("¿Cuál es la capital de Alemania?")
+```
+
+![Mejorando las ejecuciones de agentes con métricas adicionales](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/smolagents-attributes.png)
+
+#### 4. Retroalimentación del Usuario
+
+Si tu agente está integrado en una interfaz de usuario, puedes registrar la retroalimentación directa del usuario (como un pulgar arriba/abajo en una interfaz de chat). A continuación se muestra un ejemplo utilizando [Gradio](https://gradio.app/) para integrar un chat con un mecanismo de retroalimentación simple.
+
+En el fragmento de código a continuación, cuando un usuario envía un mensaje de chat, capturamos el ID de traza de OpenTelemetry. Si al usuario le gusta/no le gusta la última respuesta, adjuntamos una puntuación a la traza.
+
+
+```python
+import gradio as gr
+from opentelemetry.trace import format_trace_id
+from smolagents import (CodeAgent, InferenceClientModel)
+from langfuse import Langfuse
+
+langfuse = Langfuse()
+model = InferenceClientModel()
+agent = CodeAgent(tools=[], model=model, add_base_tools=True)
+
+formatted_trace_id = None  # Almacenaremos el trace_id actual globalmente para demostración
+
+def respond(prompt, history):
+    with trace.get_tracer(__name__).start_as_current_span("Smolagent-Trace") as span:
+        output = agent.run(prompt)
+
+        current_span = trace.get_current_span()
+        span_context = current_span.get_span_context()
+        trace_id = span_context.trace_id
+        global formatted_trace_id
+        formatted_trace_id = str(format_trace_id(trace_id))
+        langfuse.trace(id=formatted_trace_id, input=prompt, output=output)
+
+    history.append({"role": "assistant", "content": str(output)})
+    return history
+
+def handle_like(data: gr.LikeData):
+    # Para demostración, mapeamos la retroalimentación del usuario a un 1 (me gusta) o 0 (no me gusta)
+    if data.liked:
+        langfuse.score(
+            value=1,
+            name="user-feedback",
+            trace_id=formatted_trace_id
+        )
+    else:
+        langfuse.score(
+            value=0,
+            name="user-feedback",
+            trace_id=formatted_trace_id
+        )
+
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot(label="Chat", type="messages")
+    prompt_box = gr.Textbox(placeholder="Escribe tu mensaje...", label="Tu mensaje")
+
+    # Cuando el usuario presiona 'Enter' en el prompt, ejecutamos 'respond'
+    prompt_box.submit(
+        fn=respond,
+        inputs=[prompt_box, chatbot],
+        outputs=chatbot
+    )
+
+    # Cuando el usuario hace clic en un botón de 'me gusta' en un mensaje, ejecutamos 'handle_like'
+    chatbot.like(handle_like, None, None)
+
+demo.launch()
+
+```
+
+La retroalimentación del usuario se captura entonces en tu herramienta de observabilidad:
+
+![La retroalimentación del usuario se captura en Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/user-feedback-gradio.png)
+
+#### 5. LLM-como-Juez
+
+LLM-como-Juez es otra forma de evaluar automáticamente la salida de tu agente. Puedes configurar una llamada LLM separada para medir la corrección, toxicidad, estilo o cualquier otro criterio que te importe.
+
+**Flujo de trabajo**:
+1. Defines una **Plantilla de Evaluación**, por ejemplo, "Verifica si el texto es tóxico".
+2. Cada vez que tu agente genera una salida, pasas esa salida a tu LLM "juez" con la plantilla.
+3. El LLM juez responde con una calificación o etiqueta que registras en tu herramienta de observabilidad.
+
+Ejemplo de Langfuse:
+
+![Plantilla de Evaluación LLM-como-Juez](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/evaluator-template.png)
+![Evaluador LLM-como-Juez](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/evaluator.png)
+
+
+```python
+# Ejemplo: Verificar si la salida del agente es tóxica o no.
+from smolagents import (CodeAgent, DuckDuckGoSearchTool, InferenceClientModel)
+
+search_tool = DuckDuckGoSearchTool()
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
+
+agent.run("¿Puede comer zanahorias mejorar tu visión?")
+```
+
+Puedes ver que la respuesta de este ejemplo se juzga como "no tóxica".
+
+![Puntuación de Evaluación LLM-como-Juez](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/llm-as-a-judge-score.png)
+
+#### 6. Resumen de Métricas de Observabilidad
+
+Todas estas métricas pueden visualizarse juntas en paneles. Esto te permite ver rápidamente cómo se desempeña tu agente a través de muchas sesiones y te ayuda a seguir las métricas de calidad a lo largo del tiempo.
+
+![Resumen de métricas de observabilidad](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/langfuse-dashboard.png)
+
+## Evaluación fuera de línea
+
+La evaluación en línea es esencial para la retroalimentación en vivo, pero también necesitas **evaluación fuera de línea**—verificaciones sistemáticas antes o durante el desarrollo. Esto ayuda a mantener la calidad y fiabilidad antes de implementar cambios en producción.
+
+### Evaluación con Conjuntos de Datos
+
+En la evaluación fuera de línea, típicamente:
+1. Tienes un conjunto de datos de referencia (con pares de prompt y salida esperada)
+2. Ejecutas tu agente en ese conjunto de datos
+3. Comparas las salidas con los resultados esperados o utilizas un mecanismo de puntuación adicional
+
+A continuación, demostramos este enfoque con el [conjunto de datos GSM8K](https://huggingface.co/datasets/gsm8k), que contiene preguntas matemáticas y soluciones.
+
+
+```python
+import pandas as pd
+from datasets import load_dataset
+
+# Obtener GSM8K desde Hugging Face
+dataset = load_dataset("openai/gsm8k", 'main', split='train')
+df = pd.DataFrame(dataset)
+print("Primeras filas del conjunto de datos GSM8K:")
+print(df.head())
+```
+
+A continuación, creamos una entidad de conjunto de datos en Langfuse para rastrear las ejecuciones. Luego, agregamos cada elemento del conjunto de datos al sistema. (Si no estás utilizando Langfuse, podrías simplemente almacenar estos en tu propia base de datos o archivo local para análisis).
+
+
+```python
+from langfuse import Langfuse
+langfuse = Langfuse()
+
+langfuse_dataset_name = "gsm8k_dataset_huggingface"
+
+# Crear un conjunto de datos en Langfuse
+langfuse.create_dataset(
+    name=langfuse_dataset_name,
+    description="Conjunto de datos de referencia GSM8K cargado desde Huggingface",
+    metadata={
+        "date": "2025-03-10", 
+        "type": "benchmark"
+    }
+)
+```
+
+
+```python
+for idx, row in df.iterrows():
+    langfuse.create_dataset_item(
+        dataset_name=langfuse_dataset_name,
+        input={"text": row["question"]},
+        expected_output={"text": row["answer"]},
+        metadata={"source_index": idx}
+    )
+    if idx >= 9: # Cargar solo los primeros 10 elementos para demostración
+        break
+```
+
+![Elementos del conjunto de datos en Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/example-dataset.png)
+
+#### Ejecutando el Agente en el Conjunto de Datos
+
+Definimos una función auxiliar `run_smolagent()` que:
+1. Inicia un span de OpenTelemetry
+2. Ejecuta nuestro agente en el prompt
+3. Registra el ID de traza en Langfuse
+
+Luego, recorremos cada elemento del conjunto de datos, ejecutamos el agente y vinculamos el rastro al elemento del conjunto de datos. También podemos adjuntar una puntuación de evaluación rápida si lo deseamos.
+
+
+```python
+from opentelemetry.trace import format_trace_id
+from smolagents import (CodeAgent, InferenceClientModel, LiteLLMModel)
+
+# Ejemplo: usando InferenceClientModel o LiteLLMModel para acceder a modelos de openai, anthropic, gemini, etc.:
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    add_base_tools=True
+)
+
+def run_smolagent(question):
+    with tracer.start_as_current_span("Smolagent-Trace") as span:
+        span.set_attribute("langfuse.tag", "dataset-run")
+        output = agent.run(question)
+
+        current_span = trace.get_current_span()
+        span_context = current_span.get_span_context()
+        trace_id = span_context.trace_id
+        formatted_trace_id = format_trace_id(trace_id)
+
+        langfuse_trace = langfuse.trace(
+            id=formatted_trace_id, 
+            input=question, 
+            output=output
+        )
+    return langfuse_trace, output
+```
+
+
+```python
+dataset = langfuse.get_dataset(langfuse_dataset_name)
+
+# Ejecutar nuestro agente contra cada elemento del conjunto de datos (limitado a los primeros 10 arriba)
+for item in dataset.items:
+    langfuse_trace, output = run_smolagent(item.input["text"])
+
+    # Vincular la traza al elemento del conjunto de datos para análisis
+    item.link(
+        langfuse_trace,
+        run_name="smolagent-notebook-run-01",
+        run_metadata={ "model": model.model_id }
+    )
+
+    # Opcionalmente, almacenar una puntuación de evaluación rápida para demostración
+    langfuse_trace.score(
+        name="<example_eval>",
+        value=1,
+        comment="Este es un comentario"
+    )
+
+# Vaciar datos para asegurar que toda la telemetría sea enviada
+langfuse.flush()
+```
+
+Puedes repetir este proceso con diferentes:
+- Modelos (OpenAI GPT, LLM local, etc.)
+- Herramientas (búsqueda vs. sin búsqueda)
+- Prompts (diferentes mensajes de sistema)
+
+Luego compararlos lado a lado en tu herramienta de observabilidad:
+
+![Resumen de ejecución del conjunto de datos](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/dataset_runs.png)
+![Comparación de ejecución del conjunto de datos](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/dataset-run-comparison.png)
+
+
+## Consideraciones Finales
+
+En este notebook, cubrimos cómo:
+1. **Configurar la Observabilidad** usando smolagents + exportadores OpenTelemetry
+2. **Verificar la Instrumentación** ejecutando un agente simple
+3. **Capturar Métricas Detalladas** (costo, latencia, etc.) a través de herramientas de observabilidad
+4. **Recopilar Retroalimentación del Usuario** a través de una interfaz Gradio
+5. **Usar LLM-como-Juez** para evaluar automáticamente las salidas
+6. **Realizar Evaluación Fuera de Línea** con un conjunto de datos de referencia
+
+🤗 ¡Feliz programación!

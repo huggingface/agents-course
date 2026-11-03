@@ -1,0 +1,132 @@
+# Quiz : évaluation des agents
+
+Évaluons votre compréhension des concepts de traçage et d'évaluation des agents abordés dans cette unité bonus.
+
+Ce quiz est optionnel et non noté.
+
+### Q1 : À quoi l'observabilité dans les agents fait-elle principalement référence ?
+Quelle déclaration décrit avec précision le but de l'observabilité pour les agents ?
+
+<Question
+choices={[ 
+  {
+    text: "Elle implique de suivre les opérations internes à travers des logs, métriques et <i>spans</i> pour comprendre le comportement de l'agent.",
+    explain: "Correct ! L'observabilité signifie utiliser des logs, métriques et <i>spans</i> pour éclairer le fonctionnement interne de l'agent.",
+    correct: true
+  },
+  {
+    text: "Elle se concentre sur la réduction du coût financier d'exécution de l'agent.",
+    explain: "L'observabilité couvre les coûts mais ne s'y limite pas."
+  },
+  {
+    text: "Elle se réfère à l'apparence externe et l'interface utilisateur de l'agent.",
+    explain: "L'observabilité concerne les processus internes, pas l'interface utilisateur."
+  },
+  {
+    text: "Elle ne concerne que le style de code et l'esthétique du code.",
+    explain: "Le style de code n'est pas lié à l'observabilité dans ce contexte."
+  }
+]}
+/>
+
+### Q2 : Laquelle des suivantes N'EST PAS une métrique commune surveillée dans l'observabilité des agents ?
+Sélectionnez la métrique qui ne tombe pas typiquement sous le parapluie de l'observabilité.
+
+<Question
+choices={[ 
+  {
+    text: "Latence",
+    explain: "La latence est couramment suivie pour évaluer la réactivité de l'agent."
+  },
+  {
+    text: "Coût par exécution d'agent",
+    explain: "Surveiller les coûts est un aspect clé de l'observabilité."
+  },
+  {
+    text: "Commentaires et évaluations utilisateur",
+    explain: "Les commentaires utilisateur sont cruciaux pour évaluer les performances de l'agent."
+  },
+  {
+    text: "Nombre de lignes de code de l'agent",
+    explain: "Le nombre de lignes de code n'est pas une métrique d'observabilité typique.",
+    correct: true
+  }
+]}
+/>
+
+### Q3 : Qu'est-ce qui décrit le mieux l'évaluation hors ligne d'un agent ?
+Déterminez la déclaration qui capture correctement l'essence de l'évaluation hors ligne.
+
+<Question
+choices={[ 
+  {
+    text: "Évaluer l'agent en utilisant de vraies interactions utilisateur dans un environnement en direct.",
+    explain: "Cela décrit l'évaluation en ligne plutôt que hors ligne."
+  },
+  {
+    text: "Évaluer les performances de l'agent en utilisant des jeux de données organisés avec une vérité terrain connue.",
+    explain: "Correct ! L'évaluation hors ligne utilise des jeux de données de test pour mesurer les performances contre des réponses connues.",
+    correct: true
+  },
+  {
+    text: "Surveiller les logs internes de l'agent en temps réel.",
+    explain: "Ceci est plus lié à l'observabilité qu'à l'évaluation."
+  },
+  {
+    text: "Exécuter l'agent sans aucune métrique d'évaluation.",
+    explain: "Cette approche ne fournit pas d'insights significatifs."
+  }
+]}
+/>
+
+### Q4 : Quel avantage l'évaluation en ligne des agents offre-t-elle ?
+Choisissez la déclaration qui reflète le mieux l'avantage de l'évaluation en ligne.
+
+<Question
+choices={[ 
+  {
+    text: "Elle fournit des scénarios de test contrôlés utilisant des jeux de données prédéfinis.",
+    explain: "Les tests contrôlés sont un avantage de l'évaluation hors ligne, pas en ligne."
+  },
+  {
+    text: "Elle capture les interactions utilisateur en direct et les données de performance du monde réel.",
+    explain: "Correct ! L'évaluation en ligne offre des insights en surveillant l'agent dans un environnement en direct.",
+    correct: true
+  },
+  {
+    text: "Elle élimine le besoin de tout test hors ligne et de <i>benchmarks</i>.",
+    explain: "Les évaluations hors ligne et en ligne sont importantes et complémentaires."
+  },
+  {
+    text: "Elle se concentre uniquement sur la réduction du coût computationnel de l'agent.",
+    explain: "Le suivi des coûts fait partie de l'observabilité, pas l'avantage principal de l'évaluation en ligne."
+  }
+]}
+/>
+
+### Q5 : Quel rôle OpenTelemetry joue-t-il dans l'observabilité et l'évaluation des agents ?
+Quelle déclaration décrit le mieux le rôle d'OpenTelemetry dans la surveillance des agents ?
+
+<Question
+choices={[ 
+  {
+    text: "Il fournit un <i>framework</i> standardisé pour instrumenter le code, permettant la collecte de traces, métriques et logs pour l'observabilité.",
+    explain: "Correct ! OpenTelemetry standardise l'instrumentation pour les données de télémétrie, ce qui est crucial pour surveiller et diagnostiquer le comportement des agents.",
+    correct: true
+  },
+  {
+    text: "Il agit comme un remplacement pour le débogage manuel en corrigeant automatiquement les problèmes de code.",
+    explain: "Incorrect. OpenTelemetry est utilisé pour rassembler des données de télémétrie, pas pour déboguer les problèmes de code."
+  },
+  {
+    text: "Il sert principalement comme une base de données pour stocker les logs historiques sans capacités temps réel.",
+    explain: "Incorrect. OpenTelemetry se concentre sur la collecte de données de télémétrie en temps réel et l'export de données vers des outils d'analyse."
+  },
+  {
+    text: "Il est utilisé pour optimiser les performances computationnelles de l'agent en ajustant automatiquement les paramètres du modèle.",
+    explain: "Incorrect. OpenTelemetry est centré sur l'observabilité plutôt que sur l'ajustement des performances."
+  }
+]}
+/>
+
+Félicitations pour avoir terminé ce quiz ! 🎉 Si vous avez manqué des questions, revoyez le contenu de cette unité bonus pour une compréhension plus approfondie. Si vous avez bien réussi, vous êtes prêt à explorer des sujets plus avancés en observabilité et évaluation des agents !

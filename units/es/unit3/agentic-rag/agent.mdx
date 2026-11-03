@@ -1,0 +1,563 @@
+# Creando tu Agente para la Gala
+
+Ahora que hemos construido todos los componentes necesarios para Alfred, es momento de unirlos en un agente completo que pueda ayudar a organizar nuestra extravagante gala.
+
+En esta sección, combinaremos la recuperación de información de invitados, búsqueda web, información meteorológica y herramientas de estadísticas de Hub en un solo agente poderoso.
+
+## Ensamblando a Alfred: El Agente Completo
+
+En lugar de reimplementar todas las herramientas que creamos en secciones anteriores, las importaremos desde sus respectivos módulos que guardamos en los archivos `tools.py` y `retriever.py`.
+
+> [!TIP]
+> Si aún no has implementado las herramientas, regresa a las secciones de <a href="./tools">herramientas</a> y <a href="./invitees">recuperador</a> para implementarlas, y agrégalas a los archivos <code>tools.py</code> y <code>retriever.py</code>.
+
+Importemos las bibliotecas y herramientas necesarias de las secciones anteriores:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+# Importar librerías necesarias
+import random
+from smolagents import CodeAgent, InferenceClientModel
+
+# Importar nuestras herramientas personalizadas desde sus módulos
+from tools import DuckDuckGoSearchTool, WeatherInfoTool, HubStatsTool
+from retriever import load_guest_dataset
+```
+
+Ahora, combinemos todas estas herramientas en un solo agente:
+
+```python
+# Inicializar el modelo de Hugging Face
+model = InferenceClientModel()
+
+# Inicializar la herramienta de búsqueda web
+search_tool = DuckDuckGoSearchTool()
+
+# Inicializar la herramienta del clima
+weather_info_tool = WeatherInfoTool()
+
+# Inicializar la herramienta de estadísticas de Hub
+hub_stats_tool = HubStatsTool()
+
+# Cargar el conjunto de datos de invitados e inicializar la herramienta de información de invitados
+guest_info_tool = load_guest_dataset()
+
+# Crear a Alfred con todas las herramientas
+alfred = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool], 
+    model=model,
+    add_base_tools=True,  # Agregar cualquier herramienta base adicional
+    planning_interval=3   # Habilitar planificación cada 3 pasos
+)
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+# Importar librerías necesarias
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+from tools import search_tool, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+```
+
+Ahora, combinemos todas estas herramientas en un solo agente:
+
+```python
+# Inicializar el modelo de Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Crear Alfred con todas las herramientas
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm,
+)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+from tools import DuckDuckGoSearchTool, weather_info_tool, hub_stats_tool
+from retriever import load_guest_dataset
+```
+
+Ahora, combina todas estas herramientas en un solo agente:
+
+```python
+# Inicializar la herramienta de búsqueda web
+search_tool = DuckDuckGoSearchTool()
+
+# Cargar el conjunto de datos de invitados e inicializar la herramienta de información de invitados
+guest_info_tool = load_guest_dataset()
+
+# Generar la interfaz de chat, incluyendo las herramientas
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Generar el AgentState y el grafo del Agente
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## El grafo
+builder = StateGraph(AgentState)
+
+# Definir nodos: estos hacen el trabajo
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Definir bordes: estos determinan cómo se mueve el flujo de control
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Si el último mensaje requiere una herramienta, enrutar a herramientas
+    # De lo contrario, proporcionar una respuesta directa
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+```
+</hfoption>
+</hfoptions>
+
+¡Tu agente ahora está listo para usarse!
+
+## Usando a Alfred: Ejemplos de Principio a Fin
+
+Ahora que Alfred está completamente equipado con todas las herramientas necesarias, veamos cómo puede ayudar con varias tareas durante la gala.
+
+### Ejemplo 1: Encontrando Información de Invitados
+
+Veamos cómo Alfred puede ayudarnos con nuestra información de invitados.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "Cuéntame sobre 'Lady Ada Lovelace'"
+response = alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Según la información que recuperé, Lady Ada Lovelace es una estimada matemática y amiga. Es reconocida por su trabajo pionero en matemáticas y computación, frecuentemente celebrada como la primera programadora de computadoras debido a su trabajo en el Motor Analítico de Charles Babbage. Su dirección de correo electrónico es ada.lovelace@example.com.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "Cuéntame sobre Lady Ada Lovelace. ¿Cuál es su historia?"
+response = await alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response.response.blocks[0].text)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Lady Ada Lovelace fue una matemática y escritora inglesa, mejor conocida por su trabajo en el Motor Analítico de Charles Babbage. Fue la primera en reconocer que la máquina tenía aplicaciones más allá del cálculo puro.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "Cuéntame sobre 'Lady Ada Lovelace'"})
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Ada Lovelace, también conocida como Augusta Ada King, Condesa de Lovelace, fue una matemática y escritora inglesa. Nacida el 10 de diciembre de 1815 y fallecida el 27 de noviembre de 1852, es reconocida por su trabajo en el Motor Analítico de Charles Babbage, una computadora mecánica de propósito general. Ada Lovelace es celebrada como una de las primeras programadoras de computadoras porque creó un programa para el Motor Analítico en 1843. Reconoció que la máquina podía usarse para más que simples cálculos, visualizando su potencial de una manera que pocos hicieron en ese momento. Sus contribuciones al campo de la ciencia de la computación sentaron las bases para desarrollos futuros. Un día en octubre, designado como el Día de Ada Lovelace, honra las contribuciones de las mujeres a la ciencia y la tecnología, inspirado en el trabajo pionero de Lovelace.
+```
+
+</hfoption>
+</hfoptions>
+
+
+### Ejemplo 2: Verificando el Clima para los Fuegos Artificiales
+
+Veamos cómo Alfred puede ayudarnos con el clima.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "¿Cómo está el clima en París esta noche? ¿Será adecuado para nuestro espectáculo de fuegos artificiales?"
+response = alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada (variará debido a la aleatoriedad):
+```
+🎩 Respuesta de Alfred:
+He revisado el clima en París para ti. Actualmente, está despejado con una temperatura de 25°C. Estas condiciones son perfectas para el espectáculo de fuegos artificiales de esta noche. Los cielos despejados proporcionarán una excelente visibilidad para el espectáculo espectacular, y la temperatura agradable asegurará que los invitados puedan disfrutar del evento al aire libre sin incomodidad.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "¿Cómo está el clima en París esta noche? ¿Será adecuado para nuestro espectáculo de fuegos artificiales?"
+response = await alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El clima en París esta noche es lluvioso con una temperatura de 15°C. Debido a la lluvia, puede que no sea adecuado para un espectáculo de fuegos artificiales.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "¿Cómo está el clima en París esta noche? ¿Será adecuado para nuestro espectáculo de fuegos artificiales?"})
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El clima en París esta noche es lluvioso con una temperatura de 15°C, lo que puede no ser adecuado para tu espectáculo de fuegos artificiales.
+```
+</hfoption>
+</hfoptions>
+
+### Ejemplo 3: Impresionando a Investigadores de IA
+
+Veamos cómo Alfred puede ayudarnos a impresionar a los investigadores de IA.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "Uno de nuestros invitados es de Qwen. ¿Qué puedes decirme sobre su modelo más popular?"
+response = alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El modelo más popular de Qwen es Qwen/Qwen2.5-VL-7B-Instruct con 3,313,345 descargas.
+```
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "Uno de nuestros invitados es de Google. ¿Qué puedes decirme sobre su modelo más popular?"
+response = await alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El modelo más popular de Google en Hugging Face Hub es google/electra-base-discriminator, con 28,546,752 descargas.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "Uno de nuestros invitados es de Qwen. ¿Qué puedes decirme sobre su modelo más popular?"})
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El modelo más descargado de Qwen es Qwen/Qwen2.5-VL-7B-Instruct con 3,313,345 descargas.
+```
+</hfoption>
+</hfoptions>
+
+### Ejemplo 4: Combinando Múltiples Herramientas
+
+Veamos cómo Alfred puede ayudarnos a prepararnos para una conversación con el Dr. Nikola Tesla.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "Necesito hablar con el Dr. Nikola Tesla sobre avances recientes en energía inalámbrica. ¿Puedes ayudarme a prepararme para esta conversación?"
+response = alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+He reunido información para ayudarte a prepararte para tu conversación con el Dr. Nikola Tesla.
+
+Información del Invitado:
+Nombre: Dr. Nikola Tesla
+Relación: viejo amigo de los días universitarios
+Descripción: El Dr. Nikola Tesla es un viejo amigo de tus días universitarios. Recientemente ha patentado un nuevo sistema de transmisión de energía inalámbrica y estaría encantado de discutirlo contigo. Solo recuerda que le apasionan las palomas, así que eso podría ser un buen tema para iniciar la conversación.
+Email: nikola.tesla@gmail.com
+
+Avances Recientes en Energía Inalámbrica:
+Basándome en mi búsqueda web, aquí hay algunos desarrollos recientes en transmisión de energía inalámbrica:
+1. Los investigadores han avanzado en la transmisión de energía inalámbrica de largo alcance utilizando ondas electromagnéticas enfocadas
+2. Varias empresas están desarrollando tecnologías de acoplamiento inductivo resonante para electrónica de consumo
+3. Hay nuevas aplicaciones en la carga de vehículos eléctricos sin conexiones físicas
+
+Iniciadores de Conversación:
+1. "Me encantaría conocer tu nueva patente sobre transmisión de energía inalámbrica. ¿Cómo se compara con tus conceptos originales de nuestros días universitarios?"
+2. "¿Has visto los desarrollos recientes en acoplamiento inductivo resonante para electrónica de consumo? ¿Qué opinas de su enfoque?"
+3. "¿Cómo están tus palomas? Recuerdo tu fascinación por ellas."
+
+Esto debería darte mucho para discutir con el Dr. Tesla mientras demuestras tu conocimiento de sus intereses y desarrollos recientes en su campo.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "Necesito hablar con el Dr. Nikola Tesla sobre avances recientes en energía inalámbrica. ¿Puedes ayudarme a prepararme para esta conversación?"
+response = await alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+Aquí hay algunos avances recientes en energía inalámbrica que podrían serte útiles para tu conversación con el Dr. Nikola Tesla:
+
+1. **Avances y Desafíos en la Transferencia de Energía Inalámbrica**: Este artículo analiza la evolución de la transferencia de energía inalámbrica (WPT) desde los métodos convencionales con cables hasta las aplicaciones modernas, incluidas las estaciones de energía espacial solar. Destaca el enfoque inicial en la tecnología de microondas y la demanda actual de WPT debido al aumento de dispositivos eléctricos.
+
+2. **Avances Recientes en Tecnologías de Transferencia de Energía Inalámbrica para Electrónica Corporal**: Este artículo explora la transferencia de energía inalámbrica (WET) como solución para alimentar dispositivos electrónicos corporales sin necesidad de baterías o cables conductores. Analiza las ventajas y posibles aplicaciones de WET en este contexto.
+
+3. **Transferencia de Energía Inalámbrica y Captación de Energía: Estado Actual y Tendencias Futuras**: Este artículo proporciona una visión general de los avances recientes en métodos de suministro de energía inalámbrica, incluida la captación de energía y la transferencia de energía inalámbrica. Presenta varias aplicaciones prometedoras y analiza las tendencias futuras en el campo.
+
+4. **Transferencia de Energía Inalámbrica: Aplicaciones, Desafíos, Barreras y
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages":"Necesito hablar con el 'Dr. Nikola Tesla' sobre avances recientes en energía inalámbrica. ¿Puedes ayudarme a prepararme para esta conversación?"})
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+```
+
+Salida esperada:
+
+```
+Basándome en la información proporcionada, aquí hay puntos clave para prepararte para la conversación con el 'Dr. Nikola Tesla' sobre avances recientes en energía inalámbrica:
+1. **Transmisión de Energía Inalámbrica (WPT):** Comenta cómo WPT revoluciona la transferencia de energía al eliminar la necesidad de cables y aprovechar mecanismos como el acoplamiento inductivo y resonante.
+2. **Avances en Carga Inalámbrica:** Destaca las mejoras en eficiencia, velocidades de carga más rápidas y el auge de soluciones de carga inalámbrica certificadas Qi/Qi2.
+3. **Innovaciones 5G-Advanced y Protocolo Inalámbrico NearLink:** Menciona estos como desarrollos que mejoran la velocidad, seguridad y eficiencia en redes inalámbricas, que pueden soportar tecnologías avanzadas de energía inalámbrica.
+4. **IA y ML en el Edge:** Habla sobre cómo la inteligencia artificial y el aprendizaje automático dependerán de redes inalámbricas para llevar inteligencia al borde, mejorando la automatización e inteligencia en hogares y edificios inteligentes.
+5. **Avances en Matter, Thread y Seguridad:** Comenta estas innovaciones clave que impulsan la conectividad, eficiencia y seguridad en dispositivos y sistemas IoT.
+6. **Avances en Tecnología de Carga Inalámbrica:** Incluye avances recientes o estudios, como el de la Universidad Nacional de Incheon, para respaldar los avances en carga inalámbrica.
+```
+</hfoption>
+</hfoptions>
+
+### Ejemplo 3: Impresionando a Investigadores de IA
+
+Veamos cómo Alfred puede ayudarnos a impresionar a los investigadores de IA.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "Uno de nuestros invitados es de Qwen. ¿Qué puedes decirme sobre su modelo más popular?"
+response = alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El modelo más popular de Qwen es Qwen/Qwen2.5-VL-7B-Instruct con 3,313,345 descargas.
+```
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "Uno de nuestros invitados es de Google. ¿Qué puedes decirme sobre su modelo más popular?"
+response = await alfred.run(query)
+
+print("🎩 Respuesta de Alfred:")
+print(response)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El modelo más popular de Google en Hugging Face Hub es google/electra-base-discriminator, con 28,546,752 descargas.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "Uno de nuestros invitados es de Qwen. ¿Qué puedes decirme sobre su modelo más popular?"})
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+```
+
+Salida esperada:
+
+```
+🎩 Respuesta de Alfred:
+El modelo más descargado de Qwen es Qwen/Qwen2.5-VL-7B-Instruct con 3,313,345 descargas.
+```
+</hfoption>
+</hfoptions>
+
+## Características Avanzadas: Memoria de Conversación
+
+Para hacer que Alfred sea aún más útil durante la gala, podemos habilitar la memoria de conversación para que recuerde interacciones previas:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+# Crear Alfred con memoria de conversación
+alfred_with_memory = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool], 
+    model=model,
+    add_base_tools=True,
+    planning_interval=3,
+    memory=True  # Habilitar memoria de conversación
+)
+
+# Primera interacción
+response1 = alfred_with_memory.run("Cuéntame sobre Lady Ada Lovelace.")
+print("🎩 Primera Respuesta de Alfred:")
+print(response1)
+
+# Segunda interacción (haciendo referencia a la primera)
+response2 = alfred_with_memory.run("¿En qué proyectos está trabajando actualmente?")
+print("🎩 Segunda Respuesta de Alfred:")
+print(response2)
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.workflow import Context
+
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# Recordando el estado
+ctx = Context(alfred)
+
+# Primera interacción
+response1 = await alfred.run("Cuéntame sobre Lady Ada Lovelace.", ctx=ctx)
+print("🎩 Primera Respuesta de Alfred:")
+print(response1)
+
+# Segunda interacción (haciendo referencia a la primera)
+response2 = await alfred.run("¿En qué proyectos está trabajando actualmente?", ctx=ctx)
+print("🎩 Segunda Respuesta de Alfred:")
+print(response2)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+# Primera interacción
+response = alfred.invoke({"messages": [HumanMessage(content="Cuéntame sobre 'Lady Ada Lovelace'. ¿Cuál es su historia y cómo está relacionada conmigo?")]})
+
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+print()
+
+# Segunda interacción (haciendo referencia a la primera)
+response = alfred.invoke({"messages": response["messages"] + [HumanMessage(content="¿En qué proyectos está trabajando actualmente?")]})
+
+print("🎩 Respuesta de Alfred:")
+print(response['messages'][-1].content)
+```
+
+</hfoption>
+</hfoptions>
+
+## Conclusión
+
+¡Felicitaciones! Has construido exitosamente a Alfred, un agente sofisticado equipado con múltiples herramientas para ayudar a organizar la gala más extravagante del siglo. Alfred ahora puede:
+
+1. Recuperar información detallada sobre los invitados
+2. Verificar las condiciones climáticas para planificar actividades al aire libre
+3. Proporcionar información sobre influyentes creadores de IA y sus modelos
+4. Buscar en la web la información más reciente
+5. Mantener el contexto de la conversación con memoria
+
+Con estas capacidades, Alfred está listo para asegurar que tu gala sea un éxito rotundo, impresionando a los invitados con atención personalizada e información actualizada.

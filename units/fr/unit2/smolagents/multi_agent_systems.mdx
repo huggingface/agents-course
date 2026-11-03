@@ -1,0 +1,411 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/multiagent_notebook.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Systèmes multi-agents
+
+Les systèmes multi-agents permettent à des **agents spécialisés de collaborer sur des tâches complexes**, améliorant la modularité, la scalabilité et la robustesse. Au lieu de s'appuyer sur un seul agent, les tâches sont distribuées entre des agents ayant des capacités distinctes.
+
+Dans `smolagents`, différents agents peuvent être combinés pour générer du code Python, appeler des outils externes, effectuer des recherches web et plus encore. En orchestrant ces agents, nous pouvons créer des flux de travail puissants.
+
+Une configuration typique pourrait inclure :
+- Un **agent manageur** pour la délégation des tâches
+- Un **agent interpréteur de code** pour l'exécution de code
+- Un **agent de recherche web** pour la récupération d'informations
+
+Le diagramme ci-dessous illustre une architecture multi-agents simple où un **agent manageur** coordonne un **outil interpréteur de code** et un **agent de recherche web**, qui à son tour utilise des outils comme `DuckDuckGoSearchTool` et `VisitWebpageTool` pour rassembler des informations pertinentes.
+
+<img src="https://mermaid.ink/img/pako:eNp1kc1qhTAQRl9FUiQb8wIpdNO76eKubrmFks1oRg3VSYgjpYjv3lFL_2hnMWQOJwn5sqgmelRWleUSKLAtFs09jqhtoWuYUFfFAa6QA9QDTnpzamheuhxn8pt40-6l13UtS0ddhtQXj6dbR4XUGQg6zEYasTF393KjeSDGnDJKNxzj8I_7hLW5IOSmP9CH9hv_NL-d94d4DVNg84p1EnK4qlIj5hGClySWbadT-6OdsrL02MI8sFOOVkciw8zx8kaNspxnrJQE0fXKtjBMMs3JA-MpgOQwftIE9Bzj14w-cMznI_39E9Z3p0uFoA?type=png" style='background: white;'>
+
+## Systèmes multi-agents en action
+
+Un système multi-agents se compose de plusieurs agents spécialisés travaillant ensemble sous la coordination d'un **agent orchestrateur**. Cette approche permet des flux de travail complexes en distribuant les tâches entre des agents ayant des rôles distincts.
+
+Par exemple, un **système de RAG multi-agents** peut intégrer :
+- Un **agent web** pour naviguer sur internet.
+- Un **agent récupérateur** pour récupérer des informations à partir de bases de connaissances.
+- Un **agent de génération d'images** pour produire des visuels.
+
+Tous ces agents opèrent sous un orchestrateur qui gère la délégation de tâches et l'interaction.
+
+## Résoudre une tâche complexe avec une hiérarchie multi-agents
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/multiagent_notebook.ipynb" target="_blank">ce <i>notebook</i></a> que vous pouvez exécuter avec Google Colab.
+
+La réception approche ! Avec votre aide, Alfred a presque terminé les préparatifs.
+
+Mais maintenant il y a un problème : la Batmobile a disparu. Alfred doit trouver une remplaçante, et la trouver rapidement.
+
+Heureusement, quelques biographies ont été réalisées sur la vie de Bruce Wayne, alors peut-être qu'Alfred pourrait récupérer une voiture abandonnée sur l'un des plateaux de tournage et la reconditionner selon les normes modernes, ce qui inclurait certainement une option de conduite entièrement autonome.
+
+Mais cela pourrait être n'importe où dans les lieux de tournage autour du monde ; pouvant être nombreux.
+
+Donc Alfred nécessite votre aide. Pourriez-vous construire un agent capable de résoudre cette tâche ?
+
+> 👉 Trouvez tous les lieux de tournage de Batman dans le monde, calculez le temps de transfert par cargo jusqu'à ces lieux, et représentez-les sur une carte, avec une couleur variant en fonction du temps de transfert par cargo. Représentez également quelques usines de supercars avec le même temps de transfert en cargo.
+
+Construisons cela !
+
+Cet exemple nécessite des packages supplémentaires, donc installons-les d'abord :
+
+```bash
+pip install 'smolagents[litellm]' plotly geopandas shapely kaleido -q
+```
+
+### Nous créons d'abord un outil pour obtenir le temps de transfert en avion cargo.
+
+```python
+import math
+from typing import Optional, Tuple
+
+from smolagents import tool
+
+
+@tool
+def calculate_cargo_travel_time(
+    origin_coords: Tuple[float, float],
+    destination_coords: Tuple[float, float],
+    cruising_speed_kmh: Optional[float] = 750.0,  # Vitesse moyenne pour les avions cargo
+) -> float:
+    """
+    Calcule le temps de voyage pour un avion cargo entre deux points sur Terre en utilisant la distance du grand cercle.
+
+    Args:
+        origin_coords: Tuple de (latitude, longitude) pour le point de départ
+        destination_coords: Tuple de (latitude, longitude) pour la destination
+        cruising_speed_kmh: Vitesse de croisière optionnelle en km/h (par défaut 750 km/h pour les avions cargo typiques)
+
+    Returns:
+        float: Le temps de voyage estimé en heures
+
+    Example:
+        >>> # Chicago (41.8781° N, 87.6298° W) vers Sydney (33.8688° S, 151.2093° E)
+        >>> result = calculate_cargo_travel_time((41.8781, -87.6298), (-33.8688, 151.2093))
+    """
+
+    def to_radians(degrees: float) -> float:
+        return degrees * (math.pi / 180)
+
+    # Extraire les coordonnées
+    lat1, lon1 = map(to_radians, origin_coords)
+    lat2, lon2 = map(to_radians, destination_coords)
+
+    # Rayon de la Terre en kilomètres
+    EARTH_RADIUS_KM = 6371.0
+
+    # Calculer la distance du grand cercle en utilisant la formule de haversine
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
+    c = 2 * math.asin(math.sqrt(a))
+    distance = EARTH_RADIUS_KM * c
+
+    # Ajouter 10% pour tenir compte des routes non directes et des contrôles de trafic aérien
+    actual_distance = distance * 1.1
+
+    # Calculer le temps de vol
+    # Ajouter 1 heure pour les procédures de décollage et d'atterrissage
+    flight_time = (actual_distance / cruising_speed_kmh) + 1.0
+
+    # Formater les résultats
+    return round(flight_time, 2)
+
+
+print(calculate_cargo_travel_time((41.8781, -87.6298), (-33.8688, 151.2093)))
+```
+
+### Configuration de l'agent
+
+Pour le fournisseur de modèle, nous utilisons Together AI, l'un des nouveaux [fournisseurs d'inférence sur le Hub](https://huggingface.co/blog/inference-providers) !
+
+Le `GoogleSearchTool` utilise l'[API Serper](https://serper.dev) pour rechercher sur le web, cela nécessite donc soit d'avoir configuré la variable d'environnement `SERPAPI_API_KEY` et de passer `provider="serpapi"` ou d'avoir `SERPER_API_KEY` et de passer `provider=serper`.
+
+Si vous n'avez pas de fournisseur Serp API configuré, vous pouvez utiliser `DuckDuckGoSearchTool` mais attention il a une limite d'appels.
+
+```python
+import os
+from PIL import Image
+from smolagents import CodeAgent, GoogleSearchTool, InferenceClientModel, VisitWebpageTool
+
+model = InferenceClientModel(model_id="Qwen/Qwen2.5-Coder-32B-Instruct", provider="together")
+```
+
+Nous pouvons commencer par créer un agent simple comme ligne de base pour nous donner un rapport simple.
+
+```python
+task = """Trouvez tous les lieux de tournage de Batman dans le monde, calculez le temps de transfert par avion cargo jusqu'ici (nous sommes à Gotham, 40.7128° N, 74.0060° W), et renvoyez-les moi sous la forme d'un dataframe pandas.
+Donnez-moi aussi des usines de supercars avec le même temps de transfert par avion-cargo."""
+```
+
+```python
+agent = CodeAgent(
+    model=model,
+    tools=[GoogleSearchTool("serper"), VisitWebpageTool(), calculate_cargo_travel_time],
+    additional_authorized_imports=["pandas"],
+    max_steps=20,
+)
+```
+
+```python
+result = agent.run(task)
+```
+
+```python
+result
+```
+
+Dans notre cas, il génère cette sortie :
+
+```python
+|  | Location                                             | Travel Time to Gotham (hours) |
+|--|------------------------------------------------------|------------------------------|
+| 0  | Necropolis Cemetery, Glasgow, Scotland, UK         | 8.60                         |
+| 1  | St. George's Hall, Liverpool, England, UK         | 8.81                         |
+| 2  | Two Temple Place, London, England, UK             | 9.17                         |
+| 3  | Wollaton Hall, Nottingham, England, UK           | 9.00                         |
+| 4  | Knebworth House, Knebworth, Hertfordshire, UK    | 9.15                         |
+| 5  | Acton Lane Power Station, Acton Lane, Acton, UK  | 9.16                         |
+| 6  | Queensboro Bridge, New York City, USA            | 1.01                         |
+| 7  | Wall Street, New York City, USA                  | 1.00                         |
+| 8  | Mehrangarh Fort, Jodhpur, Rajasthan, India       | 18.34                        |
+| 9  | Turda Gorge, Turda, Romania                      | 11.89                        |
+| 10 | Chicago, USA                                     | 2.68                         |
+| 11 | Hong Kong, China                                 | 19.99                        |
+| 12 | Cardington Studios, Northamptonshire, UK        | 9.10                         |
+| 13 | Warner Bros. Leavesden Studios, Hertfordshire, UK | 9.13                         |
+| 14 | Westwood, Los Angeles, CA, USA                  | 6.79                         |
+| 15 | Woking, UK (McLaren)                             | 9.13                         |
+```
+
+Nous pourrions déjà l'améliorer un peu en ajoutant des étapes de planification dédiées et en ajoutant davantage de *prompts*.
+
+Les étapes de planification permettent à l'agent de penser à l'avance et planifier ses prochaines étapes, ce qui peut être utile pour des tâches plus complexes.
+
+```python
+agent.planning_interval = 4
+
+detailed_report = agent.run(f"""
+Vous êtes un analyste expert. Vous rédigez des rapports complets après avoir visité de nombreux sites web.
+N'hésitez pas à effectuer plusieurs recherches à la fois dans une boucle for.
+Pour chaque point de données que vous trouvez, visitez l'url source pour confirmer les chiffres.
+
+{task}
+""")
+
+print(detailed_report)
+```
+
+```python
+detailed_report
+```
+
+Dans notre cas, il génère cette sortie :
+
+```python
+|  | Location                                         | Travel Time (hours) |
+|--|--------------------------------------------------|---------------------|
+| 0  | Bridge of Sighs, Glasgow Necropolis, Glasgow, UK | 8.6                 |
+| 1  | Wishart Street, Glasgow, Scotland, UK         | 8.6                 |
+```
+
+Grâce à ces changements rapides, nous avons obtenu un rapport beaucoup plus concis en fournissant simplement à notre agent un *prompt* détaillé, et en lui donnant des capacités de planification !
+
+La fenêtre de contexte du modèle se remplit rapidement. Donc **si nous demandons à notre agent de combiner les résultats de recherche détaillée avec une autre, il sera plus lent et cela augmentera rapidement le nombre de *tokens* utilisés et donc les coûts**.
+
+➡️ Nous devons améliorer la structure de notre système.
+
+### ✌️ Diviser la tâche entre deux agents
+
+Les structures multi-agents permettent de séparer les mémoires entre différentes sous-tâches, avec deux grands avantages :
+- Chaque agent est davantage focalisé sur sa tâche principale, donc plus performant
+- Séparer les mémoires réduit le nombre de *tokens* d'entrée à chaque étape, réduisant ainsi la latence et le coût.
+
+Créons une équipe avec un agent de recherche web dédié, géré par un autre agent.
+
+L'agent gestionnaire devrait avoir des capacités de traçage pour écrire son rapport final : donnons-lui donc accès à des importations supplémentaires, incluant `plotly`, et `geopandas` + `shapely` pour le traçage spatial.
+
+```python
+model = InferenceClientModel(
+    "Qwen/Qwen2.5-Coder-32B-Instruct", provider="together", max_tokens=8096
+)
+
+web_agent = CodeAgent(
+    model=model,
+    tools=[
+        GoogleSearchTool(provider="serper"),
+        VisitWebpageTool(),
+        calculate_cargo_travel_time,
+    ],
+    name="web_agent",
+    description="Navigue sur le web pour trouver des informations",
+    verbosity_level=0,
+    max_steps=10,
+)
+```
+
+L'agent gestionnaire aura besoin de faire du travail mental intensif.
+
+Donc nous lui donnons le modèle plus puissant [DeepSeek-R1](https://huggingface.co/deepseek-ai/DeepSeek-R1), et ajoutons un `planning_interval` au mélange.
+
+```python
+from smolagents.utils import encode_image_base64, make_image_url
+from smolagents import OpenAIServerModel
+
+
+def check_reasoning_and_plot(final_answer, agent_memory):
+    multimodal_model = OpenAIServerModel("gpt-4o", max_tokens=8096)
+    filepath = "saved_map.png"
+    assert os.path.exists(filepath), "Assurez-vous de sauvegarder le graphique sous saved_map.png !"
+    image = Image.open(filepath)
+    prompt = (
+        f"Voici une tâche donnée par l'utilisateur et les étapes de l'agent : {agent_memory.get_succinct_steps()}. Maintenant voici le graphique qui a été fait."
+        "Veuillez vérifier que le processus de raisonnement et le graphique sont corrects : répondent-ils correctement à la tâche donnée ?"
+        "Listez d'abord les raisons pour lesquelles oui/non, puis écrivez votre décision finale : PASS en majuscules si c'est satisfaisant, FAIL si ce n'est pas le cas."
+        "Ne soyez pas dur : si le graphique résout principalement la tâche, il devrait passer."
+        "Pour passer, un graphique devrait être fait en utilisant px.scatter_map et non toute autre méthode (scatter_map a l'air plus joli)."
+    )
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": prompt,
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {"url": make_image_url(encode_image_base64(image))},
+                },
+            ],
+        }
+    ]
+    output = multimodal_model(messages).content
+    print("Feedback: ", output)
+    if "FAIL" in output:
+        raise Exception(output)
+    return True
+
+
+manager_agent = CodeAgent(
+    model=InferenceClientModel("deepseek-ai/DeepSeek-R1", provider="together", max_tokens=8096),
+    tools=[calculate_cargo_travel_time],
+    managed_agents=[web_agent],
+    additional_authorized_imports=[
+        "geopandas",
+        "plotly",
+        "shapely",
+        "json",
+        "pandas",
+        "numpy",
+    ],
+    planning_interval=5,
+    verbosity_level=2,
+    final_answer_checks=[check_reasoning_and_plot],
+    max_steps=15,
+)
+```
+
+Inspectons à quoi ressemble cette équipe :
+
+```python
+manager_agent.visualize()
+```
+
+Cela générera quelque chose comme ceci, nous aidant à comprendre la structure et les relations entre les agents et les outils utilisés :
+
+```python
+CodeAgent | deepseek-ai/DeepSeek-R1
+├── ✅ Importations autorisées : ['geopandas', 'plotly', 'shapely', 'json', 'pandas', 'numpy']
+├── 🛠️ Outils :
+│   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+│   ┃ Nom                         ┃ Description                           ┃ Arguments                             ┃
+│   ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│   │ calculate_cargo_travel_time │ Calcule le temps de voyage pour un    │ origin_coords (`array`) : Tuple de    │
+│   │                             │ avion cargo entre deux points sur     │ (latitude, longitude) pour le         │
+│   │                             │ Terre en utilisant la distance du     │ point de départ                       │
+│   │                             │ grand cercle.                          │ destination_coords (`array`) : Tuple  │
+│   │                             │                                       │ de (latitude, longitude) pour la      │
+│   │                             │                                       │ destination                           │
+│   │                             │                                       │ cruising_speed_kmh (`number`) :       │
+│   │                             │                                       │ Vitesse de croisière optionnelle      │
+│   │                             │                                       │ en km/h (par défaut 750 km/h pour     │
+│   │                             │                                       │ les avions cargo typiques)            │
+│   │ final_answer                │ Fournit une réponse finale au problème │ answer (`any`) : La réponse finale    │
+│   │                             │ donné.                                │ au problème                           │
+│   └─────────────────────────────┴───────────────────────────────────────┴───────────────────────────────────────┘
+└── 🤖 Agents gérés :
+    └── web_agent | CodeAgent | Qwen/Qwen2.5-Coder-32B-Instruct
+        ├── ✅ Importations autorisées : []
+        ├── 📝 Description : Navigue sur le web pour trouver des informations
+        └── 🛠️ Outils :
+            ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+            ┃ Nom                         ┃ Description                       ┃ Arguments                         ┃
+            ┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+            │ web_search                  │ Effectue une recherche web Google │ query (`string`) : La requête de  │
+            │                             │ pour votre requête puis retourne  │ recherche à effectuer.            │
+            │                             │ une chaîne des meilleurs résultats │ filter_year (`integer`) :         │
+            │                             │ de recherche.                      │ Optionnellement restreindre les   │
+            │                             │                                   │ résultats à une certaine année    │
+            │ visit_webpage               │ Visite une page web à l'URL donnée │ url (`string`) : L'URL de la page │
+            │                             │ et lit son contenu comme une      │ web à visiter.                    │
+            │                             │ chaîne markdown. Utilisez ceci    │                                   │
+            │                             │ pour naviguer sur les pages web.  │                                   │
+            │ calculate_cargo_travel_time │ Calcule le temps de voyage pour un │ origin_coords (`array`) : Tuple de │
+            │                             │ avion cargo entre deux points sur │ (latitude, longitude) pour le     │
+            │                             │ Terre en utilisant la distance du │ point de départ                   │
+            │                             │ grand cercle.                      │ destination_coords (`array`) :    │
+            │                             │                                   │ Tuple de (latitude, longitude)    │
+            │                             │                                   │ pour la destination               │
+            │                             │                                   │ cruising_speed_kmh (`number`) :   │
+            │                             │                                   │ Vitesse de croisière optionnelle  │
+            │                             │                                   │ en km/h (par défaut 750 km/h pour │
+            │                             │                                   │ les avions cargo typiques)        │
+            │ final_answer                │ Fournit une réponse finale au     │ answer (`any`) : La réponse finale │
+            │                             │ problème donné.                   │ au problème                       │
+            └─────────────────────────────┴───────────────────────────────────┴───────────────────────────────────┘
+```
+
+```python
+manager_agent.run("""
+Find all Batman filming locations in the world, calculate the time to transfer via cargo plane to here (we're in Gotham, 40.7128° N, 74.0060° W).
+Also give me some supercar factories with the same cargo plane transfer time. You need at least 6 points in total.
+Represent this as spatial map of the world, with the locations represented as scatter points with a color that depends on the travel time, and save it to saved_map.png!
+
+Here's an example of how to plot and return a map:
+import plotly.express as px
+df = px.data.carshare()
+fig = px.scatter_map(df, lat="centroid_lat", lon="centroid_lon", text="name", color="peak_hour", size=100,
+     color_continuous_scale=px.colors.sequential.Magma, size_max=15, zoom=1)
+fig.show()
+fig.write_image("saved_image.png")
+final_answer(fig)
+
+Never try to process strings using code: when you have a string to read, just print it and you'll see it.
+""")
+```
+
+Je ne sais pas comment cela s'est passé pour votre exécution, mais dans la mienne, l'agent gestionnaire a habilement divisé les tâches données à l'agent web en `1. Rechercher les lieux de tournage de Batman`, puis `2. Trouver les usines de supercars`, avant d'agréger les listes et de tracer la carte.
+
+Voyons à quoi ressemble la carte en l'inspectant directement depuis l'état de l'agent :
+
+```python
+manager_agent.python_executor.state["fig"]
+```
+
+Cela affichera la carte :
+
+![Exemple de sortie de carte du système multi-agents](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/output_map.png)
+
+## Ressources
+
+- [Systèmes multi-agents](https://huggingface.co/docs/smolagents/main/en/examples/multiagents) – Aperçu des systèmes multi-agents.
+- [Qu'est-ce que le RAG agentique ?](https://weaviate.io/blog/what-is-agentic-rag) – Introduction au RAG agentique.
+- [Système RAG multi-agents 🤖🤝🤖 Recette](https://huggingface.co/learn/cookbook/multiagent_rag_system) – Guide étape par étape pour construire un système RAG multi-agents.

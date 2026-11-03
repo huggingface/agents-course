@@ -1,0 +1,77 @@
+# Qu'est-ce que l'appel de fonctions ?
+
+Tout comme les outils, l'appel de fonctions (*function-calling*) est une **façon pour un LLM de prendre des actions basé sur son environnement**. Cependant, la capacité d'appel de fonctions **est apprise par le modèle**, et repose **moins sur le *prompting* que d'autres techniques d'agents**.
+
+Cette approche a d'abord été [introduite dans GPT-4](https://openai.com/index/function-calling-and-other-api-updates/), et a ensuite été reproduite dans d'autres modèles.
+
+Durant l'Unité 1, l'agent **n'a pas appris à utiliser les outils**. Nous avons juste fourni une liste, et nous nous sommes appuyés sur le fait que **le modèle était capable de généraliser la définition d'un plan à l'aide de ces outils**.
+
+**Aalors qu'avec l'appel de fonctions, l'agent est finetunét (entraîné) pour utiliser les outils**.
+
+## Comment le modèle apprend-il à prendre une action ?
+
+Dans l'Unité 1, nous avons exploré le *workflow* général d'un agent. Une fois que l'utilisateur a donné quelques outils à l'agent et l'a sollicité avec une requête, le modèle va effectuer un cycle à travers :
+
+1. *Réflexion* : Quelle(s) action(s) dois-je prendre pour atteindre l'objectif.
+2. *Action* : Formater l'action avec le bon paramètre et arrêter la génération.
+3. *Observation* : Récupérer le résultat de l'exécution.
+
+Dans une conversation « typique » avec un modèle via une API, la conversation alternera entre les messages utilisateur et assistant comme ceci :
+
+```python
+conversation = [
+    {"role": "user", "content": "J'ai besoin d'aide avec ma commande"},
+    {"role": "assistant", "content": "Je serais ravi de vous aider. Pourriez-vous fournir votre numéro de commande ?"},
+    {"role": "user", "content": "C'est ORDER-123"},
+]
+```
+
+L'appel de fonctions apporte **de nouveaux rôles à la conversation** ! 
+
+1. Un nouveau rôle pour une **action** 
+2. Un nouveau rôle pour une **observation** 
+
+Si nous prenons l'[API Mistral](https://docs.mistral.ai/capabilities/function_calling/) comme exemple, cela ressemble à ceci :
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "Quel est le statut de ma transaction T1001 ?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Votre transaction T1001 a été payée avec succès."
+    }
+]
+```
+
+> ... Mais vous avez dit qu'il y a un nouveau rôle pour les appels de fonctions ?
+
+**Oui et non**, dans ce cas et dans beaucoup d'autres API, le modèle formate l'action à prendre "assistant" comme message. Le gabarit de chat représentera ensuite cela comme des ***tokens* spéciaux** pour l'appel de fonctions.
+
+- `[AVAILABLE_TOOLS]` – Démarre la liste des outils disponibles  
+- `[/AVAILABLE_TOOLS]` – Termine la liste des outils disponibles  
+- `[TOOL_CALLS]` – Fait un appel à un outil (c'est-à-dire, prend une action)  
+- `[TOOL_RESULTS]` – Observe le résultat de l'action  
+- `[/TOOL_RESULTS]` – Fin de l'observation (c'est-à-dire, le modèle peut décoder à nouveau)
+
+Nous reparlerons de l'appel de fonctions dans ce cours, mais si vous voulez approfondir, vous pouvez consulter [cette excellente section de la documentation de Mistral](https://docs.mistral.ai/capabilities/function_calling/).
+
+---
+Maintenant que nous avons vu ce qu'est l'appel de fonctions et comment cela fonctionne, **ajoutons cette capacité à un modèle qui n'en dispose pas nativement** : le [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it). Pour cela nous allons ajouter de nouveaux *tokens* spéciaux au modèle.
+
+Pour être capable de faire ceci, **nous devons d'abord comprendre comment marche le finetuning et la méthode LoRA**.

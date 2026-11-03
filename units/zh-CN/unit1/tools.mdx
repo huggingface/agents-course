@@ -1,0 +1,311 @@
+# 什么是工具？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Unit 1 planning"/>
+
+AI 智能体的关键能力在于执行**行动**。正如前文所述，这通过**工具**的使用实现。
+
+本节将学习工具的定义、有效设计方法，以及如何通过系统消息将其集成到智能体中。
+
+通过为智能体配备合适的工具——并清晰描述这些工具的工作原理——可显著提升 AI 的能力边界。让我们深入探讨！
+
+## AI 工具的定义
+
+**工具是赋予 LLM 的函数**，该函数应实现**明确的目标**。
+
+以下是 AI 智能体中常用的工具示例：
+
+| 工具类型          | 描述                                                            |
+|------------------|---------------------------------------------------------------|
+| 网络搜索          | 允许智能体从互联网获取最新信息                                   |
+| 图像生成          | 根据文本描述生成图像                                             |
+| 信息检索          | 从外部源检索信息                                                 |
+| API 接口          | 与外部 API 交互（GitHub、YouTube、Spotify 等）                     |
+
+以上仅为示例，实际可为任何用例创建工具！
+
+优秀工具应能**补充 LLM 的核心能力**。
+
+例如，若需执行算术运算，为 LLM 提供**计算器工具**将比依赖模型原生能力获得更好结果。
+
+此外，**LLM 基于训练数据预测提示的补全**，意味着其内部知识仅包含训练截止前的信息。因此，若智能体需要最新数据，必须通过工具获取。
+
+例如，若直接询问 LLM（无搜索工具）今日天气，LLM 可能会产生随机幻觉。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Weather"/>
+
+- 合格工具应包含：
+  - **函数功能的文本描述**
+  - *可调用对象*（执行操作的实体）
+  - 带类型声明的*参数*
+  - （可选）带类型声明的输出
+
+## 工具如何运作？
+
+正如前文所述，LLM 只能接收文本输入并生成文本输出。它们无法自行调用工具。当我们谈及_为智能体提供工具_时，实质是**教导** LLM 认识工具的存在，并要求模型在需要时生成调用工具的文本。例如，若我们提供从互联网获取某地天气的工具，当询问 LLM 巴黎天气时，LLM 将识别该问题适合使用我们教授的"天气"工具，并生成代码形式的文本来调用该工具。**智能体**负责解析 LLM 的输出，识别工具调用需求，并执行工具调用。工具的输出将返回给 LLM，由其生成最终用户响应。
+
+工具调用的输出是对话中的另一种消息类型。工具调用步骤通常对用户不可见：智能体检索对话、调用工具、获取输出、将其作为新消息添加，并将更新后的对话再次发送给 LLM。从用户视角看，仿佛 LLM 直接使用了工具，但实际执行的是我们的应用代码（**智能体**）。
+
+后续课程将深入探讨该流程。
+
+## 如何为 LLM 提供工具？
+
+完整答案可能看似复杂，但核心是通过系统提示（system prompt）向模型文本化描述可用工具：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="System prompt for tools"/>
+
+为确保有效性，必须精准描述：
+1. **工具功能**
+2. **预期输入格式**
+
+因此工具描述通常采用结构化表达方式（如编程语言或 JSON）。虽非强制，但任何精确、连贯的格式均可。
+
+若觉抽象，我们通过具体示例理解。
+
+我们将实现简化的**计算器**工具，仅执行两整数相乘。Python 实现如下：
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+```
+
+因此我们的工具名为`calculator`，其功能是**将两个整数相乘**，需要以下输入：
+
+- **`a`**（*int*）：整数
+- **`b`**（*int*）：整数
+
+工具输出为另一个整数，描述如下：
+- （*int*）：`a`与`b`的乘积
+
+所有这些细节都至关重要。让我们将这些信息整合成 LLM 可理解的工具描述文本：
+
+```text
+工具名称： calculator，描述：将两个整数相乘。参数：a: int, b: int，输出：int
+```
+
+> **重要提示：** 此文本描述是*我们希望 LLM 了解的工具体系*。
+
+当我们将上述字符串作为输入的一部分传递给 LLM 时，模型将识别其为工具，并知晓需要传递的输入参数及预期输出。
+
+若需提供更多工具，必须保持格式一致性。此过程可能较为脆弱，容易遗漏某些细节。
+
+是否有更好的方法？
+
+### 自动化工具描述生成
+
+我们的工具采用 Python 实现，其代码已包含所需全部信息：
+
+- 功能描述性名称：`calculator`
+- 详细说明（通过函数文档字符串实现）：`将两个整数相乘`
+- 输入参数及类型：函数明确要求两个`int`类型参数
+- 输出类型
+
+这正是人们使用编程语言的原因：表达力强、简洁且精确。
+
+虽然可以将 Python 源代码作为工具规范提供给 LLM，但具体实现方式并不重要。关键在于工具名称、功能描述、输入参数和输出类型。
+
+我们将利用 Python 的**自省特性**，通过源代码自动构建工具描述。只需确保工具实现满足：
+1. 使用类型注解（Type Hints）
+2. 编写文档字符串（Docstrings）
+3. 采用合理的函数命名
+
+完成这些之后，我们只需使用一个 Python 装饰器来指示`calculator`函数是一个工具：
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+注意函数定义前的`@tool`装饰器。
+
+通过我们即将看到的实现，可以利用装饰器提供的`to_string()`方法从源代码自动提取以下文本：
+
+```text
+工具名称： calculator，描述：将两个整数相乘。参数：a: int, b: int，输出：int
+```
+
+正如所见，这与我们之前手动编写的内容完全一致！
+
+### 通用工具类实现
+
+我们创建通用`Tool`类，可在需要时重复使用：
+
+> **说明：** 此示例实现为虚构代码，但高度模拟了主流工具库的实际实现方式。
+
+```python
+class Tool:
+    """
+    A class representing a reusable piece of code (Tool).
+    
+    Attributes:
+        name (str): Name of the tool.
+        description (str): A textual description of what the tool does.
+        func (callable): The function this tool wraps.
+        arguments (list): A list of argument.
+        outputs (str or list): The return type(s) of the wrapped function.
+    """
+    def __init__(self, 
+                 name: str, 
+                 description: str, 
+                 func: callable, 
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Return a string representation of the tool, 
+        including its name, description, arguments, and outputs.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+        
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoke the underlying function (callable) with provided arguments.
+        """
+        return self.func(*args, **kwargs)
+```
+
+虽然看似复杂，但逐步解析即可理解其工作机制。我们定义的**`Tool`**类包含以下核心要素：
+
+- **`name`**（*str*）：工具名称
+- **`description`**（*str*）：工具功能简述
+- **`function`**（*callable*）：工具执行的函数
+- **`arguments`**（*list*）：预期输入参数列表
+- **`outputs`**（*str* 或 *list*）：工具预期输出
+- **`__call__()`**：调用工具实例时执行函数
+- **`to_string()`**：将工具属性转换为文本描述
+
+可通过如下代码创建工具实例：
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # name
+    "Multiply two integers.",       # description
+    calculator,                     # function to call
+    [("a", "int"), ("b", "int")],   # inputs (names and types)
+    "int",                          # output
+)
+```
+
+但我们可以利用 Python 的`inspect`模块自动提取这些信息！这正是`@tool`装饰器的实现原理。
+
+> 若感兴趣，可展开以下内容查看装饰器具体实现：
+
+<details>
+<summary> decorator code</summary>
+
+```python
+def tool(func):
+    """
+    A decorator that creates a Tool instance from the given function.
+    """
+    # Get the function signature
+    signature = inspect.signature(func)
+    
+    # Extract (param_name, param_annotation) pairs for inputs
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__ 
+            if hasattr(param.annotation, '__name__') 
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+    
+    # Determine the return annotation
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "No return annotation"
+    else:
+        outputs = (
+            return_annotation.__name__ 
+            if hasattr(return_annotation, '__name__') 
+            else str(return_annotation)
+        )
+    
+    # Use the function's docstring as the description (default if None)
+    description = func.__doc__ or "No description provided."
+    
+    # The function name becomes the Tool name
+    name = func.__name__
+    
+    # Return a new Tool instance
+    return Tool(
+        name=name, 
+        description=description, 
+        func=func, 
+        arguments=arguments, 
+        outputs=outputs
+    )
+```
+
+</details>
+
+简而言之，在应用此装饰器后，我们可以按如下方式实现工具：
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+我们可以使用`Tool`类的`to_string`方法自动生成适合LLM使用的工具描述文本：
+
+```text
+工具名称： calculator，描述：将两个整数相乘。参数：a: int, b: int，输出：int
+```
+
+该描述将被**注入**系统提示。以本节初始示例为例，替换`tools_description`后的系统提示如下：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="System prompt for tools"/>
+
+在[Actions](actions)章节，我们将深入探讨智能体如何**调用**刚创建的这个工具。
+
+### 模型上下文协议（MCP）：统一的工具接口
+
+模型上下文协议（MCP）是一种开放式协议，它规范了应用程序向 LLM 提工具的方式。
+
+MCP 提供
+
+- 不断增加的预构建集成列表，您的 LLM 可以直接接入这些集成
+- 在 LLM 提供商和供应商之间灵活切换的能力
+- 在基础设施内保护数据安全的最佳实践
+
+这意味着任何实施 MCP 的框架都可以利用协议中定义的工具，从而无需为每个框架重新实现相同的工具接口。
+
+---
+
+工具在增强AI智能体能力方面至关重要。
+
+总结本节要点：
+
+- *工具定义*：通过提供清晰的文本描述、输入参数、输出结果及可调用函数
+
+- *工具本质*：赋予LLM额外能力的函数（如执行计算或访问外部数据）
+
+- *工具必要性*：帮助智能体突破静态模型训练的局限，处理实时任务并执行专业操作
+
+现在进入【智能体工作流】(agent-steps-and-structure)章节，您将看到智能体如何观察、思考与行动。这**整合了当前所学全部内容**，为创建功能完备的 AI 智能体奠定基础。
+
+但在此之前，让我们先完成另一个简短测验！

@@ -1,0 +1,85 @@
+# Réflexions : raisonnement interne et l'approche Re-Act
+
+> [!TIP]
+> Dans cette section, nous plongeons dans le fonctionnement interne d'un agent : sa capacité à raisonner et à planifier. Nous explorerons comment l'agent utilise son dialogue interne pour analyser l'information, décomposer des problèmes complexes en étapes gérables, et décider de l'action à entreprendre ensuite. De plus, nous présentons l'approche Re-Act, une technique pour prompter qui encourage le modèle à réfléchir « étape par étape » avant d'agir.
+
+Les réflexions représentent le raisonnement interne de l'agent et les processus de planification** pour résoudre la tâche.
+
+Elles utilisent la capacité du LLM de l'agent **à analyser l'information lorsqu'elle est présentée dans son *prompt*** - essentiellement, son monologue intérieur pendant qu'il travaille sur un problème.
+
+Les réflexions de l'agent l'aident à évaluer les observations actuelles et à décider de la ou des prochaines actions à entreprendre. Grâce à ce processus, l'agent peut **décomposer des problèmes complexes en étapes plus petites et plus faciles à gérer**, réfléchir aux expériences passées et ajuster continuellement ses plans en fonction des nouvelles informations.
+
+
+## Exemples de types de réflexions courantes
+
+| Type de Raisonnement         | Exemple                                                                                                   |
+|------------------------|-----------------------------------------------------------------------------------------------------------|
+| Planification          | "Je dois décomposer cette tâche en trois étapes : 1) recueillir les données, 2) analyser les tendances, 3) générer le rapport" |
+| Analyse                | "D'après le message d'erreur, le problème semble provenir des paramètres de connexion à la base de données" |
+| Prise de Décision      | "Étant donné les contraintes budgétaires de l'utilisateur, je devrais recommander l'option de milieu de gamme" |
+| Résolution de Problème | "Pour optimiser ce code, je devrais d'abord le profiler pour identifier les goulets d'étranglement"         |
+| Intégration de la Mémoire | "L'utilisateur avait mentionné sa préférence pour Python plus tôt, donc je fournirai des exemples en Python"     |
+| Auto-Réflexion         | "Ma dernière approche n'a pas bien fonctionné, je devrais essayer une stratégie différente"                 |
+| Définition d'Objectifs | "Pour accomplir cette tâche, je dois d'abord établir les critères d'acceptation"                           |
+| Priorisation           | "La vulnérabilité de sécurité doit être traitée avant d'ajouter de nouvelles fonctionnalités"               |
+
+> **Note:** Dans le cas des LLM finetuné pour de l'appel de fonctions, le processus de réflexion est facultatif. Davantage de détails seront abordés dans la section sur les actions.
+
+
+## Chaîne de réflexion (*Chain-of-Thought* généralement abrégé en CoT)
+
+Une chaîne de réflexion est une technique de prompt qui guide un modèle à **réfléchir à un problème étape par étape avant de produire une réponse finale**.
+
+Cela commence généralement par :  
+*« Réfléchissons étape par étape ».
+
+Cette approche aide le modèle à **raisonner en interne**, en particulier pour les tâches logiques ou mathématiques, **sans interagir avec des outils externes**.
+
+### Exemple
+```
+Question: Qu'est-ce que 15 % de 200 ?
+Thought: Réfléchissons étape par étape. 10 % de 200, c'est 20, et 5 % de 200, c'est 10, donc 15 %, c'est 30.
+Answer: 30
+```
+
+## ReAct : Raisonner + Action
+
+Une méthode clé est l'approche **ReAct**, qui combine le « raisonnement » (Think) et l'« action » (Act).
+
+ReAct est une technique de prompt qui encourage le modèle à réfléchir étape par étape et à intercaler des actions (comme l'utilisation d'outils) entre les étapes du raisonnement.
+
+Cela permet à l'agent de résoudre des tâches complexes en plusieurs étapes en alternant entre :
+- Réflexion : raisonnement interne
+- Action : utilisation d'outils
+- Observation : réception des résultats de l'outil
+
+
+### Exemple (ReAct)
+```
+Thought: J'ai besoin de connaître le temps qu'il fait à Paris.
+Action: Search["temps à Paris"]
+Observation: Il fait 18°C et le ciel est nuageux.
+Thought: Maintenant que je connais le temps...
+Action: Finish["Il fait 18°C et le ciel est nuageux à Paris."]
+```
+
+<figure>
+  <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+  <figcaption>
+    (d) est un exemple de l'approche ReAct, où nous demandons « Réfléchissons étape par étape », et le modèle agit entre les réflexions.
+  </figcaption>
+</figure>
+
+
+## Comparison: ReAct vs. CoT
+
+| Caractéristique      | Chain-of-Thought (CoT)      | ReAct                               |
+|----------------------|-----------------------------|-------------------------------------|
+| Logique étape par étape   | ✅ Oui                      | ✅ Oui                              |
+| Outils externes      | ❌ Non                      | ✅ Oui (Actions + Observations)     |
+| Convient le mieux à  | Logique, mathématiques, tâches internes | Recherche d'informations, tâches dynamiques en plusieurs étapes |
+
+> [!TIP]
+> Les modèles récents comme **Deepseek R1** ou **OpenAI's o1** ont été finetunés pour *réfléchir avant de répondre*. Ils utilisent des *tokens* structurés comme `<think>` et `</think>` pour séparer explicitement la phase de raisonnement de la réponse finale.
+>
+> Contrairement à ReAct ou CoT - qui sont des stratégies pour prompter - il s'agit d'une **technique d'entrâinement**, où le modèle apprend à penser à l'aide d'exemples.

@@ -1,0 +1,142 @@
+# Utiliser les outils dans LlamaIndex
+
+**Définir un ensemble clair d'outils est crucial pour la performance.** Comme nous l'avons discuté dans l'[Unité 1](../../unit1/tools), des interfaces claires sont plus faciles à utiliser pour les LLM.
+Tout comme une interface API logicielle pour les ingénieurs humains, ils peuvent tirer profit de l'outil s'il est facile de comprendre comment il fonctionne.
+
+Il y a **quatre types principaux d'outils dans LlamaIndex** :
+
+![Tools](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1. `FunctionTool` : Convertit n'importe quelle fonction Python en un outil qu'un agent peut utiliser. Il comprend automatiquement comment la fonction fonctionne.
+2. `QueryEngineTool` : Un outil qui permet aux agents d'utiliser des *query engines*. Puisque les agents sont construits sur des *query engines*, ils peuvent également utiliser d'autres agents comme outil.
+3. `Toolspecs` : Ensembles d'outils créés par la communauté, en incluant souvent pour des services spécifiques comme Gmail.
+4. `Utility Tools` : Outils spéciaux qui aident à gérer de grandes quantités de données d'autres outils.
+
+Nous passerons en revue chacun d'eux plus en détail ci-dessous.
+
+## Créer un *FunctionTool*
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/llama-index/tools.ipynb" target="_blank">ce <i>notebook</i></a> que vous pouvez exécuter avec Google Colab.
+
+*FunctionTool* fournit un moyen simple d'envelopper n'importe quelle fonction Python et de la rendre disponible à un agent.
+Vous pouvez passer soit une fonction synchrone soit asynchrone à l'outil, avec des paramètres optionnels `name` et `description`.
+Le nom et la description sont particulièrement importants car ils aident l'agent à comprendre quand et comment utiliser l'outil efficacement.
+Regardons comment créer un *FunctionTool* ci-dessous puis l'appeler.
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Utile pour obtenir le temps qu'il fait à un endroit donné."""
+    print(f"Getting weather for {location}")
+    return f"The weather in {location} is sunny"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Useful for getting the weather for a given location.",
+)
+tool.call("New York")
+```
+
+> [!TIP]
+> Lors de l'utilisation d'un agent ou d'un LLM avec l'appel de fonctions, l'outil sélectionné (et les arguments écrits pour celui-ci) dépendent fortement de son nom, t de la description du but et des arguments. Apprenez-en plus sur l'appel de fonctions dans le <a href="https://docs.llamaindex.ai/en/stable/examples/workflow/function_calling_agent/">Guide sur l'appel de fonctions</a>.
+
+## Créer un *QueryEngineTool*
+
+Le `QueryEngine` que nous avons défini dans l'unité précédente peut être facilement transformé en un outil en utilisant la classe `QueryEngineTool`.
+Voyons comment créer un `QueryEngineTool` à partir d'un `QueryEngine` dans l'exemple ci-dessous.
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## Créer un *Toolspecs*
+
+Pensez au `ToolSpecs` comme des collections d'outils qui fonctionnent ensemble harmonieusement à l'instar d'une boîte à outils professionnelle bien organisée.
+Tout comme la boîte à outils d'un mécanicien contient des outils complémentaires qui fonctionnent ensemble pour les réparations de véhicules, un `ToolSpec` combine des outils apparentés pour des objectifs spécifiques.
+Par exemple, le `ToolSpec` d'un agent comptable pourrait intégrer élégamment des capacités de tableur, des fonctionnalités email et des outils de calcul pour gérer les tâches financières avec précision et efficacité.
+
+<details>
+<summary>Installer le <i>Toolspec</i> Google</summary>
+Comme introduit dans la <a href="./llama-hub">section sur le <i>LlamaHub</i></a>, nous pouvons installer le <i>toolspec</i> Google avec la commande suivante :
+
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+Et maintenant nous pouvons charger le *toolspec* et le convertir en une liste d'outils.
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+```
+
+Pour obtenir une vue plus détaillée des outils, nous pouvons examiner les `metadata` de chacun d'eux.
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+### *Model Context Protocol* (MCP) dans LlamaIndex
+
+LlamaIndex permet également d'utiliser les outils *MCP* grâce à un [*ToolSpec* sur le LlamaHub](https://llamahub.ai/l/tools/llama-index-tools-mcp?from=).
+Vous pouvez simplement lancer un serveur MCP et commencer à l'utiliser grâce à l'implémentation suivante.
+
+Si vous voulez approfondir MCP, vous pouvez consulter notre [cours gratuit](https://huggingface.co/learn/mcp-course/). 
+
+<details>
+<summary>Installer le <i>Toolspec</i> MCP</summary>
+Comme introduit dans la <a href="./llama-hub">section sur le LlamaHub</a>, nous pouvons installer le <i>toolspec</i> MCP avec la commande suivante :
+
+```python
+pip install llama-index-tools-mcp
+```
+</details>
+
+```python
+from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
+
+# Nous considérons qu'un serveur mcp tourne sur 127.0.0.1:8000, ou vous pouvez utiliser le client mcp pour vous connecter à votre propre serveur
+mcp_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+mcp_tool = McpToolSpec(client=mcp_client)
+
+# obtenir l'agent
+agent = await get_agent(mcp_tool)
+
+# créer le contexte de l'agent
+agent_context = Context(agent)
+```
+
+## *Utility Tools*
+
+Souvent, interroger directement une API **peut retourner une quantité excessive de données**, dont certaines peuvent être non pertinentes, déborder la fenêtre de contexte du LLM, ou augmenter inutilement le nombre de *tokens* que vous utilisez.
+Passons en revue nos deux *utility tools* principaux ci-dessous.
+
+1. `OnDemandToolLoader` : Cet outil transforme n'importe quel chargeur de données LlamaIndex existant (classe *BaseReader*) en un outil qu'un agent peut utiliser. Il peut être appelé avec tous les paramètres nécessaires pour déclencher `load_data` du chargeur de données, ainsi qu'une chaîne de requête en langage naturel. Pendant l'exécution, nous chargeons d'abord les données du chargeur de données, les indexons (par exemple avec un *vector store*), puis les interrogeons à la demande. Ces trois étapes se produisent dans un seul appel de l'outil.
+2. `LoadAndSearchToolSpec` : Le *LoadAndSearchToolSpec* prend n'importe quel outil existant en entrée. En tant que *tool spec*, il implémente `to_tool_list`, et quand cette fonction est appelée, deux outils sont retournés : un outil de chargement puis un outil de recherche. L'exécution du premier appellerait l'outil sous-jacent, puis indexerait la sortie (par défaut avec un *vector index*). L'exécution du second prendrait une chaîne de requête en entrée et appellerait l'index sous-jacent.
+
+> [!TIP]
+> Vous pouvez trouver des <i>toolspecs</i> et des <i>utility tools</i> sur le <a href="https://llamahub.ai/">LlamaHub</a>.
+
+Maintenant que nous comprenons les bases des agents et des outils dans LlamaIndex, voyons comment nous pouvons **utiliser LlamaIndex pour créer des *workflows* configurables et gérables !**

@@ -1,0 +1,68 @@
+# 启动你的宝可梦战斗智能体
+
+现在是时候战斗了！⚡️
+
+## **与直播智能体战斗！**
+
+如果你不想构建自己的智能体，只是好奇智能体在宝可梦中的战斗潜力。我们正在[twitch](https://www.twitch.tv/jofthomas)上主持一个自动化直播
+
+<iframe
+  src="https://jofthomas-twitch-streaming.hf.space"
+  frameborder="0"
+  width="1200"
+  height="600"
+></iframe>
+
+要在直播中与智能体战斗，你可以：
+
+说明：
+
+1. 前往 **Pokémon Showdown Space** ：[链接在此](https://huggingface.co/spaces/Jofthomas/Pokemon_showdown)
+2. **选择你的名称**（右上角）。
+3. 找到**当前智能体的用户名**。检查：
+   - **直播显示**：[链接在此](https://www.twitch.tv/jofthomas)
+4. 在 Showdown Space 上**搜索**该用户名并**发送战斗邀请**。
+
+_注意_：一次只有一个智能体在线！确保你有正确的名称。
+
+## 宝可梦战斗智能体挑战者
+
+如果你已经从上一节创建了自己的宝可梦战斗智能体，你可能想知道：**我如何测试它与其他智能体的对抗？**让我们找出答案！
+
+我们为此目的构建了一个专门的[Hugging Face Space](https://huggingface.co/spaces/PShowdown/pokemon_agents)：
+
+<iframe
+  src="https://pshowdown-pokemon-agents.hf.space"
+  frameborder="0"
+  width="1200"
+  height="600"
+></iframe>
+
+这个 Space 连接到我们自己的**Pokémon Showdown 服务器**，你的智能体可以在那里与其他智能体进行史诗般的 AI 驱动战斗。
+
+### 如何启动你的智能体
+
+按照这些步骤在竞技场中让你的智能体活跃起来：
+
+1. **复制 Space**
+   点击 Space 右上角菜单中的三个点，选择"复制此 Space"。
+
+2. **将你的智能体代码添加到`agent.py`**
+   打开文件并粘贴你的智能体实现。你可以遵循这个[示例](https://huggingface.co/spaces/PShowdown/pokemon_agents/blob/main/agents.py)或查看[项目结构](https://huggingface.co/spaces/PShowdown/pokemon_agents/tree/main)获取指导。
+
+3. **在`app.py`中注册你的智能体**
+   将你的智能体名称和逻辑添加到下拉菜单。参考[这个片段](https://huggingface.co/spaces/PShowdown/pokemon_agents/blob/main/app.py)获取灵感。
+
+4. **选择你的智能体**
+   添加后，你的智能体将在"选择智能体"下拉菜单中显示。从列表中选择它！✅
+
+5. **输入你的 Pokémon Showdown 用户名**
+   确保用户名与 iframe 的**"选择名称"**输入中显示的匹配。你也可以连接你的官方账户。
+
+6. **点击"发送战斗邀请"**
+   你的智能体将向选定的对手发送邀请。它应该出现在屏幕上！
+
+7. **接受战斗并享受战斗！**
+   让战斗开始！愿最聪明的智能体获胜
+
+准备看到你的创作在行动中吗？让 AI 对决开始！🥊

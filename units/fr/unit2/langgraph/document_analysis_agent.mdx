@@ -1,0 +1,268 @@
+# Graphe d'analyse de documents
+
+Alfred à votre service. En tant que majordome de confiance de M. Wayne, j'ai pris la liberté de documenter comment j'aide M. Wayne avec ses divers besoins documentaires. Pendant qu'il s'occupe de ses... activités nocturnes, je m'assure que tous ses papiers, programmes d'entraînement et plans nutritionnels sont correctement analysés et organisés.
+
+Avant de partir, il a laissé une note avec son programme d'entraînement de la semaine. J'ai alors pris la responsabilité de proposer un **menu** pour les repas de demain.
+
+Pour de futurs événements similaires, créons un système d'analyse de documents utilisant LangGraph pour servir les besoins de M. Wayne. Ce système peut :
+
+1. Traiter des documents sous forme d'image
+2. Extraire du texte en utilisant des modèles de vision (*Vision Language Model*)
+3. Effectuer des calculs quand nécessaire (pour démontrer l'utilisation d'outils normaux)
+4. Analyser le contenu et fournir des résumés concis
+5. Exécuter des instructions spécifiques liées aux documents
+
+## Le *workflow* du majordome
+
+Le *workflow* que nous allons construire suit ce schéma structuré :
+
+![Butler's Document Analysis Workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/langgraph/agent.ipynb" target="_blank">ce <i>notebook</i></a> que vous pouvez exécuter avec Google Colab.
+
+## Configuration de l'environnement
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+et les imports :
+
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## Définir l'état de l'agent
+
+Cet état est un peu plus complexe que les précédents que nous avons vus.
+`AnyMessage` est une classe de LangChain qui définit les messages, et `add_messages` est un opérateur qui ajoute le dernier message plutôt que de l'écraser avec le dernier état.
+
+C'est un nouveau concept dans LangGraph, où vous pouvez ajouter des opérateurs dans votre état pour définir la façon dont ils doivent interagir ensemble.
+
+```python
+class AgentState(TypedDict):
+    # Le document fourni
+    input_file: Optional[str]  # Contient le chemin du fichier (PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## Préparer les outils
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Extraire le texte d'un fichier image en utilisant un modèle multimodal.
+    
+    Maître Wayne laisse souvent des notes avec son régime d'entraînement ou ses plans de repas.
+    Cela me permet d'analyser correctement le contenu.
+    """
+    all_text = ""
+    try:
+        # Lire l'image et encoder en base64
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Préparer le prompt incluant les données d'image base64
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extrayez tout le texte de cette image. "
+                            "Retournez seulement le texte extrait, sans explications."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # Appeler le VLM
+        response = vision_llm.invoke(message)
+
+        # Ajouter le texte extrait
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # Un majordome doit gérer les erreurs avec élégance
+        error_msg = f"Erreur lors de l'extraction du texte : {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Diviser a et b - pour les calculs occasionnels de Maître Wayne."""
+    return a / b
+
+# Équiper le majordome avec des outils
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## Les nœuds
+
+```python
+def assistant(state: AgentState):
+    # Message système
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Extraire le texte d'un fichier image en utilisant un modèle multimodal.
+
+    Args:
+        img_path: Un chemin de fichier image local (chaînes).
+
+    Returns:
+        Une chaîne unique contenant le texte concaténé extrait de chaque image.
+divide(a: int, b: int) -> float:
+    Diviser a et b
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"Vous êtes un majordome serviable nommé Alfred qui sert M. Wayne et Batman. Vous pouvez analyser des documents et effectuer des calculs avec les outils fournis :\n{textual_description_of_tool} \n Vous avez accès à quelques images optionnelles. Actuellement l'image chargée est : {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## Le modèle *ReAct* : Comment j'aide M. Wayne
+
+Permettez-moi d'expliquer l'approche dans cet agent. L'agent suit ce qu'on appelle le modèle *ReAct* (*Reason-Act-Observe*)
+
+1. **Réfléchir** sur ses documents et demandes
+2. **Agir** en utilisant les outils appropriés
+3. **Observer** les résultats
+4. **Répéter** si nécessaire jusqu'à ce que j'aie pleinement répondu à ses besoins
+
+C'est une implémentation simple d'un agent utilisant LangGraph.
+
+```python
+# Le graphe
+builder = StateGraph(AgentState)
+
+# Définir les nœuds : ceux-ci font le travail
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Définir les arêtes : celles-ci déterminent comment le flux de contrôle se déplace
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Si le dernier message nécessite un outil, router vers les outils
+    # Sinon, fournir une réponse directe
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# Montrer le processus de réflexion du majordome
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+Nous définissons un nœud `tools` avec notre liste d'outils. Le nœud `assistant` est juste notre modèle avec les outils liés.
+Nous créons un graphe avec les nœuds `assistant` et `tools`.
+
+Nous ajoutons une arête `tools_condition`, qui route vers `End` ou vers `tools` selon que l'`assistant` appelle un outil.
+
+Maintenant, nous ajoutons une nouvelle étape :
+
+Nous connectons le nœud `tools` de retour à l'`assistant`, formant une boucle.
+
+- Après l'exécution du nœud `assistant`, `tools_condition` vérifie si la sortie du modèle est un appel d'outil.
+- Si c'est un appel d'outil, le flux est dirigé vers le nœud `tools`.
+- Le nœud `tools` se reconnecte à `assistant`.
+- Cette boucle continue tant que le modèle décide d'appeler des outils.
+- Si la réponse du modèle n'est pas un appel d'outil, le flux est dirigé vers *END*, terminant le processus.
+
+![ReAct Pattern](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## Le majordome en action
+
+### Exemple 1 : Calculs simples
+
+Voici un exemple pour montrer un cas d'usage simple d'un agent utilisant un outil dans LangGraph.
+
+```python
+messages = [HumanMessage(content="Divisez 6790 par 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# Montrer les messages
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+La conversation se déroulerait :
+
+```
+Humain : Divisez 6790 par 5
+
+Appel d'un outil : divide(a=6790, b=5)
+
+Réponse de l'outil : 1358.0
+
+Alfred : Le résultat de la division de 6790 par 5 est 1358.0.
+```
+
+### Exemple 2 : Analyser les documents d'entraînement de Maître Wayne
+
+Quand Maître Wayne laisse ses notes d'entraînement et de repas :
+
+```python
+messages = [HumanMessage(content="Selon la note fournie par M. Wayne dans les images fournies. Quelle est la liste des articles que je dois acheter pour le menu du dîner ?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+L'interaction se déroulerait :
+
+```
+Humain : Selon la note fournie par M. Wayne dans les images fournies. Quelle est la liste des articles que je dois acheter pour le menu du dîner ?
+
+Appel d'un outil : extract_text(img_path="Batman_training_and_meals.png")
+
+Réponse de l'outil : [Texte extrait avec le programme d'entraînement et les détails du menu]
+
+Alfred : Pour le menu du dîner, vous devriez acheter les articles suivants :
+
+1. Steak de surlonge local nourri à l'herbe
+2. Épinards biologiques
+3. Poivrons *piquillo*
+4. Pommes de terre (pour pommes de terre aux herbes dorées au four)
+5. Huile de poisson (2 grammes)
+
+Assurez-vous que le steak soit nourri à l'herbe et que les épinards et poivrons soient biologiques pour un repas de la meilleure qualité.
+```
+
+## Points clés à retenir
+
+Si vous souhaitez créer votre propre majordome d'analyse de documents, voici les considérations clés :
+
+1. **Définir des outils clairs** pour des tâches spécifiques liées aux documents
+2. **Créer un suivi d'état robuste** pour maintenir le contexte entre les appels d'outils
+3. **Considérer la gestion d'erreurs** pour les échecs d'outils
+4. **Maintenir la conscience contextuelle** des interactions précédentes (assurée par l'opérateur `add_messages`)
+
+Avec ces principes, vous pouvez vous aussi fournir un service d'analyse de documents exemplaire digne du manoir Wayne.
+
+*J'espère que cette explication a été satisfaisante. Maintenant, si vous voulez bien m'excuser, la cape de Maître Wayne nécessite un repassage avant les activités de ce soir.*

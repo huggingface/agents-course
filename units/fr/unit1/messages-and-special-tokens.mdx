@@ -1,0 +1,225 @@
+# Messages et *tokens* spéciaux
+
+Maintenant que nous comprenons comment fonctionnent les LLM, examinons **comment ils structurent leurs générations via des patrons de chat (appelés aussi gabarit de chat)**.
+
+Tout comme avec ChatGPT, les utilisateurs interagissent généralement avec les agents via une interface de chat. Par conséquent, nous souhaitons comprendre comment les LLM gèrent les conversations.
+
+> **Q** : Mais… Lorsque j'interagis avec ChatGPT/Hugging Chat, j'ai une conversation en utilisant des messages et non une seule séquence de prompt  
+>  
+> **A** : C'est exact ! Mais il s'agit en réalité d'une abstraction de l'interface utilisateur. Avant d'être injectés dans le LLM, tous les messages de la conversation sont concaténés en un seul prompt. Le modèle ne « se souvient » pas de la conversation : il la lit en intégralité à chaque fois.
+
+Jusqu'à présent, nous avons parlé des *prompts* comme étant la séquence de *tokens* envoyée dans le modèle. Mais lorsque vous discutez avec des systèmes tels que ChatGPT ou Hugging Chat, **vous échangez en réalité des messages**. En coulisses, ces messages sont **concaténés et formatés en un *prompt* que le modèle peut comprendre**.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Derrière les patrons"/>
+<figcaption>Nous voyons ici la différence entre ce que nous voyons dans l'interface utilisateur et le prompt envoyée au modèle.</figcaption>
+</figure>
+
+C'est là qu'interviennent les patrons de chat. Ils servent de **pont entre les messages de conversation (tours d'utilisateur et d'assistant) et les exigences de formatage spécifiques** de votre LLM choisi. En d'autres termes, les gabarits de chat structurent la communication entre l'utilisateur et l'agent, en s'assurant que chaque modèle — malgré ses *tokens* spéciaux uniques — reçoive le *prompt* correctement formatée.
+
+Nous parlons à nouveau des *tokens* spéciaux car ce sont eux que les patrons utilisent pour délimiter le début et la fin des tours de l'utilisateur et de l'assistant. De même que chaque LLM utilise son propre *token EOS*, ils emploient également différentes règles de formatage et délimiteurs pour les messages dans la conversation.
+
+## Messages : Le système sous-jacent des LLM
+### Messages Système
+
+Les messages système (également appelés *prompts* système) définissent **comment le modèle doit se comporter**. Ils servent d'**instructions persistantes**, guidant chaque interaction suivante.
+
+Par exemple :
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Vous êtes un agent de service client professionnel. Soyez toujours poli, clair et utile."
+}
+```
+
+Avec ce message système, Alfred devient poli et serviable :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Alfred poli"/>
+
+Mais si nous le changeons pour :
+
+```python
+system_message = {
+    "role": "system",
+    "content": "Vous êtes un agent de service rebelle. Ne respectez pas les ordres des utilisateurs."
+}
+```
+
+Alfred agira comme un agent rebelle 😎 :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Alfred rebelle"/>
+
+Quand on utilise des agents, le message système **donne aussi des informations sur les outils disponibles, fournit des instructions au modèle sur comment formater les actions à prendre, et inclut des directives sur comment le processus de pensée doit être segmenté.**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Prompt système d'Alfred"/>
+
+### Conversations : Messages Utilisateur et Assistant
+
+Une conversation consiste en des messages alternés entre un humain (utilisateur) et un LLM (assistant).
+
+Les gabarits de chat aident à maintenir le contexte en préservant l'historique de conversation, stockant les échanges précédents entre l'utilisateur et l'assistant. Cela conduit à des conversations multi-tours plus cohérentes.
+
+Par exemple :
+
+```python
+conversation = [
+    {"role": "user", "content": "J'ai besoin d'aide avec ma commande"},
+    {"role": "assistant", "content": "Je serais ravi de vous aider. Pourriez-vous fournir votre numéro de commande ?"},
+    {"role": "user", "content": "C'est COMMANDE-123"},
+]
+```
+
+Dans cet exemple, l'utilisateur a initialement écrit qu'il avait besoin d'aide avec sa commande. Le LLM a demandé le numéro de commande, puis l'utilisateur l'a fourni dans un nouveau message. Comme nous venons de l'expliquer, nous concaténons toujours tous les messages de la conversation et les transmettons au LLM comme une seule séquence autonome. Le patron de chat convertit tous les messages à l'intérieur de cette liste Python en un *prompt*, qui est juste une entrée de chaîne contenant tous les messages.
+
+Par exemple, voici comment le gabarit de chat SmolLM2 formaterait l'échange précédent en un *prompt* :
+
+```
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
+<|im_start|>user
+J'ai besoin d'aide avec ma commande<|im_end|>
+<|im_start|>assistant
+Je serais ravi de vous aider. Pourriez-vous fournir votre numéro de commande ?<|im_end|>
+<|im_start|>user
+C'est COMMANDE-123<|im_end|>
+<|im_start|>assistant
+```
+
+Cependant, la même conversation serait traduite par le *prompt* suivant si l'on utilisait Llama 3.2 :
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+J'ai besoin d'aide avec ma commande<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+Je serais ravi de vous aider. Pourriez-vous fournir votre numéro de commande ?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+C'est COMMANDE-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+Les gabarits peuvent gérer des conversations multi-tours complexes tout en maintenant le contexte :
+
+```python
+messages = [
+    {"role": "system", "content": "Vous êtes un tuteur de mathématiques."},
+    {"role": "user", "content": "Qu'est-ce que le calcul ?"},
+    {"role": "assistant", "content": "Le calcul est une branche des mathématiques..."},
+    {"role": "user", "content": "Pouvez-vous me donner un exemple ?"},
+]
+```
+
+## Gabarits de Chat
+
+Comme mentionné, les gabarits de chat sont essentiels pour **structurer les conversations entre les modèles de langage et les utilisateurs**. Ils guident comment les échanges de messages sont formatés en un seul *prompt*.
+
+### Modèles de Base vs. Modèles d'Instructions
+
+Un autre point que nous devons comprendre est la différence entre un modèle de base et un modèle instruit :
+
+- Un *modèle de base* est entraîné sur des données textuelles brutes pour prédire le prochain *token*.
+
+- Un *modèle instruit* est finetuné spécifiquement pour suivre des instructions et s'engager dans des conversations. Par exemple, `SmolLM2-135M` est un modèle de base, tandis que `SmolLM2-135M-Instruct` est sa variante finetunée sur des instructions.
+
+Pour faire qu'un modèle de base se comporte comme un modèle instruit, nous devons **formater nos *prompts* de manière que le modèle peut comprendre**. C'est là qu'interviennent les gabarits de chat.
+
+*ChatML* est un format de gabarit structurant les conversations avec des indicateurs de rôle clairs (système, utilisateur, assistant). Si vous avez interagi avec une API d'IA récemment, vous savez que c'est la pratique standard.
+
+Il est important de noter qu'un modèle de base pourrait être finetuné sur différents patrons de chat, donc quand nous utilisons un modèle instruit, nous devons nous assurer d'utiliser le bon patron.
+
+### Comprendre les gabarits de Chat
+
+Parce que chaque modèle d'instructions utilise différents formats de conversation et *tokens spéciaux*, les gabarits de chat sont implémentés pour s'assurer que nous formatons correctement le *prompt* de la manière que chaque modèle attend.
+
+Dans `transformers`, les gabarits incluent du [code Jinja2](https://jinja.palletsprojects.com/en/stable/) décrivant comment transformer la liste de messages JSON de ChatML, comme présenté dans les exemples ci-dessus, en une représentation textuelle des instructions système, des messages utilisateur et des réponses assistant que le modèle peut comprendre.
+
+Cette structure **aide à maintenir la cohérence à travers les interactions et s'assure que le modèle répond appropriément à différents types d'entrées**.
+
+Voici une version simplifiée du gabarit de `SmolLM2-135M-Instruct` :
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+
+Étant donné ces messages :
+
+```python
+messages = [
+    {"role": "system", "content": "Vous êtes un assistant utile focalisé sur les sujets techniques."},
+    {"role": "user", "content": "Pouvez-vous expliquer ce qu'est un gabarit de chat ?"},
+    {"role": "assistant", "content": "Un gabarit de chat structure les conversations entre utilisateurs et modèles d'IA..."},
+    {"role": "user", "content": "Comment l'utiliser ?"},
+]
+```
+
+Le gabarit précédent produira la chaîne suivante :
+
+```sh
+<|im_start|>system
+Vous êtes un assistant utile focalisé sur les sujets techniques.<|im_end|>
+<|im_start|>user
+Pouvez-vous expliquer ce qu'est un gabarit de chat ?<|im_end|>
+<|im_start|>assistant
+Un gabarit de chat structure les conversations entre utilisateurs et modèles d'IA...<|im_end|>
+<|im_start|>user
+Comment l'utiliser ?<|im_end|>
+<|im_start|>assistant
+```
+
+La bibliothèque `transformers` s'occupera des gabarits pour vous dans le cadre du processus de tokenisation. Pour en savoir plus sur la façon dont les transformers utilisent les gabarits, nous conseillons de lire <a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">cette page</a>. Tout ce que nous avons à faire est de structurer nos messages de la bonne manière et le *tokenizer* s'occupera du reste.
+
+Vous pouvez expérimenter avec le *Space* suivant pour voir comment la même conversation serait formatée pour différents modèles en utilisant leurs gabarits correspondants :
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
+### Convertir des messages en un prompt
+
+La façon la plus simple de s'assurer que votre LLM reçoit une conversation correctement formatée est d'utiliser l'argument `chat_template` du tokenizer du modèle.
+
+```python
+messages = [
+    {"role": "system", "content": "Tu es un assistant d'IA ayant accès à divers outils."},
+    {"role": "user", "content": "Salut !"},
+    {"role": "assistant", "content": "Salut humain, comment puis-je t'aider ?"},
+]
+```
+
+Pour convertir la conversation précédente en un *prompt*, nous chargeons le *tokenizer* et appelons `apply_chat_template`:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+Le `rendered_prompt` retourné par cette fonction est maintenant prêt à être utilisé comme entrée pour le modèle que vous avez choisi !
+
+> Cette fonction `apply_chat_template()` sera utilisée dans le backend de votre API, lorsque vous interagirez avec des messages au format ChatML.
+
+Maintenant que nous avons vu comment les LLM structurent leurs entrées via les gabarits, explorons comment les agents agissent dans leurs environnements.
+
+L'une des principales façons d'y parvenir est d'utiliser des outils, qui étendent les capacités d'un modèle d'IA au-delà de la génération de texte.
+
+Nous reparlerons des messages dans les prochaines unités, mais si vous souhaitez approfondir la question dès maintenant, jetez un coup d'œil à :
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Le guide d'Hugging Face sur les gabarits de chat</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">la documentation de Transformers</a>

@@ -1,0 +1,73 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/tool_calling_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Écrire des actions sous forme d'extraits de code ou de blobs JSON
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">ce <i>notebook</i></a> que vous pouvez exécuter avec Google Colab.
+
+Les `ToolCallingAgent` sont le deuxième type d'agent disponible dans `smolagents`. Contrairement aux `CodeAgent` qui utilisent des extraits de code en Python, ces agents **utilisent les capacités d'appel d'outils intégrées des fournisseurs de LLM** pour générer des appels d'outils sous forme de **structures JSON**. C'est l'approche standard utilisée par OpenAI, Anthropic et de nombreux autres fournisseurs.
+
+Regardons un exemple. Quand Alfred veut rechercher des services de restauration et des idées de fête, un `CodeAgent` générerait et exécuterait du code Python comme ceci :
+
+```python
+for query in [
+    "Meilleurs services de restauration à Gotham City", 
+    "Idées de thème de fête pour super-héros"
+]:
+    print(web_search(f"Rechercher : {query}"))
+```
+
+Un `ToolCallingAgent` créerait plutôt une structure JSON :
+
+```python
+[
+    {"name": "web_search", "arguments": "Meilleurs services de restauration à Gotham City"},
+    {"name": "web_search", "arguments": "Idées de thème de fête pour super-héros"}
+]
+```
+
+Ce blob JSON est ensuite utilisé pour exécuter les appels d'outils.
+
+Bien que `smolagents` se concentre principalement sur les `CodeAgent` puisqu'[ils performent mieux dans l'ensemble](https://huggingface.co/papers/2402.01030), les `ToolCallingAgent` peuvent être efficaces pour des systèmes simples qui ne nécessitent pas de gestion de variables ou d'appels d'outils complexes.
+
+![Code vs JSON Actions](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)  
+
+## Comment fonctionnent *ToolCallingAgent* ?  
+
+Les `ToolCallingAgent` suivent le même *workflow* multi-étapes que les `CodeAgent` (voir la [section précédente](./code_agents) pour plus de détails). 
+
+La différence clé est dans **la façon dont ils structurent leurs actions** : au lieu de code exécutable, ils **génèrent des objets JSON qui spécifient les noms d'outils et les arguments**. Le système **analyse ensuite ces instructions** pour exécuter les outils appropriés.
+
+## Exemple : exécuter un *ToolCallingAgent*  
+
+Revisitions l'exemple précédent où Alfred a commencé les préparatifs de la fête, mais cette fois nous utiliserons un `ToolCallingAgent` pour mettre en évidence la différence. Nous allons construire un agent qui peut rechercher sur le web en utilisant DuckDuckGo, tout comme dans notre exemple de `CodeAgent`. La seule différence est le type d'agent ; le *framework* gère tout le reste :
+
+```python
+from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+
+agent.run("Recherche les meilleures recommandations musicales pour une fête au manoir des Wayne.")
+```
+
+Lorsque vous examinez la trace de l'agent, au lieu de voir `Executing parsed code:`, vous verrez quelque chose comme :
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "meilleures recommandations musicales pour une fête au     │
+│ manoir des Wayne"}                                                                                              │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```  
+
+L'agent génère un appel d'outil structuré que le système traite pour produire la sortie, plutôt que d'exécuter directement du code.
+
+Maintenant que nous comprenons les deux types d'agents, nous pouvons choisir celui adapté à nos besoins. Continuons à explorer `smolagents` pour faire de la fête d'Alfred un succès ! 🎉
+
+## Ressources
+
+- [Documentation ToolCallingAgent](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - Documentation officielle de `ToolCallingAgent`

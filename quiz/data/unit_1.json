@@ -1,0 +1,10 @@
+[
+    {
+        "question": "Which of the following best describes a Large Language Model (LLM)?",
+        "answer_a": "A model specializing in language recognition",
+        "answer_b": "A massive neural network that understands and generates human language",
+        "answer_c": "A model exclusively used for language data tasks like summarization or classification",
+        "answer_d": "A rule-based chatbot used for conversations",
+        "correct_answer": "B"
+    }
+]

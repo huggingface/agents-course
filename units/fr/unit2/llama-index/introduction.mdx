@@ -1,0 +1,29 @@
+# Introduction à LlamaIndex
+
+Bienvenue dans ce module, où vous allez apprendre à créer des agents propulsés par des LLM en utilisant la boîte à outils [LlamaIndex](https://www.llamaindex.ai/).
+
+LlamaIndex est **une boîte à outils complète pour créer des agents sur vos données en utilisant des index et des *workflows***. Pour ce cours, nous nous concentrerons sur trois parties principales qui aident à construire des agents dans LlamaIndex : **les *Components***, **les *Agents* et *Tools*** et **les *Workflows***.
+
+![LlamaIndex](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/thumbnail.png)
+
+Examinons ces parties clés de LlamaIndex et comment elles aident avec les agents :
+
+- **Les *Components*** : Ce sont les blocs de construction de base que vous utilisez dans LlamaIndex. Ceux-ci incluent des éléments comme les *prompts*, les modèles et les bases de données. Les *components* aident souvent à connecter LlamaIndex avec d'autres outils et bibliothèques.
+- **Les *Tools*** : Les *tools* sont des *components* qui fournissent des capacités spécifiques comme la recherche, le calcul ou l'accès à des services externes. Ce sont les blocs de construction qui permettent aux agents d'effectuer des tâches.
+- **Les *Agents*** : Les *agents* sont des *components* autonomes qui peuvent utiliser des *tools* et prendre des décisions. Ils coordonnent l'utilisation des *tools* pour accomplir des objectifs complexes.
+- **Les *Workflows*** : Ce sont des processus étape par étape qui traitent la logique ensemble. Les *workflows* ou *agentic workflows* sont un moyen de structurer le comportement agentique sans l'utilisation explicite d'*agents*.
+
+## Qu'est-ce qui rend LlamaIndex spécial ?
+
+Bien que LlamaIndex fasse certaines choses similaires à d'autres *frameworks* comme *smolagents*, il présente quelques avantages clés :
+
+- **Système de *workflow* clair** : Les *workflows* aident à décomposer comment les agents doivent prendre des décisions étape par étape en utilisant une syntaxe événementielle et asynchrone. Cela vous aide à composer et organiser clairement votre logique.
+- ***Parsing* avancé de documents avec *LlamaParse*** : *LlamaParse* a été créé spécifiquement pour LlamaIndex, donc l'intégration est transparente, bien que ce soit une fonctionnalité payante.
+- **Nombreux *Components* prêts à l'emploi** : LlamaIndex existe depuis un certain temps, donc il fonctionne avec beaucoup d'autres *frameworks*. Cela signifie qu'il dispose de nombreux *components* testés et fiables, comme des LLM, des *retrievers*, des index, et plus encore.
+- ***LlamaHub*** : est un registre de centaines de ces *components*, *agents* et *outils* que vous pouvez utiliser dans LlamaIndex.
+
+Tous ces concepts sont nécessaires dans différents scénarios pour créer des agents utiles.
+Dans les sections suivantes, nous examinerons chacun de ces concepts en détail.
+Après avoir acquis la maîtrise les concepts, nous utiliserons nos nouvelles connaissances pour **créer des cas d'usage appliqués avec Alfred l'agent** !
+
+Prendre en main sur LlamaIndex est excitant, n'est-ce pas ? Alors, qu'attendons-nous ? Commençons par **trouver et installer les intégrations dont nous avons besoin en utilisant *LlamaHub* ! 🚀**

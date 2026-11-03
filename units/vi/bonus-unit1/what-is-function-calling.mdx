@@ -1,0 +1,76 @@
+# Function Calling là gì?
+
+Function-calling là **cách để LLM thực hiện hành động trên môi trường của nó**. Tính năng này được [giới thiệu lần đầu trong GPT-4](https://openai.com/index/function-calling-and-other-api-updates/), sau đó được áp dụng ở các model khác.
+
+Giống như Tools của Agent, function-calling cho phép model **tương tác với môi trường**. Tuy nhiên, khả năng gọi hàm **được model học** và ít phụ thuộc vào prompting hơn các kỹ thuật Agent khác.
+
+Trong chương 1, Agent **không học cách sử dụng Tools** mà chỉ được cung cấp danh sách Tools, dựa trên khả năng tổng quát hóa của model để lập kế hoạch sử dụng chúng.
+
+Còn với function-calling, **Agent được fine-tuning (tinh chỉnh) để sử dụng Tools**.
+
+## Model "học" cách thực hiện hành động như thế nào?
+
+Ở chương 1, ta đã tìm hiểu workflow tổng quan của Agent. Khi người dùng cung cấp Tools và đưa ra truy vấn, model sẽ lặp qua các bước:
+
+1. *Suy nghĩ*: Xác định hành động cần thực hiện để đạt mục tiêu
+2. *Hành động*: Định dạng hành động với tham số chính xác và dừng generation
+3. *Quan sát*: Nhận kết quả từ việc thực thi
+
+Trong hội thoại thông thường qua API, cuộc trò chuyện sẽ luân phiên giữa user và assistant:
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+Function-calling mang đến **vai trò mới trong hội thoại**:
+1. Vai trò mới cho **Hành động**
+2. Vai trò mới cho **Quan sát**
+
+Ví dụ từ [Mistral API](https://docs.mistral.ai/capabilities/function_calling/):
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "What's the status of my transaction T1001?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Your transaction T1001 has been successfully paid."
+    }
+]
+```
+
+> ...Nhưng bạn nói có vai trò mới cho function calls?
+
+**Vừa đúng vừa sai**. Trong trường hợp này và nhiều API khác, model định dạng hành động dưới dạng message "assistant". Chat template sẽ biểu diễn điều này qua **Special Token** (Token đặc biệt):
+
+- `[AVAILABLE_TOOLS]` – Bắt đầu danh sách Tools  
+- `[/AVAILABLE_TOOLS]` – Kết thúc danh sách Tools  
+- `[TOOL_CALLS]` – Gọi Tool (thực hiện "Hành động")  
+- `[TOOL_RESULTS]` – "Quan sát" kết quả  
+- `[/TOOL_RESULTS]` – Kết thúc quan sát (model có thể tiếp tục decode)
+
+Chúng ta sẽ tìm hiểu thêm về function-calling trong khóa học. Bạn có thể xem [tài liệu chi tiết](https://docs.mistral.ai/capabilities/function_calling/) để hiểu sâu hơn.
+
+---
+Sau khi hiểu function-calling là gì và cách hoạt động, hãy **thêm khả năng function-calling cho model chưa hỗ trợ**: [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) bằng cách thêm Special Token mới.
+
+**Trước tiên cần hiểu về fine-tuning và LoRA**.

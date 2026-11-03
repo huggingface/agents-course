@@ -1,0 +1,431 @@
+# Création et intégration d'outils pour votre agent
+
+Dans cette section, nous allons donner à Alfred l'accès au web, lui permettant de trouver les dernières nouvelles et mises à jour mondiales. 
+De plus, il aura accès aux données météorologiques et aux statistiques de téléchargement des modèles du Hub d'Hugging Face Hub, pour qu'il puisse faire des conversations pertinentes sur des sujets frais.
+
+## Donnez à votre agent l'accès au web
+
+Rappelez-vous que nous voulons qu'Alfred établisse sa présence comme un véritable hôte de la renaissance, avec une connaissance approfondie du monde.
+
+Pour ce faire, nous devons nous assurer qu'Alfred a accès aux dernières nouvelles et informations sur le monde.
+
+Commençons par créer un outil de recherche web pour Alfred !
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+# Initialiser l'outil de recherche DuckDuckGo
+search_tool = DuckDuckGoSearchTool()
+
+# Exemple d'usage
+results = search_tool("Qui est l'actuel Président de la France ?")
+print(results)
+```
+
+Sortie attendue :
+
+```
+L'actuel Président de la France est Emmanuel Macron.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.tools import FunctionTool
+
+# Initialiser l'outil de recherche DuckDuckGo
+tool_spec = DuckDuckGoSearchToolSpec()
+
+search_tool = FunctionTool.from_defaults(tool_spec.duckduckgo_full_search)
+# Exemple d'usage
+response = search_tool("Qui est l'actuel Président de la France ?")
+print(response.raw_output[-1]['body'])
+```
+
+Sortie attendue :
+
+```
+Le Président de la République française est le chef d'État de la France. L'actuel Président est Emmanuel Macron depuis le 14 mai 2017 après avoir battu Marine Le Pen au second tour de l'élection présidentielle le 7 mai 2017. Liste des présidents français (Cinquième République) N° Portrait Nom ...
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+search_tool = DuckDuckGoSearchRun()
+results = search_tool.invoke("Qui est l'actuel Président de la France ?")
+print(results)
+```
+
+Sortie attendue :
+
+```
+Emmanuel Macron (né le 21 décembre 1977 à Amiens, France) est un banquier et homme politique français qui a été élu président de la France en 2017...
+```
+
+</hfoption>
+</hfoptions>
+
+## Création d'un outil personnalisé pour les informations météorologiques afin de programmer le feu d'artifice
+
+Le gala parfait aurait un feu d'artifice dans un ciel clair, nous devons nous assurer qu'il ne soit pas annulé à cause du mauvais temps.
+
+Créons un outil personnalisé qui peut être utilisé pour appeler une API météo externe et obtenir les informations pour un lieu donné.
+
+> [!TIP]
+> Par souci de simplicité, nous utilisons une API météorologique factice pour cet exemple. Si vous voulez utiliser une véritable API, vous pourriez implémenter un outil utilisant l'API OpenWeatherMap comme dans <a href="../../unit1/tutorial">l'Unité 1</a>.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+import random
+
+class WeatherInfoTool(Tool):
+    name = "weather_info"
+    description = "Récupère des informations météorologiques factices pour un lieu donné."
+    inputs = {
+        "location": {
+            "type": "string",
+            "description": "Le lieu pour lequel obtenir les informations météorologiques."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, location: str):
+        # Données météorologiques factices
+        weather_conditions = [
+            {"condition": "Pluvieux", "temp_c": 15},
+            {"condition": "Clair", "temp_c": 25},
+            {"condition": "Venteux", "temp_c": 20}
+        ]
+        # Sélectionner aléatoirement une condition météorologique
+        data = random.choice(weather_conditions)
+        return f"Météo à {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialiser l'outil
+weather_info_tool = WeatherInfoTool()
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+
+def get_weather_info(location: str) -> str:
+    """Récupère des informations météorologiques factices pour un lieu donné."""
+    # Données météorologiques factices
+    weather_conditions = [
+        {"condition": "Pluvieux", "temp_c": 15},
+        {"condition": "Clair", "temp_c": 25},
+        {"condition": "Venteux", "temp_c": 20}
+    ]
+    # Sélectionner aléatoirement une condition météorologique
+    data = random.choice(weather_conditions)
+    return f"Météo à {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialiser l'outil
+weather_info_tool = FunctionTool.from_defaults(get_weather_info)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_core.tools import Tool
+import random
+
+def get_weather_info(location: str) -> str:
+    """Récupère des informations météorologiques factices pour un lieu donné."""
+    # Données météorologiques factices
+    weather_conditions = [
+        {"condition": "Pluvieux", "temp_c": 15},
+        {"condition": "Clair", "temp_c": 25},
+        {"condition": "Venteux", "temp_c": 20}
+    ]
+    # Sélectionner aléatoirement une condition météorologique
+    data = random.choice(weather_conditions)
+    return f"Météo à {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialiser l'outil
+weather_info_tool = Tool(
+    name="get_weather_info",
+    func=get_weather_info,
+    description="Récupère des informations météorologiques factices pour un lieu donné."
+)
+```
+
+</hfoption>
+</hfoptions>
+
+## Création d'un outil pour obtenir les statistiques du Hub concernant les constructeurs d'IA influents
+
+Le gala réunit le gratin des constructeurs d'IA. Alfred veut les impressionner en discutant de leurs modèles, jeux de données et Spaces les plus populaires. Nous créerons un outil pour récupérer les statistiques des modèles du Hub à partir d'un nom d'utilisateur.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+from huggingface_hub import list_models
+
+class HubStatsTool(Tool):
+    name = "hub_stats"
+    description = "Récupère le modèle le plus téléchargé d'un auteur spécifique sur le Hugging Face Hub."
+    inputs = {
+        "author": {
+            "type": "string",
+            "description": "Le nom d'utilisateur de l'auteur/organisation du modèle pour trouver des modèles."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, author: str):
+        try:
+            # Lister les modèles de l'auteur spécifié, triés par téléchargements
+            models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+            
+            if models:
+                model = models[0]
+                return f"Le modèle le plus téléchargé par {author} est {model.id} avec {model.downloads:,} téléchargements."
+            else:
+                return f"Aucun modèle trouvé pour l'auteur {author}."
+        except Exception as e:
+            return f"Erreur lors de la récupération des modèles pour {author}: {str(e)}"
+
+# Initialiser l'outil
+hub_stats_tool = HubStatsTool()
+
+# Exemple d'usage
+print(hub_stats_tool("facebook")) # Exemple : Obtenir le modèle le plus téléchargé par Facebook
+```
+
+Sortie attendue :
+
+```
+Le modèle le plus téléchargé par facebook est facebook/esmfold_v1 avec 12,544,550 téléchargements.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Récupère le modèle le plus téléchargé d'un auteur spécifique sur le Hugging Face Hub."""
+    try:
+        # Lister les modèles de l'auteur spécifié, triés par téléchargements
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"Le modèle le plus téléchargé par {author} est {model.id} avec {model.downloads:,} téléchargements."
+        else:
+            return f"Aucun modèle trouvé pour l'auteur {author}."
+    except Exception as e:
+        return f"Erreur lors de la récupération des modèles pour {author}: {str(e)}"
+
+# Initialiser l'outil
+hub_stats_tool = FunctionTool.from_defaults(get_hub_stats)
+
+# Exemple d'usage
+print(hub_stats_tool("facebook")) # Exemple : Obtenir le modèle le plus téléchargé par Facebook
+```
+
+Sortie attendue :
+
+```
+Le modèle le plus téléchargé par facebook est facebook/esmfold_v1 avec 12,544,550 téléchargements.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_core.tools import Tool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Récupère le modèle le plus téléchargé d'un auteur spécifique sur le Hugging Face Hub."""
+    try:
+        # Lister les modèles de l'auteur spécifié, triés par téléchargements
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"Le modèle le plus téléchargé par {author} est {model.id} avec {model.downloads:,} téléchargements."
+        else:
+            return f"Aucun modèle trouvé pour l'auteur {author}."
+    except Exception as e:
+        return f"Erreur lors de la récupération des modèles pour {author}: {str(e)}"
+
+# Initialiser l'outil
+hub_stats_tool = Tool(
+    name="get_hub_stats",
+    func=get_hub_stats,
+    description="Récupère le modèle le plus téléchargé d'un auteur spécifique sur le Hugging Face Hub."
+)
+
+# Exemple d'usage
+print(hub_stats_tool.invoke("facebook")) # Exemple : Obtenir le modèle le plus téléchargé par Facebook
+```
+
+Sortie attendue :
+
+```
+Le modèle le plus téléchargé par facebook est facebook/esmfold_v1 avec 13 109 861 téléchargements.
+```
+
+</hfoption>
+</hfoptions>
+
+Avec l'outil de statistiques, Alfred peut maintenant impressionner les constructeurs d'IA influents en discutant de leurs modèles les plus populaires.
+
+## Intégration des outils
+
+Maintenant que nous avons tous les outils, intégrons-les dans l'agent d'Alfred :
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Initialiser le modèle Hugging Face
+model = InferenceClientModel()
+
+# Créer Alfred avec tous les outils
+alfred = CodeAgent(
+    tools=[search_tool, weather_info_tool, hub_stats_tool], 
+    model=model
+)
+
+# Exemple de requête qu'Alfred pourrait recevoir pendant le gala
+response = alfred.run("Qu'est-ce que Facebook et quel est leur modèle le plus populaire ?")
+
+print("🎩 Réponse d'Alfred :")
+print(response)
+```
+
+Sortie attendue :
+
+```
+🎩 Réponse d'Alfred :
+Facebook est un site web de réseau social où les utilisateurs peuvent se connecter, partager des informations et interagir avec d'autres. Le modèle le plus téléchargé par Facebook sur le Hugging Face Hub est ESMFold_v1.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Initialiser le modèle Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Créer Alfred avec tous les outils
+alfred = AgentWorkflow.from_tools_or_functions(
+    [search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# Exemple de requête qu'Alfred pourrait recevoir pendant le gala
+response = await alfred.run("Qu'est-ce que Facebook et quel est leur modèle le plus populaire ?")
+
+print("🎩 Réponse d'Alfred :")
+print(response)
+```
+
+Sortie attendue :
+
+```
+🎩 Réponse d'Alfred :
+Facebook est un service de réseau social et une entreprise technologique basée à Menlo Park, en Californie. Elle a été fondée par Mark Zuckerberg et permet aux gens de créer des profils, se connecter avec des amis et la famille, partager des photos et vidéos, et rejoindre des groupes basés sur des intérêts partagés. Le modèle le plus populaire par Facebook sur le Hugging Face Hub est facebook/esmfold_v1 avec 13 109 861 téléchargements.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# Générer l'interface de chat, incluant les outils
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Générer l'AgentState et le graphe d'agent
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## Le graphe
+builder = StateGraph(AgentState)
+
+# Définir les nœuds : ils font le travail
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Définir les arêtes : elles déterminent comment le flux de contrôle se déplace
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Si le dernier message nécessite un outil, router vers les outils
+    # Sinon, fournir une réponse directe
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Qui est Facebook et quel est leur modèle le plus populaire ?")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Réponse d'Alfred :")
+print(response['messages'][-1].content)
+```
+
+Sortie attendue :
+
+```
+🎩 Réponse d'Alfred :
+Facebook est une entreprise de médias sociaux connue pour son site de réseau social, Facebook, ainsi que d'autres services comme Instagram et WhatsApp. Le modèle le plus téléchargé par Facebook sur le Hugging Face Hub est facebook/esmfold_v1 avec 13 202 321 téléchargements.
+```
+</hfoption>
+</hfoptions>
+
+## Conclusion
+
+En intégrant ces outils, Alfred est maintenant équipé pour gérer une variété de tâches, des recherches web aux mises à jour météorologiques et aux statistiques de modèles. Cela garantit qu'il reste l'hôte le plus informé et engageant du gala.
+
+> [!TIP]
+> Essayez d'implémenter un outil qui peut être utilisé pour obtenir les dernières nouvelles sur un sujet spécifique.
+>
+> Quand vous avez terminé, implémentez vos outils personnalisés dans le fichier <code>tools.py</code>.

@@ -1,0 +1,237 @@
+# Créons notre premier agent avec smolagents
+
+Dans la section précédente, nous avons appris comment créer des agents à partir de zéro en utilisant du code Python, et nous avons **vu à quel point ce processus peut être fastidieux**. Heureusement, de nombreuses bibliothèques d'agents simplifient ce travail en **se chargeant de la majeure partie du travail lourd pour vous**.
+
+Dans ce tutoriel, **vous allez créer votre tout premier agent** capable d'exécuter des actions telles que la génération d'images, la recherche sur le web, la vérification de fuseaux horaires et bien plus encore !
+
+Vous publierez également votre agent **sur un *Space* Hugging Face afin de le partager avec vos amis et collègues**.
+
+C'est parti !
+
+## Qu'est-ce que smolagents ?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/smolagents.png" alt="smolagents"/>
+
+Pour créer cet agent, nous allons utiliser `smolagents`, une bibliothèque qui **fournit un cadre facilitant le développement d'agents**.
+
+Cette bibliothèque légère est conçue pour être simple, tout en masquant une grande partie de la complexité liée à la construction d'un agent, permettant ainsi de vous concentrer sur la conception du comportement de l'agent.
+
+Nous approfondirons smolagents dans la prochaine unité. En attendant, vous pouvez également consulter cet <a href="https://huggingface.co/blog/smolagents" target="_blank">article de blog</a> ou le <a href="https://github.com/huggingface/smolagents" target="_blank">dépôt GitHub</a> de la bibliothèque.
+
+Brièvement, `smolagents` est une bibliothèque se concentrant sur les **agents générant du code** (via la classe `CodeAgent`), un type d'agent qui exécute des **"actions"** via des blocs de code, puis **"observe"** les résultats en exécutant le code.
+
+Voici un exemple de ce que nous allons construire !
+
+Nous avons équipé notre agent d'un **outil de génération d'images** et lui avons demandé de générer une image d'un chat.
+
+L'agent dans `smolagents` aura les **mêmes comportements que celui personnalisé que nous avons construit précédemment** : il va **réfléchir, agir et observer cycliquement** jusqu'à parvenir à une réponse finale :
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+Excitant, n'est-ce pas ?
+
+## Construisons notre agent !
+
+Pour commencer, dupliquez ce *Space* : <a href="https://huggingface.co/spaces/agents-course/First_agent_template" target="_blank">https://huggingface.co/spaces/agents-course/First_agent_template</a>  
+> Merci à <a href="https://huggingface.co/m-ric" target="_blank">Aymeric</a> pour ce patron ! 🙌
+
+Dupliquer signifie **créer une copie locale sur votre propre profil** :  
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplicate"/>
+
+Après la duplication, vous devrez ajouter votre *token* d'API Hugging Face pour que votre agent puisse accéder à l'API du modèle :
+
+1. Tout d'abord, obtenez votre *token* Hugging Face sur [https://hf.co/settings/tokens](https://hf.co/settings/tokens) avec la permission d'inférer, si vous n'en avez pas déjà un.
+2. Allez dans votre *Space* dupliqué et cliquez sur l'onglet **Settings**.
+3. Descendez jusqu'à la section **Variables and Secrets** et cliquez sur **New Secret**.
+4. Créez un secret avec le nom `HF_TOKEN` et collez votre token comme valeur.
+5. Cliquez sur **Save** pour stocker votre *token* en toute sécurité.
+
+
+Tout au long de cette leçon, le seul fichier (actuellement incomplet) que vous aurez à modifier est le **"app.py"**. Vous pouvez consulter l'[original ici](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py). Pour trouver le vôtre, allez dans votre copie du *Space*, cliquez sur l'onglet `Files` puis sur `app.py` dans la liste des répertoires.
+
+Analysons le code ensemble :
+
+- Le fichier commence par quelques importations de bibliothèques simples mais nécessaires
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+```
+
+Comme indiqué précédemment, nous utiliserons directement la classe **CodeAgent** de **smolagents**.
+
+### Les outils
+
+Entrons maintenant dans le vif du sujet avec les outils ! Si vous souhaitez un rappel sur les outils, n'hésitez pas à consulter la section [Outils](tools) du cours.
+
+```python
+@tool
+def my_custom_tool(arg1: str, arg2: int) -> str:  # il est important de spécifier le type de retour
+    # Conservez ce format pour la description de l'outil et des arguments, mais n'hésitez pas à modifier l'outil
+    """Un outil qui ne fait encore rien
+    Arguments:
+        arg1: le premier argument
+        arg2: le deuxième argument
+    """
+    return "Quelle magie allez-vous créer ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """Un outil qui récupère l'heure locale actuelle dans un fuseau horaire spécifié.
+    Arguments:
+        timezone: Une chaîne représentant un fuseau horaire valide (par exemple, 'America/New_York').
+    """
+    try:
+        # Créer l'objet fuseau horaire
+        tz = pytz.timezone(timezone)
+        # Obtenir l'heure actuelle dans ce fuseau horaire
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"L'heure locale actuelle dans {timezone} est : {local_time}"
+    except Exception as e:
+        return f"Erreur lors de la récupération de l'heure pour le fuseau horaire '{timezone}' : {str(e)}"
+```
+
+Les outils sont ce que nous vous encourageons à construire dans cette section ! Nous vous donnons deux exemples :
+
+1. Un **outil factice non fonctionnel** que vous pouvez modifier pour créer quelque chose d'utile.
+2. Un **outil réellement fonctionnel** qui récupère l'heure actuelle quelque part dans le monde.
+
+Pour définir votre outil, il est important de :
+
+1. Fournir des types d'entrée et de sortie pour votre fonction, comme dans `get_current_time_in_timezone(timezone: str) -> str:`
+2. Fournir une **docstring bien formatée**. `smolagents` s'attend à ce que tous les arguments aient une **description textuelle dans la docstring**.
+
+### L'agent
+
+Il utilise [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) comme moteur LLM. C'est un modèle très performant auquel nous accéderons via l'API *serverless*.
+
+```python
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+# Nous créons notre CodeAgent
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer],  # ajoutez vos outils ici (ne supprimez pas final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates
+)
+
+GradioUI(agent).launch()
+```
+
+Cet agent utilise toujours l'`InferenceClient` que nous avons vu dans une section précédente derrière la classe **InferenceClientModel** !
+
+Nous fournirons des exemples plus détaillés lors de la présentation du *framework* dans l'Unité 2. Pour l'instant, vous devez vous concentrer sur **l'ajout de nouveaux outils à la liste des outils** en utilisant le paramètre `tools` de votre agent.
+
+Par exemple, vous pourriez utiliser `DuckDuckGoSearchTool` qui a été importé dans la première ligne du code, ou vous pouvez examiner `image_generation_tool` qui est chargé depuis le Hub plus tard dans le code.
+
+**Ajouter des outils donnera de nouvelles capacités à votre agent**, alors soyez créatif !
+
+### Le *prompt système*
+
+Le *prompt* système de l'agent est stocké dans un fichier `prompts.yaml` séparé. Ce fichier contient des instructions prédéfinies qui guident le comportement de l'agent.
+
+Le stockage des *prompts* dans un fichier YAML permet une personnalisation et une réutilisation aisées pour différents agents ou cas d'utilisation.
+
+Vous pouvez consulter la [structure des fichiers du *Space*](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main) pour voir où se trouve le fichier `prompts.yaml` et comment il est organisé dans le projet.
+
+Le fichier complet **"app.py"** :
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+from tools.final_answer import FinalAnswerTool
+
+from Gradio_UI import GradioUI
+
+# Voici un exemple d'un outil qui ne fait encore rien. Épatez-nous avec votre créativité !
+@tool
+def my_custom_tool(arg1: str, arg2: int) -> str:  # il est important de spécifier le type de retour
+    # Conservez ce format pour la description de l'outil et des arguments, mais n'hésitez pas à modifier l'outil
+    """Un outil qui ne fait encore rien
+    Arguments:
+        arg1: le premier argument
+        arg2: le deuxième argument
+    """
+    return "Quelle magie allez-vous créer ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """Un outil qui récupère l'heure locale actuelle dans un fuseau horaire spécifié.
+    Arguments:
+        timezone: Une chaîne représentant un fuseau horaire valide (par exemple, 'America/New_York').
+    """
+    try:
+        # Créer l'objet fuseau horaire
+        tz = pytz.timezone(timezone)
+        # Obtenir l'heure actuelle dans ce fuseau horaire
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"L'heure locale actuelle dans {timezone} est : {local_time}"
+    except Exception as e:
+        return f"Erreur lors de la récupération de l'heure pour le fuseau horaire '{timezone}' : {str(e)}"
+
+
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+# Importer l'outil depuis le Hub
+image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
+
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer],  # ajoutez vos outils ici (ne supprimez pas final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates # Transmettre le prompt du système à CodeAgent
+)
+
+GradioUI(agent).launch()
+```
+
+Votre **objectif** est de vous familiariser avec le *Space* et l'agent.
+
+Actuellement, l'agent dans le patron **n'utilise aucun outil, alors essayez de lui fournir certains des outils préfabriqués ou même de créer de nouveaux outils vous-même !**
+
+Nous attendons avec impatience vos incroyables agents dans le canal Discord **#agents-course-showcase**!
+
+---
+
+Félicitations, vous avez construit votre premier Agent ! N'hésitez pas à le partager avec vos amis et collègues.
+
+Comme c'est votre première tentative, il est tout à fait normal qu'il soit un peu bogué ou lent. Dans les unités futures, nous apprendrons à construire de meilleurs agents.
+
+La meilleure façon d'apprendre est d'essayer, alors n'hésitez pas à le mettre à jour, à ajouter plus d'outils, à essayer avec un autre modèle, etc.
+
+Dans la prochaine section, vous allez remplir le quiz final et obtenir votre certificat !

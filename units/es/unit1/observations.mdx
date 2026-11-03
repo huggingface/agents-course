@@ -1,0 +1,44 @@
+# Observar: Integrando Retroalimentación para Reflexionar y Adaptarse
+
+Las observaciones son **cómo un Agente percibe las consecuencias de sus acciones**.
+
+Proporcionan información crucial que alimenta el proceso de pensamiento del Agente y guía acciones futuras.
+
+Son **señales del entorno**—ya sean datos de una API, mensajes de error o registros del sistema—que guían el siguiente ciclo de pensamiento.
+
+En la fase de observación, el agente:
+
+- **Recopila Retroalimentación:** Recibe datos o confirmación de que su acción fue exitosa (o no).
+- **Añade Resultados:** Integra la nueva información en su contexto existente, actualizando efectivamente su memoria.
+- **Adapta su Estrategia:** Utiliza este contexto actualizado para refinar pensamientos y acciones subsiguientes.
+
+Por ejemplo, si una API del clima devuelve los datos *"parcialmente nublado, 15°C, 60% de humedad"*, esta observación se añade a la memoria del agente (al final del prompt).
+
+El Agente luego la utiliza para decidir si se necesita información adicional o si está listo para proporcionar una respuesta final.
+
+Esta **incorporación iterativa de retroalimentación asegura que el agente permanezca dinámicamente alineado con sus objetivos**, aprendiendo y ajustándose constantemente basado en resultados del mundo real.
+
+Estas observaciones **pueden tomar muchas formas**, desde leer texto de páginas web hasta monitorear la posición de un brazo robótico. Esto puede verse como "registros" de Herramientas que proporcionan retroalimentación textual de la ejecución de la Acción.
+
+| Tipo de Observación   | Ejemplo                                                                   |
+|---------------------|---------------------------------------------------------------------------|
+| Retroalimentación del Sistema | Mensajes de error, notificaciones de éxito, códigos de estado                               |
+| Cambios de Datos              | Actualizaciones de base de datos, modificaciones del sistema de archivos, cambios de estado |
+| Datos Ambientales             | Lecturas de sensores, métricas del sistema, uso de recursos                                 |
+| Análisis de Respuesta         | Respuestas de API, resultados de consultas, salidas de cómputo                              |
+| Eventos Basados en Tiempo     | Plazos alcanzados, tareas programadas completadas                                           |
+
+## ¿Cómo Se Añaden los Resultados?
+
+Después de realizar una acción, el framework sigue estos pasos en orden:
+
+1. **Analiza la acción** para identificar la(s) función(es) a llamar y el/los argumento(s) a utilizar.  
+2. **Ejecuta la acción.**  
+3. **Añade el resultado** como una **Observación**.  
+
+---
+Ahora hemos aprendido el Ciclo de Pensamiento-Acción-Observación del Agente. 
+
+Si algunos aspectos todavía parecen un poco confusos, no te preocupes—revisaremos y profundizaremos estos conceptos en Unidades futuras. 
+
+Ahora, ¡es hora de poner tu conocimiento en práctica codificando tu primer Agente!

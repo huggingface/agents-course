@@ -1,0 +1,46 @@
+# Observer : intégrer le retour d'information pour réfléchir et s'adapter
+
+Les observations sont **la manière dont un agent perçoit les conséquences de ses actions**.
+
+Elles fournissent des informations cruciales qui alimentent le processus de réflexion de l'agent et orientent ses actions futures.
+
+Ce sont **des signaux provenant de l'environnement** (qu'il s'agisse de données issues d'une API, de messages d'erreur ou de logs système) qui guident le prochain cycle de réflexion.
+
+Dans la phase d'observation, l'agent :
+
+- **Collecte des retours :** Il reçoit des données ou une confirmation que son action a réussi (ou non).
+- **Ajoute les résultats :** Il intègre la nouvelle information dans son contexte existant, mettant ainsi à jour sa mémoire.
+- **Adapte sa stratégie :** Il utilise ce contexte actualisé pour affiner ses réflexions et ses actions ultérieures.
+
+Par exemple, si une API météo renvoie les données *"partiellement nuageux, 15°C, 60 % d'humidité"*, cette observation est ajoutée à la mémoire de l'agent (à la fin du *prompt*).
+
+L'agent l'utilise ensuite pour décider si des informations supplémentaires sont nécessaires ou s'il est prêt à fournir une réponse finale.
+
+Cette **intégration itérative des retours d'information assure que l'agent reste dynamiquement aligné avec ses objectifs**, apprenant et s'ajustant constamment en fonction des résultats concrets.
+
+Ces observations **peuvent prendre de nombreuses formes**, allant de la lecture de texte sur une page web à la surveillance de la position d'un bras robotisé. 
+On peut les considérer comme des « logs » d'outils fournissant un retour textuel sur l'exécution d'une action.
+
+| Type d'observation         | Exemple                                                                                     |
+|----------------------------|---------------------------------------------------------------------------------------------|
+| Retour système             | Messages d'erreur, notifications de succès, codes de statut                                 |
+| Modifications de données   | Mises à jour de base de données, modifications du système de fichiers, changements d'état   |
+| Données environnementales  | Relevés de capteurs, métriques système, utilisation des ressources                           |
+| Analyse des réponses       | Réponses d'API, résultats de requêtes, sorties de calcul                                     |
+| Événements temporels       | Dates limites atteintes, tâches programmées terminées                                        |
+
+## Comment les résultats sont-ils ajoutés ?
+
+Après avoir effectué une action, le *framework* suit les étapes suivantes dans cet ordre :
+
+1. **Analyser l'action** pour identifier la ou les fonctions à appeler et les arguments à utiliser.  
+2. **Exécuter l'action.**  
+3. **Ajouter le résultat** en tant qu'**observation**.  
+
+---
+
+Nous avons maintenant appris le cycle de raisonnement-action-observation de l'agent.
+
+Si certains aspects vous semblent encore un peu flous, ne vous inquiétez pas, nous reviendrons sur ces concepts et les approfondirons dans les prochaines unités.
+
+Il est maintenant temps de mettre vos connaissances en pratique en codant votre tout premier agent !

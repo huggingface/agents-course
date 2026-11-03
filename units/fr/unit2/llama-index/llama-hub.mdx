@@ -1,0 +1,55 @@
+# Introduction au *LlamaHub*
+
+***LlamaHub* est un registre de centaines d'intégrations, d'*agents* et d'*outils* que vous pouvez utiliser dans LlamaIndex.**
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+Nous utiliserons diverses intégrations dans ce cours, alors examinons d'abord le *LlamaHub* et comment il peut nous aider.
+
+Voyons comment trouver et installer les dépendances pour les *components* dont nous avons besoin.
+
+## Installation
+
+Les instructions d'installation de LlamaIndex sont disponibles comme un **aperçu bien structuré sur [*LlamaHub*](https://llamahub.ai/)**.
+Cela peut être un peu démoralisant au début, mais la plupart des **commandes d'installation suivent généralement un format facile à retenir** :
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+
+Essayons d'installer les dépendances pour un *component* *LLM* et *embedding* en utilisant l'[intégration de l'API d'inférence *Hugging Face*](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms).
+
+```bash
+pip install llama-index-llms-huggingface-api llama-index-embeddings-huggingface
+```
+
+## Utilisation
+
+Une fois installé, nous pouvons voir les motifs d'utilisation. Vous remarquerez que les chemins d'importation suivent la commande d'installation !
+Ci-dessous, nous pouvons voir un exemple d'utilisation de **l'API d'inférence Hugging Face pour un *component* LLM**.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+import os
+from dotenv import load_dotenv
+
+# Charger le fichier .env
+load_dotenv()
+
+# Récupérer HF_TOKEN à partir des variables d'environnement
+hf_token = os.getenv("HF_TOKEN")
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token=hf_token,
+)
+
+response = llm.complete("Hello, how are you?")
+print(response)
+# Je suis bon, comment puis-je vous aider aujourd'hui ?
+```
+
+Parfait, nous savons maintenant comment trouver, installer et utiliser les intégrations pour les *components* dont nous avons besoin.
+**Approfondissons les *components*** et voyons comment nous pouvons les utiliser pour construire nos propres agents.

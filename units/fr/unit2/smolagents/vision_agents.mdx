@@ -1,0 +1,219 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/vision_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Agents visuel avec smolagents
+
+> [!WARNING]
+> Les exemples de cette section nécessitent l'accès à un modèle VLM puissant. Nous les avons testés en utilisant l'API GPT-4o.
+> Cependant, <a href="./why_use_smolagents">Pourquoi utiliser smolagents</a> discute des solutions alternatives supportées par smolagents et Hugging Face. Si vous souhaitez explorer d'autres options, assurez-vous de consulter cette section.
+
+Doter les agents de capacités visuelles est crucial pour résoudre des tâches qui vont au-delà du traitement de texte. De nombreux défis du monde réel, comme la navigation web ou la compréhension de documents, nécessitent d'analyser un contenu visuel riche. Heureusement, `smolagents` fournit un support intégré pour les modèles de vision-langage (VLM), permettant aux agents de traiter et d'interpréter efficacement les images.
+
+Dans cet exemple, imaginez qu'Alfred soit chargé de vérifier les identités des invités assistant à la fête. Comme vous pouvez l'imaginer, Alfred pourrait ne pas être familier avec tout le monde. Pour l'aider, nous pouvons utiliser un agent qui vérifie leur identité en recherchant des informations visuelles sur leur apparence en utilisant un VLM. Cela permettra à Alfred de prendre des décisions éclairées sur qui peut entrer. Construisons cet exemple !
+
+## Fournir des images au début de l'exécution de l'agent
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/fr/unit2/smolagents/vision_agents.ipynb" target="_blank">ce <i>notebook</i></a> que vous pouvez exécuter avec Google Colab.
+
+Dans cette approche, les images sont transmises à l'agent au début et stockées comme `task_images` avec le *prompt* de tâche. L'agent traite ensuite ces images tout au long de son exécution.
+
+Considérez le cas où Alfred veut vérifier les identités des super-héros assistant à la fête. Il a déjà un jeu de données d'images de fêtes précédentes avec les noms des invités. Étant donné l'image d'un nouveau visiteur, l'agent peut la comparer avec le jeu de données existant et prendre une décision sur leur entrée.
+
+Dans ce cas, un invité essaie d'entrer, et Alfred soupçonne que ce visiteur pourrait être le Joker se faisant passer pour Wonder Woman. Alfred doit vérifier les identités pour empêcher quiconque d'indésirable d'entrer.
+
+Construisons l'exemple. D'abord, les images sont chargées. Dans ce cas, nous utilisons des images de Wikipédia pour garder l'exemple minimaliste, mais imaginez les cas d'usage possibles !
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg", # Image du Joker
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg" # Image du Joker
+]
+
+images = []
+for url in image_urls:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" 
+    }
+    response = requests.get(url,headers=headers)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+Maintenant que nous avons les images, l'agent nous dira si un invité est vraiment un super-héros (Wonder Woman) ou un méchant (le Joker).
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+# Instancier l'agent
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Décrire le costume et le maquillage que porte le personnage de bande dessinée figurant sur ces photos et renvoyer la description.
+    Indiquer si l'invité est le Joker ou Wonder Woman.
+    """,
+    images=images
+)
+```
+
+Dans le cas de mon exécution, la sortie est la suivante, bien qu'elle puisse varier dans votre cas, comme nous l'avons déjà discuté :
+
+```python
+    {
+        'Costume et maquillage - Première image': (
+            'Manteau violet et une cravate ou nœud papillon de soie violette sur une chemise jaune moutarde.',
+            'Peinture faciale blanche avec des traits exagérés, sourcils sombres, maquillage des yeux bleu, lèvres rouges formant un large sourire.'
+        ),
+        'Costume et maquillage - Deuxième image': (
+            'Costume sombre avec une fleur sur le revers, tenant une carte à jouer.',
+            'Peau pâle, cheveux verts, lèvres très rouges avec un sourire exagéré.'
+        ),
+        'Identité du personnage': 'Ce personnage ressemble aux représentations connues du Joker des médias de bande dessinée.'
+    }
+```
+
+Dans ce cas, la sortie révèle que la personne se fait passer pour quelqu'un d'autre, donc nous pouvons empêcher le Joker d'entrer à la fête !
+
+## Fournir des images avec recherche dynamique
+
+> [!TIP]
+> Vous pouvez suivre le code dans <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py" target="_blank">ce fichier Python</a>
+
+L'approche précédente est précieuse et a de nombreux cas d'usage potentiels. Cependant, dans des situations où l'invité n'est pas dans la base de données, nous devons explorer d'autres façons de les identifier. Une solution possible est de récupérer dynamiquement des images et des informations à partir de sources externes, comme naviguer sur le web pour des détails.
+
+Dans cette approche, les images sont ajoutées dynamiquement à la mémoire de l'agent pendant l'exécution. Comme nous le savons, les agents dans `smolagents` sont basés sur la classe `MultiStepAgent`, qui est une abstraction du *framework ReAct*. Cette classe opère dans un cycle structuré où diverses variables et connaissances sont enregistrées à différentes étapes :
+
+1. **SystemPromptStep :** Stocke le *prompt* système.
+2. **TaskStep :** Enregistre la requête utilisateur et toute entrée fournie.
+3. **ActionStep :** Capture les logs des actions de l'agent et les résultats.
+
+Cette approche structurée permet aux agents d'incorporer des informations visuelles dynamiquement et de répondre de manière adaptative aux tâches évolutives. Ci-dessous se trouve le diagramme que nous avons déjà vu, illustrant le processus de flux de travail dynamique et comment différentes étapes s'intègrent dans le cycle de vie de l'agent. Lors de la navigation, l'agent peut prendre des captures d'écran et les sauvegarder comme `observation_images` dans l'`ActionStep`.
+
+![Récupération d'images dynamique](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/smolagents-can-see/diagram_adding_vlms_smolagents.png)
+
+Maintenant que nous comprenons le besoin, construisons notre exemple complet. Dans ce cas, Alfred veut un contrôle total sur le processus de vérification des invités, donc naviguer pour des détails devient une solution viable. Pour compléter cet exemple, nous avons besoin d'un nouvel ensemble d'outils pour l'agent. De plus, nous utiliserons Selenium et Helium, qui sont des outils d'automatisation de navigateur. Cela nous permettra de construire un agent qui explore le web, recherchant des détails sur un invité potentiel et récupérant des informations de vérification. Installons les outils nécessaires :
+
+```bash
+pip install "smolagents[all]" helium selenium python-dotenv
+```
+
+Nous aurons besoin d'un ensemble d'outils d'agent spécifiquement conçus pour la navigation, tels que `search_item_ctrl_f`, `go_back` et `close_popups`. Ces outils permettent à l'agent d'agir comme une personne naviguant sur le web.
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Recherche du texte sur la page actuelle via Ctrl + F et saute à la nième occurrence.
+    Args:
+        text: Le texte à rechercher
+        nth_result: Quelle occurrence aller (par défaut: 1)
+    """
+    elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{text}')]")
+    if nth_result > len(elements):
+        raise Exception(f"Correspondance n°{nth_result} non trouvée (seulement {len(elements)} correspondances trouvées)")
+    result = f"Trouvé {len(elements)} correspondances pour '{text}'."
+    elem = elements[nth_result - 1]
+    driver.execute_script("arguments[0].scrollIntoView(true);", elem)
+    result += f"Focalisé sur l'élément {nth_result} de {len(elements)}"
+    return result
+
+
+@tool
+def go_back() -> None:
+    """Retourne à la page précédente."""
+    driver.back()
+
+
+@tool
+def close_popups() -> str:
+    """
+    Ferme tout modal ou pop-up visible sur la page. Utilise ceci pour fermer les fenêtres pop-up ! Cela ne fonctionne pas sur les bannières de consentement de cookies.
+    """
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+```
+
+Nous avons également besoin de fonctionnalités pour sauvegarder des captures d'écran, car ce sera une partie essentielle de ce que notre agent *VLM* utilise pour accomplir la tâche. Cette fonctionnalité prend la capture d'écran et la sauvegarde dans `step_log.observations_images = [image.copy()]`, permettant à l'agent de stocker et traiter les images dynamiquement pendant qu'il navigue.
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)  # Laisser les animations JavaScript se produire avant de prendre la capture d'écran
+    driver = helium.get_driver()
+    current_step = step_log.step_number
+    if driver is not None:
+        for step_logs in agent.logs:  # Supprimer les captures d'écran précédentes des logs pour un traitement allégé
+            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+                step_logs.observations_images = None
+        png_bytes = driver.get_screenshot_as_png()
+        image = Image.open(BytesIO(png_bytes))
+        print(f"Capture d'écran de navigateur capturée : {image.size} pixels")
+        step_log.observations_images = [image.copy()]  # Créer une copie pour s'assurer qu'elle persiste, important !
+
+    # Mettre à jour les observations avec l'URL actuelle
+    url_info = f"URL actuelle : {driver.current_url}"
+    step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
+    return
+```
+
+Cette fonction est passée à l'agent comme `step_callback`, car elle est déclenchée à la fin de chaque étape pendant l'exécution de l'agent. Cela permet à l'agent de capturer et stocker dynamiquement des captures d'écran tout au long de son processus.
+
+Maintenant, nous pouvons générer notre agent de vision pour naviguer sur le web, en lui fournissant les outils que nous avons créés, avec le `DuckDuckGoSearchTool` pour explorer le web. Cet outil aidera l'agent à récupérer les informations nécessaires pour vérifier les identités des invités basées sur des indices visuels.
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+Avec cela, Alfred est prêt à vérifier les identités des invités et prendre des décisions éclairées sur s'il faut les laisser entrer ou non à la fête :
+
+```python
+agent.run("""
+Je suis Alfred, le majordome du manoir Wayne, chargé de vérifier l'identité des invités à une fête. Une super-héroïne se présente à l'entrée en prétendant être Wonder Woman, mais je dois vérifier si elle est bien celle qu'elle prétend être.
+
+Veuillez rechercher des images de Wonder Woman et générer une description visuelle détaillée à partir de ces images. De plus, naviguez sur Wikipédia pour recueillir des détails clés sur son apparence. Grâce à ces informations, je pourrai déterminer s'il convient de lui accorder l'accès à l'événement.
+""" + helium_instructions)
+```
+
+Vous pouvez voir que nous incluons `helium_instructions` dans le cadre de la tâche. Ce *prompt* spécial vise à contrôler la navigation de l'agent, s'assurant qu'il suit les bonnes étapes lors de la navigation web.
+
+Voyons comment cela fonctionne dans la vidéo ci-dessous :
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+C'est la sortie finale :
+
+```python
+Réponse finale : Wonder Woman est typiquement représentée portant un bustier rouge et or, un short ou une jupe bleu avec des étoiles blanches, un tiare doré, des bracelets argentés et un lasso de vérité doré. Elle est la Princesse Diana de Themyscira, connue sous le nom de Diana Prince dans le monde des hommes.
+```
+
+Avec tout cela, nous avons créé avec succès notre vérificateur d'identité pour la fête ! Alfred a maintenant les outils nécessaires pour s'assurer que seuls les bons invités franchissent la porte. Tout est prêt pour passer du bon temps au manoir Wayne !
+
+## Lectures complémentaires
+
+- [Nous venons de donner la vue à smolagents](https://huggingface.co/blog/smolagents-can-see) - Blog décrivant la fonctionnalité d'agent visuel.
+- [Automatisation de navigateur web avec agents 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - Exemple pour la navigation web utilisant un agent visuel.
+- [Exemple d'agent visuel pour navigateur web](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - Exemple pour la navigation web utilisant un agent visuel.

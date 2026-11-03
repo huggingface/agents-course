@@ -1,0 +1,66 @@
+# Qu'est-ce que LangGraph ?
+
+`LangGraph` est un *framework* développé par [LangChain](https://www.langchain.com/) **pour gérer le flux de contrôle des applications qui intègrent un LLM**.
+
+## `LangGraph` est-il différent de `LangChain` ?
+
+LangChain fournit une interface standard pour interagir avec les modèles et autres composants, utile pour la récupération, les appels de LLM et les appels d'outils.
+Les classes de LangChain peuvent être utilisées dans LangGraph, mais ne DOIVENT PAS nécessairement être utilisées.
+
+Les *packages* sont différents et peuvent être utilisés de manière isolée, mais, au final, toutes les ressources que vous trouverez en ligne utilisent les deux *packages* main dans la main.
+
+## Quand dois-je utiliser `LangGraph` ?
+### Contrôle vs. liberté
+
+Lors de la conception d'applications IA, vous faites face à un compromis fondamental entre **contrôle** et **liberté** :
+
+- La **liberté** donne à votre LLM plus d'espace pour être créatif et s'attaquer à des problèmes inattendus.
+- Le **contrôle** vous permet d'assurer un comportement prévisible et de maintenir des garde-fous.
+
+Les agents à code, comme ceux que vous pouvez rencontrer dans *smolagents*, sont très libres. Ils peuvent appeler plusieurs outils en une seule étape d'action, créer leurs propres outils, etc. Cependant, ce comportement peut les rendre moins prévisibles et moins contrôlables qu'un agent standard travaillant avec un *JSON* !
+
+`LangGraph` est à l'autre extrémité du spectre, il brille lorsque vous avez besoin de **contrôle** sur l'exécution de votre agent. Il vous donne les outils pour créer une application qui suit un processus prévisible tout en exploitant toujours la puissance des LLM.
+
+En termes simples, si votre application implique une série d'étapes qui doivent être orchestrées d'une manière spécifique, avec des décisions prises à chaque point de jonction, **LangGraph fournit la structure dont vous avez besoin**.
+
+À titre d'exemple, disons que nous voulons créer un assistant LLM qui peut répondre à quelques questions sur certains documents.
+
+Comme les LLM comprennent mieux le texte, avant de pouvoir répondre à la question, vous devrez convertir d'autres modalités complexes (graphiques, tableaux) en texte. Cependant, ce choix dépend du type de document que vous avez !
+
+C'est un embranchement que j'ai choisi de représenter comme suit :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/flow.png" alt="Control flow"/>
+
+> 💡 **Astuce :** La partie gauche n'est pas un agent, car ici aucun appel d'outil n'est impliqué. Mais la partie droite devra écrire du code pour interroger le *xls* (convertir en *pandas* et le manipuler).
+
+Bien que cet embranchement soit déterministe, vous pouvez également concevoir un embranchement conditionné par la sortie d'un LLM, les rendant indéterministes.
+
+Les scénarios clés où LangGraph excelle incluent :
+
+- **Le processus de raisonnement en plusieurs étapes** qui nécessitent un contrôle explicite sur le flux
+- **Des applications nécessitant la persistance de l'état** entre les étapes
+- **Des systèmes qui combinent la logique déterministe avec les capacités d'une IA**
+- ***Des workflows* qui nécessitent des interventions *human-in-the-loop***
+- **Des architectures d'agents complexes** avec plusieurs composants travaillant ensemble
+
+En substance, chaque fois que cela est possible, en tant qu'être humain, concevez un flux d'actions basé sur les résultats de chaque action, et décidez de ce qu'il faut exécuter ensuite en conséquence. Dans ce cas, LangGraph est le bon *framework* pour vous !
+
+`LangGraph` est, à mon avis, le *framework* d'agents le plus prêt pour la production sur le marché.
+
+## Comment fonctionne LangGraph ?
+
+Au cœur de `LangGraph` se trouve une structure de graphe dirigé pour définir le flux de votre application :
+
+- **Les nœuds** représentent des étapes de traitement individuelles (comme appeler un LLM, utiliser un outil, ou prendre une décision).
+- **Les arêtes** définissent les transitions possibles entre les étapes.
+- **L'état** est défini par l'utilisateur et maintenu et transmis entre les nœuds pendant l'exécution. Lors de la décision du prochain nœud à cibler, c'est l'état actuel que nous regardons.
+
+Nous explorerons ces blocs fondamentaux plus en détail dans le prochain chapitre !
+
+## En quoi est-ce différent du Python standard ? Pourquoi ai-je besoin de LangGraph ?
+
+Vous pourriez vous demander : « Je pourrais juste écrire du code Python standard avec des instructions *if-else* pour gérer tous ces flux, non ? »
+
+Bien que techniquement vrai, LangGraph offre **certains avantages** par rapport au Python standard pour créer des systèmes complexes. Vous pourriez créer la même application sans LangGraph, mais il construit des outils et des abstractions plus faciles pour vous.
+
+Il inclut des états, une visualisation, une journalisation (traces), de l'*human-in-the-loop* intégré, et plus encore.

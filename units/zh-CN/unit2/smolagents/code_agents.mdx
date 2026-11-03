@@ -1,0 +1,380 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb"},
+]} />
+
+# 构建使用代码的智能体
+
+代码智能体（Code agents）是 `smolagents` 中的默认智能体类型。它们生成 Python 工具调用来执行操作，实现高效、表达力强且准确的操作表示。
+
+它们的简化方法减少了所需操作的数量，简化了复杂操作，并实现了对现有代码函数的重用。`smolagents` 提供了一个轻量级框架，用约 1,000 行代码实现构建代码智能体（code agents）。
+
+![代码与 JSON 操作对比](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+图片来自论文 [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)
+
+> [!TIP]
+> 如果你想了解更多关于为什么代码智能体如此有效的信息，请查看 <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">smolagents 文档中的这个指南</a>。
+
+## 为什么选择代码智能体？
+
+在多步骤智能体过程中，大语言模型（LLM）编写并执行操作，通常涉及外部工具调用。传统方法使用 JSON 格式来指定工具名称和参数作为字符串，**系统必须解析这些内容以确定要执行哪个工具**。
+
+然而，研究表明，**工具调用型大语言模型直接使用代码工作更有效**。这是 `smolagents` 的核心原则，如上图所示，来自论文 [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)。
+
+用代码而非 JSON 编写操作提供了几个关键优势：
+
+* **可组合性（Composability）**：轻松组合和重用操作
+* **对象管理（Object Management）**：直接处理复杂结构，如图像
+* **通用性（Generality）**：表达任何计算上可能的任务
+* **适合大语言模型**：高质量代码已存在于大语言模型的训练数据中
+
+## 代码智能体如何工作？
+
+![来自 https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+上图说明了 `CodeAgent.run()` 如何操作，遵循我们在第 1 单元中提到的 ReAct 框架。`smolagents` 中智能体的主要抽象是 `MultiStepAgent`，它作为核心构建块。如我们将在下面的示例中看到的，`CodeAgent` 是一种特殊的 `MultiStepAgent`。
+
+`CodeAgent` 通过一系列步骤执行操作，将现有变量和知识整合到智能体的上下文中，这些内容保存在执行日志中：
+
+1. 系统提示存储在 `SystemPromptStep` 中，用户查询记录在 `TaskStep` 中。
+
+2. 然后，执行以下循环：
+
+    2.1 方法 `agent.write_memory_to_messages()` 将智能体的日志写入大语言模型可读的[聊天消息](https://huggingface.co/docs/transformers/en/chat_templating)列表中。
+    
+    2.2 这些消息发送给 `Model`，生成补全（completion）。
+    
+    2.3 解析补全内容以提取操作，在我们的例子中，这应该是代码片段，因为我们使用的是 `CodeAgent`。
+    
+    2.4 执行该操作。
+    
+    2.5 将结果记录到内存中的 `ActionStep` 中。
+
+在每个步骤结束时，如果智能体包含任何函数调用（在 `agent.step_callback` 中），它们将被执行。
+
+## 让我们看一些例子
+
+> [!TIP]
+> 你可以在 <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb" target="_blank">这个笔记本</a> 中跟随代码，可以使用 Google Colab 运行。
+
+阿尔弗雷德（Alfred）正在韦恩家族大宅计划一场派对，需要你的帮助确保一切顺利进行。为了帮助他，我们将应用我们所学到的关于多步骤 `CodeAgent` 如何运作的知识。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-party.jpg" alt="Alfred 派对"/>
+
+如果你还没有安装 `smolagents`，可以运行以下命令进行安装：
+
+```bash
+pip install smolagents -U
+```
+
+让我们也登录到 Hugging Face Hub，以便访问无服务器推理 API（Serverless Inference API）。
+
+```python
+from huggingface_hub import login
+
+login()
+```
+
+### 使用 `smolagents` 为派对选择播放列表
+
+音乐是成功派对的重要组成部分！阿尔弗雷德需要一些帮助来选择播放列表。幸运的是，`smolagents` 能够帮助我们！我们可以构建一个能够使用 DuckDuckGo 搜索网络的智能体。要让智能体访问此工具，我们在创建智能体时将其包含在工具列表中。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred 播放列表"/>
+
+对于模型，我们将依赖 `InferenceClientModel`，它提供对 Hugging Face 的[无服务器推理 API](https://huggingface.co/docs/api-inference/index)的访问。默认模型是 `"Qwen/Qwen2.5-Coder-32B-Instruct"`，它性能良好并可用于快速推理，但你可以从 Hub 中选择任何兼容的模型。
+
+运行智能体相当简单：
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+当你运行这个例子时，输出将**显示正在执行的工作流步骤的跟踪**。它还会打印相应的 Python 代码，并附带消息：
+
+```python
+ ─ Executing parsed code: ──────────────────────────────────────────────────────────────────────────────────────── 
+  results = web_search(query="best music for a Batman party")                                                      
+  print(results)                                                                                                   
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+```
+
+几个步骤后，你将看到阿尔弗雷德可以用于派对的生成播放列表！🎵
+
+### 使用自定义工具准备菜单
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-menu.jpg" alt="Alfred 菜单"/>
+
+现在我们已经选择了播放列表，我们需要为客人组织菜单。同样，阿尔弗雷德可以利用 `smolagents` 来做到这一点。在这里，我们使用 `@tool` 装饰器定义一个作为工具的自定义函数。我们稍后将更详细地介绍工具创建，所以现在我们可以简单地运行代码。
+
+如下例所示，我们将使用 `@tool` 装饰器创建一个工具，并将其包含在 `tools` 列表中。
+
+```python
+from smolagents import CodeAgent, tool, InferenceClientModel
+
+# 根据场合建议菜单的工具
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion: The type of occasion for the party.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+# 管家阿尔弗雷德，为派对准备菜单
+agent = CodeAgent(tools=[suggest_menu], model=InferenceClientModel())
+
+# 为派对准备正式菜单
+agent.run("Prepare a formal menu for the party.")
+```
+
+智能体将运行几个步骤，直到找到答案。
+
+菜单准备好了！🥗
+
+### 在智能体内部使用 Python 导入
+
+我们已经准备好了播放列表和菜单，但我们需要检查另一个关键细节：准备时间！
+
+阿尔弗雷德需要计算如果他现在开始准备，什么时候一切都会准备就绪，以防他们需要其他超级英雄的帮助。
+
+`smolagents` 专门用于编写和执行 Python 代码片段的智能体，处于安全方面的考量，其提供沙盒执行环境。
+
+**代码执行有严格的安全措施** - 默认情况下，预定义安全列表之外的导入被阻止。但是，您可以通过将它们作为字符串传递到 `additional_authorized_imports` 中来授权额外的导入。
+有关安全代码执行的更多详情，请参阅官方[指南](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution)。
+
+创建智能体时，我们将使用 `additional_authorized_imports` 来允许导入 `datetime` 模块。
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=InferenceClientModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred needs to prepare for the party. Here are the tasks:
+    1. Prepare the drinks - 30 minutes
+    2. Decorate the mansion - 60 minutes
+    3. Set up the menu - 45 minutes
+    3. Prepare the music and playlist - 45 minutes
+
+    If we start right now, at what time will the party be ready?
+    """
+)
+```
+
+这些例子只是代码智能体能做的事情的开始，我们已经开始看到它们对准备派对的实用性。
+你可以在 [smolagents 文档](https://huggingface.co/docs/smolagents) 中了解更多关于如何构建代码智能体的信息。
+
+总之，`smolagents` 专注于编写和执行 Python 代码片段的智能体，提供安全的沙盒执行环境。它支持本地和基于 API 的语言模型，使其适应各种开发环境。
+
+### 将我们的自定义派对准备智能体分享到 Hub
+
+**将我们自己的阿尔弗雷德智能体与社区分享**难道不会很棒吗？通过这样做，任何人都可以轻松地从 Hub 下载并直接使用这个智能体，将哥谭市的终极派对策划者带到他们的指尖！让我们实现这个想法！🎉
+
+`smolagents` 库使这成为可能，允许你与社区分享完整的智能体，并下载其他人的智能体立即使用。这很简单，如下所示：
+
+```python
+# 更改为你的用户名和仓库名
+agent.push_to_hub('sergiopaniego/AlfredAgent')
+```
+
+要再次下载智能体，请使用以下代码：
+
+```python
+# 更改为你的用户名和仓库名
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent')
+
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
+```
+
+令人兴奋的是，共享的智能体直接作为 Hugging Face Spaces 提供，允许你实时与它们交互。你可以在[这里](https://huggingface.co/spaces/davidberenstein1957/smolagents-and-tools)探索其他智能体。
+
+例如，_AlfredAgent_ 在[这里](https://huggingface.co/spaces/sergiopaniego/AlfredAgent)可用。你可以直接在下面尝试：
+
+<iframe
+	src="https://sergiopaniego-alfredagent.hf.space/"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+你可能想知道——阿尔弗雷德如何使用 `smolagents` 构建这样一个智能体？通过整合几个工具，他可以生成一个如下的智能体。现在不用担心这些工具，因为我们将在本单元后面有专门的部分详细探讨：
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, Tool, tool, VisitWebpageTool
+
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Suggests a menu based on the occasion.
+    Args:
+        occasion: The type of occasion for the party.
+    """
+    if occasion == "casual":
+        return "Pizza, snacks, and drinks."
+    elif occasion == "formal":
+        return "3-course dinner with wine and dessert."
+    elif occasion == "superhero":
+        return "Buffet with high-energy and healthy food."
+    else:
+        return "Custom menu for the butler."
+
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    This tool returns the highest-rated catering service in Gotham City.
+    
+    Args:
+        query: A search term for finding catering services.
+    """
+    # 餐饮服务及其评分的示例列表    
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+    
+    # 找到评分最高的餐饮服务（模拟搜索查询过滤）
+    best_service = max(services, key=services.get)
+    
+    return best_service
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    This tool suggests creative superhero-themed party ideas based on a category.
+    It returns a unique party theme idea."""
+    
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "The type of superhero party (e.g., 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
+        }
+    }
+    
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: Guests come dressed as their favorite DC heroes with themed cocktails like 'The Kryptonite Punch'.",
+            "villain masquerade": "Gotham Rogues' Ball: A mysterious masquerade where guests dress as classic Batman villains.",
+            "futuristic Gotham": "Neo-Gotham Night: A cyberpunk-style party inspired by Batman Beyond, with neon decorations and futuristic gadgets."
+        }
+        
+        return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
+
+
+# 管家阿尔弗雷德，为派对准备菜单
+agent = CodeAgent(
+    tools=[
+        DuckDuckGoSearchTool(), 
+        VisitWebpageTool(),
+        suggest_menu,
+        catering_service_tool,
+        SuperheroPartyThemeTool()
+    ], 
+    model=InferenceClientModel(),
+    max_steps=10,
+    verbosity_level=2
+)
+
+agent.run("Give me best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
+```
+
+如你所见，我们创建了一个具有多种工具的 `CodeAgent`，这些工具增强了智能体的功能，将其变成了准备好与社区分享的终极派对策划者！🎉
+
+现在，轮到你了：使用我们刚刚学到的知识，构建你自己的智能体并与社区分享！🕵️‍♂️💡
+
+> [!TIP]
+> 如果你想分享你的智能体项目，请创建一个 space 并在 Hugging Face Hub 上标记 [agents-course](https://huggingface.co/agents-course)。我们很想看看你创造了什么！
+
+### 使用 OpenTelemetry 和 Langfuse 检查我们的派对准备智能体 📡
+
+随着阿尔弗雷德对派对准备智能体的微调，他对调试其运行越来越疲惫。智能体本质上是不可预测的，难以检查。但由于他的目标是构建终极派对准备智能体并将其部署到生产环境中，他需要强大的可追踪性，用于未来的监控和分析。
+
+再一次，`smolagents` 来救援！它采用 [OpenTelemetry](https://opentelemetry.io/) 标准来检测智能体运行，允许无缝检查和日志记录。在 [Langfuse](https://langfuse.com/) 和 `SmolagentsInstrumentor` 的帮助下，阿尔弗雷德可以轻松跟踪和分析他的智能体行为。
+
+设置非常简单！
+
+首先，我们需要安装必要的依赖项：
+
+```bash
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents langfuse
+```
+
+接下来，阿尔弗雷德已经在 Langfuse 上创建了一个账户，并准备好了他的 API 密钥。如果你还没有这样做，你可以在[这里](https://cloud.langfuse.com/)注册 Langfuse Cloud 或探索[替代方案](https://huggingface.co/docs/smolagents/tutorials/inspect_runs)。
+
+一旦你有了 API 密钥，它们需要正确配置如下：
+
+```python
+import os
+
+# Get keys for your project from the project settings page: https://cloud.langfuse.com
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..." 
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..." 
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com" # 🇪🇺 EU region
+# os.environ["LANGFUSE_HOST"] = "https://us.cloud.langfuse.com" # 🇺🇸 US region
+```
+
+With the environment variables set, we can now initialize the Langfuse client. get_client() initializes the Langfuse client using the credentials provided in the environment variables.
+
+```python
+from langfuse import get_client
+ 
+langfuse = get_client()
+ 
+# Verify connection
+if langfuse.auth_check():
+    print("Langfuse client is authenticated and ready!")
+else:
+    print("Authentication failed. Please check your credentials and host.")
+```
+
+最后，阿尔弗雷德准备初始化 `SmolagentsInstrumentor` 并开始跟踪他的智能体性能。
+
+```python
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+
+SmolagentsInstrumentor().instrument()
+```
+
+阿尔弗雷德现在已连接 🔌！来自 `smolagents` 的运行正在 Langfuse 中记录，让他完全可见智能体的行为。有了这个设置，他准备重新访问之前的运行并进一步改进他的派对准备智能体。
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+agent = CodeAgent(tools=[], model=InferenceClientModel())
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
+```
+
+阿尔弗雷德现在可以在[这里](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z)访问这些日志来审查和分析它们。
+
+同时，[建议的播放列表](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw)为派对准备设置了完美的氛围。很酷，对吧？🎶
+
+---
+
+现在我们已经创建了我们的第一个代码智能体，让我们**学习如何创建工具调用智能体（Tool Calling Agents）**，这是 `smolagents` 中可用的第二种智能体类型。
+
+## 资源
+
+- [smolagents 博客](https://huggingface.co/blog/smolagents) - smolagents 和代码交互介绍
+- [smolagents：构建好的智能体](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 可靠智能体的最佳实践
+- [构建有效的智能体 - Anthropic](https://www.anthropic.com/research/building-effective-agents) - 智能体设计原则
+- [使用 OpenTelemetry 共享运行](https://huggingface.co/docs/smolagents/tutorials/inspect_runs) - 关于如何为跟踪你的智能体设置 OpenTelemetry 的详细信息

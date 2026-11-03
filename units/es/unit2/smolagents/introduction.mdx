@@ -1,0 +1,66 @@
+# Introducción a `smolagents`
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/thumbnail.jpg" alt="Miniatura de la Unidad 2.1"/>
+
+Bienvenido/a a este módulo, donde aprenderás **cómo construir agentes efectivos** usando la librería [`smolagents`](https://github.com/huggingface/smolagents), que proporciona un marco ligero para crear agentes de IA capaces.
+
+`smolagents` es una librería de Hugging Face; por lo tanto, agradeceríamos tu apoyo **marcando con una estrella** el [`repositorio`](https://github.com/huggingface/smolagents) de smolagents:
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/star_smolagents.gif" alt="marcando con estrella smolagents"/>
+
+## Descripción General del Módulo
+
+Este módulo proporciona una visión completa de conceptos clave y estrategias prácticas para construir agentes inteligentes usando `smolagents`.
+
+Con tantos frameworks de código abierto disponibles, es esencial entender los componentes y capacidades que hacen de `smolagents` una opción útil o determinar cuándo otra solución podría ser más adecuada.
+
+Exploraremos tipos de agentes críticos, incluyendo agentes de código diseñados para tareas de desarrollo de software, agentes de llamada a herramientas para crear flujos de trabajo modulares basados en funciones, y agentes de recuperación que acceden y sintetizan información.
+
+Además, cubriremos la orquestación de múltiples agentes asi como la integración de capacidades de visión y navegación web, que desbloquean nuevas posibilidades para aplicaciones dinámicas y conscientes del contexto.
+
+En esta unidad, Alfred, el agente de la Unidad 1, hace su regreso. Esta vez, está usando el framework `smolagents` para su funcionamiento interno. Juntos, exploraremos los conceptos clave detrás de este framework mientras Alfred aborda varias tareas. Alfred está organizando una fiesta en la Mansión Wayne mientras la familia Wayne 🦇 está fuera, y tiene mucho que hacer. ¡Únete a nosotros mientras mostramos su recorrido y como maneja estas tareas con `smolagents`!
+
+> [!TIP]
+> En esta unidad, aprenderás a construir agentes de IA con la librería `smolagents`. Tus agentes podrán buscar datos, ejecutar código e interactuar con páginas web. También aprenderás como combinar múltiples agentes para crear sistemas más potentes.
+
+![Alfred el agente](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg)
+
+## Contenidos
+
+Durante esta unidad sobre `smolagents`, cubrimos:
+
+### 1️⃣ [Por qué usar smolagents](./why_use_smolagents)
+
+`smolagents` es uno de los muchos frameworks de agentes de código abierto disponibles para el desarrollo de aplicaciones. Las opciones alternativas incluyen `LlamaIndex` y `LangGraph`, que también se cubren en otros módulos de este curso. `smolagents` ofrece varias características clave que podrían hacerlo una gran opción para casos de uso específicos, pero siempre debemos considerar todas las opciones al seleccionar un framework. Exploraremos las ventajas y desventajas de usar `smolagents`, ayudándote a tomar una decisión informada basada en los requisitos de tu proyecto.
+
+### 2️⃣ [Agentes de Código](./code_agents)
+
+Los `CodeAgents` (Agentes de Código) son el tipo principal de agente en `smolagents`. En lugar de generar JSON o texto, estos agentes producen código Python para realizar acciones. Este módulo explora su propósito, funcionalidad y cómo funcionan, junto con ejemplos prácticos para mostrar sus capacidades.
+
+### 3️⃣ [Agentes de Llamada a Herramientas](./tool_calling_agents)
+
+Los `ToolCallingAgents` (Agentes de Llamada a Herramientas) son el segundo tipo de agente soportado por `smolagents`. A diferencia de los `CodeAgents`, que generan código Python, estos agentes dependen de bloques JSON/texto que el sistema debe analizar e interpretar para ejecutar acciones. Este módulo cubre su funcionalidad, sus diferencias clave con los `CodeAgents`, y proporciona un ejemplo para ilustrar su uso.
+
+### 4️⃣ [Herramientas](./tools)
+
+Como vimos en la Unidad 1, las herramientas son funciones que un LLM puede usar dentro de un sistema de agentes, y actúan como los bloques de construcción esenciales para el comportamiento del agente. Este módulo cubre cómo crear herramientas, su estructura y diferentes métodos de implementación usando la clase `Tool` o el decorador `@tool`. También aprenderás sobre la caja de herramientas predeterminada, cómo compartir herramientas con la comunidad y cómo cargar herramientas contribuidas por la comunidad para usarlas en tus agentes.
+
+### 5️⃣ [Agentes de Recuperación](./retrieval_agents)
+
+Los agentes de recuperación permiten a los modelos acceder a bases de conocimiento, haciendo posible buscar, sintetizar y recuperar información de múltiples fuentes. Aprovechan los almacenes vectoriales para una recuperación eficiente e implementan patrones de **Generación Aumentada por Recuperación (RAG)**. Estos agentes son particularmente útiles para integrar la búsqueda web con bases de conocimiento personalizadas mientras mantienen el contexto de la conversación a través de sistemas de memoria. Este módulo explora estrategias de implementación, incluyendo mecanismos de respaldo para una recuperación de información robusta.
+
+### 6️⃣ [Sistemas Multi-Agente](./multi_agent_systems)
+
+Orquestar múltiples agentes de manera efectiva es crucial para construir sistemas multi-agente potentes. Al combinar agentes con diferentes capacidades—como un agente de búsqueda web con un agente de ejecución de código—puedes crear soluciones más sofisticadas. Este módulo se enfoca en diseñar, implementar y gestionar sistemas multi-agente para maximizar la eficiencia y fiabilidad.
+
+### 7️⃣ [Agentes de Visión y Navegador](./vision_agents)
+
+Los agentes de visión extienden las capacidades tradicionales de los agentes al incorporar **Modelos de Visión-Lenguaje (VLMs)**, permitiéndoles procesar e interpretar información visual. Este módulo explora cómo diseñar e integrar agentes potenciados por VLM, desbloqueando funcionalidades avanzadas como razonamiento basado en imágenes, análisis de datos visuales e interacciones multimodales. También usaremos agentes de visión para construir un agente de navegador que pueda navegar por la web y extraer información de ella.
+
+## Recursos
+
+- [Documentación de smolagents](https://huggingface.co/docs/smolagents) - Documentación oficial de la biblioteca smolagents
+- [Construyendo Agentes Efectivos](https://www.anthropic.com/research/building-effective-agents) - Artículo de investigación sobre arquitecturas de agentes
+- [Directrices para Agentes](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - Mejores prácticas para construir agentes confiables
+- [Agentes LangGraph](https://langchain-ai.github.io/langgraph/) - Ejemplos adicionales de implementaciones de agentes
+- [Guía de Llamada a Funciones](https://platform.openai.com/docs/guides/function-calling) - Entendiendo la llamada a funciones en LLMs
+- [Mejores Prácticas de RAG](https://www.pinecone.io/learn/retrieval-augmented-generation/) - Guía para implementar RAG de manera efectiva

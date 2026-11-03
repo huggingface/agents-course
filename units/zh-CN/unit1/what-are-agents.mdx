@@ -1,0 +1,159 @@
+# 什么是智能体？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="第一单元规划"/>
+
+在本节结束时，你将对智能体的概念及其在人工智能中的各种应用感到熟悉。
+
+为了解释什么是智能体，我们先从一个类比开始。
+
+## 整体概览：智能体 Alfred
+
+来见见 Alfred。Alfred 是一个**智能体**。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="这是 Alfred"/>
+
+想象 Alfred **收到一个指令**，比如：“Alfred，我想来杯咖啡。”
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="我想来杯咖啡"/>
+
+因为 Alfred **理解自然语言**，他很快就明白了我们的请求。
+
+在完成任务之前，Alfred 会进行**推理和规划**，弄清楚他需要的步骤和工具：
+
+1. 去厨房  
+2. 使用咖啡机  
+3. 煮咖啡  
+4. 把咖啡拿回来
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="推理和规划"/>
+
+一旦有了计划，他就**必须行动**。为了执行计划，**他可以使用他所知道的工具列表中的工具**。
+
+在这个例子中，为了煮咖啡，他使用了咖啡机。他启动咖啡机来煮咖啡。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="煮咖啡"/>
+
+最后，Alfred 把刚煮好的咖啡拿给我们。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="拿咖啡"/>
+
+这就是智能体：一个**能够进行推理、规划和与环境交互的人工智能模型**。
+
+我们称之为智能体，因为它具有**能动性**，即与环境交互的能力。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="智能体过程"/>
+
+## 更正式的定义
+
+现在你已经了解了整体情况，以下是一个更精确的定义：
+
+> 智能体是一个系统，它利用人工智能模型与环境交互，以实现用户定义的目标。它结合推理、规划和动作执行（通常通过外部工具）来完成任务。
+
+可以把智能体想象成有两个主要部分：
+
+1. **大脑（AI 模型）**
+
+这是所有思考发生的地方。AI 模型**负责推理和规划**。它根据情况决定**采取哪些行动**。
+
+2. **身体（能力和工具）**
+
+这部分代表了**智能体所能做的一切**。
+
+**可能行动的范围**取决于智能体**被配备了什么**。例如，因为人类没有翅膀，所以他们不能执行“飞”这个**行动**，但他们可以执行“走”、“跑”、“跳”、“抓”等**行动**。
+
+### “智能体”能力的层次
+
+根据上述定义，智能体的能力递增可视为一个连续谱系：
+
+| 智能体等级 | 描述 | 常见称谓 | 示例模式 |
+| --- | --- | --- | --- |
+| ☆☆☆ | 智能体输出不影响程序流程 | 简单处理器 | `processllmoutput(llmresponse)` |
+| ★☆☆ | 智能体输出决定基本控制流 | 路由 | `if llmdecision(): patha() else: pathb()` |
+| ★★☆ | 智能体输出决定函数调用 | 函数调用者 | `runfunction(llmchosentool, llmchosenargs)` |
+| ★★★ | 智能体输出控制迭代及程序延续 | 多步智能体 | `while llmshouldcontinue(): executenextstep()` |
+| ★★★ | 一个智能体流程可启动另一个智能体流程 | 多智能体系统 | `if llmtrigger(): executeagent()` |
+
+表格摘自[smolagents概念指南](https://huggingface.co/docs/smolagents/conceptualguides/intro_agents)。
+
+
+## 我们为智能体使用什么类型的 AI 模型？
+
+智能体中最常见的 AI 模型是 LLM（大型语言模型），它接受**文本**作为输入，并输出**文本**。
+
+知名的例子包括**OpenAI** 的 **GPT4**、**Meta** 的 **LLama**、**Google** 的 **Gemini** 等。这些模型已经经过大量文本的训练，并且具有很好的泛化能力。我们将在[下一节](what-are-llms)中更深入地了解 LLM。
+
+> [!TIP]
+> 也可以使用接受其他输入作为智能体核心模型的模型。例如，视觉语言模型（VLM），它就像 LLM 一样，但也能理解图像作为输入。我们现在将重点关注 LLM，稍后再讨论其他选项。
+
+## AI 如何在环境中采取行动？
+
+LLM 是令人惊叹的模型，但**它们只能生成文本**。
+
+然而，如果你让像 HuggingChat 或 ChatGPT 这样的知名聊天应用程序生成图像，它们却可以做到！这是怎么可能的？
+
+答案是，HuggingChat、ChatGPT 和类似应用程序的开发者实现了额外的功能（称为**工具**），LLM 可以利用这些工具来创建图像。
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="埃菲尔铁塔与西兰花"/>
+<figcaption>模型使用图像生成工具生成了这张图像。
+</figcaption>
+</figure>
+
+我们将在[工具](tools)一节中更深入地了解工具。
+
+## 智能体可以执行什么类型的任务？
+
+智能体可以通过**工具**执行我们实现的任何任务来完成**行动**。
+
+例如，如果我编写一个智能体作为我电脑上的个人助理（像 Siri 一样），并且我让它“给我的经理发一封邮件，要求推迟今天的会议”，我可以给它一些发送邮件的代码。这将是一个新的工具，智能体在需要发送邮件时可以随时使用。我们可以用 Python 编写它：
+
+```python
+def send_message_to(recipient, message):
+    """Useful to send an e-mail message to a recipient"""
+    ...
+```
+
+如我们所见，大型语言模型（LLM）将在需要时生成运行该工具的代码，从而完成所需任务。
+
+```python
+send_message_to("Manager", "Can we postpone today's meeting?")
+```
+
+**工具的设计至关重要，对智能体的质量有着深远的影响**。某些任务可能需要定制特定的工具，而其他任务则可以通过通用工具（如“网络搜索”）来解决。
+
+> 请注意，**动作（Actions）与工具（Tools）是不同的概念**。例如，一个动作可能涉及使用多个工具来完成任务。
+
+允许智能体与其环境进行交互**为企业和个人提供了实际应用场景**。
+
+### 示例 1：个人虚拟助手
+
+像 Siri、Alexa 或 Google Assistant 这样的虚拟助手，在代表用户与其数字环境交互时，充当着智能体的角色。
+
+它们接收用户查询，分析上下文，从数据库中检索信息，并提供响应或启动动作（如设置提醒、发送消息或控制智能设备）。
+
+### 示例 2：客户服务聊天机器人
+
+许多公司部署聊天机器人作为智能体，使其能够以自然语言与客户互动。
+
+这些智能体可以回答问题、引导用户完成故障排除步骤、在内部数据库中创建问题，甚至完成交易。
+
+它们的预定义目标可能包括提高用户满意度、减少等待时间或提高销售转化率。通过直接与客户互动、从对话中学习并随着时间的推移调整其响应，它们展示了智能体的核心原理。
+
+
+### 示例 3：视频游戏中的 AI 非玩家角色（NPC）
+
+基于大语言模型（LLMs）的智能体可以使非玩家角色（NPC）更具动态性和不可预测性。
+
+它们不再局限于僵化的行为树，而是能够**根据上下文做出响应、适应玩家交互**，并生成更细致入微的对话。这种灵活性有助于创造更生动、更具吸引力的角色，这些角色会随着玩家的操作而发展。
+
+---
+
+总结而言，智能体是一个系统，它使用人工智能模型（通常是大语言模型）作为其核心推理引擎，以实现以下功能：
+
+- **理解自然语言**：以有意义的方式解释和回应人类指令。
+
+- **推理与规划**：分析信息、做出决策并制定解决问题的策略。
+
+- **与环境交互**：收集信息、执行操作并观察这些操作的结果。
+
+现在你已经对智能体有了扎实的理解，让我们通过一个简短的、不计分的测验来巩固你的知识。之后，我们将深入探讨智能体的“大脑”：[大型语言模型（LLM）](what-are-llms)。

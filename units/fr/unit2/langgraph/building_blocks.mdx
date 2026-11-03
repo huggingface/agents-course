@@ -1,0 +1,131 @@
+# Les composants de base de LangGraph
+
+Pour créer des applications avec LangGraph, vous devez comprendre ses composants principaux. Explorons les blocs fondamentaux qui constituent une application LangGraph.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Building_blocks.png" alt="Building Blocks" width="70%"/>
+
+Une application dans LangGraph commence à partir d'un **point d'entrée**, et selon l'exécution, le flux peut aller vers une fonction ou une autre jusqu'à ce qu'il atteigne la FIN.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/application.png" alt="Application"/>
+
+## 1. État
+
+L'**état** est le concept central dans LangGraph. Il représente toutes les informations qui circulent à travers votre application.
+
+```python
+from typing_extensions import TypedDict
+
+class State(TypedDict):
+    graph_state: str
+```
+
+L'état est **défini par l'utilisateur**, donc les champs doivent être soigneusement conçus pour contenir toutes les données nécessaires au processus de prise de décision !
+
+> 💡 **Astuce :** Réfléchissez soigneusement aux informations que votre application doit suivre entre les étapes.
+
+## 2. Nœuds
+
+Les **nœuds** sont des fonctions Python. Chaque nœud :
+- Prend l'état en entrée
+- Effectue une opération
+- Retourne des mises à jour de l'état
+
+```python
+def node_1(state):
+    print("---Node 1---")
+    return {"graph_state": state['graph_state'] +" I am"}
+
+def node_2(state):
+    print("---Node 2---")
+    return {"graph_state": state['graph_state'] +" happy!"}
+
+def node_3(state):
+    print("---Node 3---")
+    return {"graph_state": state['graph_state'] +" sad!"}
+```
+
+Par exemple, les nœuds peuvent contenir :
+- **Appels de LLM** : Générer du texte ou prendre des décisions
+- **Appels d'outils** : Interagir avec des systèmes externes
+- **Logique conditionnelle** : Déterminer les prochaines étapes
+- **Intervention humaine** : Obtenir des contributions des utilisateurs
+
+> 💡 **Info :** Certains nœuds nécessaires pour l'ensemble du *workflow* comme *START* et *END* existent directement dans *LangGraph*.
+
+## 3. Arêtes
+
+Les **arêtes** connectent les nœuds et définissent les chemins possibles à travers votre graphe :
+
+```python
+import random
+from typing import Literal
+
+def decide_mood(state) -> Literal["node_2", "node_3"]:
+    
+    # Souvent, nous utiliserons l'état pour décider du prochain nœud à visiter
+    user_input = state['graph_state'] 
+    
+    # Ici, faisons juste une répartition 50/50 entre les nœuds 2, 3
+    if random.random() < 0.5:
+
+        # 50% du temps, nous retournons Node 2
+        return "node_2"
+    
+    # 50% du temps, nous retournons Node 3
+    return "node_3"
+```
+
+Les arêtes peuvent être :
+- **Directes** : Toujours aller du nœud A au nœud B
+- **Conditionnelles** : Choisir le prochain nœud basé sur l'état actuel
+
+## 4. StateGraph
+
+Le **StateGraph** est le conteneur qui détient l'ensemble du *workflow* de votre agent :
+
+```python
+from IPython.display import Image, display
+from langgraph.graph import StateGraph, START, END
+
+# Construire le graphe
+builder = StateGraph(State)
+builder.add_node("node_1", node_1)
+builder.add_node("node_2", node_2)
+builder.add_node("node_3", node_3)
+
+# Logique
+builder.add_edge(START, "node_1")
+builder.add_conditional_edges("node_1", decide_mood)
+builder.add_edge("node_2", END)
+builder.add_edge("node_3", END)
+
+# Ajouter
+graph = builder.compile()
+```
+
+Qui peut ensuite être visualisé !
+
+```python
+# Visualiser
+display(Image(graph.get_graph().draw_mermaid_png()))
+```
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/basic_graph.jpeg" alt="Graph Visualization"/>
+
+Mais plus important encore, l'invocation :
+
+```python
+graph.invoke({"graph_state" : "Hi, this is Lance."})
+```
+
+ressort :
+
+```
+---Node 1---
+---Node 3---
+{'graph_state': 'Hi, this is Lance. I am sad!'}
+```
+
+## Et maintenant ?
+
+Dans la prochaine section, nous mettrons ces concepts en pratique en construisant notre premier graphe. Ce graphe permet à Alfred de prendre vos emails, les classifier, et rédiger une réponse préliminaire s'ils sont authentiques.

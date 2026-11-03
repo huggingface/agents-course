@@ -1,0 +1,54 @@
+# 思维机制：内部推理与 ReAct 方法
+
+> [!TIP]
+> 本节将深入探讨 AI 智能体的内部运作机制——其推理与规划能力。我们将解析智能体如何通过内部对话分析信息，将复杂问题分解为可管理的步骤，并决策下一步行动。同时介绍 ReAct 方法，是一种鼓励模型在行动前"逐步思考"的提示技术。
+
+思维（Thought）代表着智能体**解决任务的内部推理与规划过程**。
+
+这利用了智能体的大型语言模型 (LLM) 能力**来分析其 prompt 中的信息**。
+
+可将其视为智能体的内部对话，在此过程中它会考量当前任务并制定应对策略。
+
+智能体的思维负责获取当前观察结果，并决定下一步应采取的行动。
+
+通过这一过程，智能体能够**将复杂问题分解为更小、更易管理的步骤**，反思过往经验，并根据新信息持续调整计划。
+
+以下是常见思维模式的示例：
+
+| 思维类型          | 示例                                                                 |
+|------------------|---------------------------------------------------------------------|
+| Planning（规划）  | "I need to break this task into three steps: 1) gather data, 2) analyze trends, 3) generate report"（"我需要将任务分解为三步：1）收集数据 2）分析趋势 3）生成报告"） |
+| Analysis（分析）  | "Based on the error message, the issue appears to be with the database connection parameters"（"根据错误信息，问题似乎出在数据库连接参数"） |
+| Decision Making（决策） | "Given the user's budget constraints, I should recommend the mid-tier option"（"考虑到用户的预算限制，应推荐中端选项"） |
+| Problem Solving（问题解决） | "To optimize this code, I should first profile it to identify bottlenecks"（"优化此代码需先进行性能分析定位瓶颈"） |
+| Memory Integration（记忆整合） | "The user mentioned their preference for Python earlier, so I'll provide examples in Python"（"用户先前提到偏好 Python，因此我将提供 Python 示例"） |
+| Self-Reflection（自我反思） | "My last approach didn't work well, I should try a different strategy"（"上次方法效果不佳，应尝试不同策略"） |
+| Goal Setting（目标设定） | "To complete this task, I need to first establish the acceptance criteria"（"完成此任务需先确定验收标准"） |
+| Prioritization（优先级排序） | "The security vulnerability should be addressed before adding new features"（"在添加新功能前应先修复安全漏洞"） |
+
+> **注意：** 对于专为 function-calling 微调的 LLMs，思维过程是可选的。
+> *若您不熟悉 function-calling 概念，后续"行动"章节将提供详细说明。*
+
+## ReAct 方法
+
+核心方法是 **ReAct 方法**，即"推理"（Reasoning/Think）与"行动"（Acting/Act）的结合。
+
+ReAct 是一种简单的提示技术，在让 LLM 解码后续 token 前添加"Let's think step by step"（让我们逐步思考）的提示。
+
+通过提示模型"逐步思考"，可以引导解码过程生成**计划**而非直接输出最终解决方案，因为模型被鼓励将问题**分解**为*子任务*。
+
+这种方法使模型能够更详细地考虑各个子步骤，通常比直接生成最终方案产生更少错误。
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/ReAct.png" alt="ReAct"/>
+<figcaption>图 (d) 展示了 ReAct 方法示例，我们通过"Let's think step by step"提示模型
+</figcaption>
+</figure>
+
+> [!TIP]
+> 近期推理策略受到广泛关注，这体现在 Deepseek R1 或 OpenAI 的 o1 等模型的开发中。这些模型经过微调，被训练为"先思考再回答"。
+>
+> 它们通过特殊标记（`<thought>` 和 `</thought>`）来界定 _思考_ 部分。这不仅是类似 ReAct 的提示技巧，更是通过分析数千个示范案例，让模型学习生成这些思考段的训练方法。
+
+---
+现在我们已经深入理解了思维过程，接下来将更深入探讨流程的第二部分：行动。

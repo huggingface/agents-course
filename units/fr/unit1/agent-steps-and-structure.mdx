@@ -1,0 +1,142 @@
+# Comprendre les agents à travers le cycle Réflexion-Action-Observation
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Planification de l'Unité 1"/>
+
+Dans les sections précédentes, nous avons appris :
+
+- **Comment les outils sont mis à disposition de l'agent dans le *prompt* système**.
+- **Comment les agents sont des systèmes capables de « raisonner », planifier et interagir avec leur environnement**.
+
+Dans cette section, **nous explorerons l'ensemble du *workflow* de l'agent**, un cycle que nous avons défini comme Réflexion-Action-Observation (*Thought-Action-Observation*).
+
+Puis, nous approfondirons chacune de ces étapes.
+
+## Les composants de base
+
+Les agents fonctionnent selon un cycle continu : **réfléchir (Réflexion) → agir (Action) et observer (Observation)** (***thinking (Thought) → acting (Act) and observing (Observe)***).
+
+Décomposons ensemble ces actions :
+
+1. **Réflexion** : La partie LLM de l'agent décide de la prochaine étape.
+2. **Action** : L'agent passe à l'action en appelant les outils avec les arguments associés.
+3. **Observation** : Le modèle analyse la réponse renvoyée par l'outil.
+
+## Le cycle Réflexion-Action-Observation
+
+Les trois composants fonctionnent ensemble dans une boucle continue. Pour utiliser une analogie issue de la programmation, l'agent utilise une **boucle while** : la boucle continue jusqu'à ce que l'objectif de l'agent soit atteint.
+
+Visuellement, cela ressemble à ceci :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Cycle Réflexion, Action, Observation"/>
+
+Dans de nombreux *frameworks* d'agents, **les règles et directives sont intégrées directement dans le *prompt* système**, garantissant que chaque cycle respecte une logique définie.
+
+Dans une version simplifiée, notre *prompt* système pourrait ressembler à ceci :
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Cycle Réflexion, Action, Observation"/>
+
+Nous voyons ici que dans le message système, nous avons défini :
+
+- Le *comportement de l'agent*.
+- Les *outils auxquels il a accès*, comme nous l'avons décrit dans la section précédente.
+- Le *cycle Réflexion-Action-Observation*, que nous intégrons dans les instructions du LLM.
+
+Prenons un petit exemple pour comprendre le processus avant d'approfondir chacune des étapes.
+
+## Alfred, l'agent météorologiste
+
+Nous avons créé Alfred, l'agent météorologiste.
+
+Un utilisateur demande à Alfred : « Quel temps fait-il à New York aujourd'hui ? »
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Agent Alfred"/>
+
+La mission d'Alfred est de répondre à cette question en utilisant un outil d'API météo.
+
+Voici comment le cycle se déroule :
+
+### Réflexion
+
+**Raisonnement interne :**
+
+Après avoir reçu la requête, le dialogue interne d'Alfred pourrait être :
+
+*"L'utilisateur a besoin d'informations météorologiques actuelles pour New York. J'ai accès à un outil qui récupère les données météo. D'abord, je dois appeler l'API météo pour obtenir des détails à jour."*
+
+Cette étape montre l'agent décomposant le problème en étapes : d'abord, rassembler les données nécessaires.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Agent Alfred"/>
+
+### Action
+
+**Utilisation d'un outil :**
+
+En se basant sur son raisonnement et sur le fait qu'Alfred connaît l'outil `get_weather`, Alfred prépare une commande au format JSON qui appelle l'outil API météo. Par exemple, sa première action pourrait être :
+
+Raisonnement : Je dois vérifier la météo actuelle pour New York.
+
+```
+{
+  "action": "get_weather",
+  "action_input": {
+    "location": "New York"
+  }
+}
+```
+
+Ici, l'action précise clairement quel outil appeler (par exemple, `get_weather`) et quel paramètre passer (la « location » : « New York »).
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Agent Alfred"/>
+
+### Observation
+
+**Retour d'information de l'environnement :**
+
+Après l'appel à l'outil, Alfred reçoit une observation. Cela pourrait être les données météo brutes renvoyées par l'API, par exemple :
+
+*"Météo actuelle à New York : partiellement nuageux, 15°C, 60% d'humidité."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Agent Alfred"/>
+
+Cette observation est ensuite ajoutée au *prompt* en tant que contexte supplémentaire. Elle agit comme un retour du monde réel, confirmant si l'action a réussi et fournissant les détails nécessaires.
+
+### Raisonnement mis à jour
+
+**Réflexion :**
+
+Avec l'observation en main, Alfred met à jour son raisonnement interne :
+
+*"Maintenant que j'ai les données météo pour New York, je peux préparer une réponse pour l'utilisateur."*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Agent Alfred"/>
+
+### Action finale
+
+Alfred génère ensuite une réponse finale formatée comme nous le lui avons indiqué :
+
+Raisonnement : J'ai maintenant les données météo. La météo actuelle à New York est partiellement nuageuse avec une température de 15°C et 60% d'humidité.
+
+Réponse finale : La météo actuelle à New York est partiellement nuageuse avec une température de 15°C et 60% d'humidité.
+
+Cette action finale renvoie la réponse à l'utilisateur, bouclant ainsi le cycle.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Agent Alfred"/>
+
+Ce que nous voyons dans cet exemple :
+
+- **Les agents itèrent dans une boucle jusqu'à ce que l'objectif soit atteint :**  
+  Le processus d'Alfred est cyclique. Il commence par un raisonnement, passe à l'action en appelant un outil, puis observe le résultat. Si l'observation avait indiqué une erreur ou des données incomplètes, Alfred aurait pu reprendre le cycle pour corriger son approche.
+    
+- **Intégration des outils :**  
+  La capacité d'appeler un outil (comme une API météo) permet à Alfred d'aller **au-delà de la connaissance statique et de récupérer des données en temps réel**, un aspect essentiel de nombreux agents.
+
+- **Adaptation dynamique :**  
+  Chaque cycle permet à l'agent d'intégrer des informations fraîches (observations) dans son raisonnement (réflexions), garantissant que la réponse finale est bien informée et précise.
+    
+Cet exemple illustre le concept fondamental du *cycle ReAct* (un concept que nous allons développer dans la section suivante) : **l'interaction entre Réflexion, Action et Observation permet aux agents de résoudre de manière itérative des tâches complexes**.
+
+En comprenant et en appliquant ces principes, vous pouvez concevoir des agents qui non seulement réfléchissent à leurs tâches, mais utilisent également efficacement des outils externes pour les accomplir, tout en affinant continuellement leur production en fonction des retours de l'environnement.
+
+---
+
+Plongeons maintenant plus en profondeur dans le Réflexion, l'Action et l'Observation en tant qu'étapes individuelles du processus.
