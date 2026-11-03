@@ -1,0 +1,161 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Agentes de visão com smolagents
+
+> [!WARNING]
+> Os exemplos desta seção exigem acesso a um VLM poderoso. Testamos com a API GPT-4o.  
+> Entretanto, a seção <a href="./why_use_smolagents">Por que usar smolagents</a> apresenta alternativas suportadas pelo framework e pelo Hugging Face. Consulte-a para conhecer outras opções.
+
+Dar capacidades visuais aos agentes é fundamental quando a tarefa vai além de texto. Muitos desafios reais — navegação na web, entendimento de documentos, verificação de identidade — dependem de interpretar conteúdo visual. O `smolagents` oferece suporte embutido a modelos visão-linguagem (VLMs), permitindo processar e analisar imagens.
+
+Imagine Alfred, mordomo da Mansão Wayne, verificando a identidade dos convidados. Ele pode usar um agente que, com ajuda de um VLM, analisa fotos dos visitantes e confere se correspondem aos heróis esperados. Vamos construir esse cenário!
+
+## Fornecendo imagens logo no início
+
+> [!TIP]
+> Você pode executar este exemplo <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb" target="_blank">no notebook correspondente</a>.
+
+Nesta abordagem, passamos as imagens ao agente logo na criação e as armazenamos em `task_images`. Assim, o agente consegue consultá-las durante a execução.
+
+Suponha que Alfred tenha um banco de imagens com nomes dos convidados. Um visitante chega e ele teme que seja o Coringa disfarçado de Mulher-Maravilha. Alfred precisa confirmar.
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg",
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg"
+]
+
+images = []
+for url in image_urls:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    }
+    response = requests.get(url, headers=headers)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+Agora, criamos o agente e pedimos uma descrição comparando com o banco de imagens:
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Descreva o figurino e a maquiagem do personagem nestas fotos.
+    Diga se o convidado é o Coringa ou a Mulher-Maravilha.
+    """,
+    images=images
+)
+```
+
+O resultado pode variar, mas no teste retornou algo como:
+
+```python
+{
+    'Costume and Makeup - First Image': (...),
+    'Costume and Makeup - Second Image': (...),
+    'Character Identity': '... The Joker ...'
+}
+```
+
+Ou seja, o agente identificou o Coringa — problema resolvido!
+
+## Recuperando imagens dinamicamente
+
+> [!TIP]
+> Confira o código completo em <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py" target="_blank">vision_web_browser.py</a>.
+
+A estratégia anterior serve para quem já possui uma base de imagens. Mas e se o convidado não estiver no banco?
+
+Podemos permitir que o agente navegue na web, procure imagens do herói e cruze informações visualmente. Para isso:
+
+1. Configuramos um driver de navegador com [helium](https://github.com/mherrmann/selenium-python-helium);  
+2. Criamos ferramentas para buscar texto, voltar páginas e fechar pop-ups;  
+3. Adicionamos uma função `save_screenshot` que tira capturas de tela ao final de cada passo (via `step_callbacks`), armazenando-as em `step_log.observations_images`.
+
+Exemplo de ferramenta para localizar texto na página:
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Pressionar ctrl+f na página e buscar por `text`.
+    """
+    driver = helium.get_driver()
+    ...
+```
+
+Função para salvar screenshots:
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)
+    driver = helium.get_driver()
+    ...
+    step_log.observations_images = [image.copy()]
+    ...
+```
+
+Criamos então o agente de visão para navegação:
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+No prompt, incluímos as instruções (`helium_instructions`) para controlar a navegação:
+
+```python
+agent.run("""
+Sou Alfred...
+Procure imagens da Mulher-Maravilha e descreva detalhadamente sua aparência.
+Visite a Wikipedia e colete informações visuais importantes.
+""" + helium_instructions)
+```
+
+Assista ao vídeo abaixo para ver o fluxo completo:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" ... allowfullscreen></iframe>
+
+Saída final:
+
+```python
+Final answer: Wonder Woman is typically depicted...
+```
+
+Pronto! Alfred agora tem um verificador visual para garantir que apenas os convidados certos entrem.
+
+## Leituras sugeridas
+
+- [We just gave sight to smolagents](https://huggingface.co/blog/smolagents-can-see)  
+- [Web Browser Automation with Agents 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser)  
+- [Web Browser Vision Agent Example](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py)

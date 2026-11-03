@@ -1,0 +1,67 @@
+# O que é GAIA?
+
+[GAIA](https://huggingface.co/papers/2311.12983) é um **benchmark criado para avaliar assistentes de IA em tarefas do mundo real**, que exigem várias habilidades centrais: raciocínio, entendimento multimodal, navegação na web e uso competente de ferramentas.
+
+Ele foi apresentado no artigo _“[GAIA: A Benchmark for General AI Assistants](https://huggingface.co/papers/2311.12983)”_.
+
+O benchmark contém **466 perguntas cuidadosamente selecionadas**, que são **conceitualmente simples para humanos**, mas **extremamente desafiadoras para os modelos atuais**.
+
+Veja a diferença:
+- **Humanos**: ~92% de acerto  
+- **GPT-4 com plugins**: ~15%  
+- **Deep Research (OpenAI)**: 67,36% no conjunto de validação
+
+GAIA evidencia as limitações atuais e oferece um benchmark rigoroso para medir o progresso rumo a assistentes realmente gerais.
+
+## 🌱 Princípios fundamentais do GAIA
+
+O GAIA foi projetado com estes pilares:
+
+- 🔍 **Dificuldade real**: tarefas demandam raciocínio multi-etapas, multimodalidade e interação com ferramentas.  
+- 🧾 **Interpretabilidade humana**: apesar de difíceis para IA, são simples de entender para humanos.  
+- 🛡️ **Resistência a “gambiarras”**: é preciso executar toda a tarefa; brute force não funciona.  
+- 🧰 **Avaliação simples**: respostas curtas, factuais e inequívocas — ótimo para benchmarking.
+
+## Níveis de dificuldade
+
+As tarefas são divididas em **três níveis crescentes**, cada um testando habilidades específicas:
+
+- **Nível 1**: menos de 5 passos, uso mínimo de ferramentas.  
+- **Nível 2**: raciocínio mais complexo, coordenação entre múltiplas ferramentas (5 a 10 passos).  
+- **Nível 3**: planejamento de longo prazo e integração avançada.
+
+![GAIA levels](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_levels.png)
+
+## Exemplo de questão difícil
+
+> Which of the fruits shown in the 2008 painting "Embroidery from Uzbekistan" were served as part of the October 1949 breakfast menu for the ocean liner that was later used as a floating prop for the film "The Last Voyage"? Give the items as a comma-separated list, ordering them in clockwise order based on their arrangement in the painting starting from the 12 o'clock position. Use the plural form of each fruit.
+
+Esta pergunta desafia os sistemas de IA porque:
+
+- Exige resposta **estruturada**;  
+- Envolve raciocínio **multimodal** (analisar imagens);  
+- Requer **multi-hop retrieval**: identificar frutas, achar o navio, localizar o cardápio;  
+- Precisa de **sequenciamento correto** e planejamento.
+
+Tarefas assim mostram onde LLMs tradicionais falham, tornando o GAIA ideal para avaliar **agentes** capazes de raciocinar, buscar e agir multi-etapas.
+
+![GAIA capabilities plot](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_capabilities.png)
+
+## Avaliação em tempo real
+
+Para fomentar benchmarking contínuo, o GAIA oferece um **leaderboard público** no Hugging Face, com **300 perguntas de teste**.
+
+👉 Confira em [huggingface.co/spaces/gaia-benchmark/leaderboard](https://huggingface.co/spaces/gaia-benchmark/leaderboard)
+
+<iframe
+	src="https://gaia-benchmark-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Quer se aprofundar?
+
+- 📄 [Leia o paper completo](https://huggingface.co/papers/2311.12983)  
+- 📄 [Post do OpenAI sobre o Deep Research](https://openai.com/index/introducing-deep-research/)  
+- 📄 [Open-source DeepResearch – Freeing our search agents](https://huggingface.co/blog/open-deep-research)

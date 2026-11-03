@@ -1,0 +1,45 @@
+# Observar: Integrando Feedback para Refletir e Adaptar
+
+Observações são **a forma como o agente percebe as consequências de suas ações**.
+
+Elas fornecem informações cruciais que alimentam o raciocínio do agente e orientam os próximos passos.
+
+São **sinais do ambiente** — dados vindos de APIs, mensagens de erro, logs do sistema — que orientam o próximo ciclo de pensamento.
+
+Durante a fase de observação, o agente:
+
+- **Coleta feedback:** recebe dados ou confirma se a ação teve sucesso (ou não).  
+- **Anexa resultados:** incorpora a nova informação ao contexto atual, atualizando sua “memória”.  
+- **Adapta a estratégia:** usa esse contexto atualizado para refinar os próximos pensamentos e ações.
+
+Por exemplo, se uma API de clima retorna *“parcialmente nublado, 15 °C, 60 % de umidade”*, essa observação é anexada ao histórico do agente (no final do prompt).
+
+O agente decide então se precisa de informação adicional ou se já pode fornecer uma resposta final.
+
+Essa **incorporação iterativa de feedback garante que o agente permaneça alinhado aos objetivos**, aprendendo e se ajustando continuamente com base nos resultados reais.
+
+As observações **podem assumir diversas formas**, desde a leitura de um site até o monitoramento da posição de um braço robótico. Elas funcionam como “logs” das ferramentas, fornecendo feedback textual da execução da ação.
+
+| Tipo de observação  | Exemplo                                                                   |
+|---------------------|---------------------------------------------------------------------------|
+| Feedback do sistema | Mensagens de erro, confirmações de sucesso, códigos de status             |
+| Mudanças de dados   | Atualizações em banco de dados, modificações no sistema de arquivos       |
+| Dados ambientais    | Leituras de sensores, métricas de sistema, uso de recursos                |
+| Análise de resposta | Retornos de APIs, resultados de consultas, saídas de cálculos             |
+| Eventos temporais   | Prazos atingidos, tarefas agendadas concluídas                            |
+
+## Como os resultados são anexados?
+
+Após executar uma ação, o framework segue esta ordem:
+
+1. **Analisa a ação** para identificar qual função chamar e quais argumentos utilizar.  
+2. **Executa a ação.**  
+3. **Anexa o resultado** como uma **Observação**.
+
+---
+
+Agora conhecemos o ciclo Pensar‑Agir‑Observar do agente.
+
+Se algum ponto ainda parecer nebuloso, sem problemas — vamos revisitar e aprofundar o tema nas próximas unidades.
+
+Chegou a hora de colocar o conhecimento em prática e codificar seu primeiro agente!***

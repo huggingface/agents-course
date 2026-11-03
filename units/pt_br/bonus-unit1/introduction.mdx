@@ -1,0 +1,52 @@
+# Introdução
+
+![Bonus Unit 1 Thumbnail](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit1/thumbnail.jpg)
+
+Bem-vindo a esta primeira **Unidade Bônus**, na qual você vai aprender a **fazer fine-tuning de um Large Language Model (LLM) para chamadas de função**.
+
+Quando falamos de LLMs, function calling está rapidamente se tornando uma técnica indispensável.
+
+A ideia é que, em vez de depender apenas de abordagens baseadas em prompt como fizemos na Unidade 1, o function calling treina seu modelo para **tomar ações e interpretar observações durante a fase de treinamento**, deixando sua IA mais robusta.
+
+> **Quando devo fazer esta Unidade Bônus?**
+>
+> Esta seção é **opcional** e mais avançada do que a Unidade 1, então sinta-se à vontade para fazê-la agora ou revisitá-la quando seu conhecimento tiver evoluído com este curso.
+>
+> Mas não se preocupe, esta Unidade Bônus foi concebida para trazer todas as informações necessárias. Vamos guiá-lo por cada conceito essencial de fine-tuning para chamadas de função, mesmo que você ainda não domine todos os detalhes desse processo.
+
+A melhor forma de aproveitar esta Unidade Bônus é:
+
+1. Saber como fazer fine-tuning de um LLM com Transformers; se ainda não souber, [confira isto](https://huggingface.co/learn/nlp-course/chapter3/1?fw=pt).
+2. Conhecer o `SFTTrainer` para ajustar o modelo; para saber mais, [acesse esta documentação](https://huggingface.co/learn/nlp-course/en/chapter11/1).
+
+---
+
+## O que você vai aprender
+
+1. **Function Calling**  
+   Como LLMs modernos estruturam suas conversas, permitindo acionar **Ferramentas**.
+
+2. **LoRA (Low-Rank Adaptation)**  
+   Um método de fine-tuning **leve e eficiente** que reduz o custo computacional e de armazenamento. LoRA torna o treinamento de grandes modelos *mais rápido, barato e fácil* de colocar em produção.
+
+3. **O ciclo Pensar → Agir → Observar** em modelos com function calling  
+   Uma abordagem simples e poderosa para estruturar como o seu modelo decide quando (e como) chamar funções, acompanhar etapas intermediárias e interpretar resultados vindos de ferramentas externas ou APIs.
+
+4. **Novos tokens especiais**  
+   Vamos apresentar **marcadores especiais** que ajudam o modelo a diferenciar entre:
+   - raciocínio interno (“chain-of-thought”);  
+   - chamadas de função enviadas;  
+   - respostas que retornam de ferramentas externas.
+
+---
+
+Ao final desta unidade bônus, você será capaz de:
+
+- **Entender** o funcionamento interno de APIs no contexto de Ferramentas;  
+- **Fazer fine-tuning** de um modelo usando a técnica LoRA;  
+- **Implementar** e **ajustar** o ciclo Pensar → Agir → Observar para criar fluxos de trabalho robustos e fáceis de manter para function calling;  
+- **Criar e utilizar** tokens especiais para separar de forma fluida o raciocínio interno das ações externas do modelo.
+
+E você **terá ajustado seu próprio modelo para realizar chamadas de função.** 🔥
+
+Vamos mergulhar em **function calling**!

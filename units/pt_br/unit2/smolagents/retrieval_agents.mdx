@@ -1,0 +1,154 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Construindo sistemas Agentic RAG
+
+> [!TIP]
+> Todo o código desta seção está disponível <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">neste notebook</a>, executável no Google Colab.
+
+Retrieval-Augmented Generation (RAG) combina a capacidade de buscar dados com a de gerar texto contextualizado. A consulta do usuário vai para um mecanismo de busca, os resultados são repassados ao modelo junto com a pergunta, e o modelo responde com base nesse contexto.
+
+Agentic RAG leva esse conceito além, **combinando agentes autônomos e recuperação dinâmica de conhecimento**. Em vez de um único passo de busca, o agente pode formular consultas, criticar resultados, realizar múltiplas buscas e produzir respostas sob medida.
+
+Sistemas RAG tradicionais costumam:
+- Fazer apenas uma busca;  
+- Depender fortemente da similaridade semântica direta com a pergunta, podendo ignorar conteúdo relevante.
+
+O Agentic RAG contorna essas limitações permitindo que o agente:
+- Formule consultas mais adequadas;  
+- Avalie resultados;  
+- Conduza buscas iterativas;  
+- Gere respostas mais precisas.
+
+## Busca básica com DuckDuckGo
+
+Vamos criar um agente simples que busque na web com DuckDuckGo, reúna os resultados e sintetize uma resposta. No cenário do Alfred:
+
+- Procurar tendências atuais de festas de super-heróis;  
+- Refinar os resultados para incluir elementos luxuosos;  
+- Sintetizar tudo em um plano completo.
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+search_tool = DuckDuckGoSearchTool()
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+O fluxo é:
+1. **Analisar o pedido** — identificar palavra‑chave, foco em luxo etc.  
+2. **Buscar na web** — usar DuckDuckGo para trazer informações atualizadas.  
+3. **Sintetizar** — combinar os resultados em um plano com decoração, entretenimento e buffet.  
+4. **Guardar para reutilização** — manter em memória para consultas futuras.
+
+## Ferramenta com base de conhecimento personalizada
+
+Para tarefas especializadas, uma base própria é muito útil. Vamos criar uma ferramenta que consulta um banco vetorial com ideias de festa. Utilizaremos:
+
+- Embeddings (armazenados em um vector store);  
+- `BM25Retriever` para busca semântica simples;  
+- `RecursiveCharacterTextSplitter` para dividir documentos em blocos menores.
+
+```python
+from langchain.docstore.document import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Busca ideias de festa para a Mansão Wayne."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "Consulta relacionada a planejamento de festa ou heróis.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(docs, k=5)
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Sua busca deve ser uma string"
+        docs = self.retriever.invoke(query)
+        return "\nRetrieved ideas:\n" + "".join(
+            f"\n\n===== Idea {i} =====\n{doc.page_content}"
+            for i, doc in enumerate(docs)
+        )
+
+party_ideas = [
+    {"text": "Baile mascarado com heróis clássicos e decoração em dourado.", "source": "Party Ideas 1"},
+    {"text": "DJ profissional com trilha sonora de Batman e Mulher-Maravilha.", "source": "Entertainment Ideas"},
+    {"text": "Buffet com pratos temáticos, como Smoothie do Hulk e Bife do Homem de Ferro.", "source": "Catering Ideas"},
+    {"text": "Logotipos e projeções de cidades de heróis pela mansão.", "source": "Decoration Ideas"},
+    {"text": "Experiências de realidade virtual com desafios heroicos.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+Esse agente:
+1. Consulta a base personalizada;  
+2. Busca e mistura insights relevantes;  
+3. Mantém contexto em memória para conversas posteriores.
+
+## Estratégias avançadas
+
+Ao construir Agentic RAGs, podemos aplicar técnicas como:
+
+1. **Reformulação de consultas** — o agente adapta a pergunta para encontrar documentos mais relevantes.  
+2. **Decomposição** — divide perguntas complexas em várias consultas menores.  
+3. **Expansão** — cria versões alternativas da pergunta para ampliar a busca.  
+4. **Reranking** — usa modelos de classificação (cross-encoders) para refinar os resultados.  
+5. **Busca multi-etapas** — novas buscas são guiadas pelos resultados iniciais.  
+6. **Integração de fontes** — combina web search com bases locais.  
+7. **Validação** — analisa a relevância antes de usar as informações.
+
+A construção de um Agentic RAG eficiente requer:
+
+- Escolher a ferramenta certa para cada tipo de consulta;  
+- Usar memória para manter o histórico;  
+- Ter planos de fallback;  
+- Validar as respostas antes de apresentá-las.
+
+## Recursos
+
+- [Agentic RAG: turbocharge your RAG with query reformulation and self-query! 🚀](https://huggingface.co/learn/cookbook/agent_rag) — receita completa usando smolagents. 

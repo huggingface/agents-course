@@ -1,0 +1,48 @@
+# Vamos Fazer Fine-Tuning do Seu Modelo para Function Calling
+
+Estamos prontos para ajustar nosso primeiro modelo para function calling 🔥.
+
+## Como treinamos nosso modelo para function calling?
+
+> Resposta: precisamos de **dados**
+
+O processo de treinamento de um modelo pode ser dividido em 3 etapas:
+
+1. **O modelo é pré-treinado em uma grande quantidade de dados**. O resultado dessa etapa é um **modelo pré-treinado**. Por exemplo, [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b). É um modelo base e sabe apenas **prever o próximo token sem grandes capacidades de seguir instruções**.
+
+2. Para ser útil em um contexto de chat, o modelo precisa então ser **ajustado (fine-tuned)** para seguir instruções. Nessa etapa, ele pode ser treinado pelos criadores, pela comunidade open-source, por você ou por qualquer pessoa. Por exemplo, [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) é um modelo ajustado para instruções pela equipe do projeto Gemma, do Google.
+
+3. O modelo pode então ser **alinhado** às preferências do criador. Pense, por exemplo, em um modelo de atendimento ao cliente que jamais deve ser grosseiro.
+
+Produtos completos como Gemini ou Mistral **passam pelas 3 etapas**, enquanto os modelos disponíveis no Hugging Face podem ter completado uma ou mais dessas fases.
+
+Neste tutorial, vamos construir um modelo com function calling a partir do [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it). Escolhemos o modelo já ajustado [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) em vez do modelo base [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b) porque ele já foi melhorado para o nosso caso de uso.
+
+Partir do modelo apenas pré-treinado **exigiria muito mais treinamento para aprender a seguir instruções, conversar E executar function calling**.
+
+Ao começar pelo modelo ajustado para instruções, **minimizamos a quantidade de informação que o nosso modelo precisa aprender**.
+
+## LoRA (Low-Rank Adaptation of Large Language Models)
+
+LoRA é uma técnica de treinamento popular e leve que **reduz significativamente o número de parâmetros treináveis**.
+
+Ela funciona **inserindo um pequeno conjunto de novos pesos como um adaptador dentro do modelo para serem treinados**. Isso torna o treinamento com LoRA muito mais rápido, eficiente em memória e gera pesos menores (algumas centenas de MB), fáceis de armazenar e compartilhar.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
+
+LoRA atua adicionando pares de matrizes de decomposição de posto baixo às camadas do Transformer, normalmente focando nas camadas lineares. Durante o treinamento, “congelamos” o restante do modelo e atualizamos apenas os pesos desses adaptadores recém-adicionados.
+
+Ao fazer isso, o número de **parâmetros** que precisamos treinar cai bastante, já que apenas os pesos dos adaptadores são atualizados.
+
+Durante a inferência, a entrada passa tanto pelo adaptador quanto pelo modelo base; também é possível fundir esses pesos com o modelo base, sem gerar latência adicional.
+
+LoRA é especialmente útil para adaptar modelos de linguagem **grandes** a tarefas ou domínios específicos mantendo os requisitos de recursos sob controle. Isso ajuda a reduzir a memória **necessária** para treinar um modelo.
+
+Se quiser aprender mais sobre como LoRA funciona, confira este [tutorial](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt).
+
+## Fazendo Fine-Tuning de um Modelo para Function Calling
+
+Você pode acessar o notebook do tutorial 👉 [aqui](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb).
+
+Depois, clique em [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) para executá-lo em um Notebook Colab.
+

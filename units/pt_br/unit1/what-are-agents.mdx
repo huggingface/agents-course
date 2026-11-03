@@ -1,0 +1,159 @@
+# O que é um Agente?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Unit 1 planning"/>
+
+Ao final desta seção, você estará à vontade com o conceito de agentes e suas diversas aplicações em IA.
+
+Para explicar o que é um agente, vamos começar com uma analogia.
+
+## A visão geral: Alfred, o agente
+
+Conheça Alfred. Alfred é um **agente**.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="This is Alfred"/>
+
+Imagine que Alfred **receba um comando**, como: "Alfred, eu gostaria de um café, por favor."
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="I would like a coffee"/>
+
+Como Alfred **entende linguagem natural**, ele compreende rapidamente o pedido.
+
+Antes de executar a tarefa, Alfred realiza **raciocínio e planejamento**, definindo os passos e ferramentas de que precisa:
+
+1. Ir até a cozinha  
+2. Usar a cafeteira  
+3. Preparar o café  
+4. Trazer o café de volta
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="Reason and plan"/>
+
+Depois de traçar o plano, ele **precisa agir**. Para executar, **pode usar ferramentas da lista que conhece**.
+
+Neste caso, para fazer o café, ele usa uma cafeteira. Ele a ativa para preparar a bebida.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="Make coffee"/>
+
+Por fim, Alfred traz o café fresquinho para nós.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Bring coffee"/>
+
+É disso que se trata um agente: um **modelo de IA capaz de raciocinar, planejar e interagir com o ambiente**.
+
+Chamamos de agente porque ele tem _agência_, ou seja, a capacidade de agir sobre o ambiente.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="Agent process"/>
+
+## Indo para uma definição mais formal
+
+Agora que temos a visão geral, segue uma definição mais precisa:
+
+> Um agente é um sistema que utiliza um modelo de IA para interagir com seu ambiente a fim de atingir um objetivo definido pelo usuário. Ele combina raciocínio, planejamento e execução de ações (frequentemente por meio de ferramentas externas) para cumprir tarefas.
+
+Podemos imaginar o agente com duas partes principais:
+
+1. **O cérebro (modelo de IA)**
+
+É onde todo o pensamento acontece. O modelo de IA **cuida do raciocínio e do planejamento**, decidindo **quais ações executar de acordo com a situação**.
+
+2. **O corpo (capacidades e ferramentas)**
+
+Essa parte representa **tudo o que o agente está capacitado a fazer**.
+
+O **escopo de ações possíveis** depende do que o agente **tem à disposição**. Por exemplo, como humanos não possuem asas, não conseguem executar a ação “voar”, mas podem executar ações como “andar”, “correr”, “pular”, “segurar” e assim por diante.
+
+### O espectro de “agência”
+
+Seguindo essa definição, agentes existem em um espectro contínuo de agência crescente:
+
+| Agency Level | Description | What that's called | Example pattern |
+| --- | --- | --- | --- |
+| ☆☆☆ | A saída do agente não impacta o fluxo do programa | Processador simples | `process_llm_output(llm_response)` |
+| ★☆☆ | A saída define um fluxo de controle básico | Router | `if llm_decision(): path_a() else: path_b()` |
+| ★★☆ | A saída determina qual função executar | Chamador de ferramentas | `run_function(llm_chosen_tool, llm_chosen_args)` |
+| ★★★ | A saída controla iteração e continuação do programa | Agente multi-etapas | `while llm_should_continue(): execute_next_step()` |
+| ★★★ | Um fluxo agentivo pode iniciar outro fluxo agentivo | Multiagente | `if llm_trigger(): execute_agent()` |
+
+Tabela adaptada do [guia conceitual do smolagents](https://huggingface.co/docs/smolagents/conceptual_guides/intro_agents).
+
+
+## Que tipo de modelos de IA usamos em agentes?
+
+O modelo mais comum em agentes é o LLM (Large Language Model), que recebe **texto** como entrada e também gera **texto** como saída.
+
+Exemplos famosos são o **GPT-4** da **OpenAI**, o **Llama** da **Meta**, o **Gemini** da **Google**, etc. São modelos treinados em grandes quantidades de texto e capazes de generalizar bem. Vamos aprender mais sobre LLMs na [próxima seção](what-are-llms).
+
+> [!TIP]
+> Também é possível usar modelos que aceitam outros tipos de entrada como núcleo do agente. Por exemplo, um Vision Language Model (VLM), semelhante a um LLM mas que entende imagens. Por enquanto vamos focar em LLMs e discutiremos outras opções mais adiante.
+
+## Como uma IA age sobre o ambiente?
+
+LLMs são modelos incríveis, mas **só conseguem gerar texto**.
+
+Mesmo assim, se você pedir para aplicativos populares como HuggingChat ou ChatGPT gerarem uma imagem, eles conseguem! Como isso é possível?
+
+A resposta é que os desenvolvedores do HuggingChat, ChatGPT e similares implementaram funcionalidades adicionais (as **ferramentas**) que o LLM pode acionar para criar imagens.
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="Eiffel Brocolis"/>
+<figcaption>O modelo usou uma ferramenta de geração de imagens para criar esta figura.
+</figcaption>
+</figure>
+
+Aprenderemos mais sobre ferramentas na seção [Ferramentas](tools).
+
+## Que tipo de tarefas um agente pode executar?
+
+Um agente pode executar qualquer tarefa para a qual forneçamos **ferramentas** capazes de realizar **ações**.
+
+Por exemplo, se criarmos um agente para funcionar como assistente pessoal (tipo a Siri) no computador e pedirmos “enviar um e-mail ao meu gestor pedindo para adiar a reunião de hoje”, podemos fornecer um código para envio de e-mails. Essa vira uma nova ferramenta que o agente pode usar sempre que precisar mandar uma mensagem. Em Python:
+
+```python
+def send_message_to(recipient, message):
+    """Useful to send an e-mail message to a recipient"""
+    ...
+```
+
+O LLM, como veremos, gera o código para acionar a ferramenta quando necessário e, assim, cumprir a tarefa.
+
+```python
+send_message_to("Manager", "Can we postpone today's meeting?")
+```
+
+O **design das ferramentas é crucial** e impacta diretamente a qualidade do agente. Algumas tarefas exigem ferramentas muito específicas, enquanto outras podem ser resolvidas com ferramentas genéricas como “web_search”.
+
+> Note que **ações não são a mesma coisa que ferramentas**. Uma ação pode envolver o uso de várias ferramentas para ser concluída.
+
+Permitir que um agente interaja com o ambiente **possibilita aplicações reais para empresas e pessoas**.
+
+### Exemplo 1: assistentes virtuais pessoais
+
+Assistentes virtuais como Siri, Alexa ou Google Assistant atuam como agentes ao interagir em nome dos usuários em seus ambientes digitais.
+
+Eles recebem solicitações, analisam o contexto, consultam bancos de dados e fornecem respostas ou iniciam ações (como criar lembretes, enviar mensagens ou controlar dispositivos inteligentes).
+
+### Exemplo 2: chatbots de atendimento
+
+Muitas empresas adotam chatbots como agentes que interagem com clientes em linguagem natural.
+
+Eles respondem perguntas, orientam em procedimentos de suporte, abrem chamados em sistemas internos e até realizam transações.
+
+Seus objetivos podem incluir melhorar a satisfação, reduzir tempo de espera ou aumentar conversão em vendas. Ao interagir diretamente com os usuários, aprender com os diálogos e adaptar respostas, demonstram os princípios centrais de um agente em ação.
+
+
+### Exemplo 3: personagem não jogável com IA em jogos
+
+Agentes de IA baseados em LLMs tornam personagens não jogáveis (NPCs) mais dinâmicos e imprevisíveis.
+
+Em vez de seguir árvores de comportamento rígidas, eles conseguem **responder de forma contextual, adaptar-se às interações do jogador** e gerar diálogos mais ricos. Essa flexibilidade contribui para NPCs mais vivos e envolventes.
+
+---
+
+Resumindo, um agente é um sistema que usa um modelo de IA (geralmente um LLM) como motor de raciocínio para:
+
+- **Entender linguagem natural:** interpretar e responder a instruções humanas de forma relevante.
+
+- **Raciocinar e planejar:** analisar informações, tomar decisões e elaborar estratégias para resolver problemas.
+
+- **Interagir com o ambiente:** coletar informações, executar ações e observar os resultados.
+
+Agora que você tem uma boa noção do que são agentes, vamos reforçar com um quiz rápido (sem nota). Em seguida, mergulharemos no “cérebro do agente”: os [LLMs](what-are-llms).

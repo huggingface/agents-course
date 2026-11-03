@@ -1,0 +1,92 @@
+# Observabilidade e Avaliação de Agentes de IA
+
+## 🔎 O que é Observabilidade?
+
+Observabilidade é a capacidade de entender o que está acontecendo dentro do seu agente de IA analisando sinais externos, como logs, métricas e traces. No contexto de agentes, isso significa acompanhar ações, uso de ferramentas, chamadas de modelo e respostas para depurar e melhorar o desempenho.
+
+![Observability dashboard](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/langfuse-dashboard.png)
+
+## 🔭 Por que a observabilidade de agentes é importante?
+
+Sem observabilidade, agentes de IA são "caixas-pretas". Ferramentas de observabilidade tornam os agentes transparentes, permitindo:
+
+- Entender trade-offs entre custos e precisão  
+- Medir latência  
+- Detectar linguagem nociva e tentativas de prompt injection  
+- Monitorar o feedback dos usuários
+
+Em outras palavras, elas tornam seu agente de demonstração pronto para produção!
+
+## 🔨 Ferramentas de Observabilidade
+
+Ferramentas comuns de observabilidade para agentes incluem plataformas como [Langfuse](https://langfuse.com) e [Arize](https://www.arize.com). Elas ajudam a coletar traces detalhados e oferecem dashboards para monitorar métricas em tempo real, facilitando a detecção de problemas e a otimização de desempenho.
+
+As ferramentas variam bastante em recursos e capacidades. Algumas são open source, contam com comunidades grandes que influenciam seus roadmaps e oferecem integrações extensas. Outras são especializadas em aspectos específicos de LLMOps — observabilidade, avaliações ou gerenciamento de prompts — enquanto algumas cobrem todo o fluxo de LLMOps. Explore a documentação de cada opção para escolher a solução que melhor se adapta às suas necessidades.
+
+Muitos frameworks de agentes, como o [smolagents](https://huggingface.co/docs/smolagents/v1.12.0/en/index), adotam o padrão [OpenTelemetry](https://opentelemetry.io/docs/) para expor metadados às ferramentas de observabilidade. Além disso, essas plataformas desenvolvem instrumentações personalizadas para garantir flexibilidade no ritmo acelerado do ecossistema de LLMs. Consulte a documentação da ferramenta que você usa para saber o que está disponível.
+
+## 🔬 Traces e Spans
+
+Ferramentas de observabilidade costumam representar as execuções do agente como traces e spans.
+
+- **Traces** representam uma tarefa completa do agente do início ao fim (como lidar com uma solicitação de usuário).  
+- **Spans** são etapas individuais dentro de um trace (por exemplo, chamar um modelo de linguagem ou recuperar dados).
+
+![Example of a smolagent trace in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/trace-tree.png)
+
+## 📊 Métricas principais para monitorar
+
+A seguir, algumas das métricas mais comuns acompanhadas pelas ferramentas de observabilidade:
+
+**Latência:** Com que rapidez o agente responde? Esperas longas prejudicam a experiência do usuário. Meça a latência de tarefas e etapas individuais rastreando as execuções. Por exemplo, se um agente leva 20 segundos para todas as chamadas ao modelo, talvez seja necessário usar um modelo mais rápido ou paralelizar as chamadas.
+
+**Custos:** Qual é o gasto por execução do agente? Agentes de IA dependem de chamadas a LLMs cobradas por token ou de APIs externas. Uso frequente de ferramentas ou múltiplos prompts pode elevar os custos rapidamente. Se o agente chama o LLM cinco vezes para um ganho pequeno de qualidade, avalie se o custo vale a pena ou se é possível reduzir o número de chamadas ou utilizar um modelo mais barato. Monitoramento em tempo real também ajuda a identificar picos inesperados (por exemplo, loops excessivos causados por bugs).
+
+**Erros de requisição:** Quantas chamadas falharam? Isso inclui erros de API ou falhas ao acionar ferramentas. Para tornar o agente mais robusto em produção, defina fallbacks ou novas tentativas. Ex.: se o provedor de LLM A estiver fora do ar, troque para o provedor B.
+
+**Feedback do usuário:** Avaliações diretas trazem insights valiosos, seja por ratings explícitos (👍/👎, ⭐ de 1 a 5) ou por comentários textuais. Feedback negativo recorrente é um alerta de que o agente não está funcionando como deveria.
+
+**Feedback implícito do usuário:** O comportamento do usuário gera sinais indiretos mesmo sem avaliações explícitas, como reformular perguntas logo em seguida, repetir a mesma consulta ou clicar em "tentar novamente". Se isso acontece com frequência, é sinal de que o agente não está atendendo às expectativas.
+
+**Acurácia:** Com que frequência o agente produz respostas corretas ou desejáveis? A definição de acurácia varia (correção de problemas, precisão na recuperação de informações, satisfação do usuário). O primeiro passo é definir o que significa sucesso para o seu agente. Monitore a acurácia por meio de verificações automáticas, notas de avaliação ou rótulos de conclusão de tarefas, como marcar traces como "sucesso" ou "falha".
+
+**Métricas de avaliação automática:** Você também pode configurar avaliações automatizadas. Por exemplo, usar um LLM para pontuar a resposta do agente (se foi útil, precisa e assim por diante). Existem bibliotecas open source que ajudam a avaliar diferentes aspectos do agente, como [RAGAS](https://docs.ragas.io/) para agentes de RAG ou [LLM Guard](https://llm-guard.com/) para detectar linguagem nociva e prompt injection.
+
+Na prática, combinar essas métricas oferece a melhor cobertura sobre a "saúde" do agente. No [notebook de exemplo desta unidade](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit2/monitoring-and-evaluating-agents.ipynb), mostraremos como essas métricas aparecem em cenários reais, mas antes vamos entender como se parece um fluxo típico de avaliação.
+
+# 👍 Avaliando agentes de IA
+
+A observabilidade nos dá métricas, mas avaliação é o processo de analisar esses dados (e realizar testes) para determinar quão bem o agente está atuando e como pode ser aprimorado. Em outras palavras, depois de coletar traces e métricas, como usá-los para julgar o agente e tomar decisões?
+
+A avaliação regular é importante porque agentes de IA costumam ser não determinísticos e podem evoluir (por atualizações ou deriva de comportamento). Sem avaliação, você não saberia se o seu “agente esperto” está realmente funcionando bem ou se regrediu.
+
+Existem duas categorias de avaliação para agentes: **avaliação offline** e **avaliação online**. Ambas são valiosas e se complementam. Geralmente começamos com a avaliação offline, pois é o passo mínimo antes de colocar qualquer agente em produção.
+
+### 🥷 Avaliação offline
+
+![Dataset items in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/example-dataset.png)
+
+Ela consiste em avaliar o agente em um ambiente controlado, normalmente usando conjuntos de teste, não consultas reais de usuários. Você utiliza datasets curados, em que sabe qual é a saída esperada ou o comportamento correto, e roda o agente sobre eles.
+
+Por exemplo, se você criou um agente que resolve problemas matemáticos em texto, pode ter um [dataset de teste](https://huggingface.co/datasets/gsm8k) com 100 questões e respostas conhecidas. A avaliação offline é feita normalmente durante o desenvolvimento (e pode fazer parte do pipeline de CI/CD) para verificar melhorias e evitar regressões. A vantagem é que **ela é repetível e fornece métricas claras de acurácia, porque há ground truth**. Você também pode simular consultas de usuários e comparar as respostas com gabaritos, ou usar métricas automáticas como as citadas acima.
+
+O principal desafio da avaliação offline é garantir que o dataset de teste seja abrangente e se mantenha relevante — o agente pode se sair bem em um conjunto fixo, mas encontrar situações muito diferentes em produção. Portanto, mantenha os conjuntos de teste atualizados com novos edge cases e exemplos que reflitam cenários reais. Uma combinação de pequenos “smoke tests” com conjuntos maiores é útil: os pequenos para verificações rápidas e os grandes para métricas mais amplas.
+
+### 🔄 Avaliação online
+
+Ela ocorre em um ambiente real, durante o uso do agente em produção. Envolve monitorar o desempenho nas interações com usuários reais e analisar continuamente os resultados.
+
+Você pode acompanhar taxas de sucesso, índices de satisfação ou outras métricas em tráfego real. A vantagem é que a avaliação online **captura situações que talvez não apareçam em ambiente controlado** — permite observar deriva do modelo ao longo do tempo e detectar consultas inesperadas que não estavam no seu dataset de teste. Ela oferece uma imagem fiel de como o agente se comporta “no mundo real”.
+
+Avaliação online geralmente inclui coletar feedback implícito e explícito dos usuários, como já discutimos, além de executar shadow tests ou testes A/B (em que uma nova versão roda em paralelo com a antiga para comparação). O desafio é conseguir rótulos ou notas confiáveis nas interações ao vivo — muitas vezes você dependerá do feedback dos usuários ou de métricas indiretas (ex.: o usuário clicou no resultado?).
+
+### 🤝 Combinando as duas abordagens
+
+Na prática, avaliar bem um agente envolve misturar métodos **online** e **offline**. Você pode executar benchmarks offline regulares para mensurar o desempenho em tarefas definidas e, ao mesmo tempo, monitorar o uso ao vivo para captar o que os testes não mostram. Por exemplo, testes offline podem indicar se a taxa de acerto de um agente de geração de código está melhorando, enquanto o monitoramento online pode alertar que usuários começaram a fazer perguntas de uma categoria com a qual o agente tem dificuldade. Juntas, as duas abordagens fornecem um retrato mais robusto.
+
+Muitas equipes adotam um ciclo contínuo: _avaliação offline → deploy de nova versão do agente → monitoramento online para coletar novos exemplos de falha → inclusão desses exemplos no conjunto offline → iterar_. Assim, a avaliação se torna constante e cada vez melhor.
+
+## 🧑‍💻 Vamos ver isso na prática
+
+Na próxima seção, veremos exemplos de como usar ferramentas de observabilidade para monitorar e avaliar o nosso agente.
+
