@@ -40,6 +40,8 @@ To start, duplicate this Space: <a href="https://huggingface.co/spaces/agents-co
 Duplicating this space means **creating a local copy on your own profile**:
 <img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplicate"/>
 
+> ⚠️ **Warning:** When duplicating, keep the default **CPU basic** hardware. This template's `app.py` doesn't define a GPU-decorated function, so selecting **ZeroGPU** (or any GPU) hardware will make the Space fail to start with an error like `No @spaces.GPU function detected during startup`.
+
 After duplicating the Space, you'll need to add your Hugging Face API token so your agent can access the model API:
 
 1. First, get your Hugging Face token from [https://hf.co/settings/tokens](https://hf.co/settings/tokens) with permission for inference, if you don't already have one
