@@ -1,0 +1,123 @@
+# Ações (*Actions*): Capacitando o Agente a Interagir com Seu Ambiente
+
+> [!TIP]
+> Nesta seção, exploramos os passos concretos que um agente de IA executa para interagir com o seu ambiente. 
+>
+> Nós cobriremos como as ações são representadas (usando JSON ou código), a importância da abordagem de pausar e analisar, e introduziremos os diferentes tipos de agentes.
+
+As Ações (*Actions*) são os passos concretos que um **Agente de IA executa para interagir com seu ambiente**. 
+
+Seja buscando informações na web ou controlando um dispositivo físico, cada ação é uma operação deliberada executada pelo agente. 
+
+Por exemplo, um agente auxiliando no atendimento ao cliente pode recuperar os dados do cliente, oferecer artigos de suporte ou transferir problemas para um representante humano.
+
+## Tipos de Ações de Agentes
+
+Existem múltiplos tipos de Agentes que realizam ações de maneiras diferentes:
+
+| Tipo de Agente | Descrição |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| Agente JSON | A Ação a ser tomada é especificada no formato JSON. |
+| Agente de Código (*Code Agent*) | O Agente escreve um bloco de código que é interpretado externamente. |
+| Agente de Chamada de Função (*Function-calling*) | É uma subcategoria do Agente JSON que foi ajustada (*fine-tuned*) para gerar uma nova mensagem para cada ação. |
+
+As próprias ações podem servir a muitos propósitos:
+
+| Tipo de Ação | Descrição |
+|--------------------------|------------------------------------------------------------------------------------------|
+| Coleta de Informação (*Information Gathering*) | Realizar pesquisas na web, consultar bancos de dados ou recuperar documentos. |
+| Uso de Ferramentas (*Tool Usage*) | Fazer chamadas de API, executar cálculos ou rodar código. |
+| Interação com o Ambiente (*Environment Interaction*) | Manipular interfaces digitais ou controlar dispositivos físicos. |
+| Comunicação (*Communication*) | Engajar com usuários por meio de chat ou colaborar com outros agentes. |
+
+O LLM manipula apenas texto e o usa para descrever a ação que deseja realizar e os parâmetros que vai fornecer à ferramenta. Para que um agente funcione corretamente, o LLM deve PARAR de gerar novos tokens após emitir todos os tokens que definem uma Ação completa. Isso passa o controle que estava com o LLM de volta para o agente e garante que o resultado seja analisável - não importando se o formato pretendido seja JSON, código ou chamada de função.
+
+
+## A Abordagem de Parar e Analisar
+
+Um método chave para implementar ações é a **abordagem de parar e analisar**. Esse método garante que a saída do agente seja estruturada e previsível:
+
+1. **Geração em um Formato Estruturado**:
+
+O agente emite a ação pretendida em um formato claro e predeterminado (JSON ou código).
+
+2. **Interrupção de Geração Adicional**:
+
+Uma vez que o texto definindo a ação foi emitido, **o LLM para de gerar tokens adicionais**. Isso previne saídas extras indesejadas ou errôneas.
+
+3. **Analisando (*Parsing*) a Saída**:
+
+Um analisador (*parser*) externo lê a ação formatada, determina qual Ferramenta chamar e extrai os parâmetros necessários.
+
+Por exemplo, um agente precisando verificar o clima poderia emitir:
+
+
+```json
+Pensamento: Eu preciso verificar o clima atual em Nova York.
+Ação:
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+
+O framework consegue então analisar com facilidade o nome da função a ser chamada e os argumentos a serem aplicados.
+
+Esse formato claro e legível por máquina minimiza erros e permite que ferramentas externas processem os comandos do agente com precisão.
+
+> **Nota:** Agentes de chamada de função (*Function-calling agents*) operam de forma semelhante ao estruturar cada ação de modo que uma função designada seja invocada com os argumentos corretos.
+Mergulharemos mais fundo nesses tipos de Agentes em uma Unidade futura.
+
+## Agentes de Código (*Code Agents*)
+
+Uma abordagem alternativa é usar *Code Agents* (Agentes de Código).
+A ideia é: **em vez de emitir um simples objeto JSON**, um *Code Agent* gera um **bloco de código executável — tipicamente em uma linguagem de alto nível como Python**. 
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Agentes de Código vs Agentes JSON" />
+
+Essa abordagem oferece diversas vantagens:
+
+- **Expressividade:** O código pode naturalmente representar lógica complexa, incluindo loops, condicionais e funções aninhadas, proporcionando maior flexibilidade do que o JSON.
+- **Modularidade e Reutilização:** O código gerado pode incluir funções e módulos que são reutilizáveis em diferentes ações e tarefas.
+- **Depurabilidade aprimorada (*Enhanced Debuggability*):** Contando com a sintaxe bem definida de uma linguagem de programação, erros de código geralmente são bem fáceis de se detectar e corrigir.
+- **Integração Direta:** Os *Code Agents* conseguem ser integrados diretamente com bibliotecas e APIs externas, possibilitando operações mais complexas como o processamento de dados ou a tomada de decisão em tempo real.
+
+Você deve ter em mente que executar código gerado por LLMs pode representar riscos de segurança, desde injeções de prompt (*prompt injection*) até a execução de código nocivo.
+É por isso que recomendamos sempre o uso de frameworks de agentes de IA, como o `smolagents`, que integram salvaguardas por padrão.
+Para saber mais sobre os riscos envolvidos e como mitigá-los, [por favor, confira esta seção dedicada](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution).
+
+Por exemplo, um *Code Agent* encarregado de buscar o clima poderia gerar o seguinte trecho em Python:
+
+```python
+# Exemplo de Agente de Código: Recuperar Informações Climáticas
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "Nenhuma informação climática disponível")
+    else:
+        return "Erro: Não foi possível obter os dados do clima."
+
+# Executar a função e preparar a resposta final
+result = get_weather("New York")
+final_answer = f"O clima atual em Nova York é: {result}"
+print(final_answer)
+```
+
+Neste exemplo, o *Code Agent*:
+
+- Recupera os dados do clima **por meio de uma chamada de API**,
+- Processa a resposta,
+- E, por fim, utiliza a função `print()` para exibir a resposta final.
+
+Este método **também segue a abordagem de parar e analisar**, delimitando claramente o bloco de código e informando o exato momento no qual a execução foi concluída (neste caso, por meio do uso do `print` emitindo a `final_answer`).
+
+---
+
+Nós aprendemos que as Ações (*Actions*) constroem uma ponte entre o raciocínio interno de um agente e suas interações com o mundo real, executando tarefas de forma clara e estruturada — seja pelo formato JSON, código ou chamadas de função.
+
+Essa execução deliberada garante que cada ação seja super precisa e pronta para ser processada, usando a abordagem de "parar e analisar" (*stop and parse*). Na próxima seção, exploraremos as Observações (*Observations*) com o objetivo de entender o modo como os agentes capturam e integram dentro de si o feedback provido pelo seu ambiente. 
+
+Após essa última etapa, estaremos **finalmente prontos para construir nosso primeiro Agente!**

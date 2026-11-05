@@ -1,0 +1,320 @@
+# O que são Ferramentas (Tools)?
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Planejamento da Unidade 1"/>
+
+Um aspecto crucial dos Agentes de IA é a capacidade de realizar **ações**. Como vimos, isso acontece através do uso de **Ferramentas (Tools)**.
+
+Nesta seção, aprenderemos o que são Ferramentas, como projetá-las de forma eficaz e como integrá-las ao seu Agente por meio da Mensagem do Sistema (*System Message*).
+
+Ao dar ao seu Agente as ferramentas certas – e descrever claramente como essas ferramentas funcionam – você pode aumentar drasticamente o que sua IA pode realizar. Vamos mergulhar nessa!
+
+## O que são Ferramentas de IA?
+
+Uma **Ferramenta (Tool) é uma função dada ao LLM**. Esta função deve cumprir um **objetivo claro**.
+
+Aqui estão algumas ferramentas comumente usadas em agentes de IA:
+
+| Ferramenta | Descrição |
+|----------------|---------------------------------------------------------------|
+| Busca na Web (*Web Search*) | Permite ao agente buscar informações atualizadas da internet. |
+| Geração de Imagens (*Image Generation*) | Cria imagens com base em descrições em texto. |
+| Recuperação (*Retrieval*) | Recupera informações de uma fonte externa. |
+| Interface de API | Interage com uma API externa (GitHub, YouTube, Spotify, etc.). |
+
+Esses são apenas exemplos, já que você pode, de fato, criar uma ferramenta para qualquer caso de uso!
+
+Uma boa ferramenta deve ser algo que **complementa o poder de um LLM**.
+
+Por exemplo, se você precisa realizar operações aritméticas, fornecer uma **ferramenta de calculadora** ao seu LLM trará resultados muito melhores do que depender das capacidades nativas do modelo.
+
+Além disso, **os LLMs preveem a continuação de um prompt com base em seus dados de treinamento**, o que significa que seu conhecimento interno inclui apenas eventos anteriores ao seu treinamento. Portanto, se seu agente precisar de dados atualizados, você deve fornecê-los por meio de alguma ferramenta.
+
+Por exemplo, se você perguntar a um LLM diretamente (sem uma ferramenta de busca) sobre o clima de hoje, o LLM potencialmente irá "alucinar" um clima aleatório.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Clima"/>
+
+- Uma Ferramenta deve conter:
+
+  - Uma **descrição em texto do que a função faz**.
+  - Um *Callable* (algo que pode ser invocado ou chamado para executar uma ação).
+  - *Argumentos* com suas tipagens (types).
+  - (Opcional) Saídas (*Outputs*) com suas tipagens.
+
+## Como as ferramentas funcionam?
+
+Os LLMs, como vimos, só podem receber textos como entrada e gerar textos como saída. Eles não têm como executar (chamar) ferramentas por conta própria. Quando falamos em fornecer ferramentas para um Agente, queremos dizer ensinar ao LLM sobre a existência dessas ferramentas e instruí-lo a gerar invocações baseadas em texto quando necessário.
+
+Por exemplo, se fornecemos uma ferramenta para verificar o clima de um local na internet e depois perguntamos ao LLM sobre o clima em Paris, o LLM reconhecerá que esta é uma oportunidade para usar a ferramenta de “clima” (weather). Em vez de tentar recuperar os dados do clima sozinho, o LLM vai gerar um texto que representa uma chamada à ferramenta, como `call weather_tool('Paris')`.
+
+O **Agente** então lê esta resposta, identifica que uma chamada de ferramenta foi requisitada, executa a ferramenta em nome do LLM e recupera os dados reais de clima.
+
+Os passos de chamada de Ferramenta (Tool-calling) normalmente não são mostrados ao usuário: o Agente os anexa como uma nova mensagem antes de passar a conversa atualizada para o LLM novamente. O LLM então processa esse contexto adicional e gera uma resposta natural para o usuário. Do ponto de vista do usuário, parece que o LLM interagiu diretamente com a ferramenta, mas na realidade, foi o Agente que lidou com todo o processo de execução em segundo plano.
+
+Nós falaremos muito mais sobre este processo em sessões futuras.
+
+## Como fornecemos ferramentas para um LLM?
+
+A resposta completa pode parecer um pouco impressionante no começo, mas nós essencialmente usamos o *system prompt* (prompt do sistema) para fornecer descrições em texto das ferramentas disponíveis para o modelo:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="Prompt do sistema para ferramentas"/>
+
+Para que isso funcione, precisamos ser muito precisos e exatos sobre:
+
+1. **O que a ferramenta faz**
+2. **Quais são os inputs exatos que ela espera**
+
+É por isso que as descrições de ferramentas geralmente são fornecidas usando estruturas expressivas, mas precisas, como linguagens de programação ou JSON. Não é _necessário_ que seja feito assim, mas qualquer formato que seja preciso e coerente funcionaria.
+
+Se isso soa muito teórico, vamos entender através de um exemplo concreto.
+
+Vamos implementar uma ferramenta de **calculadora** simplificada que irá apenas multiplicar dois números inteiros. Esta poderia ser a nossa implementação em Python:
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiplica dois inteiros."""
+    return a * b
+```
+
+Então, nossa ferramenta é chamada de `calculator`, ela **multiplica dois inteiros** e exige as seguintes entradas (*inputs*):
+
+- **`a`** (*int*): Um número inteiro.
+- **`b`** (*int*): Um número inteiro.
+
+A saída (*output*) da ferramenta é um outro número inteiro que podemos descrever assim:
+- (*int*): O produto de `a` e `b`.
+
+Todos esses detalhes são importantes. Vamos juntá-los em uma string de texto que descreve nossa ferramenta para que o LLM possa entendê-la.
+
+```text
+Tool Name: calculator, Description: Multiplica dois inteiros., Arguments: a: int, b: int, Outputs: int
+```
+
+> **Lembrete:** Essa descrição textual é *o que queremos que o LLM saiba sobre a ferramenta*.
+
+Quando passamos a string acima como parte da entrada (*input*) para o LLM, o modelo irá reconhecê-la como uma ferramenta e saberá o que precisa passar como entrada e o que esperar na saída.
+
+Se quisermos disponibilizar outras ferramentas, devemos ser consistentes e sempre usar o mesmo formato. Esse processo pode ser frágil, já que podemos esquecer facilmente algum detalhe.
+
+Existe um jeito melhor?
+
+### Autoformatação de seções de Ferramentas
+
+Nossa ferramenta foi escrita em Python, e a implementação já traz, por conta própria, tudo o que precisamos:
+
+- Um nome descritivo do que ela faz: `calculator`
+- Uma descrição mais longa, fornecida pelo comentário de *docstring* da função: `Multiplica dois inteiros.`
+- Os inputs e seus tipos: a função claramente espera dois `int`s (inteiros).
+- O tipo de saída (output).
+
+Existe um motivo para as pessoas usarem linguagens de programação: elas são expressivas, concisas e precisas.
+
+Nós poderíamos simplesmente passar o código fonte do Python como a _especificação_ da ferramenta para o LLM, mas a maneira como a ferramenta foi implementada não é o que importa. Tudo o que importa é o nome, o que ela faz, os dados que recebe (inputs) e o que retorna (outputs).
+
+Podemos utilizar os recursos de introspecção do Python para analisar o código fonte e montar uma descrição da ferramenta automaticamente para nós. A única coisa de que precisamos é que a implementação da ferramenta contenha *type hints* (dicas de tipo), docstrings e nomes sensatos para as funções. Vamos escrever um pouco de código para extrair as partes importantes do código-fonte.
+
+Depois que fizermos isso, precisaremos apenas usar um *decorator* (decorador) do Python para indicar que a função `calculator` é uma ferramenta:
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiplica dois inteiros."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Note o decorador `@tool` logo antes da definição da função.
+
+Com a implementação que veremos a seguir, seremos capazes de extrair o seguinte texto automaticamente do código fonte via a função `to_string()` oferecida pelo decorador:
+
+```text
+Tool Name: calculator, Description: Multiplica dois inteiros., Arguments: a: int, b: int, Outputs: int
+```
+
+Como você pode perceber, é a mesma coisa que escrevemos manualmente antes!
+
+### Uma implementação genérica de Ferramenta (Tool)
+
+Criamos uma classe genérica chamada `Tool` que podemos reutilizar toda vez que precisamos criar uma nova ferramenta.
+
+> **Aviso:** Esta implementação de exemplo é fictícia, mas se aproxima bastante do que é feito em bibliotecas reais.
+
+```python
+from typing import Callable
+
+
+class Tool:
+    """
+    Uma classe que representa um trecho de código reutilizável (Tool).
+
+    Atributos:
+        name (str): O nome da ferramenta.
+        description (str): Uma descrição textual do que a ferramenta faz.
+        func (callable): A função em si que a ferramenta envolve.
+        arguments (list): A lista de argumentos esperados.
+        outputs (str or list): O tipo(s) de retorno da função envelopada.
+    """
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: Callable,
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Retorna a representação em string (texto) da ferramenta,
+        incluindo seu nome, descrição, argumentos e saídas (outputs).
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoca a função (chamável / callable) subjacente com os argumentos passados.
+        """
+        return self.func(*args, **kwargs)
+```
+
+Pode parecer complicado, mas se olharmos passo a passo para o código, verermos o que ele faz. Nós definimos uma classe **`Tool`** que inclui:
+
+- **`name`** (*str*): O nome da ferramenta.
+- **`description`** (*str*): Uma breve descrição sobre o que a ferramenta faz.
+- **`function`** (*callable*): A função que a ferramenta executa.
+- **`arguments`** (*list*): Os parâmetros de entrada previstos.
+- **`outputs`** (*str* ou *list*): As saídas previstas da ferramenta.
+- **`__call__()`**: Executa a função quando a instância da ferramenta é chamada.
+- **`to_string()`**: Converte as qualidades da ferramenta em uma representação na forma de texto.
+
+Nós poderíamos criar uma Ferramenta (Tool) com essa classe usando um código mais ou menos assim:
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # nome
+    "Multiplica dois inteiros.",    # descrição
+    calculator,                     # a função para ser chamada
+    [("a", "int"), ("b", "int")],   # inputs (nomes e tipos correspondentes)
+    "int",                          # output
+)
+```
+
+Mas também podemos usar o módulo `inspect` do Python para descobrir e obter todos esses parâmetros e informações sozinhos para nós! Isso é exatamente o que faz o decorador `@tool`.
+
+> Caso se interesse, clique para expandir a próxima seção e visualizar o código subjacente do decorador.
+
+<details>
+<summary>código do decorador</summary>
+
+```python
+import inspect
+
+def tool(func):
+    """
+    Um decorador que cria uma instância de Tool (ferramenta) a partir da função informada.
+    """
+    # Obtém a assinatura da função
+    signature = inspect.signature(func)
+
+    # Extrai pares de (param_name, param_annotation) correspondentes aos inputs
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+
+    # Determina a anotação para o retorno (return_annotation)
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "Sem anotação de retono"
+    else:
+        outputs = (
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
+            else str(return_annotation)
+        )
+
+    # Configura que o docstring da função será a descrição (ou o padrão em caso de None)
+    description = func.__doc__ or "Nenhuma descrição fornecida."
+
+    # Configura como nome da Tool o próprio nome da função
+    name = func.__name__
+
+    # Retorna a nova instância de Tool 
+    return Tool(
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
+        outputs=outputs
+    )
+```
+
+</details>
+
+Reforçando novamente, ao introduzir esse decorador, implementar a ferramenta fica tão simples quanto isso:
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiplica dois inteiros."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+Depois, só utilizamos o utilitário embutido `to_string` da `Tool` para puxar os dados formatados do texto gerado automaticamente para dentro da descrição da ferramenta do LLM:
+
+```text
+Tool Name: calculator, Description: Multiplica dois inteiros., Arguments: a: int, b: int, Outputs: int
+```
+
+A descrição fica então **injetada** diretamente no *system prompt* (prompt do sistema). Usando o exemplo com o qual começamos esta seção, é mais ou menos assim que ele ficaria após trocar o campo `tools_description`:
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="Prompt do sistema para ferramentas"/>
+
+Na seção de [Ações (Actions)](actions), aprenderemos mais sobre como um Agente desempenha o ato de **Chamar** (*Call*) essa mesma ferramenta que acabamos de criar.
+
+### Model Context Protocol (MCP): uma interface unificada para ferramentas
+
+O *Model Context Protocol* (Protocolo de Contexto de Modelo - MCP) é um **protocolo aberto** que padroniza a forma como as aplicações **fornecem ferramentas para LLMs**.
+O MCP provê:
+
+- Uma lista crescente de integrações pré-construídas com o objetivo de plugar direto em qualquer LLM.
+- A flexibilidade para você migrar com mais facilidade entre os provedores e fornecedores de LLM.
+- Melhores práticas padronizadas de segurança para garantir seus dados dentro da sua infraestrutura.
+
+Isso significa que **qualquer framework implementando o MCP pode aproveitar as ferramentas definidas dentro do protocolo**, eliminando a necessidade de reimplementar a mesma interface de ferramenta para cada framework diferente.
+
+Se quiser se aprofundar mais sobre o MCP, você pode conferir nosso [Curso de MCP gratuito](https://huggingface.co/learn/mcp-course/). 
+
+---
+
+As Ferramentas operam um papel vital na expansão e capacitação das limitações dos agentes de IA.
+
+Para resumir, nós aprendemos:
+
+- *O que são Ferramentas*: Funções que dão aos LLMs capacidades extras, como realizar cálculos ou acessar dados externos.
+
+- *Como definir uma Ferramenta*: Fornecendo uma descrição textual clara, inputs, outputs e uma função callable.
+
+- *Por que as Ferramentas são essenciais*: Elas permitem que os Agentes superem as limitações do treinamento estático do modelo, lidem com tarefas em tempo real e executem ações especializadas.
+
+Agora, podemos avançar para o [Fluxo de Trabalho do Agente (Workflow)](agent-steps-and-structure), onde você verá como um Agente observa, pensa e age. Isso **reúne tudo o que cobrimos até agora** e prepara o terreno para a criação do seu próprio Agente de IA totalmente funcional.
+
+Mas primeiro, é hora de mais um pequeno questionário (quiz)!
