@@ -71,7 +71,7 @@
 - title: Unit 2.2 The LlamaIndex framework
   sections:
   - local: unit2/llama-index/introduction
-    title: LLamaIndex 소개
+    title: LlamaIndex 소개
   - local: unit2/llama-index/llama-hub
     title: LlamaHub 소개
   - local: unit2/llama-index/components
