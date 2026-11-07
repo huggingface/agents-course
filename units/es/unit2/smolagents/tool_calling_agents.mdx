@@ -47,9 +47,9 @@ La diferencia clave está en **cómo estructuran sus acciones**: en lugar de có
 Revisemos el ejemplo anterior donde Alfred comenzó los preparativos de la fiesta, pero esta vez usaremos un `ToolCallingAgent` para destacar la diferencia. Construiremos un agente que pueda buscar en la web usando DuckDuckGo, al igual que en nuestro ejemplo de Agente de Código. La única diferencia es el tipo de agente - el framework se encarga de todo lo demás:
 
 ```python
-from smolagents import ToolCallingAgent, DuckDuckGoSearchTool, InferenceClientModel
+from smolagents import ToolCallingAgent, WebSearchTool, InferenceClientModel
 
-agent = ToolCallingAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+agent = ToolCallingAgent(tools=[WebSearchTool()], model=InferenceClientModel())
 
 agent.run("Busca las mejores recomendaciones de música para una fiesta en la mansión Wayne.")
 ```
