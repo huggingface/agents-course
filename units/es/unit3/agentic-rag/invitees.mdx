@@ -261,7 +261,7 @@ def extract_text(query: str) -> str:
     """Recupera información detallada sobre los invitados de la gala basada en su nombre o relación."""
     results = bm25_retriever.invoke(query)
     if results:
-        return "\n\n".join([doc.text for doc in results[:3]])
+        return "\n\n".join([doc.page_content for doc in results[:3]])
     else:
         return "No se encontró información que coincida con la búsqueda."
 
