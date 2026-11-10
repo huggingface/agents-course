@@ -1,0 +1,267 @@
+# Graph Analisis Dokumen
+
+Alfred siap melayani. Sebagai pelayan kepercayaan Mr. Wayne, saya telah berinisiatif mendokumentasikan bagaimana saya membantu berbagai kebutuhan dokumen Mr. Wayne. Saat beliau sedang menjalankan... kegiatan malamnya, saya memastikan semua berkas, jadwal latihan, dan rencana nutrisinya dianalisis serta diatur dengan baik.
+
+Sebelum pergi, beliau meninggalkan catatan berisi program latihannya selama seminggu. Lalu saya mengambil tanggung jawab untuk menyusun **menu** makanan besok.
+
+Untuk kejadian serupa di masa mendatang, mari kita buat sistem analisis dokumen dengan LangGraph untuk melayani kebutuhan Mr. Wayne. Sistem ini bisa:
+
+1. Memproses dokumen gambar
+2. Mengekstrak teks memakai vision models (Vision Language Model)
+3. Melakukan kalkulasi saat dibutuhkan (untuk mendemonstrasikan tools biasa)
+4. Menganalisis konten dan memberikan ringkasan singkat
+5. Menjalankan instruksi spesifik terkait dokumen
+
+## Workflow Sang Pelayan
+
+Workflow yang akan kita bangun mengikuti skema terstruktur ini:
+
+![Workflow Analisis Dokumen Sang Pelayan](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">notebook ini</a> yang bisa dijalankan dengan Google Colab.
+
+## Menyiapkan environment
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+dan imports:
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## Mendefinisikan State Agent
+
+State ini sedikit lebih kompleks daripada yang sudah kita lihat sebelumnya.
+`AnyMessage` adalah class dari Langchain yang mendefinisikan messages, dan `add_messages` adalah operator yang menambahkan pesan terbaru alih-alih menimpanya dengan state terbaru.
+
+Ini adalah konsep baru di LangGraph, di mana kamu bisa menambahkan operators di state untuk mendefinisikan bagaimana mereka berinteraksi.
+
+```python
+class AgentState(TypedDict):
+    # Dokumen yang diberikan
+    input_file: Optional[str]  # Berisi file path (PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## Menyiapkan Tools
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Extract text from an image file using a multimodal model.
+
+    Master Wayne often leaves notes with his training regimen or meal plans.
+    This allows me to properly analyze the contents.
+    """
+    all_text = ""
+    try:
+        # Baca gambar dan encode sebagai base64
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Siapkan prompt berisi data gambar base64
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all the text from this image. "
+                            "Return only the extracted text, no explanations."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # Panggil model dengan kemampuan vision
+        response = vision_llm.invoke(message)
+
+        # Tambahkan teks yang diekstrak
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # Pelayan yang baik menangani error dengan anggun
+        error_msg = f"Error extracting text: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Divide a and b - for Master Wayne's occasional calculations."""
+    return a / b
+
+# Bekali sang pelayan dengan tools
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## Nodes
+
+```python
+def assistant(state: AgentState):
+    # Pesan sistem
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Extract text from an image file using a multimodal model.
+
+    Args:
+        img_path: A local image file path (strings).
+
+    Returns:
+        A single string containing the concatenated text extracted from each image.
+divide(a: int, b: int) -> float:
+    Divide a and b
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"You are a helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## Pola ReAct: Cara Saya Membantu Mr. Wayne
+
+Izinkan saya menjelaskan pendekatan agent ini. Agent mengikuti pola yang dikenal sebagai ReAct (Reason-Act-Observe)
+
+1. **Reason** tentang dokumen dan permintaannya
+2. **Act** dengan memakai tools yang sesuai
+3. **Observe** hasilnya
+4. **Repeat** sesuai kebutuhan sampai saya sepenuhnya memenuhi kebutuhan beliau
+
+Ini adalah implementasi agent sederhana menggunakan LangGraph.
+
+```python
+# Graph
+builder = StateGraph(AgentState)
+
+# Definisikan nodes: bagian ini melakukan pekerjaan
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Definisikan edges: bagian ini menentukan bagaimana control flow bergerak
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Jika pesan terbaru membutuhkan tool, arahkan ke tools
+    # Jika tidak, berikan respons langsung
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# Tampilkan proses berpikir sang pelayan
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+Kita mendefinisikan node `tools` dengan daftar tools kita. Node `assistant` hanyalah model kita dengan bound tools.
+Kita membuat graph dengan nodes `assistant` dan `tools`.
+
+Kita menambahkan edge `tools_condition`, yang melakukan routing ke `End` atau ke `tools` berdasarkan apakah `assistant` memanggil tool.
+
+Sekarang, kita menambahkan satu langkah baru:
+
+Kita menghubungkan node `tools` kembali ke `assistant`, sehingga membentuk loop.
+
+- Setelah node `assistant` dieksekusi, `tools_condition` memeriksa apakah output model adalah tool call.
+- Jika output adalah tool call, flow diarahkan ke node `tools`.
+- Node `tools` terhubung kembali ke `assistant`.
+- Loop ini berlanjut selama model memutuskan untuk memanggil tools.
+- Jika respons model bukan tool call, flow diarahkan ke END dan proses berakhir.
+
+![ReAct Pattern](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## Sang Pelayan Beraksi
+
+### Contoh 1: Perhitungan Sederhana
+
+Berikut contoh untuk menunjukkan use case sederhana agent yang memakai tool di LangGraph.
+
+```python
+messages = [HumanMessage(content="Divide 6790 by 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# Tampilkan messages
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+Percakapannya akan berjalan seperti ini:
+
+```
+Manusia: Divide 6790 by 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: Hasil dari membagi 6790 dengan 5 adalah 1358.0.
+```
+
+### Contoh 2: Menganalisis Dokumen Latihan Master Wayne
+
+Ketika Master Wayne meninggalkan catatan latihan dan makanannya:
+
+```python
+messages = [HumanMessage(content="According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+Interaksinya akan berjalan seperti ini:
+
+```
+Manusia: Berdasarkan catatan dari Mr. Wayne pada gambar yang diberikan, apa daftar barang yang perlu saya beli untuk menu makan malam?
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [Teks yang diekstrak berisi jadwal latihan dan detail menu]
+
+Alfred: Untuk menu makan malam, kamu perlu membeli barang-barang berikut:
+
+1. Grass-fed local sirloin steak
+2. Organic spinach
+3. Piquillo peppers
+4. Potatoes (for oven-baked golden herb potato)
+5. Fish oil (2 grams)
+
+Pastikan steak-nya grass-fed, serta bayam dan peppers-nya organik agar kualitas makanannya terbaik.
+```
+
+## Poin Penting
+
+Jika kamu ingin membuat pelayan analisis dokumenmu sendiri, berikut hal-hal utama yang perlu dipertimbangkan:
+
+1. **Definisikan tools yang jelas** untuk tugas spesifik terkait dokumen
+2. **Buat state tracker yang robust** untuk mempertahankan context antar tool calls
+3. **Pertimbangkan error handling** untuk kegagalan tool
+4. **Pertahankan contextual awareness** dari interaksi sebelumnya (dipastikan oleh operator `add_messages`)
+
+Dengan prinsip-prinsip ini, kamu juga bisa menyediakan layanan analisis dokumen yang pantas untuk Wayne Manor.
+
+*Saya percaya penjelasan ini memuaskan. Sekarang, izinkan saya pamit, jubah Master Wayne perlu disetrika sebelum kegiatan malam ini.*

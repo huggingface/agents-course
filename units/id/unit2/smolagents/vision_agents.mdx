@@ -1,0 +1,221 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Vision Agents dengan smolagents
+
+> [!WARNING]
+> Contoh di bagian ini membutuhkan akses ke VLM model yang kuat. Kami mengujinya menggunakan GPT-4o API.
+> Namun, <a href="./why_use_smolagents">Mengapa menggunakan smolagents</a> membahas solusi alternatif yang didukung oleh smolagents dan Hugging Face. Kalau kamu ingin mencoba opsi lain, pastikan membaca bagian tersebut.
+
+Memberi agents kemampuan visual penting untuk menyelesaikan tugas yang melampaui pemrosesan teks. Banyak tantangan dunia nyata, seperti web browsing atau document understanding, membutuhkan analisis konten visual yang kaya. Untungnya, `smolagents` menyediakan dukungan bawaan untuk vision-language models (VLMs), sehingga agents bisa memproses dan menafsirkan gambar secara efektif.
+
+Dalam contoh ini, bayangkan Alfred, kepala pelayan di Wayne Manor, bertugas memverifikasi identitas tamu yang datang ke pesta. Seperti yang bisa kamu bayangkan, Alfred mungkin tidak mengenal semua orang yang datang. Untuk membantunya, kita bisa menggunakan agent yang memverifikasi identitas tamu dengan mencari informasi visual tentang penampilan mereka menggunakan VLM. Dengan begitu, Alfred bisa mengambil keputusan yang tepat tentang siapa yang boleh masuk. Mari kita bangun contohnya!
+
+
+## Memberikan Gambar di Awal Eksekusi Agent
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb" target="_blank">notebook ini</a>, yang bisa kamu jalankan menggunakan Google Colab.
+
+Dalam pendekatan ini, gambar diteruskan ke agent di awal dan disimpan sebagai `task_images` bersama task prompt. Agent kemudian memproses gambar-gambar ini sepanjang eksekusinya.
+
+Bayangkan Alfred ingin memverifikasi identitas para superhero yang hadir di pesta. Ia sudah memiliki dataset gambar dari pesta sebelumnya beserta nama para tamu. Ketika ada gambar pengunjung baru, agent bisa membandingkannya dengan dataset yang ada dan membuat keputusan apakah pengunjung itu boleh masuk.
+
+Dalam kasus ini, seorang tamu mencoba masuk, dan Alfred curiga pengunjung tersebut mungkin The Joker yang menyamar sebagai Wonder Woman. Alfred perlu memverifikasi identitasnya agar orang yang tidak diinginkan tidak bisa masuk.
+
+Mari kita bangun contohnya. Pertama, gambar dimuat. Di sini, kita menggunakan gambar dari Wikipedia agar contoh tetap minimal, tetapi bayangkan kemungkinan use case-nya!
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg", # Gambar Joker
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg" # Gambar Joker
+]
+
+images = []
+for url in image_urls:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    }
+    response = requests.get(url,headers=headers)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+Setelah gambar tersedia, agent akan memberi tahu kita apakah seorang tamu benar-benar superhero (Wonder Woman) atau villain (The Joker).
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+# Instansiasi agent
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Describe the costume and makeup that the comic character in these photos is wearing and return the description.
+    Tell me if the guest is The Joker or Wonder Woman.
+    """,
+    images=images
+)
+```
+
+Dalam run saya, output-nya seperti berikut, walau hasilmu bisa berbeda seperti yang sudah kita bahas:
+
+```python
+    {
+        'Costume and Makeup - First Image': (
+            'Purple coat and a purple silk-like cravat or tie over a mustard-yellow shirt.',
+            'White face paint with exaggerated features, dark eyebrows, blue eye makeup, red lips forming a wide smile.'
+        ),
+        'Costume and Makeup - Second Image': (
+            'Dark suit with a flower on the lapel, holding a playing card.',
+            'Pale skin, green hair, very red lips with an exaggerated grin.'
+        ),
+        'Character Identity': 'This character resembles known depictions of The Joker from comic book media.'
+    }
+```
+
+Dalam kasus ini, output menunjukkan bahwa orang tersebut sedang menyamar sebagai orang lain, sehingga kita bisa mencegah The Joker masuk ke pesta!
+
+## Memberikan Gambar dengan Dynamic Retrieval
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py" target="_blank">file Python ini</a>
+
+Pendekatan sebelumnya berguna dan punya banyak kemungkinan use case. Namun, jika tamu tidak ada di database, kita perlu mencari cara lain untuk mengidentifikasinya. Salah satu solusinya adalah mengambil gambar dan informasi secara dinamis dari sumber eksternal, misalnya dengan menjelajahi web untuk mencari detail.
+
+Dalam pendekatan ini, gambar ditambahkan secara dinamis ke memory agent selama eksekusi. Seperti yang kita tahu, agents di `smolagents` berbasis class `MultiStepAgent`, yaitu abstraksi dari framework ReAct. Class ini berjalan dalam siklus terstruktur, dengan berbagai variables dan pengetahuan dicatat di tahap yang berbeda:
+
+1. **SystemPromptStep:** Menyimpan system prompt.
+2. **TaskStep:** Mencatat user query dan input apa pun yang diberikan.
+3. **ActionStep:** Menangkap log dari actions agent dan hasilnya.
+
+Pendekatan terstruktur ini memungkinkan agents memasukkan informasi visual secara dinamis dan merespons tugas yang berubah dengan adaptif. Di bawah ini ada diagram yang sudah kita lihat, yang menggambarkan proses workflow dinamis dan bagaimana beberapa langkah terintegrasi dalam lifecycle agent. Saat browsing, agent bisa mengambil screenshots dan menyimpannya sebagai `observation_images` di `ActionStep`.
+
+![Retrieval gambar dinamis](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/smolagents-can-see/diagram_adding_vlms_smolagents.png)
+
+Setelah memahami kebutuhannya, mari bangun contoh lengkap. Dalam kasus ini, Alfred ingin punya kontrol penuh atas proses verifikasi tamu, jadi mencari detail lewat browsing menjadi solusi yang masuk akal. Untuk menyelesaikan contoh ini, kita membutuhkan kumpulan tools baru untuk agent. Kita juga akan menggunakan Selenium dan Helium, yaitu browser automation tools. Dengan ini, kita bisa membangun agent yang menjelajahi web, mencari detail tentang calon tamu, dan mengambil informasi verifikasi. Mari instal tools yang dibutuhkan:
+
+```bash
+pip install "smolagents[all]" helium selenium python-dotenv
+```
+
+Kita membutuhkan kumpulan agent tools yang dirancang khusus untuk browsing, seperti `search_item_ctrl_f`, `go_back`, dan `close_popups`. Tools ini membuat agent bisa bertindak seperti orang yang sedang menavigasi web.
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Searches for text on the current page via Ctrl + F and jumps to the nth occurrence.
+    Args:
+        text: The text to search for
+        nth_result: Which occurrence to jump to (default: 1)
+    """
+    elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{text}')]")
+    if nth_result > len(elements):
+        raise Exception(f"Match n°{nth_result} not found (only {len(elements)} matches found)")
+    result = f"Found {len(elements)} matches for '{text}'."
+    elem = elements[nth_result - 1]
+    driver.execute_script("arguments[0].scrollIntoView(true);", elem)
+    result += f"Focused on element {nth_result} of {len(elements)}"
+    return result
+
+
+@tool
+def go_back() -> None:
+    """Goes back to previous page."""
+    driver.back()
+
+
+@tool
+def close_popups() -> str:
+    """
+    Closes any visible modal or pop-up on the page. Use this to dismiss pop-up windows! This does not work on cookie consent banners.
+    """
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+```
+
+Kita juga membutuhkan fungsi untuk menyimpan screenshots, karena ini menjadi bagian penting yang digunakan VLM agent untuk menyelesaikan tugas. Fungsi ini menangkap screenshot dan menyimpannya di `step_log.observations_images = [image.copy()]`, sehingga agent bisa menyimpan dan memproses gambar secara dinamis saat bernavigasi.
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)  # Biarkan animasi JavaScript berjalan sebelum mengambil screenshot
+    driver = helium.get_driver()
+    current_step = step_log.step_number
+    if driver is not None:
+        for step_logs in agent.logs:  # Hapus screenshot sebelumnya dari logs agar pemrosesan lebih ringan
+            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+                step_logs.observations_images = None
+        png_bytes = driver.get_screenshot_as_png()
+        image = Image.open(BytesIO(png_bytes))
+        print(f"Captured a browser screenshot: {image.size} pixels")
+        step_log.observations_images = [image.copy()]  # Buat salinan agar tetap tersimpan, penting!
+
+    # Perbarui observations dengan URL saat ini
+    url_info = f"Current url: {driver.current_url}"
+    step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
+    return
+```
+
+Function ini diteruskan ke agent sebagai `step_callback`, karena dipicu di akhir setiap langkah selama eksekusi agent. Dengan begitu, agent bisa menangkap dan menyimpan screenshots secara dinamis sepanjang prosesnya.
+
+Sekarang, kita bisa membuat vision agent untuk menjelajahi web, lalu memberinya tools yang sudah kita buat bersama `DuckDuckGoSearchTool` untuk mengeksplorasi web. Tool ini akan membantu agent mengambil informasi yang dibutuhkan untuk memverifikasi identitas tamu berdasarkan petunjuk visual.
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+Dengan itu, Alfred siap memeriksa identitas tamu dan mengambil keputusan yang tepat tentang apakah mereka boleh masuk ke pesta:
+
+```python
+agent.run("""
+I am Alfred, the butler of Wayne Manor, responsible for verifying the identity of guests at party. A superhero has arrived at the entrance claiming to be Wonder Woman, but I need to confirm if she is who she says she is.
+
+Please search for images of Wonder Woman and generate a detailed visual description based on those images. Additionally, navigate to Wikipedia to gather key details about her appearance. With this information, I can determine whether to grant her access to the event.
+""" + helium_instructions)
+```
+
+Kamu bisa melihat bahwa kita menyertakan `helium_instructions` sebagai bagian dari task. Prompt khusus ini bertujuan mengontrol navigasi agent, memastikan ia mengikuti langkah yang benar saat browsing web.
+
+Mari lihat cara kerjanya di video berikut:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+Ini final output-nya:
+
+```python
+Final answer: Wonder Woman is typically depicted wearing a red and gold bustier, blue shorts or skirt with white stars, a golden tiara, silver bracelets, and a golden Lasso of Truth. She is Princess Diana of Themyscira, known as Diana Prince in the world of men.
+```
+
+Dengan semua itu, kita berhasil membuat identity verifier untuk pesta! Alfred sekarang memiliki tools yang dibutuhkan untuk memastikan hanya tamu yang tepat yang bisa masuk. Semuanya sudah siap untuk bersenang-senang di Wayne Manor!
+
+
+## Bacaan Lanjutan
+
+- [We just gave sight to smolagents](https://huggingface.co/blog/smolagents-can-see) - Blog yang menjelaskan fungsi vision agent.
+- [Web Browser Automation with Agents 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - Contoh web browsing menggunakan vision agent.
+- [Web Browser Vision Agent Example](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - Contoh web browsing menggunakan vision agent.

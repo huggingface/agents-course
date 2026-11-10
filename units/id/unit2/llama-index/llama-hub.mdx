@@ -1,0 +1,56 @@
+# Pengantar LlamaHub
+
+**LlamaHub adalah registry berisi ratusan integrations, agents, dan tools yang bisa kamu pakai di dalam LlamaIndex.**
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+Kita akan memakai berbagai integrations dalam kursus ini, jadi mari kita lihat dulu LlamaHub dan bagaimana ia bisa membantu.
+
+Mari lihat cara menemukan dan menginstal dependencies untuk components yang kita butuhkan.
+
+## Instalasi
+
+Instruksi instalasi LlamaIndex tersedia sebagai **overview yang tertata rapi di [LlamaHub](https://llamahub.ai/)**.
+Awalnya mungkin terasa agak banyak, tetapi sebagian besar **perintah instalasinya mengikuti format yang mudah diingat**:
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+
+Mari coba instal dependencies untuk komponen LLM dan embedding dengan [Hugging Face inference API integration](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms).
+
+```bash
+pip install llama-index-llms-huggingface-api llama-index-embeddings-huggingface
+```
+
+## Penggunaan
+
+Setelah terinstal, kita bisa melihat pola penggunaannya. Kamu akan melihat bahwa import path mengikuti perintah instalasinya!
+Di bawah ini, kita bisa melihat contoh penggunaan **Hugging Face inference API untuk komponen LLM**.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+import os
+from dotenv import load_dotenv
+
+# Muat file .env
+load_dotenv()
+
+# Ambil HF_TOKEN dari environment variables
+hf_token = os.getenv("HF_TOKEN")
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token=hf_token,
+    provider="auto"
+)
+
+response = llm.complete("Hello, how are you?")
+print(response)
+# Saya baik, bagaimana saya bisa membantu hari ini?
+```
+
+Mantap, sekarang kita tahu cara menemukan, menginstal, dan memakai integrations untuk components yang kita butuhkan.
+**Mari bahas components lebih jauh** dan lihat bagaimana kita bisa memakainya untuk membuat agents milik kita sendiri.

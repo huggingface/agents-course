@@ -1,0 +1,40 @@
+# Pengantar Use Case untuk Agentic RAG
+
+![Banner Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit3/agentic-rag/thumbnail.jpg)
+
+Di unit ini, kita akan membantu Alfred, agent ramah kita yang menjadi tuan rumah gala, dengan menggunakan Agentic RAG untuk membuat tool yang bisa menjawab pertanyaan tentang para tamu di gala.
+
+> [!TIP]
+> Ini adalah use case Agentic RAG yang bersifat 'real-world', dan bisa kamu gunakan di proyek atau tempat kerjamu sendiri. Kalau ingin mendapatkan lebih banyak manfaat dari proyek ini, coba terapkan pada use case-mu sendiri dan bagikan di Discord.
+
+
+Kamu bisa memilih framework mana pun yang dibahas dalam kursus ini untuk use case tersebut. Kami menyediakan contoh kode untuk masing-masing framework di tab terpisah.
+
+## Gala yang Tak Terlupakan
+
+Sekarang saatnya praktik langsung dengan use case nyata. Mari kita siapkan panggungnya!
+
+**Kamu memutuskan untuk mengadakan pesta paling mewah dan megah abad ini.** Artinya, akan ada jamuan mewah, penari yang memukau, DJ ternama, minuman istimewa, pertunjukan kembang api yang menakjubkan, dan masih banyak lagi.
+
+Alfred, agent ramah di lingkunganmu, sedang bersiap mengurus semua kebutuhan pesta ini, dan **Alfred akan mengelola semuanya sendiri**. Untuk melakukannya, ia perlu memiliki akses ke semua informasi tentang pesta, termasuk menu, tamu, jadwal, prakiraan cuaca, dan banyak lagi!
+
+Bukan hanya itu, ia juga perlu memastikan pestanya sukses, sehingga **ia harus mampu menjawab pertanyaan apa pun tentang pesta selama acara berlangsung**, sambil menangani situasi tak terduga yang mungkin muncul.
+
+Ia tidak bisa melakukannya sendirian, jadi kita perlu memastikan Alfred memiliki akses ke semua informasi dan tools yang ia butuhkan.
+
+Pertama, mari kita beri ia daftar persyaratan wajib untuk gala.
+
+## Persyaratan Gala
+
+Seseorang yang berpendidikan baik pada masa **Renaissance** perlu memiliki tiga karakter utama.
+Ia perlu memiliki **pengetahuan mendalam tentang olahraga, budaya, dan sains**. Jadi, kita perlu memastikan kita bisa membuat para tamu terkesan dengan pengetahuan kita dan memberikan mereka pengalaman gala yang benar-benar tak terlupakan.
+Namun, untuk menghindari konflik, ada beberapa **topik, seperti politik dan agama, yang sebaiknya dihindari di sebuah gala.** Pesta ini harus menyenangkan, tanpa konflik yang berkaitan dengan keyakinan dan idealisme.
+
+Menurut etiket, **tuan rumah yang baik harus memahami latar belakang para tamu**, termasuk minat dan aktivitas mereka. Tuan rumah yang baik juga berbagi kabar dan cerita tentang para tamu satu sama lain.
+
+Terakhir, kita perlu memastikan bahwa kita punya **pengetahuan umum tentang cuaca** agar kita bisa terus mendapatkan update real-time, menentukan waktu yang tepat untuk menyalakan kembang api, dan menutup gala dengan meriah! 🎆
+
+Seperti yang kamu lihat, Alfred membutuhkan banyak informasi untuk menjadi tuan rumah gala.
+Untungnya, kita bisa membantu dan menyiapkan Alfred dengan memberinya **training Retrieval Augmented Generation (RAG)!**
+
+Mari kita mulai dengan membuat tools yang dibutuhkan Alfred agar ia bisa menjadi tuan rumah gala!

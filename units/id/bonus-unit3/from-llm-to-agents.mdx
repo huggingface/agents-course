@@ -1,0 +1,38 @@
+# Dari LLMs ke AI Agents
+
+Di [unit pertama](https://huggingface.co/learn/agents-course/unit1/introduction) kursus ini, kita belajar bahwa AI Agents bisa merencanakan dan mengambil keputusan.
+LLMs memang sudah membuat interaksi dengan NPCs terasa lebih natural, tetapi Agentic AI melangkah lebih jauh: karakter bisa mengambil keputusan, merencanakan actions, dan beradaptasi dengan environment yang berubah.
+
+Untuk melihat perbedaannya, bayangkan NPC RPG klasik:
+
+- Dengan LLM: NPC bisa menjawab pertanyaanmu dengan cara yang lebih natural dan bervariasi. Bagus untuk dialog, tetapi NPC tetap statis. Ia tidak akan bertindak kecuali kamu melakukan sesuatu lebih dulu.
+- Dengan Agentic AI: NPC bisa memutuskan untuk mencari bantuan, memasang jebakan, atau menghindarimu sepenuhnya, bahkan saat kamu tidak berinteraksi langsung dengannya.
+
+Perubahan kecil ini mengubah banyak hal. Kita bergerak dari karakter yang hanya merespons script menuju aktor otonom di dalam dunia game.
+
+Dengan pergeseran ini, NPCs bisa berinteraksi langsung dengan environment melalui perilaku yang diarahkan oleh goal. Gameplay pun menjadi lebih dinamis dan sulit ditebak.
+
+Agentic AI memberi NPCs kemampuan berikut:
+
+- **Autonomy**: mengambil keputusan mandiri berdasarkan game state.
+- **Adaptability**: menyesuaikan strategi sebagai respons terhadap actions pemain.
+- **Persistence**: mengingat interaksi sebelumnya untuk menentukan perilaku berikutnya.
+
+Ini mengubah NPCs dari entitas reaktif, yang hanya menanggapi input kamu, menjadi peserta proaktif di dunia game. Dari sini, bentuk gameplay baru bisa muncul.
+
+
+## Keterbatasan besar Agents: **masih lambat** untuk saat ini
+
+Namun, jangan terlalu optimistis dulu. Dengan semua potensinya, Agentic AI masih punya masalah di aplikasi real-time.
+
+Proses reasoning dan planning bisa menambah latency, sehingga kurang cocok untuk game cepat seperti *Doom* atau *Super Mario Bros.*
+
+Ambil contoh [_Claude Plays Pokémon_](https://www.twitch.tv/claudeplayspokemon). Jika kamu menghitung jumlah token yang dibutuhkan untuk **think**, ditambah token untuk **act**, terlihat jelas bahwa kita membutuhkan decoding strategy yang berbeda agar permainan real-time bisa dilakukan.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit3/claude-plays-pokemon.png" alt="Claude plays Pokémon"/>
+
+Sebagian besar game perlu berjalan di sekitar 30 FPS. Artinya, AI agent real-time perlu bertindak 30 kali per detik, dan ini belum realistis untuk agentic LLMs saat ini.
+
+Namun, game turn-based seperti *Pokémon* adalah kandidat yang ideal karena memberi AI cukup waktu untuk mempertimbangkan situasi dan mengambil keputusan strategis.
+
+Karena itu, di bagian berikutnya kamu akan membuat AI Agent sendiri untuk bertarung dalam combat turn-based ala Pokémon, bahkan menantangnya langsung. Mari mulai!

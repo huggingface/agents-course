@@ -1,0 +1,167 @@
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# Membangun Agentic RAG Systems
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">notebook ini</a>, yang bisa kamu jalankan menggunakan Google Colab.
+
+Retrieval Augmented Generation (RAG) systems menggabungkan kemampuan data retrieval dan generation models untuk memberi respons yang peka konteks. Misalnya, query user diteruskan ke search engine, lalu hasil yang diambil diberikan ke model bersama query tersebut. Model kemudian menghasilkan respons berdasarkan query dan informasi yang ditemukan.
+
+Agentic RAG (Retrieval-Augmented Generation) memperluas RAG systems tradisional dengan **menggabungkan autonomous agents dan dynamic knowledge retrieval**.
+
+Sementara RAG systems tradisional menggunakan LLM untuk menjawab query berdasarkan data yang diambil, Agentic RAG **memungkinkan kontrol cerdas atas proses retrieval dan generation**, sehingga efisiensi dan akurasinya meningkat.
+
+RAG systems tradisional punya beberapa batasan utama, seperti **bergantung pada satu langkah retrieval** dan berfokus pada kemiripan semantik langsung dengan query user, yang bisa membuat informasi relevan terlewat.
+
+Agentic RAG menangani masalah ini dengan membiarkan agent merumuskan search queries secara mandiri, mengkritisi hasil retrieval, dan melakukan beberapa langkah retrieval untuk menghasilkan output yang lebih sesuai kebutuhan dan lebih lengkap.
+
+## Retrieval Dasar dengan DuckDuckGo
+
+Mari kita bangun agent sederhana yang bisa mencari di web menggunakan DuckDuckGo. Agent ini akan mengambil informasi dan menyintesis respons untuk menjawab query. Dengan Agentic RAG, agent Alfred bisa:
+
+* Mencari tren pesta superhero terbaru
+* Memperbaiki hasil agar mencakup elemen mewah
+* Menyintesis informasi menjadi rencana lengkap
+
+Begini cara agent Alfred melakukannya:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+# Inisialisasi search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Inisialisasi model
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+# Contoh penggunaan
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+Agent mengikuti proses berikut:
+
+1. **Menganalisis Request:** Agent Alfred mengidentifikasi elemen utama query, yaitu perencanaan pesta superhero mewah dengan fokus pada dekorasi, hiburan, dan katering.
+2. **Melakukan Retrieval:** Agent menggunakan DuckDuckGo untuk mencari informasi paling relevan dan terbaru, memastikan hasilnya selaras dengan preferensi Alfred untuk acara mewah.
+3. **Menyintesis Informasi:** Setelah mengumpulkan hasil, agent memprosesnya menjadi rencana yang utuh dan bisa ditindaklanjuti Alfred, mencakup semua aspek pesta.
+4. **Menyimpan untuk Referensi Berikutnya:** Agent menyimpan informasi yang diambil agar mudah diakses saat merencanakan acara berikutnya, sehingga tugas lanjutan menjadi lebih efisien.
+
+## Tool Custom Knowledge Base
+
+Untuk tugas khusus, custom knowledge base bisa sangat berguna. Mari buat tool yang melakukan query ke vector database berisi dokumentasi teknis atau pengetahuan khusus. Dengan semantic search, agent bisa menemukan informasi yang paling relevan untuk kebutuhan Alfred.
+
+Vector database menyimpan representasi numerik (embeddings) dari teks atau data lain yang dibuat oleh machine learning models. Ini memungkinkan semantic search dengan mengidentifikasi makna yang mirip dalam high-dimensional space.
+
+Pendekatan ini menggabungkan pengetahuan yang sudah ditentukan dengan semantic search untuk memberi solusi peka konteks dalam perencanaan acara. Dengan akses ke pengetahuan khusus, Alfred bisa menyempurnakan setiap detail pesta.
+
+Dalam contoh ini, kita akan membuat tool yang mengambil ide perencanaan pesta dari custom knowledge base. Kita akan menggunakan BM25 retriever untuk mencari di knowledge base dan mengembalikan hasil teratas, serta `RecursiveCharacterTextSplitter` untuk memecah dokumen menjadi chunk yang lebih kecil agar pencarian lebih efisien.
+
+```python
+from langchain_community.docstore.document import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The query to perform. This should be a query related to party planning or superhero themes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Retrieve the top 5 documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Your search query must be a string"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nRetrieved ideas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Simulasikan knowledge base tentang perencanaan pesta
+party_ideas = [
+    {"text": "A superhero-themed masquerade ball with luxury decor, including gold accents and velvet curtains.", "source": "Party Ideas 1"},
+    {"text": "Hire a professional DJ who can play themed music for superheroes like Batman and Wonder Woman.", "source": "Entertainment Ideas"},
+    {"text": "For catering, serve dishes named after superheroes, like 'The Hulk's Green Smoothie' and 'Iron Man's Power Steak.'", "source": "Catering Ideas"},
+    {"text": "Decorate with iconic superhero logos and projections of Gotham and other superhero cities around the venue.", "source": "Decoration Ideas"},
+    {"text": "Interactive experiences with VR where guests can engage in superhero simulations or compete in themed games.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Pecah dokumen menjadi chunk lebih kecil agar pencarian lebih efisien
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Buat retriever tool
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Inisialisasi agent
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+# Contoh penggunaan
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+Agent yang ditingkatkan ini bisa:
+1. Memeriksa dokumentasi terlebih dahulu untuk informasi relevan
+2. Menggabungkan insight dari knowledge base
+3. Menjaga konteks percakapan di memory
+
+## Kemampuan Retrieval yang Lebih Lanjut
+
+Saat membangun agentic RAG systems, agent bisa memakai strategi yang lebih canggih seperti:
+
+1. **Query Reformulation:** Alih-alih memakai raw user query, agent bisa menyusun search terms yang lebih optimal agar lebih cocok dengan dokumen target
+2. **Query Decomposition:** Jika user query berisi beberapa informasi untuk dicari, agent bisa memecahnya menjadi beberapa query alih-alih memakai query tersebut langsung
+3. **Query Expansion:** Mirip dengan Query Reformulation, tetapi dilakukan beberapa kali untuk membuat beberapa variasi wording dari query dan mencari semuanya
+4. **Reranking:** Menggunakan Cross-Encoders untuk memberi skor relevansi yang lebih menyeluruh dan semantik antara dokumen hasil retrieval dan search query
+5. **Multi-Step Retrieval:** Agent bisa melakukan beberapa pencarian, memakai hasil awal untuk mengarahkan query berikutnya
+6. **Source Integration:** Informasi bisa digabungkan dari beberapa sumber seperti web search dan dokumentasi lokal
+7. **Result Validation:** Konten hasil retrieval bisa dianalisis relevansi dan akurasinya sebelum dimasukkan ke respons
+
+Agentic RAG systems yang efektif membutuhkan perhatian pada beberapa aspek utama. Agent **sebaiknya memilih tools yang tersedia berdasarkan tipe query dan konteks**. Memory systems membantu menjaga riwayat percakapan dan menghindari retrieval yang berulang. Fallback strategies memastikan sistem tetap berguna saat metode retrieval utama gagal. Validation steps juga membantu memastikan informasi yang diambil akurat dan relevan.
+
+## Referensi
+
+- [Agentic RAG: turbocharge your RAG with query reformulation and self-query! 🚀](https://huggingface.co/learn/cookbook/agent_rag) - Recipe untuk mengembangkan Agentic RAG system menggunakan smolagents.

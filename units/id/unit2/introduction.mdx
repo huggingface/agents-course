@@ -1,0 +1,40 @@
+# Pengantar Agentic Frameworks
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Gambar mini"/>
+
+Selamat datang di Unit kedua. Di sini, **kita akan mempelajari berbagai agentic framework** yang bisa digunakan untuk membangun aplikasi agentic yang kuat.
+
+Kita akan mempelajari:
+
+- Di Unit 2.1: [smolagents](https://huggingface.co/docs/smolagents/en/index)
+- Di Unit 2.2: [LlamaIndex](https://www.llamaindex.ai/)
+- Di Unit 2.3: [LangGraph](https://www.langchain.com/langgraph)
+
+Yuk, kita mulai! 🕵
+
+## Kapan Menggunakan Agentic Framework
+
+Agentic framework **tidak selalu dibutuhkan saat membangun aplikasi berbasis LLM**. Framework semacam ini memberi fleksibilitas dalam workflow untuk menyelesaikan tugas tertentu secara efisien, tapi tidak selalu perlu.
+
+Kadang, **workflow yang sudah ditentukan sebelumnya sudah cukup** untuk memenuhi permintaan user, sehingga agentic framework tidak benar-benar dibutuhkan. Kalau pendekatan untuk membangun agent masih sederhana, misalnya berupa rangkaian prompt, plain code bisa saja cukup. Keuntungannya, developer punya **kontrol dan pemahaman penuh atas sistemnya tanpa lapisan abstraksi**.
+
+Namun, saat workflow makin rumit, misalnya ketika kita membiarkan LLM memanggil function atau menggunakan beberapa agent, abstraksi seperti ini mulai terasa membantu.
+
+Dengan gagasan tersebut, kita sudah bisa mengenali beberapa fitur yang dibutuhkan:
+
+* *LLM engine* yang menjalankan sistem.
+* *List of tools* yang bisa diakses agent.
+* *Parser* untuk mengekstrak tool calls dari output LLM.
+* *System prompt* yang sinkron dengan parser.
+* *Memory system*.
+* *Error logging dan retry mechanisms* untuk mengendalikan kesalahan LLM.
+
+Kita akan melihat bagaimana topik-topik ini ditangani di berbagai framework, termasuk `smolagents`, `LlamaIndex`, dan `LangGraph`.
+
+## Unit Agentic Frameworks
+
+| Framework  | Deskripsi | Penulis Unit |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introduction) | Framework Agents yang dikembangkan oleh Hugging Face. | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | Tooling end-to-end untuk membawa AI agent dengan context augmentation ke production | David Berenstein - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | Agents yang memungkinkan orkestrasi agents secara stateful | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |

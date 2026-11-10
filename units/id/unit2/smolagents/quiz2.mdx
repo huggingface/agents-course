@@ -1,0 +1,147 @@
+# Kuis Singkat (tidak dinilai) [[quiz2]]
+
+Saatnya menguji pemahamanmu tentang bagian *Code Agents*, *Tool Calling Agents*, dan *Tools*. Kuis ini opsional dan tidak dinilai.
+
+---
+
+### Q1: Apa perbedaan utama antara membuat tool dengan decorator `@tool` dan membuat subclass dari `Tool` di smolagents?
+
+Pernyataan mana yang paling tepat menjelaskan perbedaan kedua pendekatan ini untuk mendefinisikan tools?
+
+<Question
+choices={[
+  {
+    text: "Menggunakan decorator <code>@tool</code> wajib untuk retrieval-based tools, sedangkan subclass dari <code>Tool</code> hanya untuk tugas text-generation",
+    explain: "Kedua pendekatan bisa digunakan untuk tipe tool apa pun, termasuk retrieval-based tools atau text-generation tools.",
+  },
+  {
+    text: "Decorator <code>@tool</code> direkomendasikan untuk tools sederhana berbasis function, sedangkan subclass dari <code>Tool</code> menawarkan fleksibilitas lebih untuk fungsi kompleks atau metadata custom",
+    explain: "Benar. Pendekatan decorator lebih sederhana, tetapi subclassing memungkinkan perilaku yang lebih bisa disesuaikan.",
+    correct: true
+  },
+  {
+    text: "<code>@tool</code> hanya bisa digunakan di multi-agent systems, sedangkan membuat subclass <code>Tool</code> ditujukan untuk skenario single-agent",
+    explain: "Semua agents, baik single maupun multi, bisa memakai salah satu pendekatan untuk mendefinisikan tools. Tidak ada batasan seperti itu.",
+  },
+  {
+    text: "Memberi decorator <code>@tool</code> pada function menggantikan kebutuhan docstring, sedangkan subclass tidak boleh menyertakan docstring",
+    explain: "Kedua metode tetap terbantu oleh docstring yang jelas. Decorator tidak menggantikannya, dan subclass tetap bisa memiliki docstring.",
+  }
+]}
+/>
+
+---
+
+### Q2: Bagaimana CodeAgent menangani tugas multi-step menggunakan pendekatan ReAct (Reason + Act)?
+
+Pernyataan mana yang tepat menjelaskan cara CodeAgent mengeksekusi serangkaian langkah untuk menyelesaikan tugas?
+
+<Question
+choices={[
+  {
+    text: "CodeAgent meneruskan tiap langkah ke agent berbeda dalam multi-agent system, lalu menggabungkan hasilnya",
+    explain: "Walau multi-agent systems bisa membagi tugas, CodeAgent sendiri dapat menangani beberapa langkah secara mandiri menggunakan ReAct.",
+  },
+  {
+    text: "CodeAgent menyimpan setiap action dalam JSON agar mudah di-parse sebelum mengeksekusi semuanya sekaligus",
+    explain: "Perilaku ini sesuai dengan pendekatan berbasis JSON milik ToolCallingAgent, bukan CodeAgent.",
+  },
+  {
+    text: "CodeAgent berulang melalui proses menulis internal thoughts, menghasilkan kode Python, mengeksekusi kode, dan mencatat hasil sampai tiba pada final answer",
+    explain: "Benar. Ini menggambarkan pola ReAct yang digunakan CodeAgent, termasuk reasoning iteratif dan eksekusi kode.",
+    correct: true
+  },
+  {
+    text: "CodeAgent bergantung pada vision module untuk memvalidasi output kode sebelum lanjut ke langkah berikutnya",
+    explain: "Kemampuan vision didukung di smolagents, tetapi bukan kebutuhan default untuk CodeAgent atau pendekatan ReAct.",
+  }
+]}
+/>
+
+---
+
+### Q3: Manakah berikut ini yang menjadi keuntungan utama berbagi tool di Hugging Face Hub?
+
+Pilih alasan terbaik mengapa developer mungkin meng-upload dan membagikan custom tool miliknya.
+
+<Question
+choices={[
+  {
+    text: "Hub otomatis mengintegrasikan tool tersebut dengan MultiStepAgent untuk retrieval-augmented generation",
+    explain: "Berbagi tool tidak otomatis menyiapkan retrieval atau logika multi-step. Itu hanya membuat tool tersedia.",
+  },
+  {
+    text: "Hub memungkinkan orang lain menemukan, menggunakan ulang, dan mengintegrasikan tool-mu di smolagents mereka tanpa setup tambahan",
+    explain: "Benar. Berbagi di Hub membuat tools bisa diakses siapa pun, termasuk dirimu sendiri, untuk di-download dan digunakan ulang dengan cepat.",
+    correct: true
+  },
+  {
+    text: "Hub memastikan hanya CodeAgents yang bisa memanggil tool tersebut, sedangkan ToolCallingAgents tidak bisa",
+    explain: "CodeAgents dan ToolCallingAgents sama-sama bisa memanggil shared tools. Tidak ada batasan berdasarkan tipe agent.",
+  },
+  {
+    text: "Hub mengubah tool-mu menjadi function dengan kemampuan vision penuh untuk pemrosesan gambar",
+    explain: "Berbagi tool tidak mengubah fungsi tool atau menambahkan kemampuan vision secara otomatis.",
+  }
+]}
+/>
+
+---
+
+### Q4: ToolCallingAgent berbeda dari CodeAgent dalam cara mengeksekusi actions. Pernyataan mana yang benar?
+
+Pilih opsi yang paling akurat menjelaskan cara kerja ToolCallingAgent.
+
+<Question
+choices={[
+  {
+    text: "ToolCallingAgent hanya kompatibel dengan multi-agent system, sedangkan CodeAgent bisa berjalan sendiri",
+    explain: "Kedua agent bisa digunakan sendiri atau sebagai bagian dari multi-agent system.",
+  },
+  {
+    text: "ToolCallingAgent mendelegasikan seluruh reasoning ke retrieval agent terpisah, lalu mengembalikan final answer",
+    explain: "ToolCallingAgent tetap menggunakan LLM utama untuk reasoning; ia tidak bergantung sepenuhnya pada retrieval agents.",
+  },
+  {
+    text: "ToolCallingAgent menghasilkan instruksi JSON yang menentukan tool calls dan arguments, lalu instruksi itu di-parse dan dieksekusi",
+    explain: "Benar. ToolCallingAgent menggunakan pendekatan JSON untuk mendefinisikan tool calls.",
+    correct: true
+  },
+  {
+    text: "ToolCallingAgent hanya ditujukan untuk tugas single-step dan otomatis berhenti setelah memanggil satu tool",
+    explain: "ToolCallingAgent bisa melakukan beberapa langkah jika diperlukan, sama seperti CodeAgent.",
+  }
+]}
+/>
+
+---
+
+### Q5: Apa isi default toolbox smolagents, dan mengapa kamu mungkin menggunakannya?
+
+Pernyataan mana yang paling tepat menggambarkan tujuan dan isi default toolbox di smolagents?
+
+<Question
+choices={[
+  {
+    text: "Toolbox ini menyediakan sekumpulan tools yang umum dipakai, seperti DuckDuckGo search, PythonInterpreterTool, dan final answer tool untuk prototyping cepat",
+    explain: "Benar. Default toolbox berisi tools siap pakai yang mudah diintegrasikan saat membangun agents.",
+    correct: true
+  },
+  {
+    text: "Toolbox ini hanya mendukung tugas berbasis vision seperti image classification atau OCR secara default",
+    explain: "Walau smolagents bisa mengintegrasikan fitur berbasis vision, default toolbox tidak khusus untuk vision saja.",
+  },
+  {
+    text: "Toolbox ini hanya ditujukan untuk multi-agent systems dan tidak kompatibel dengan satu CodeAgent",
+    explain: "Default toolbox bisa digunakan oleh tipe agent apa pun, baik setup single-agent maupun multi-agent.",
+  },
+  {
+    text: "Toolbox ini menambahkan fungsi retrieval tingkat lanjut untuk question answering berskala besar dari vector store",
+    explain: "Walau kamu bisa membangun retrieval tools, default toolbox tidak otomatis menyediakan fitur RAG tingkat lanjut.",
+  }
+]}
+/>
+
+---
+
+Selamat, kamu sudah menyelesaikan kuis ini! 🎉 Kalau ada pertanyaan yang terasa sulit, baca lagi bagian *Code Agents*, *Tool Calling Agents*, atau *Tools* untuk memperkuat pemahamanmu. Kalau hasilmu mulus, kamu sudah berada di jalur yang tepat untuk membangun aplikasi smolagents yang tangguh!

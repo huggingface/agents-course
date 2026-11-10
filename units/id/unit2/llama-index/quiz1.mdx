@@ -1,0 +1,117 @@
+# Kuis Kecil (tidak dinilai) [[quiz1]]
+
+Sejauh ini kita sudah membahas components dan tools utama yang dipakai di LlamaIndex.
+Sekarang waktunya kuis singkat, karena **menguji diri sendiri** adalah cara terbaik untuk belajar dan [menghindari illusion of competence](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf).
+Kuis ini akan membantumu menemukan **bagian mana yang perlu kamu perkuat lagi**.
+
+Kuis ini opsional dan tidak dinilai.
+
+### Q1: Apa itu QueryEngine?
+Manakah dari pilihan berikut yang paling tepat menggambarkan komponen QueryEngine?
+
+<Question
+choices={[
+{
+text: "Sistem yang hanya memproses teks statis tanpa kemampuan retrieval apa pun.",
+explain: "QueryEngine harus bisa mengambil dan memproses informasi yang relevan.",
+},
+{
+text: "Komponen yang menemukan dan mengambil informasi relevan sebagai bagian dari proses RAG.",
+explain: "Ini menangkap tujuan utama komponen QueryEngine.",
+correct: true
+},
+{
+text: "Tool yang hanya menyimpan vector embeddings tanpa fungsi pencarian.",
+explain: "QueryEngine melakukan lebih dari sekadar menyimpan embeddings. Ia aktif mencari dan mengambil informasi.",
+},
+{
+text: "Komponen yang hanya mengevaluasi kualitas respons.",
+explain: "Evaluation terpisah dari tujuan retrieval utama QueryEngine.",
+}
+]}
+/>
+
+---
+
+### Q2: Apa tujuan FunctionTools?
+Mengapa FunctionTools penting untuk Agent?
+
+<Question
+choices={[
+{
+text: "Untuk menangani penyimpanan data dalam jumlah besar.",
+explain: "FunctionTools bukan terutama untuk penyimpanan data.",
+},
+{
+text: "Untuk mengubah fungsi Python menjadi tools yang bisa dipakai agent.",
+explain: "FunctionTools membungkus fungsi Python agar bisa diakses oleh agents.",
+correct: true
+},
+{
+text: "Untuk memungkinkan agents membuat definisi fungsi acak.",
+explain: "FunctionTools punya tujuan spesifik: membuat fungsi tersedia untuk agents.",
+},
+{
+text: "Untuk hanya memproses data teks.",
+explain: "FunctionTools bisa bekerja dengan berbagai jenis fungsi, bukan hanya pemrosesan teks.",
+}
+]}
+/>
+
+---
+
+### Q3: Apa itu Toolspecs di LlamaIndex?
+Apa tujuan utama Toolspecs?
+
+<Question
+choices={[
+{
+text: "Components redundan yang tidak menambah functionality.",
+explain: "Toolspecs punya tujuan penting dalam ekosistem LlamaIndex.",
+},
+{
+text: "Kumpulan tools buatan komunitas yang memperluas kemampuan agent.",
+explain: "Toolspecs memungkinkan komunitas membagikan dan menggunakan ulang tools.",
+correct: true
+},
+{
+text: "Digunakan semata-mata untuk memory management.",
+explain: "Toolspecs berfokus pada penyediaan tools, bukan pengelolaan memory.",
+},
+{
+text: "Hanya bekerja dengan pemrosesan teks.",
+explain: "Toolspecs bisa mencakup berbagai jenis tools, bukan hanya pemrosesan teks.",
+}
+]}
+/>
+
+---
+
+### Q4: Apa yang diperlukan untuk membuat tool?
+Informasi apa yang harus disertakan saat membuat tool?
+
+<Question
+choices={[
+{
+text: "Fungsi, nama, dan deskripsi harus didefinisikan.",
+explain: "Walaupun semuanya membentuk tool, nama dan deskripsi bisa di-parse dari fungsi dan docstring.",
+},
+{
+text: "Hanya nama yang diperlukan.",
+explain: "Fungsi dan deskripsi/docstring juga diperlukan untuk dokumentasi tool yang baik.",
+},
+{
+text: "Hanya deskripsi yang diperlukan.",
+explain: "Fungsi diperlukan agar kita punya kode yang dijalankan saat agent memilih tool.",
+},
+{
+text: "Hanya fungsi yang diperlukan.",
+explain: "Nama dan deskripsi secara default diambil dari nama dan docstring fungsi yang diberikan.",
+correct: true
+}
+]}
+/>
+
+---
+
+Selamat sudah menyelesaikan kuis ini 🥳. Kalau ada bagian yang terlewat, luangkan waktu untuk membaca ulang babnya agar pemahamanmu lebih kuat. Kalau kamu lolos, kamu siap masuk lebih dalam dan membangun dengan components ini!

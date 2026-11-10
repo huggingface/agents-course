@@ -1,0 +1,457 @@
+# Membuat Tool RAG untuk Cerita Tamu
+
+
+Alfred, agent tepercaya kita, sedang menyiapkan gala paling megah abad ini. Agar acara berjalan lancar, Alfred membutuhkan akses cepat ke informasi terbaru tentang setiap tamu. Mari bantu Alfred dengan membuat tool Retrieval-Augmented Generation (RAG) khusus, yang didukung oleh dataset kustom kita.
+
+## Mengapa RAG untuk Gala?
+
+Bayangkan Alfred berbaur dengan para tamu dan harus mengingat detail spesifik tentang setiap orang dengan cepat. LLM tradisional bisa kesulitan dengan tugas ini karena:
+
+1. Daftar tamu bersifat spesifik untuk acaramu dan tidak ada dalam data training model
+2. Informasi tamu bisa berubah atau sering diperbarui
+3. Alfred perlu mengambil detail yang presisi, seperti alamat email
+
+Di sinilah Retrieval Augmented Generation (RAG) sangat berguna! Dengan menggabungkan sistem retrieval dan LLM, Alfred bisa mengakses informasi akurat dan up-to-date tentang para tamumu saat dibutuhkan.
+
+> [!TIP]
+> Kamu bisa memilih framework mana pun yang dibahas dalam kursus ini untuk use case ini. Pilih opsi yang kamu inginkan dari tab kode.
+
+## Menyiapkan aplikasi kita
+
+Di unit ini, kita akan mengembangkan agent di dalam HF Space sebagai proyek Python yang terstruktur. Pendekatan ini membantu kita menjaga kode tetap bersih dan modular dengan memisahkan berbagai fungsi ke file yang berbeda. Hasilnya juga lebih realistis karena aplikasinya bisa di-deploy untuk digunakan publik.
+
+### Struktur Proyek
+
+- **`tools.py`** - Menyediakan tools pendukung untuk agent.
+- **`retriever.py`** - Mengimplementasikan fungsi retrieval untuk mendukung akses pengetahuan.
+- **`app.py`** - Mengintegrasikan semua komponen menjadi agent yang berfungsi penuh, yang akan kita selesaikan di bagian terakhir unit ini.
+
+Sebagai referensi praktik langsung, lihat [HF Space ini](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG), tempat Agentic RAG yang dikembangkan di unit ini berjalan secara live. Silakan clone dan bereksperimen!
+
+Kamu bisa langsung menguji agent di bawah ini:
+
+<iframe
+	src="https://agents-course-unit-3-agentic-rag.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+## Ringkasan Dataset
+
+Dataset kita [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) berisi field berikut untuk setiap tamu:
+
+- **Name**: Nama lengkap tamu
+- **Relation**: Hubungan tamu dengan tuan rumah
+- **Description**: Biografi singkat atau fakta menarik tentang tamu
+- **Email Address**: Informasi kontak untuk mengirim undangan atau follow-up
+
+Berikut adalah preview dataset:
+<iframe
+  src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train"
+  frameborder="0"
+  width="100%"
+  height="560px"
+></iframe>
+
+> [!TIP]
+> Dalam skenario real-world, dataset ini bisa diperluas untuk mencakup preferensi makanan, minat hadiah, topik percakapan yang perlu dihindari, dan detail lain yang berguna bagi tuan rumah.
+
+## Membangun Tool Guestbook
+
+Kita akan membuat custom tool yang bisa digunakan Alfred untuk mengambil informasi tamu dengan cepat selama gala. Mari kita pecah menjadi tiga langkah yang mudah dikelola:
+
+1. Memuat dan menyiapkan dataset
+2. Membuat Retriever Tool
+3. Mengintegrasikan Tool dengan Alfred
+
+Mari mulai dengan memuat dan menyiapkan dataset!
+
+### Langkah 1: Muat dan Siapkan Dataset
+
+Pertama, kita perlu mengubah data tamu mentah menjadi format yang dioptimalkan untuk retrieval.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Kita akan menggunakan library Hugging Face `datasets` untuk memuat dataset dan mengubahnya menjadi daftar objek `Document` dari module `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain_core.documents import Document
+
+# Muat dataset
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Ubah entri dataset menjadi objek Document
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+Kita akan menggunakan library Hugging Face `datasets` untuk memuat dataset dan mengubahnya menjadi daftar objek `Document` dari module `llama_index.core.schema`.
+
+```python
+import datasets
+from llama_index.core.schema import Document
+
+# Muat dataset
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Ubah entri dataset menjadi objek Document
+docs = [
+    Document(
+        text="\n".join([
+            f"Name: {guest_dataset['name'][i]}",
+            f"Relation: {guest_dataset['relation'][i]}",
+            f"Description: {guest_dataset['description'][i]}",
+            f"Email: {guest_dataset['email'][i]}"
+        ]),
+        metadata={"name": guest_dataset['name'][i]}
+    )
+    for i in range(len(guest_dataset))
+]
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+Kita akan menggunakan library Hugging Face `datasets` untuk memuat dataset dan mengubahnya menjadi daftar objek `Document` dari module `langchain.docstore.document`.
+
+```python
+import datasets
+from langchain_core.documents import Document
+
+# Muat dataset
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Ubah entri dataset menjadi objek Document
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+```
+
+</hfoption>
+</hfoptions>
+
+Pada kode di atas, kita:
+- Memuat dataset
+- Mengubah setiap entri tamu menjadi objek `Document` dengan konten yang sudah diformat
+- Menyimpan objek `Document` dalam sebuah list
+
+Artinya, semua data kita sudah tersedia dengan rapi sehingga kita bisa mulai mengonfigurasi retrieval.
+
+### Langkah 2: Buat Retriever Tool
+
+Sekarang, mari buat custom tool yang bisa digunakan Alfred untuk mencari informasi tamu.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+Kita akan menggunakan `BM25Retriever` dari module `langchain_community.retrievers` untuk membuat retriever tool.
+
+> [!TIP]
+> <code>BM25Retriever</code> adalah titik awal yang bagus untuk retrieval, tetapi untuk semantic search yang lebih lanjutan, kamu bisa mempertimbangkan retriever berbasis embedding seperti yang tersedia di <a href="https://www.sbert.net/">sentence-transformers</a>.
+
+```python
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+
+class GuestInfoRetrieverTool(Tool):
+    name = "guest_info_retriever"
+    description = "Retrieves detailed information about gala guests based on their name or relation."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The name or relation of the guest you want information about."
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs):
+        self.is_initialized = False
+        self.retriever = BM25Retriever.from_documents(docs)
+
+    def forward(self, query: str):
+        results = self.retriever.invoke(query)
+        if results:
+            return "\n\n".join([doc.page_content for doc in results[:3]])
+        else:
+            return "No matching guest information found."
+
+# Inisialisasi tool
+guest_info_tool = GuestInfoRetrieverTool(docs)
+```
+
+Mari pahami tool ini langkah demi langkah:
+- `name` dan `description` membantu agent memahami kapan dan bagaimana menggunakan tool ini
+- `inputs` mendefinisikan parameter yang diharapkan tool (dalam kasus ini, search query)
+- Kita menggunakan `BM25Retriever`, algoritma text retrieval yang powerful dan tidak membutuhkan embeddings
+- Method `forward` memproses query dan mengembalikan informasi tamu yang paling relevan
+
+</hfoption>
+<hfoption id="llama-index">
+
+Kita akan menggunakan `BM25Retriever` dari module `llama_index.retrievers.bm25` untuk membuat retriever tool.
+
+> [!TIP]
+> <code>BM25Retriever</code> adalah titik awal yang bagus untuk retrieval, tetapi untuk semantic search yang lebih lanjutan, kamu bisa mempertimbangkan retriever berbasis embedding seperti yang tersedia di <a href="https://www.sbert.net/">sentence-transformers</a>.
+
+```python
+from llama_index.core.tools import FunctionTool
+from llama_index.retrievers.bm25 import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_defaults(nodes=docs)
+
+def get_guest_info_retriever(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.retrieve(query)
+    if results:
+        return "\n\n".join([doc.text for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+# Inisialisasi tool
+guest_info_tool = FunctionTool.from_defaults(get_guest_info_retriever)
+```
+
+Mari pahami tool ini langkah demi langkah.
+- Docstring membantu agent memahami kapan dan bagaimana menggunakan tool ini
+- Type decorators mendefinisikan parameter yang diharapkan tool (dalam kasus ini, search query)
+- Kita menggunakan `BM25Retriever`, algoritma text retrieval yang powerful dan tidak membutuhkan embeddings
+- Method tersebut memproses query dan mengembalikan informasi tamu yang paling relevan
+
+</hfoption>
+<hfoption id="langgraph">
+
+Kita akan menggunakan `BM25Retriever` dari module `langchain_community.retrievers` untuk membuat retriever tool.
+
+> [!TIP]
+> <code>BM25Retriever</code> adalah titik awal yang bagus untuk retrieval, tetapi untuk semantic search yang lebih lanjutan, kamu bisa mempertimbangkan retriever berbasis embedding seperti yang tersedia di <a href="https://www.sbert.net/">sentence-transformers</a>.
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain_core.tools import Tool
+
+bm25_retriever = BM25Retriever.from_documents(docs)
+
+def extract_text(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.invoke(query)
+    if results:
+        return "\n\n".join([doc.page_content for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+guest_info_tool = Tool(
+    name="guest_info_retriever",
+    func=extract_text,
+    description="Retrieves detailed information about gala guests based on their name or relation."
+)
+```
+
+Mari pahami tool ini langkah demi langkah.
+- `name` dan `description` membantu agent memahami kapan dan bagaimana menggunakan tool ini
+- Type decorators mendefinisikan parameter yang diharapkan tool (dalam kasus ini, search query)
+- Kita menggunakan `BM25Retriever`, algoritma text retrieval yang powerful dan tidak membutuhkan embeddings
+- Method tersebut memproses query dan mengembalikan informasi tamu yang paling relevan
+
+
+</hfoption>
+</hfoptions>
+
+### Langkah 3: Integrasikan Tool dengan Alfred
+
+Terakhir, mari satukan semuanya dengan membuat agent kita dan membekalinya dengan custom tool:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Inisialisasi model Hugging Face
+model = InferenceClientModel()
+
+# Buat Alfred, agent gala kita, dengan guest info tool
+alfred = CodeAgent(tools=[guest_info_tool], model=model)
+
+# Contoh query yang mungkin diterima Alfred selama gala
+response = alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Berdasarkan informasi yang saya ambil, Lady Ada Lovelace adalah matematikawan dan teman yang sangat dihormati. Ia dikenal karena karya pionirnya dalam matematika dan komputasi, sering dirayakan sebagai programmer komputer pertama berkat karyanya pada Analytical Engine milik Charles Babbage. Alamat emailnya adalah ada.lovelace@example.com.
+```
+
+Yang terjadi pada langkah terakhir ini:
+- Kita menginisialisasi model Hugging Face menggunakan class `InferenceClientModel`
+- Kita membuat agent kita (Alfred) sebagai `CodeAgent`, yang bisa mengeksekusi kode Python untuk menyelesaikan masalah
+- Kita meminta Alfred mengambil informasi tentang tamu bernama "Lady Ada Lovelace"
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Inisialisasi model Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Buat Alfred, agent gala kita, dengan guest info tool
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool],
+    llm=llm,
+)
+
+# Contoh query yang mungkin diterima Alfred selama gala
+response = await alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace adalah matematikawan dan teman yang sangat dihormati, dikenal karena karya pionirnya dalam matematika dan komputasi. Ia dirayakan sebagai programmer komputer pertama berkat karyanya pada Analytical Engine milik Charles Babbage. Emailnya adalah ada.lovelace@example.com.
+```
+
+Yang terjadi pada langkah terakhir ini:
+- Kita menginisialisasi model Hugging Face menggunakan class `HuggingFaceInferenceAPI`
+- Kita membuat agent kita (Alfred) sebagai `AgentWorkflow`, termasuk tool yang baru saja kita buat
+- Kita meminta Alfred mengambil informasi tentang tamu bernama "Lady Ada Lovelace"
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# Buat chat interface, termasuk tools
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Buat AgentState dan graph Agent
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## Graph
+builder = StateGraph(AgentState)
+
+# Definisikan node: bagian ini yang menjalankan pekerjaan
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Definisikan edge: bagian ini menentukan bagaimana control flow bergerak
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Jika pesan terbaru membutuhkan tool, arahkan ke tools
+    # Jika tidak, berikan respons langsung
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Tell me about our guest named 'Lady Ada Lovelace'.")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace adalah matematikawan terhormat dan pionir dalam komputasi, sering dirayakan sebagai programmer komputer pertama berkat karyanya pada Analytical Engine milik Charles Babbage.
+```
+
+Yang terjadi pada langkah terakhir ini:
+- Kita menginisialisasi model Hugging Face menggunakan class `HuggingFaceEndpoint`. Kita juga membuat chat interface dan menambahkan tools.
+- Kita membuat agent kita (Alfred) sebagai `StateGraph`, yang menggabungkan 2 node (`assistant`, `tools`) menggunakan edge
+- Kita meminta Alfred mengambil informasi tentang tamu bernama "Lady Ada Lovelace"
+
+</hfoption>
+</hfoptions>
+
+## Contoh Interaksi
+
+Selama gala, percakapan mungkin berlangsung seperti ini:
+
+**Kamu:** "Alfred, siapa pria yang sedang berbicara dengan duta besar itu?"
+
+**Alfred:** *dengan cepat mencari di database tamu* "Itu Dr. Nikola Tesla, Tuan. Ia teman lama dari masa kuliah Anda. Baru-baru ini ia mematenkan sistem transmisi energi nirkabel baru dan akan senang mendiskusikannya dengan Anda. Ingat saja bahwa ia sangat menyukai merpati, jadi itu bisa menjadi bahan obrolan ringan yang bagus."
+
+```json
+{
+    "name": "Dr. Nikola Tesla",
+    "relation": "teman lama dari masa kuliah",
+    "description": "Dr. Nikola Tesla adalah teman lama dari masa kuliah Anda. Baru-baru ini ia mematenkan sistem transmisi energi nirkabel baru dan akan senang mendiskusikannya dengan Anda. Ingat saja bahwa ia sangat menyukai merpati, jadi itu bisa menjadi bahan obrolan ringan yang bagus.",
+    "email": "nikola.tesla@gmail.com"
+}
+```
+
+## Mengembangkannya Lebih Lanjut
+
+Sekarang Alfred bisa mengambil informasi tamu, pertimbangkan bagaimana kamu dapat meningkatkan sistem ini:
+
+1. **Tingkatkan retriever** agar menggunakan algoritma yang lebih canggih seperti [sentence-transformers](https://www.sbert.net/)
+2. **Implementasikan conversation memory** agar Alfred mengingat interaksi sebelumnya
+3. **Gabungkan dengan web search** untuk mendapatkan informasi terbaru tentang tamu yang belum dikenal
+4. **Integrasikan beberapa index** untuk mendapatkan informasi yang lebih lengkap dari sumber terverifikasi
+
+Kini Alfred sudah sepenuhnya siap menangani pertanyaan tamu dengan mudah, memastikan galamu dikenang sebagai acara paling elegan dan menyenangkan abad ini!
+
+> [!TIP]
+> Coba perluas retriever tool agar juga mengembalikan pembuka percakapan berdasarkan minat atau latar belakang setiap tamu. Bagaimana kamu akan memodifikasi tool untuk mencapainya?
+>
+> Setelah selesai, implementasikan guest retriever tool-mu di file <code>retriever.py</code>.

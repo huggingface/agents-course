@@ -1,0 +1,500 @@
+# Membuat Agent Gala Kamu
+
+Sekarang kita sudah membangun semua komponen yang dibutuhkan Alfred, saatnya menyatukan semuanya menjadi agent lengkap yang bisa membantu menjadi tuan rumah gala mewah kita.
+
+Di bagian ini, kita akan menggabungkan tools untuk retrieval informasi tamu, web search, informasi cuaca, dan statistik Hub menjadi satu agent yang powerful.
+
+## Merakit Alfred: Agent yang Lengkap
+
+Alih-alih mengimplementasikan ulang semua tools yang sudah kita buat di bagian sebelumnya, kita akan mengimpornya dari module masing-masing yang sudah kita simpan di file `tools.py` dan `retriever.py`.
+
+> [!TIP]
+> Jika kamu belum mengimplementasikan tools tersebut, kembali ke bagian <a href="./tools">tools</a> dan <a href="./invitees">retriever</a> untuk mengimplementasikannya, lalu tambahkan ke file <code>tools.py</code> dan <code>retriever.py</code>.
+
+Mari impor library dan tools yang dibutuhkan dari bagian sebelumnya:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+# Impor library yang dibutuhkan
+import random
+from smolagents import CodeAgent, InferenceClientModel
+
+# Impor custom tools dari module masing-masing
+from tools import DuckDuckGoSearchTool, WeatherInfoTool, HubStatsTool
+from retriever import load_guest_dataset
+```
+
+Sekarang, mari gabungkan semua tools ini menjadi satu agent:
+
+```python
+# Inisialisasi model Hugging Face
+model = InferenceClientModel()
+
+# Inisialisasi web search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Inisialisasi weather tool
+weather_info_tool = WeatherInfoTool()
+
+# Inisialisasi Hub stats tool
+hub_stats_tool = HubStatsTool()
+
+# Muat dataset tamu dan inisialisasi guest info tool
+guest_info_tool = load_guest_dataset()
+
+# Buat Alfred dengan semua tools
+alfred = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool],
+    model=model,
+    add_base_tools=True,  # Tambahkan base tools tambahan
+    planning_interval=3   # Aktifkan planning setiap 3 langkah
+)
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+# Impor library yang dibutuhkan
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+from tools import search_tool, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+```
+
+Sekarang, mari gabungkan semua tools ini menjadi satu agent:
+
+```python
+# Inisialisasi model Hugging Face
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Buat Alfred dengan semua tools
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm,
+)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+from tools import DuckDuckGoSearchRun, weather_info_tool, hub_stats_tool
+from retriever import guest_info_tool
+```
+
+Sekarang, mari gabungkan semua tools ini menjadi satu agent:
+
+```python
+# Inisialisasi web search tool
+search_tool = DuckDuckGoSearchRun()
+
+# Buat chat interface, termasuk tools
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Buat AgentState dan graph Agent
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## Graph
+builder = StateGraph(AgentState)
+
+# Definisikan node: bagian ini yang menjalankan pekerjaan
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Definisikan edge: bagian ini menentukan bagaimana control flow bergerak
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # Jika pesan terbaru membutuhkan tool, arahkan ke tools
+    # Jika tidak, berikan respons langsung
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+```
+</hfoption>
+</hfoptions>
+
+Agent-mu sekarang siap digunakan!
+
+## Menggunakan Alfred: Contoh End-to-End
+
+Sekarang Alfred sudah dilengkapi semua tools yang dibutuhkan, mari lihat bagaimana ia bisa membantu berbagai tugas selama gala.
+
+### Contoh 1: Menemukan Informasi Tamu
+
+Mari lihat bagaimana Alfred bisa membantu kita dengan informasi tamu.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "Tell me about 'Lady Ada Lovelace'"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Berdasarkan informasi yang saya ambil, Lady Ada Lovelace adalah matematikawan dan teman yang sangat dihormati. Ia dikenal karena karya pionirnya dalam matematika dan komputasi, sering dirayakan sebagai programmer komputer pertama berkat karyanya pada Analytical Engine milik Charles Babbage. Alamat emailnya adalah ada.lovelace@example.com.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "Tell me about Lady Ada Lovelace. What's her background?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response.response.blocks[0].text)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace adalah matematikawan dan penulis Inggris, paling dikenal karena karyanya pada Analytical Engine milik Charles Babbage. Ia adalah orang pertama yang menyadari bahwa mesin tersebut memiliki aplikasi di luar perhitungan murni.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "Tell me about 'Lady Ada Lovelace'"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Ada Lovelace, juga dikenal sebagai Augusta Ada King, Countess of Lovelace, adalah matematikawan dan penulis Inggris. Lahir pada 10 Desember 1815 dan wafat pada 27 November 1852, ia dikenal karena karyanya pada Analytical Engine milik Charles Babbage, sebuah rancangan komputer mekanis general-purpose. Ada Lovelace dirayakan sebagai salah satu programmer komputer pertama karena ia membuat program untuk Analytical Engine pada 1843. Ia menyadari bahwa mesin tersebut bisa digunakan untuk lebih dari sekadar perhitungan, membayangkan potensinya dengan cara yang belum banyak dilihat orang saat itu. Kontribusinya di bidang ilmu komputer menjadi dasar bagi perkembangan berikutnya. Satu hari di bulan Oktober, yang ditetapkan sebagai Ada Lovelace Day, menghormati kontribusi perempuan dalam sains dan teknologi, terinspirasi dari karya pionir Lovelace.
+```
+
+</hfoption>
+</hfoptions>
+
+
+### Contoh 2: Memeriksa Cuaca untuk Kembang Api
+
+Mari lihat bagaimana Alfred bisa membantu kita dengan cuaca.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan (akan bervariasi karena randomness):
+```
+🎩 Alfred's Response:
+Saya sudah memeriksa cuaca di Paris untukmu. Saat ini cuacanya cerah dengan suhu 25°C. Kondisi ini sempurna untuk pertunjukan kembang api malam ini. Langit yang cerah akan memberikan visibilitas yang sangat baik untuk pertunjukan spektakuler tersebut, dan suhu yang nyaman akan memastikan para tamu bisa menikmati acara luar ruangan tanpa rasa tidak nyaman.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Cuaca di Paris malam ini hujan dengan suhu 15°C. Mengingat adanya hujan, cuaca ini mungkin tidak cocok untuk pertunjukan kembang api.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "What's the weather like in Paris tonight? Will it be suitable for our fireworks display?"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Cuaca di Paris malam ini hujan dengan suhu 15°C, yang mungkin tidak cocok untuk pertunjukan kembang apimu.
+```
+</hfoption>
+</hfoptions>
+
+### Contoh 3: Membuat Peneliti AI Terkesan
+
+Mari lihat bagaimana Alfred bisa membantu kita membuat peneliti AI terkesan.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "One of our guests is from Qwen. What can you tell me about their most popular model?"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Model Qwen paling populer adalah Qwen/Qwen2.5-VL-7B-Instruct dengan 3.313.345 unduhan.
+```
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "One of our guests is from Google. What can you tell me about their most popular model?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Model paling populer dari Google di Hugging Face Hub adalah google/electra-base-discriminator, dengan 28.546.752 unduhan.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages": "One of our guests is from Qwen. What can you tell me about their most popular model?"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Model yang paling banyak diunduh dari Qwen adalah Qwen/Qwen2.5-VL-7B-Instruct dengan 3.313.345 unduhan.
+```
+</hfoption>
+</hfoptions>
+
+### Contoh 4: Menggabungkan Beberapa Tools
+
+Mari lihat bagaimana Alfred bisa membantu kita menyiapkan percakapan dengan Dr. Nikola Tesla.
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+query = "I need to speak with Dr. Nikola Tesla about recent advancements in wireless energy. Can you help me prepare for this conversation?"
+response = alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Saya sudah mengumpulkan informasi untuk membantumu menyiapkan percakapan dengan Dr. Nikola Tesla.
+
+Informasi Tamu:
+Name: Dr. Nikola Tesla
+Relation: teman lama dari masa kuliah
+Description: Dr. Nikola Tesla adalah teman lama dari masa kuliahmu. Ia baru-baru ini mematenkan sistem transmisi energi nirkabel baru dan akan senang mendiskusikannya denganmu. Ingat saja bahwa ia sangat menyukai merpati, jadi itu bisa menjadi bahan obrolan ringan yang bagus.
+Email: nikola.tesla@gmail.com
+
+Kemajuan Terbaru dalam Energi Nirkabel:
+Berdasarkan web search saya, berikut beberapa perkembangan terbaru dalam transmisi energi nirkabel:
+1. Para peneliti telah membuat kemajuan dalam transmisi daya nirkabel jarak jauh menggunakan gelombang elektromagnetik terfokus
+2. Beberapa perusahaan sedang mengembangkan teknologi resonant inductive coupling untuk elektronik konsumen
+3. Ada aplikasi baru dalam pengisian daya kendaraan listrik tanpa koneksi fisik
+
+Pembuka Percakapan:
+1. "Saya ingin sekali mendengar tentang paten baru Anda tentang transmisi energi nirkabel. Bagaimana perbandingannya dengan konsep awal Anda dari masa kuliah kita?"
+2. "Apakah Anda melihat perkembangan terbaru dalam resonant inductive coupling untuk elektronik konsumen? Bagaimana pendapat Anda tentang pendekatan mereka?"
+3. "Bagaimana kabar merpati-merpati Anda? Saya ingat ketertarikan Anda pada mereka."
+
+Ini seharusnya memberimu banyak bahan diskusi dengan Dr. Tesla sekaligus menunjukkan pengetahuanmu tentang minatnya dan perkembangan terbaru di bidangnya.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+query = "I need to speak with Dr. Nikola Tesla about recent advancements in wireless energy. Can you help me prepare for this conversation?"
+response = await alfred.run(query)
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+Output yang diharapkan:
+
+```
+🎩 Alfred's Response:
+Berikut beberapa kemajuan terbaru dalam energi nirkabel yang mungkin berguna untuk percakapanmu dengan Dr. Nikola Tesla:
+
+1. **Advancements and Challenges in Wireless Power Transfer**: Artikel ini membahas evolusi wireless power transfer (WPT) dari metode kabel konvensional ke aplikasi modern, termasuk stasiun tenaga surya luar angkasa. Artikel ini juga membahas fokus awal pada teknologi microwave dan kebutuhan WPT saat ini karena meningkatnya penggunaan perangkat listrik.
+
+2. **Recent Advances in Wireless Energy Transfer Technologies for Body-Interfaced Electronics**: Artikel ini mengeksplorasi wireless energy transfer (WET) sebagai solusi untuk memberi daya pada elektronik body-interfaced tanpa perlu baterai atau kabel lead. Artikel ini membahas keunggulan dan potensi aplikasi WET dalam konteks tersebut.
+
+3. **Wireless Power Transfer and Energy Harvesting: Current Status and Future Trends**: Artikel ini memberikan ringkasan kemajuan terbaru dalam metode pasokan daya nirkabel, termasuk energy harvesting dan wireless power transfer. Artikel ini menyajikan beberapa aplikasi yang menjanjikan dan membahas tren masa depan di bidang ini.
+
+4. **Wireless Power Transfer: Applications, Challenges, Barriers, and the
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+response = alfred.invoke({"messages":"I need to speak with 'Dr. Nikola Tesla' about recent advancements in wireless energy. Can you help me prepare for this conversation?"})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+Output yang diharapkan:
+
+```
+Berdasarkan informasi yang tersedia, berikut poin-poin utama untuk menyiapkan percakapan dengan 'Dr. Nikola Tesla' tentang kemajuan terbaru dalam energi nirkabel:\n1. **Wireless Power Transmission (WPT):** Bahas bagaimana WPT merevolusi transfer energi dengan menghilangkan kebutuhan kabel dan menggunakan mekanisme seperti inductive dan resonant coupling.\n2. **Kemajuan dalam Wireless Charging:** Soroti peningkatan efisiensi, kecepatan pengisian yang lebih tinggi, dan meningkatnya solusi wireless charging bersertifikasi Qi/Qi2.\n3. **Inovasi 5G-Advanced dan NearLink Wireless Protocol:** Sebutkan ini sebagai perkembangan yang meningkatkan kecepatan, keamanan, dan efisiensi jaringan nirkabel, yang dapat mendukung teknologi energi nirkabel canggih.\n4. **AI dan ML at the Edge:** Bahas bagaimana AI dan machine learning akan bergantung pada jaringan nirkabel untuk membawa kecerdasan ke edge, meningkatkan otomasi dan kecerdasan di smart homes dan buildings.\n5. **Kemajuan Matter, Thread, dan Keamanan:** Bahas ini sebagai inovasi utama yang mendorong konektivitas, efisiensi, dan keamanan pada perangkat serta sistem IoT.\n6. **Terobosan dalam Teknologi Wireless Charging:** Sertakan terobosan atau studi terbaru, seperti dari Incheon National University, untuk memperkuat pembahasan tentang kemajuan wireless charging.
+```
+</hfoption>
+</hfoptions>
+
+## Fitur Lanjutan: Conversation Memory
+
+Untuk membuat Alfred semakin membantu selama gala, kita bisa mengaktifkan conversation memory agar ia mengingat interaksi sebelumnya:
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+# Buat Alfred dengan conversation memory
+alfred_with_memory = CodeAgent(
+    tools=[guest_info_tool, weather_info_tool, hub_stats_tool, search_tool],
+    model=model,
+    add_base_tools=True,
+    planning_interval=3
+)
+
+# Interaksi pertama
+response1 = alfred_with_memory.run("Tell me about Lady Ada Lovelace.")
+print("🎩 Alfred's First Response:")
+print(response1)
+
+# Interaksi kedua (merujuk ke interaksi pertama)
+response2 = alfred_with_memory.run("What projects is she currently working on?", reset=False)
+print("🎩 Alfred's Second Response:")
+print(response2)
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.workflow import Context
+
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool, search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# Mengingat state
+ctx = Context(alfred)
+
+# Interaksi pertama
+response1 = await alfred.run("Tell me about Lady Ada Lovelace.", ctx=ctx)
+print("🎩 Alfred's First Response:")
+print(response1)
+
+# Interaksi kedua (merujuk ke interaksi pertama)
+response2 = await alfred.run("What projects is she currently working on?", ctx=ctx)
+print("🎩 Alfred's Second Response:")
+print(response2)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+# Interaksi pertama
+response = alfred.invoke({"messages": [HumanMessage(content="Tell me about 'Lady Ada Lovelace'. What's her background and how is she related to me?")]})
+
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+print()
+
+# Interaksi kedua (merujuk ke interaksi pertama)
+response = alfred.invoke({"messages": response["messages"] + [HumanMessage(content="What projects is she currently working on?")]})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+</hfoption>
+</hfoptions>
+
+Perhatikan bahwa ketiga pendekatan agent ini tidak mengaitkan memory langsung dengan agent. Apakah ada alasan khusus di balik pilihan desain ini 🧐?
+* smolagents: Memory tidak dipertahankan di antara execution run yang berbeda; kamu harus menyatakannya secara eksplisit menggunakan `reset=False`.
+* LlamaIndex: Membutuhkan penambahan context object secara eksplisit untuk manajemen memory dalam sebuah run.
+* LangGraph: Menawarkan opsi untuk mengambil pesan sebelumnya atau menggunakan komponen khusus [MemorySaver](https://langchain-ai.github.io/langgraph/tutorials/introduction/#part-3-adding-memory-to-the-chatbot).
+
+## Penutup
+
+Selamat! Kamu berhasil membangun Alfred, agent canggih yang dilengkapi banyak tools untuk membantu menjadi tuan rumah gala paling mewah abad ini. Alfred sekarang bisa:
+
+1. Mengambil informasi detail tentang tamu
+2. Memeriksa kondisi cuaca untuk merencanakan aktivitas luar ruangan
+3. Memberikan insight tentang AI builders berpengaruh dan models mereka
+4. Mencari informasi terbaru di web
+5. Mempertahankan konteks percakapan dengan memory
+
+Dengan kemampuan ini, Alfred siap memastikan galamu sukses besar, membuat para tamu terkesan dengan perhatian personal dan informasi up-to-date.

@@ -1,0 +1,280 @@
+# Membuat agentic workflows di LlamaIndex
+
+Workflow di LlamaIndex menyediakan cara terstruktur untuk mengatur kodemu menjadi langkah-langkah berurutan yang mudah dikelola.
+
+Workflow seperti ini dibuat dengan mendefinisikan `Steps` yang dipicu oleh `Events`, lalu `Steps` tersebut juga mengirim `Events` untuk memicu langkah berikutnya.
+Mari lihat Alfred menunjukkan workflow LlamaIndex untuk tugas RAG.
+
+![Skema Workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflows.png)
+
+**Workflows menawarkan beberapa manfaat utama:**
+
+- Pengaturan kode yang jelas menjadi langkah-langkah terpisah
+- Arsitektur event-driven untuk control flow yang fleksibel
+- Komunikasi type-safe antar langkah
+- Built-in state management
+- Dukungan untuk interaksi agent yang sederhana maupun kompleks
+
+Seperti yang mungkin sudah kamu duga, **workflows memberi keseimbangan yang baik antara otonomi agents dan kendali atas keseluruhan workflow.**
+
+Jadi, mari belajar membuat workflow sendiri!
+
+## Membuat Workflows
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">notebook ini</a> yang bisa dijalankan dengan Google Colab.
+
+### Membuat Workflow Dasar
+
+<details>
+<summary>Instal package Workflow</summary>
+Seperti diperkenalkan pada <a href="./llama-hub">bagian tentang LlamaHub</a>, kita bisa menginstal package Workflow dengan perintah berikut:
+
+```python
+pip install llama-index-utils-workflow
+```
+</details>
+
+Kita bisa membuat single-step workflow dengan mendefinisikan class yang mewarisi `Workflow` dan memberi decorator `@step` pada fungsi.
+Kita juga perlu menambahkan `StartEvent` dan `StopEvent`, yaitu events khusus yang dipakai untuk menandai awal dan akhir workflow.
+
+```python
+from llama_index.core.workflow import StartEvent, StopEvent, Workflow, step
+
+class MyWorkflow(Workflow):
+    @step
+    async def my_step(self, ev: StartEvent) -> StopEvent:
+        # lakukan sesuatu di sini
+        return StopEvent(result="Hello, world!")
+
+
+w = MyWorkflow(timeout=10, verbose=False)
+result = await w.run()
+```
+
+Seperti yang kamu lihat, sekarang kita bisa menjalankan workflow dengan memanggil `w.run()`.
+
+### Menghubungkan Beberapa Steps
+
+Untuk menghubungkan beberapa steps, kita **membuat custom events yang membawa data antar steps.**
+Caranya, kita perlu menambahkan `Event` yang diteruskan antar steps dan memindahkan output dari step pertama ke step kedua.
+
+```python
+from llama_index.core.workflow import Event
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent) -> ProcessingEvent:
+        # Proses data awal
+        return ProcessingEvent(intermediate_result="Step 1 complete")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Gunakan hasil antara
+        final_result = f"Finished processing: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+w = MultiStepWorkflow(timeout=10, verbose=False)
+result = await w.run()
+result
+```
+
+Type hinting penting di sini karena memastikan workflow dieksekusi dengan benar. Mari kita buat sedikit lebih kompleks!
+
+### Loops dan Branches
+
+Type hinting adalah bagian paling kuat dari workflows karena memungkinkan kita membuat branches, loops, dan joins untuk mendukung workflows yang lebih kompleks.
+
+Mari lihat contoh **membuat loop** dengan memakai operator union `|`.
+Pada contoh di bawah, kita melihat bahwa `LoopEvent` dipakai sebagai input untuk step dan juga bisa dikembalikan sebagai output.
+
+```python
+from llama_index.core.workflow import Event
+import random
+
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+
+class LoopEvent(Event):
+    loop_output: str
+
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent | LoopEvent) -> ProcessingEvent | LoopEvent:
+        if random.randint(0, 1) == 0:
+            print("Bad thing happened")
+            return LoopEvent(loop_output="Back to step one.")
+        else:
+            print("Good thing happened")
+            return ProcessingEvent(intermediate_result="First step complete.")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Gunakan hasil antara
+        final_result = f"Finished processing: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+
+w = MultiStepWorkflow(verbose=False)
+result = await w.run()
+result
+```
+
+### Menggambar Workflows
+
+Kita juga bisa menggambar workflows. Mari gunakan fungsi `draw_all_possible_flows` untuk menggambar workflow. Fungsi ini menyimpan workflow dalam file HTML.
+
+```python
+from llama_index.utils.workflow import draw_all_possible_flows
+
+w = ... # seperti didefinisikan pada bagian sebelumnya
+draw_all_possible_flows(w, "flow.html")
+```
+
+![gambar workflow](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflow-draw.png)
+
+Ada satu trik menarik terakhir yang akan kita bahas dalam kursus ini, yaitu kemampuan menambahkan state ke workflow.
+
+### Manajemen State
+
+State management berguna ketika kamu ingin melacak state workflow, sehingga setiap step punya akses ke state yang sama.
+Kita bisa melakukannya dengan memakai type hint `Context` pada parameter di fungsi step.
+
+```python
+from llama_index.core.workflow import Context, StartEvent, StopEvent
+
+
+@step
+async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
+    # simpan query di context
+    await ctx.store.set("query", "What is the capital of France?")
+
+    # lakukan sesuatu dengan context dan event
+    val = ...
+
+    # ambil query dari context
+    query = await ctx.store.get("query")
+
+    return StopEvent(result=val)
+```
+
+Bagus! Sekarang kamu tahu cara membuat workflows dasar di LlamaIndex!
+
+> [!TIP]
+> Ada beberapa nuansa workflow yang lebih kompleks, yang bisa kamu pelajari di <a href="https://docs.llamaindex.ai/en/stable/understanding/workflows/">dokumentasi LlamaIndex</a>.
+
+Namun, ada cara lain untuk membuat workflows, yaitu dengan memakai class `AgentWorkflow`. Mari lihat bagaimana kita bisa memakainya untuk membuat multi-agent workflow.
+
+## Mengotomatiskan workflows dengan Multi-Agent Workflows
+
+Alih-alih membuat workflow secara manual, kita bisa memakai **class `AgentWorkflow` untuk membuat multi-agent workflow**.
+`AgentWorkflow` memakai Workflow Agents sehingga kamu bisa membuat sistem berisi satu atau beberapa agents yang dapat berkolaborasi dan hand off tugas satu sama lain berdasarkan kemampuan spesialis mereka.
+Ini memungkinkan kita membangun sistem agent yang kompleks, dengan agents berbeda menangani aspek tugas yang berbeda.
+Alih-alih mengimpor classes dari `llama_index.core.agent`, kita akan mengimpor agent classes dari `llama_index.core.agent.workflow`.
+Satu agent harus ditetapkan sebagai root agent di constructor `AgentWorkflow`.
+Saat pesan pengguna masuk, pesan tersebut pertama-tama diarahkan ke root agent.
+
+Setiap agent kemudian bisa:
+
+- Menangani permintaan secara langsung memakai tools miliknya
+- Melakukan handoff ke agent lain yang lebih cocok untuk tugas tersebut
+- Mengembalikan respons ke pengguna
+
+Mari lihat cara membuat multi-agent workflow.
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow, ReActAgent
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Definisikan beberapa tools
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers."""
+    return a * b
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# kita bisa meneruskan fungsi langsung tanpa FunctionTool -- fn/docstring akan di-parse untuk name/description
+multiply_agent = ReActAgent(
+    name="multiply_agent",
+    description="Is able to multiply two integers",
+    system_prompt="A helpful assistant that can use a tool to multiply numbers.",
+    tools=[multiply],
+    llm=llm,
+)
+
+addition_agent = ReActAgent(
+    name="add_agent",
+    description="Is able to add two integers",
+    system_prompt="A helpful assistant that can use a tool to add numbers.",
+    tools=[add],
+    llm=llm,
+)
+
+# Buat workflow
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+)
+
+# Jalankan sistem
+response = await workflow.run(user_msg="Can you add 5 and 3?")
+```
+
+Agent tools juga bisa memodifikasi workflow state yang kita bahas sebelumnya. Sebelum memulai workflow, kita bisa menyediakan dict initial state yang akan tersedia untuk semua agents.
+State disimpan di key state pada workflow context. State ini akan di-inject ke `state_prompt`, yang menambahkan konteks ke setiap pesan pengguna baru.
+
+Mari inject counter untuk menghitung function calls dengan memodifikasi contoh sebelumnya:
+
+```python
+from llama_index.core.workflow import Context
+
+# Definisikan beberapa tools
+async def add(ctx: Context, a: int, b: int) -> int:
+    """Add two numbers."""
+    # perbarui hitungan kita
+    cur_state = await ctx.store.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.store.set("state", cur_state)
+
+    return a + b
+
+async def multiply(ctx: Context, a: int, b: int) -> int:
+    """Multiply two numbers."""
+    # perbarui hitungan kita
+    cur_state = await ctx.store.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.store.set("state", cur_state)
+
+    return a * b
+
+...
+
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+    initial_state={"num_fn_calls": 0},
+    state_prompt="Current state: {state}. User message: {msg}",
+)
+
+# jalankan workflow dengan context
+ctx = Context(workflow)
+response = await workflow.run(user_msg="Can you add 5 and 3?", ctx=ctx)
+
+# ambil dan periksa state
+state = await ctx.store.get("state")
+print(state["num_fn_calls"])
+```
+
+Selamat! Sekarang kamu sudah menguasai dasar-dasar Agents di LlamaIndex! 🎉
+
+Mari lanjut ke kuis terakhir untuk menguatkan pemahamanmu! 🚀

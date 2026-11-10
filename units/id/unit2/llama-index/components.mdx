@@ -1,0 +1,247 @@
+# Apa Itu Components di LlamaIndex?
+
+Ingat Alfred, agent pelayan kita yang membantu dari Unit 1?
+Agar bisa membantu dengan baik, Alfred perlu memahami permintaan kita dan **menyiapkan, menemukan, serta memakai informasi yang relevan untuk menyelesaikan tugas.**
+Di sinilah components LlamaIndex berperan.
+
+LlamaIndex punya banyak components, tetapi **kita akan fokus pada komponen `QueryEngine`.**
+Kenapa? Karena komponen ini bisa dipakai sebagai tool Retrieval-Augmented Generation (RAG) untuk sebuah agent.
+
+Jadi, apa itu RAG? LLM dilatih dengan kumpulan data yang sangat besar untuk mempelajari pengetahuan umum.
+Namun, LLM belum tentu dilatih dengan data yang relevan dan terbaru.
+RAG menyelesaikan masalah ini dengan mencari dan mengambil informasi yang relevan dari datamu, lalu memberikannya ke LLM.
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+Sekarang, bayangkan cara Alfred bekerja:
+
+1. Kamu meminta Alfred membantu merencanakan jamuan makan malam
+2. Alfred perlu memeriksa kalendermu, preferensi diet, dan menu sebelumnya yang berhasil
+3. `QueryEngine` membantu Alfred menemukan informasi ini dan memakainya untuk merencanakan jamuan makan malam
+
+Ini membuat `QueryEngine` **komponen kunci untuk membangun agentic RAG workflows** di LlamaIndex.
+Seperti Alfred yang perlu mencari informasi rumah tanggamu agar bisa membantu, setiap agent membutuhkan cara untuk menemukan dan memahami data yang relevan.
+`QueryEngine` menyediakan kemampuan tersebut.
+
+Sekarang, mari kita bahas components sedikit lebih dalam dan lihat bagaimana kamu bisa **menggabungkan components untuk membuat RAG pipeline.**
+
+## Membuat RAG pipeline dengan components
+
+> [!TIP]
+> Kamu bisa mengikuti kode di <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">notebook ini</a> yang bisa dijalankan dengan Google Colab.
+
+Ada lima tahap utama dalam RAG, dan tahap-tahap ini biasanya juga menjadi bagian dari aplikasi yang lebih besar. Tahapnya adalah:
+
+1. **Loading**: mengambil data dari tempat asalnya, baik berupa file teks, PDF, website lain, database, maupun API, lalu memasukkannya ke workflow. LlamaHub menyediakan ratusan integrations yang bisa dipilih.
+2. **Indexing**: membuat struktur data yang memungkinkan data tersebut di-query. Untuk LLM, ini hampir selalu berarti membuat vector embeddings, yaitu representasi numerik dari makna data. Indexing juga bisa mencakup berbagai strategi metadata agar data yang relevan secara konteks bisa ditemukan dengan akurat berdasarkan propertinya.
+3. **Storing**: setelah data di-index, kamu biasanya ingin menyimpan index beserta metadata lainnya agar tidak perlu melakukan re-index.
+4. **Querying**: untuk setiap strategi indexing, ada banyak cara menggunakan LLM dan struktur data LlamaIndex untuk melakukan query, termasuk sub-queries, multi-step queries, dan strategi hybrid.
+5. **Evaluation**: tahap untuk memeriksa seberapa efektif flow dibanding strategi lain, atau setelah kamu membuat perubahan. Evaluation memberikan ukuran objektif tentang seberapa akurat, faithful, dan cepat respons terhadap query.
+
+Berikutnya, mari lihat bagaimana kita bisa mereproduksi tahap-tahap ini memakai components.
+
+### Loading dan embedding dokumen
+
+Seperti disebutkan sebelumnya, LlamaIndex bisa bekerja di atas datamu sendiri. Namun, **sebelum mengakses data, kita perlu memuatnya.**
+Ada tiga cara utama untuk memuat data ke LlamaIndex:
+
+1. `SimpleDirectoryReader`: loader bawaan untuk berbagai jenis file dari direktori lokal.
+2. `LlamaParse`: tool resmi LlamaIndex untuk PDF parsing, tersedia sebagai managed API.
+3. `LlamaHub`: registry berisi ratusan library pemuat data untuk ingest data dari sumber apa pun.
+
+> [!TIP]
+> Biasakan diri dengan loaders <a href="https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/">LlamaHub</a> dan parser <a href="https://github.com/run-llama/llama_cloud_services/blob/main/parse.md">LlamaParse</a> untuk sumber data yang lebih kompleks.
+
+**Cara paling sederhana untuk memuat data adalah memakai `SimpleDirectoryReader`.**
+Komponen serbaguna ini bisa memuat berbagai jenis file dari folder dan mengubahnya menjadi objek `Document` yang bisa dipakai LlamaIndex.
+Mari lihat bagaimana kita bisa memakai `SimpleDirectoryReader` untuk memuat data dari folder.
+
+```python
+from llama_index.core import SimpleDirectoryReader
+
+reader = SimpleDirectoryReader(input_dir="path/to/directory")
+documents = reader.load_data()
+```
+
+Setelah memuat dokumen, kita perlu memecahnya menjadi bagian-bagian lebih kecil yang disebut objek `Node`.
+`Node` adalah potongan teks dari dokumen asli yang lebih mudah diproses AI, sambil tetap menyimpan referensi ke objek `Document` asalnya.
+
+`IngestionPipeline` membantu kita membuat nodes ini melalui dua transformasi utama.
+1. `SentenceSplitter` memecah dokumen menjadi chunks yang lebih mudah dikelola dengan membaginya pada batas kalimat yang alami.
+2. `HuggingFaceEmbedding` mengubah setiap chunk menjadi embeddings numerik, yaitu representasi vektor yang menangkap makna semantik agar bisa diproses AI secara efisien.
+
+Proses ini membantu kita mengatur dokumen dengan cara yang lebih berguna untuk pencarian dan analisis.
+
+```python
+from llama_index.core import Document
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core.ingestion import IngestionPipeline
+
+# buat pipeline dengan transformations
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_overlap=0),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ]
+)
+
+nodes = await pipeline.arun(documents=[Document.example()])
+```
+
+
+### Menyimpan dan meng-index dokumen
+
+Setelah membuat objek `Node`, kita perlu meng-index objek tersebut agar bisa dicari. Namun sebelum itu, kita membutuhkan tempat untuk menyimpan data.
+
+Karena kita memakai ingestion pipeline, kita bisa langsung memasang vector store ke pipeline untuk mengisinya.
+Dalam contoh ini, kita akan memakai `Chroma` untuk menyimpan dokumen.
+
+<details>
+<summary>Instal ChromaDB</summary>
+
+Seperti diperkenalkan pada <a href="./llama-hub">bagian tentang LlamaHub</a>, kita bisa menginstal ChromaDB vector store dengan perintah berikut:
+
+```bash
+pip install llama-index-vector-stores-chroma
+```
+</details>
+
+```python
+import chromadb
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+pipeline = IngestionPipeline(
+    transformations=[
+        SentenceSplitter(chunk_size=25, chunk_overlap=0),
+        HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5"),
+    ],
+    vector_store=vector_store,
+)
+```
+
+> [!TIP]
+> Overview berbagai vector stores bisa ditemukan di <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">dokumentasi LlamaIndex</a>.
+
+
+Di sinilah vector embeddings digunakan. Dengan menempatkan query dan nodes dalam ruang vektor yang sama, kita bisa menemukan kecocokan yang relevan.
+`VectorStoreIndex` menangani ini untuk kita, dengan memakai embedding model yang sama seperti saat ingestion agar hasilnya konsisten.
+
+Mari lihat cara membuat index ini dari vector store dan embeddings kita:
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
+embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en-v1.5")
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+```
+
+Semua informasi otomatis disimpan secara persisten di dalam objek `ChromaVectorStore` dan path direktori yang diberikan.
+
+Bagus! Sekarang setelah kita bisa menyimpan dan memuat index dengan mudah, mari jelajahi beberapa cara untuk melakukan query.
+
+### Melakukan query pada VectorStoreIndex dengan prompts dan LLMs
+
+Sebelum bisa melakukan query ke index, kita perlu mengubahnya menjadi query interface. Opsi konversi yang paling umum adalah:
+
+- `as_retriever`: untuk document retrieval dasar, mengembalikan daftar objek `NodeWithScore` beserta similarity scores
+- `as_query_engine`: untuk interaksi tanya-jawab tunggal, mengembalikan respons tertulis
+- `as_chat_engine`: untuk interaksi percakapan yang mempertahankan memory lintas pesan, mengembalikan respons tertulis memakai chat history dan indexed context
+
+Kita akan fokus pada query engine karena ini lebih umum dipakai untuk interaksi yang mirip agent.
+Kita juga meneruskan LLM ke query engine agar dipakai untuk menghasilkan respons.
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(
+    llm=llm,
+    response_mode="tree_summarize",
+)
+query_engine.query("What is the meaning of life?")
+# Makna hidup adalah 42
+```
+
+### Pemrosesan Respons
+
+Di balik layar, query engine tidak hanya memakai LLM untuk menjawab pertanyaan, tetapi juga memakai `ResponseSynthesizer` sebagai strategi untuk memproses respons.
+Bagian ini bisa dikustomisasi penuh, tetapi ada tiga strategi utama yang langsung bekerja dengan baik:
+
+- `refine`: membuat dan menyempurnakan jawaban dengan menelusuri setiap text chunk yang diambil secara berurutan. Strategi ini membuat panggilan LLM terpisah untuk setiap Node atau chunk yang diambil.
+- `compact` (default): mirip dengan refine, tetapi chunks digabungkan lebih dulu sehingga jumlah panggilan LLM lebih sedikit.
+- `tree_summarize`: membuat jawaban detail dengan menelusuri setiap text chunk yang diambil dan membentuk struktur tree dari jawaban.
+
+> [!TIP]
+> Ambil kendali yang lebih rinci atas query workflows dengan <a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">low-level composition API</a>. API ini memungkinkan kamu menyesuaikan dan fine-tune setiap langkah proses query sesuai kebutuhanmu, dan cocok dipasangkan dengan <a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">Workflows</a>
+
+Language model tidak selalu bekerja secara prediktabel, jadi kita tidak bisa yakin bahwa jawaban yang didapat selalu benar. Kita bisa menangani ini dengan **mengevaluasi kualitas jawaban**.
+
+### Evaluation dan observability
+
+LlamaIndex menyediakan **built-in evaluation tools untuk menilai kualitas respons.**
+Evaluator ini memakai LLM untuk menganalisis respons dari beberapa dimensi.
+Mari lihat tiga evaluator utama yang tersedia:
+
+- `FaithfulnessEvaluator`: mengevaluasi faithfulness jawaban dengan memeriksa apakah jawaban didukung oleh konteks.
+- `AnswerRelevancyEvaluator`: mengevaluasi relevansi jawaban dengan memeriksa apakah jawaban relevan terhadap pertanyaan.
+- `CorrectnessEvaluator`: mengevaluasi correctness jawaban dengan memeriksa apakah jawabannya benar.
+
+> [!TIP]
+> Ingin belajar lebih banyak tentang agent observability dan evaluation? Lanjutkan perjalananmu dengan <a href="https://huggingface.co/learn/agents-course/bonus-unit2/introduction">Bonus Unit 2</a>.
+
+```python
+from llama_index.core.evaluation import FaithfulnessEvaluator
+
+query_engine = # dari bagian sebelumnya
+llm = # dari bagian sebelumnya
+
+# query index
+evaluator = FaithfulnessEvaluator(llm=llm)
+response = query_engine.query(
+    "What battles took place in New York City in the American Revolution?"
+)
+eval_result = evaluator.evaluate_response(response=response)
+eval_result.passing
+```
+
+Bahkan tanpa evaluation langsung, kita bisa **mendapatkan insight tentang performa sistem melalui observability.**
+Ini sangat berguna saat kita membangun workflows yang lebih kompleks dan ingin memahami performa setiap component.
+
+<details>
+<summary>Instal LlamaTrace</summary>
+
+Seperti diperkenalkan pada <a href="./llama-hub">bagian tentang LlamaHub</a>, kita bisa menginstal callback LlamaTrace dari Arize Phoenix dengan perintah berikut:
+
+```bash
+pip install -U llama-index-callbacks-arize-phoenix
+```
+
+Kita juga perlu mengatur environment variable `PHOENIX_API_KEY` ke API key LlamaTrace kita. Caranya:
+- Membuat akun di [LlamaTrace](https://llamatrace.com/login)
+- Membuat API key di pengaturan akun
+- Memakai API key tersebut pada kode di bawah untuk mengaktifkan tracing
+
+</details>
+
+```python
+import llama_index
+import os
+
+PHOENIX_API_KEY = "<PHOENIX_API_KEY>"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"api_key={PHOENIX_API_KEY}"
+llama_index.core.set_global_handler(
+    "arize_phoenix",
+    endpoint="https://llamatrace.com/v1/traces"
+)
+```
+
+> [!TIP]
+> Ingin belajar lebih banyak tentang components dan cara memakainya? Lanjutkan perjalananmu dengan <a href="https://docs.llamaindex.ai/en/stable/module_guides/">Components Guides</a> atau <a href="https://docs.llamaindex.ai/en/stable/understanding/rag/">Guide on RAG</a>.
+
+Kita sudah melihat cara memakai components untuk membuat `QueryEngine`. Sekarang, mari lihat bagaimana kita bisa **memakai `QueryEngine` sebagai tool untuk agent!**
