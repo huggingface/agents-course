@@ -93,7 +93,9 @@ login()
 ```python
 from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
 
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+web_search = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)
+
+agent = CodeAgent(tools=[web_search], model=InferenceClientModel())
 
 agent.run("웨인 저택에서 열리는 파티에 어울리는 최고의 음악 추천을 검색해줘.")
 ```
@@ -284,11 +286,12 @@ class SuperheroPartyThemeTool(Tool):
         
         return themes.get(category.lower(), "테마 파티 아이디어를 찾을 수 없습니다. 'classic heroes', 'villain masquerade', 'futuristic Gotham' 중에서 시도해보세요.")
 
+web_search = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)
 
 # Alfred가 파티 메뉴를 준비합니다
 agent = CodeAgent(
     tools=[
-        DuckDuckGoSearchTool(), 
+        web_search, 
         VisitWebpageTool(),
         suggest_menu,
         catering_service_tool,
