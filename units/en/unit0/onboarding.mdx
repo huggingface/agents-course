@@ -66,7 +66,7 @@ You can download the image by clicking 👉 [here](https://huggingface.co/datase
 
     If you run into the error "listen tcp 127.0.0.1:11434: bind: address already in use", you can use command `sudo lsof -i :11434` to identify the process
     ID (PID) that is currently using this port. If the process is `ollama`, it is likely that the installation script above has started ollama
-    service, so you can skip this command to start Ollama.
+    service, so you can skip this command to start Ollama. For the same error, on windows you can identify the process using `netstat -ano | findstr :11434` the number on the rightmost column will indicate process id.
 
 4. **Use `LiteLLMModel` Instead of `InferenceClientModel`**
 
