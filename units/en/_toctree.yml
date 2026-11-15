@@ -75,7 +75,7 @@
 - title: Unit 2.2 The LlamaIndex framework
   sections:
   - local: unit2/llama-index/introduction
-    title: Introduction to LLamaIndex
+    title: Introduction to LlamaIndex
   - local: unit2/llama-index/llama-hub
     title: Introduction to LlamaHub
   - local: unit2/llama-index/components
@@ -160,13 +160,4 @@
   sections:
   - local: bonus-unit3/introduction
     title: Introduction
-  - local: bonus-unit3/state-of-art
-    title: The State of the Art in Using LLMs in Games
-  - local: bonus-unit3/from-llm-to-agents
-    title: From LLMs to AI Agents
-  - local: bonus-unit3/building_your_pokemon_agent
-    title: Build Your Own Pokémon Battle Agent
-  - local: bonus-unit3/launching_agent_battle
-    title: Launching Your Pokémon Battle Agent
-  - local: bonus-unit3/conclusion
-    title: Conclusion
+  - local:
