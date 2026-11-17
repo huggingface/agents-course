@@ -1,0 +1,455 @@
+# 建立賓客故事查詢的 RAG 工具
+
+你信賴的 agent Alfred，正為本世紀最奢華的晚宴做準備。為了確保活動順利進行，Alfred 需要快速取得每位賓客的最新資訊。我們就用自己的資料集，為他建立一個自訂的檢索增強生成（RAG）工具吧。
+
+## 晚宴為什麼需要 RAG？
+
+想像 Alfred 穿梭在賓客之間，隨時都可能需要想起某個人的特定細節。傳統 LLM 可能難以完成這項任務，因為：
+
+1. 賓客名單是這場活動專屬的資料，並不在模型的訓練資料中
+2. 賓客資訊可能經常變動或更新
+3. Alfred 需要擷取電子郵件地址等精確資訊
+
+這正是檢索增強生成（RAG）能發揮作用的地方！結合檢索系統與 LLM，Alfred 就能隨時依需求取得正確、最新的賓客資訊。
+
+> [!TIP]
+> 這個應用案例可以使用課程中介紹的任何框架。請在程式碼分頁中選擇你偏好的框架。
+
+## 設定應用程式
+
+本單元會在 HF Space 中，以結構化的 Python 專案開發 agent。將不同功能放在各自的檔案中，有助於維持程式碼清楚、模組化的結構。這也更貼近實際將應用程式部署給大眾使用的情境。
+
+### 專案結構
+
+- **`tools.py`**：提供 agent 使用的輔助工具。
+- **`retriever.py`**：實作檢索功能，支援知識存取。
+- **`app.py`**：將所有元件整合成完整可用的 agent，我們會在本單元最後完成它。
+
+想參考實際成果，可以看看[這個 HF Space](https://huggingface.co/spaces/agents-course/Unit_3_Agentic_RAG)，裡面已部署本單元開發的 Agentic RAG。歡迎複製下來動手實驗！
+
+你可以直接在下方測試這個 agent：
+
+<iframe
+	src="https://agents-course-unit-3-agentic-rag.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+## 資料集概覽
+
+我們的資料集 [`agents-course/unit3-invitees`](https://huggingface.co/datasets/agents-course/unit3-invitees/) 包含每位賓客的下列欄位：
+
+- **Name**：賓客全名
+- **Relation**：賓客與主人的關係
+- **Description**：賓客的簡短生平或趣事
+- **Email Address**：寄送邀請或後續聯絡所需的聯絡資訊
+
+以下是資料集的預覽：
+<iframe
+  src="https://huggingface.co/datasets/agents-course/unit3-invitees/embed/viewer/default/train"
+  frameborder="0"
+  width="100%"
+  height="560px"
+></iframe>
+
+> [!TIP]
+> 實際應用時，還可以在資料集中加入飲食偏好、喜歡的禮物類型、應避免的話題，以及其他對主人有幫助的細節。
+
+## 建立賓客名冊工具
+
+我們將建立自訂工具，讓 Alfred 在晚宴期間快速擷取賓客資訊。這項工作可以分成三個步驟：
+
+1. 載入並準備資料集
+2. 建立檢索器工具
+3. 將工具整合到 Alfred
+
+先從載入並準備資料集開始吧！
+
+### 步驟 1：載入並準備資料集
+
+首先，需要把原始賓客資料轉換成適合檢索的格式。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+我們會使用 Hugging Face 的 `datasets` 函式庫載入資料集，再將它轉成 `langchain.docstore.document` 模組中 `Document` 物件的清單。
+
+```python
+import datasets
+from langchain_core.documents import Document
+
+# Load the dataset
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Convert dataset entries into Document objects
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+我們會使用 Hugging Face 的 `datasets` 函式庫載入資料集，再將它轉成 `llama_index.core.schema` 模組中 `Document` 物件的清單。
+
+```python
+import datasets
+from llama_index.core.schema import Document
+
+# Load the dataset
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Convert dataset entries into Document objects
+docs = [
+    Document(
+        text="\n".join([
+            f"Name: {guest_dataset['name'][i]}",
+            f"Relation: {guest_dataset['relation'][i]}",
+            f"Description: {guest_dataset['description'][i]}",
+            f"Email: {guest_dataset['email'][i]}"
+        ]),
+        metadata={"name": guest_dataset['name'][i]}
+    )
+    for i in range(len(guest_dataset))
+]
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+我們會使用 Hugging Face 的 `datasets` 函式庫載入資料集，再將它轉成 `langchain.docstore.document` 模組中 `Document` 物件的清單。
+
+```python
+import datasets
+from langchain_core.documents import Document
+
+# Load the dataset
+guest_dataset = datasets.load_dataset("agents-course/unit3-invitees", split="train")
+
+# Convert dataset entries into Document objects
+docs = [
+    Document(
+        page_content="\n".join([
+            f"Name: {guest['name']}",
+            f"Relation: {guest['relation']}",
+            f"Description: {guest['description']}",
+            f"Email: {guest['email']}"
+        ]),
+        metadata={"name": guest["name"]}
+    )
+    for guest in guest_dataset
+]
+```
+
+</hfoption>
+</hfoptions>
+
+上述程式碼會：
+- 載入資料集
+- 將每筆賓客資料轉成內容經過格式化的 `Document` 物件
+- 把 `Document` 物件儲存在清單中
+
+所有資料都已準備好，接下來就能設定檢索功能。
+
+### 步驟 2：建立檢索器工具
+
+現在來建立自訂工具，讓 Alfred 能搜尋我們的賓客資訊。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+我們會使用 `langchain_community.retrievers` 模組的 `BM25Retriever`，建立檢索器工具。
+
+> [!TIP]
+> <code>BM25Retriever</code> 很適合作為檢索的起點。如果需要更進階的語意搜尋，可以考慮使用以嵌入向量為基礎的檢索器，例如 <a href="https://www.sbert.net/">sentence-transformers</a> 提供的工具。
+
+```python
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+
+class GuestInfoRetrieverTool(Tool):
+    name = "guest_info_retriever"
+    description = "Retrieves detailed information about gala guests based on their name or relation."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The name or relation of the guest you want information about."
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs):
+        self.is_initialized = False
+        self.retriever = BM25Retriever.from_documents(docs)
+
+    def forward(self, query: str):
+        results = self.retriever.invoke(query)
+        if results:
+            return "\n\n".join([doc.page_content for doc in results[:3]])
+        else:
+            return "No matching guest information found."
+
+# Initialize the tool
+guest_info_tool = GuestInfoRetrieverTool(docs)
+```
+
+逐步看看這個工具如何運作：
+- `name` 與 `description` 協助 agent 了解何時、如何使用這個工具
+- `inputs` 定義工具所需的參數（這裡是搜尋查詢）
+- 我們使用 `BM25Retriever`，這是一種強大的文字檢索演算法，無須使用嵌入向量
+- `forward` 方法處理查詢，並回傳最相關的賓客資訊
+
+</hfoption>
+<hfoption id="llama-index">
+
+我們會使用 `llama_index.retrievers.bm25` 模組的 `BM25Retriever`，建立檢索器工具。
+
+> [!TIP]
+> <code>BM25Retriever</code> 很適合作為檢索的起點。如果需要更進階的語意搜尋，可以考慮使用以嵌入向量為基礎的檢索器，例如 <a href="https://www.sbert.net/">sentence-transformers</a> 提供的工具。
+
+```python
+from llama_index.core.tools import FunctionTool
+from llama_index.retrievers.bm25 import BM25Retriever
+
+bm25_retriever = BM25Retriever.from_defaults(nodes=docs)
+
+def get_guest_info_retriever(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.retrieve(query)
+    if results:
+        return "\n\n".join([doc.text for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+# Initialize the tool
+guest_info_tool = FunctionTool.from_defaults(get_guest_info_retriever)
+```
+
+逐步看看這個工具如何運作：
+- docstring 協助 agent 了解何時、如何使用這個工具
+- 型別裝飾器定義工具所需的參數（這裡是搜尋查詢）
+- 我們使用 `BM25Retriever`，這是一種強大的文字檢索演算法，無須使用嵌入向量
+- 這個方法處理查詢，並回傳最相關的賓客資訊
+
+</hfoption>
+<hfoption id="langgraph">
+
+我們會使用 `langchain_community.retrievers` 模組的 `BM25Retriever`，建立檢索器工具。
+
+> [!TIP]
+> <code>BM25Retriever</code> 很適合作為檢索的起點。如果需要更進階的語意搜尋，可以考慮使用以嵌入向量為基礎的檢索器，例如 <a href="https://www.sbert.net/">sentence-transformers</a> 提供的工具。
+
+```python
+from langchain_community.retrievers import BM25Retriever
+from langchain_core.tools import Tool
+
+bm25_retriever = BM25Retriever.from_documents(docs)
+
+def extract_text(query: str) -> str:
+    """Retrieves detailed information about gala guests based on their name or relation."""
+    results = bm25_retriever.invoke(query)
+    if results:
+        return "\n\n".join([doc.page_content for doc in results[:3]])
+    else:
+        return "No matching guest information found."
+
+guest_info_tool = Tool(
+    name="guest_info_retriever",
+    func=extract_text,
+    description="Retrieves detailed information about gala guests based on their name or relation."
+)
+```
+
+逐步看看這個工具如何運作：
+- `name` 與 `description` 協助 agent 了解何時、如何使用這個工具
+- 型別裝飾器定義工具所需的參數（這裡是搜尋查詢）
+- 我們使用 `BM25Retriever`，這是一種強大的文字檢索演算法，無須使用嵌入向量
+- 這個方法處理查詢，並回傳最相關的賓客資訊
+
+</hfoption>
+</hfoptions>
+
+### 步驟 3：將工具整合到 Alfred
+
+最後，建立 agent 並為它加入自訂工具，把一切整合起來：
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Initialize the Hugging Face model
+model = InferenceClientModel()
+
+# Create Alfred, our gala agent, with the guest info tool
+alfred = CodeAgent(tools=[guest_info_tool], model=model)
+
+# Example query Alfred might receive during the gala
+response = alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+預期輸出：
+
+```
+🎩 Alfred's Response:
+Based on the information I retrieved, Lady Ada Lovelace is an esteemed mathematician and friend. She is renowned for her pioneering work in mathematics and computing, often celebrated as the first computer programmer due to her work on Charles Babbage's Analytical Engine. Her email address is ada.lovelace@example.com.
+```
+
+最後這個步驟會：
+- 使用 `InferenceClientModel` 類別初始化 Hugging Face 模型
+- 以 `CodeAgent` 建立我們的 agent（Alfred），讓它能執行 Python 程式碼來解決問題
+- 請 Alfred 擷取名為「Lady Ada Lovelace」的賓客資訊
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Initialize the Hugging Face model
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# Create Alfred, our gala agent, with the guest info tool
+alfred = AgentWorkflow.from_tools_or_functions(
+    [guest_info_tool],
+    llm=llm,
+)
+
+# Example query Alfred might receive during the gala
+response = await alfred.run("Tell me about our guest named 'Lady Ada Lovelace'.")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+預期輸出：
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace is an esteemed mathematician and friend, renowned for her pioneering work in mathematics and computing. She is celebrated as the first computer programmer due to her work on Charles Babbage's Analytical Engine. Her email is ada.lovelace@example.com.
+```
+
+最後這個步驟會：
+- 使用 `HuggingFaceInferenceAPI` 類別初始化 Hugging Face 模型
+- 以 `AgentWorkflow` 建立我們的 agent（Alfred），並加入剛才建立的工具
+- 請 Alfred 擷取名為「Lady Ada Lovelace」的賓客資訊
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# Generate the chat interface, including the tools
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [guest_info_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Generate the AgentState and Agent graph
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## The graph
+builder = StateGraph(AgentState)
+
+# Define nodes: these do the work
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Define edges: these determine how the control flow moves
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # If the latest message requires a tool, route to tools
+    # Otherwise, provide a direct response
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Tell me about our guest named 'Lady Ada Lovelace'.")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+預期輸出：
+
+```
+🎩 Alfred's Response:
+Lady Ada Lovelace is an esteemed mathematician and pioneer in computing, often celebrated as the first computer programmer due to her work on Charles Babbage's Analytical Engine.
+```
+
+最後這個步驟會：
+- 使用 `HuggingFaceEndpoint` 類別初始化 Hugging Face 模型，並建立聊天介面、加入工具
+- 以 `StateGraph` 建立我們的 agent（Alfred），用邊連接兩個節點（`assistant`、`tools`）
+- 請 Alfred 擷取名為「Lady Ada Lovelace」的賓客資訊
+
+</hfoption>
+</hfoptions>
+
+## 互動範例
+
+晚宴期間，可能會出現這樣的對話：
+
+**你：**「Alfred，正在跟大使聊天的那位先生是誰？」
+
+**Alfred：***快速搜尋賓客資料庫*「先生，那位是 Nikola Tesla 博士，是你大學時期的老朋友。他最近為一套新的無線能源傳輸系統取得專利，一定很樂意與你討論。別忘了，他非常喜歡鴿子，這或許是個不錯的閒聊話題。」
+
+```json
+{
+    "name": "Dr. Nikola Tesla",
+    "relation": "old friend from university days",  
+    "description": "Dr. Nikola Tesla is an old friend from your university days. He's recently patented a new wireless energy transmission system and would be delighted to discuss it with you. Just remember he's passionate about pigeons, so that might make for good small talk.",
+    "email": "nikola.tesla@gmail.com"
+}
+```
+
+## 進一步延伸
+
+現在 Alfred 已能擷取賓客資訊，接下來可以思考如何改進這個系統：
+
+1. **改進檢索器**，使用 [sentence-transformers](https://www.sbert.net/) 等更進階的演算法
+2. **實作對話記憶**，讓 Alfred 記住先前的互動
+3. **結合網頁搜尋**，取得不熟悉賓客的最新資訊
+4. **整合多個索引**，從經過驗證的來源取得更完整的資訊
+
+Alfred 現在已準備好輕鬆應對賓客的各種詢問，讓你的晚宴成為本世紀最有深度、最令人愉快的盛會！
+
+> [!TIP]
+> 試著擴充檢索器工具，讓它也能根據每位賓客的興趣或背景，回傳適合開啟對話的話題。你會如何修改工具來達成這個目標？
+>
+> 完成後，請將賓客檢索器工具實作在 <code>retriever.py</code> 檔案中。

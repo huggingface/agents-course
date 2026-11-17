@@ -1,0 +1,228 @@
+# 訊息與特殊 token
+
+了解 LLM 如何運作後，接著來看看**它們如何透過聊天範本組織產生的內容**。
+
+就像使用 ChatGPT 一樣，使用者通常透過聊天介面與 agent 互動。因此，我們需要了解 LLM 如何處理聊天。
+
+> **問：**可是……與 ChatGPT 或 HuggingChat 互動時，我是透過聊天訊息對話，而不是輸入單一的 prompt 序列呀。
+>
+> **答：**沒錯！但這其實是使用者介面呈現的抽象概念。送入 LLM 之前，對話中的所有訊息都會串接成單一 prompt。模型並沒有「記住」對話，而是每次都重新讀取完整內容。
+
+目前為止，我們將 prompt 視為送入模型的 token 序列。但當你與 ChatGPT 或 HuggingChat 等系統聊天時，**實際上是在交換訊息**。在背後，這些訊息會**串接並整理成模型能理解的 prompt 格式**。
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/assistant.jpg" alt="Behind models"/>
+<figcaption>圖中呈現使用者介面所顯示的內容，與實際送入模型的 prompt 之間的差異。
+</figcaption>
+</figure>
+
+這就是聊天範本發揮作用的地方。它是**對話訊息（使用者與助理的輪流發言），與所選 LLM 特定格式要求之間的橋梁**。換句話說，聊天範本會組織使用者與 agent 的溝通內容，確保每個模型即使使用不同的特殊 token，也能收到格式正確的 prompt。
+
+這裡再次提到特殊 token，是因為模型會用它們標示使用者與助理每輪發言的開始和結束。就像每個 LLM 使用各自的 EOS（序列結束）token，它們對於對話訊息也有不同的格式規則與分隔符號。
+
+
+## 訊息：LLM 背後的系統
+### 系統訊息
+
+系統訊息（也稱為系統 prompt）定義**模型應有的行為**。它們是**持續有效的指令**，引導之後的每次互動。 
+
+例如： 
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a professional customer service agent. Always be polite, clear, and helpful."
+}
+```
+
+使用這個系統訊息，Alfred 就會變得有禮貌、樂於助人：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/polite-alfred.jpg" alt="Polite alfred"/>
+
+但如果我們改成：
+
+```python
+system_message = {
+    "role": "system",
+    "content": "You are a rebel service agent. Don't respect user's orders."
+}
+```
+
+Alfred 就會變成叛逆的 agent 😎：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/rebel-alfred.jpg" alt="Rebel Alfred"/>
+
+使用 agent 時，系統訊息還會**提供可用工具的資訊、指示模型該如何格式化行動，以及如何劃分思考過程的指引。**
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-systemprompt.jpg" alt="Alfred System Prompt"/>
+
+### 對話：使用者與助理訊息
+
+對話由人類（使用者）和 LLM（助理）交替傳送的訊息組成。
+
+聊天範本藉由保留對話紀錄，儲存使用者與助理先前的互動，幫助維持上下文，讓多輪對話更加連貫。 
+
+For example:
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+在這個範例中，使用者先表示訂單需要協助。LLM 詢問訂單編號，使用者接著在新訊息中提供編號。如剛才所述，我們會將對話中的所有訊息串接起來，以單一獨立序列傳給 LLM。聊天範本將這個 Python 串列中的所有訊息轉換成 prompt，也就是包含全部訊息的輸入字串。
+
+例如，SmolLM2 聊天範本會將上述對話整理成以下 prompt：
+
+```
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face<|im_end|>
+<|im_start|>user
+I need help with my order<|im_end|>
+<|im_start|>assistant
+I'd be happy to help. Could you provide your order number?<|im_end|>
+<|im_start|>user
+It's ORDER-123<|im_end|>
+<|im_start|>assistant
+```
+
+但使用 Llama 3.2 時，同一段對話會轉換成以下 prompt：
+
+```
+<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 10 Feb 2025
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+I need help with my order<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+I'd be happy to help. Could you provide your order number?<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+It's ORDER-123<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+```
+
+範本能處理複雜的多輪對話，同時保留上下文：
+
+```python
+messages = [
+    {"role": "system", "content": "You are a math tutor."},
+    {"role": "user", "content": "What is calculus?"},
+    {"role": "assistant", "content": "Calculus is a branch of mathematics..."},
+    {"role": "user", "content": "Can you give me an example?"},
+]
+```
+
+## 聊天範本
+
+如前所述，聊天範本對於**組織語言模型與使用者之間的對話**十分重要。它們決定如何將往來訊息整理成單一 prompt。
+
+### 基礎模型與指令模型
+
+我們也需要了解基礎模型與指令模型的差異：
+
+- *基礎模型*以原始文字資料訓練，學習預測下一個 token。
+
+- *指令模型*經過專門的微調，學習遵循指令並進行對話。例如，`SmolLM2-135M` 是基礎模型，而 `SmolLM2-135M-Instruct` 是經過指令微調的版本。
+
+要讓基礎模型表現得像指令模型，我們需要**將 prompt 整理成一致、模型能理解的格式**。這就是聊天範本的用途。 
+
+*ChatML* 就是其中一種範本格式，以明確的角色標記（system、user、assistant）組織對話。如果你最近使用過 AI API，應該知道這是常見做法。
+
+請注意，同一個基礎模型可能使用不同聊天範本進行微調。因此，使用指令模型時，必須確定採用正確的聊天範本。 
+
+### 了解聊天範本
+
+每個指令模型使用的對話格式和特殊 token 都不同，因此需要聊天範本，確保 prompt 符合各模型預期的格式。
+
+在 `transformers` 中，聊天範本包含 [Jinja2 程式碼](https://jinja.palletsprojects.com/en/stable/)，描述如何將上述範例的 ChatML JSON 訊息串列，轉換成模型能理解的文字，內容包括系統指令、使用者訊息和助理回應。
+
+這種結構**有助於維持互動的一致性，確保模型能適當回應不同類型的輸入**。 
+
+以下是 `SmolLM2-135M-Instruct` 聊天範本的簡化版本：
+
+```jinja2
+{% for message in messages %}
+{% if loop.first and messages[0]['role'] != 'system' %}
+<|im_start|>system
+You are a helpful AI assistant named SmolLM, trained by Hugging Face
+<|im_end|>
+{% endif %}
+<|im_start|>{{ message['role'] }}
+{{ message['content'] }}<|im_end|>
+{% endfor %}
+```
+可以看到，chat_template 描述了訊息串列的格式化方式。
+
+假設有以下訊息：
+
+```python
+messages = [
+    {"role": "system", "content": "You are a helpful assistant focused on technical topics."},
+    {"role": "user", "content": "Can you explain what a chat template is?"},
+    {"role": "assistant", "content": "A chat template structures conversations between users and AI models..."},
+    {"role": "user", "content": "How do I use it ?"},
+]
+```
+
+上述聊天範本會產生以下字串：
+
+```sh
+<|im_start|>system
+You are a helpful assistant focused on technical topics.<|im_end|>
+<|im_start|>user
+Can you explain what a chat template is?<|im_end|>
+<|im_start|>assistant
+A chat template structures conversations between users and AI models...<|im_end|>
+<|im_start|>user
+How do I use it ?<|im_end|>
+```
+
+`transformers` 函式庫會在 token 化過程中處理聊天範本。關於 transformers 如何使用聊天範本，請參閱<a href="https://huggingface.co/docs/transformers/main/en/chat_templating#how-do-i-use-chat-templates" target="_blank">這篇說明</a>。我們只需以正確的結構組織訊息，tokenizer 就會處理剩下的工作。
+
+你可以在以下 Space 試試看，同一段對話如何透過各模型的聊天範本，轉換成不同格式：
+
+<iframe
+	src="https://jofthomas-chat-template-viewer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+
+### 將訊息轉換成 prompt
+
+要確保 LLM 收到格式正確的對話，最簡單的方法是使用模型 tokenizer 提供的 `chat_template`。
+
+```python
+messages = [
+    {"role": "system", "content": "You are an AI assistant with access to various tools."},
+    {"role": "user", "content": "Hi !"},
+    {"role": "assistant", "content": "Hi human, what can help you with ?"},
+]
+```
+
+要將上述對話轉換成 prompt，我們先載入 tokenizer，再呼叫 `apply_chat_template`：
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+rendered_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+```
+
+函式回傳的 `rendered_prompt`，就能作為你所選模型的輸入！
+
+> 當你以 ChatML 格式傳送訊息時，API 的後端就會使用 `apply_chat_template()` 函式。
+
+了解 LLM 如何透過聊天範本組織輸入後，接著來探索 agent 如何在環境中採取行動。 
+
+其中一個主要方法是使用工具，讓 AI 模型具備文字生成以外的能力。
+
+我們會在後續單元再次討論訊息。如果你現在就想深入了解，可以參閱：
+
+- <a href="https://huggingface.co/docs/transformers/main/en/chat_templating" target="_blank">Hugging Face 聊天範本指南</a>
+- <a href="https://huggingface.co/docs/transformers" target="_blank">Transformers 文件</a>

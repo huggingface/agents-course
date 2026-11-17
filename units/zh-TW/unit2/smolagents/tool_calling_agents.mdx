@@ -1,0 +1,73 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# 以程式碼片段或 JSON 區塊撰寫動作
+
+> [!TIP]
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tool_calling_agents.ipynb" target="_blank">這份 notebook</a> 的程式碼實作，並在 Google Colab 中執行。
+
+工具呼叫 agent 是 `smolagents` 提供的第二種 agent。不同於使用 Python 片段的 code agent，這類 agent **利用 LLM 供應商內建的工具呼叫能力**，以 **JSON 結構**產生工具呼叫。OpenAI、Anthropic 與許多其他供應商都採用這種標準做法。
+
+來看個例子。當 Alfred 想搜尋餐飲服務與派對創意時，`CodeAgent` 會產生並執行這樣的 Python 程式碼：
+
+```python
+for query in [
+    "Best catering services in Gotham City", 
+    "Party theme ideas for superheroes"
+]:
+    print(web_search(f"Search for: {query}"))
+```
+
+`ToolCallingAgent` 則會建立 JSON 結構：
+
+```python
+[
+    {"name": "web_search", "arguments": "Best catering services in Gotham City"},
+    {"name": "web_search", "arguments": "Party theme ideas for superheroes"}
+]
+```
+
+接著，系統會使用這個 JSON 區塊執行工具呼叫。
+
+雖然 `smolagents` 主要著重於 `CodeAgents`，因為[它們的整體表現較好](https://huggingface.co/papers/2402.01030)，但對於不需要處理變數或複雜工具呼叫的簡單系統，`ToolCallingAgents` 也很有效。
+
+![程式碼動作與 JSON 動作](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+## 工具呼叫 agent 如何運作？
+
+工具呼叫 agent 與 code agent 採用相同的多步驟工作流程，詳情請見[上一節](./code_agents)。
+
+關鍵差異在於**如何組織動作**：工具呼叫 agent 不輸出可執行的程式碼，而是**產生指定工具名稱與參數的 JSON 物件**。系統接著**解析這些指令**，執行對應工具。
+
+## 範例：執行工具呼叫 agent
+
+回到 Alfred 開始準備派對的例子，這次改用 `ToolCallingAgent`，看看兩者有何不同。我們將建立能使用 DuckDuckGo 搜尋網頁的 agent，就像先前的 code agent 範例一樣。唯一差別是 agent 類型，其餘細節都由框架處理：
+
+```python
+from smolagents import ToolCallingAgent, WebSearchTool, InferenceClientModel
+
+agent = ToolCallingAgent(tools=[WebSearchTool()], model=InferenceClientModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+查看 agent 的執行追蹤時，你會看到類似以下的內容，而非 `Executing parsed code:`：
+
+```text
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Calling tool: 'web_search' with arguments: {'query': "best music recommendations for a party at Wayne's         │
+│ mansion"}                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```  
+
+agent 會產生結構化的工具呼叫，由系統處理並輸出結果，而非像 `CodeAgent` 一樣直接執行程式碼。
+
+現在你已經認識這兩種 agent，可以依需求選擇。讓我們繼續探索 `smolagents`，讓 Alfred 的派對圓滿成功！🎉
+
+## 資源
+
+- [ToolCallingAgent 文件](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/agents#smolagents.ToolCallingAgent) - ToolCallingAgent 官方文件

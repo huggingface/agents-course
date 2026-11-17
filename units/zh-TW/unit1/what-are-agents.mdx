@@ -1,0 +1,158 @@
+# 什麼是 agent？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-no-check.jpg" alt="Unit 1 planning"/>
+
+讀完本節，你將熟悉 agent 的概念，以及它在 AI 中的各種應用。
+
+要解釋什麼是 agent，我們先從一個比喻開始。
+
+## 整體概念：agent Alfred
+
+來認識 Alfred。Alfred 是一個 **agent**。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg" alt="This is Alfred"/>
+
+想像 Alfred **收到一個指令**，例如：「Alfred，請幫我煮一杯咖啡。」
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/coffee-please.jpg" alt="I would like a coffee"/>
+
+由於 Alfred **能理解自然語言**，它很快就明白我們的要求。
+
+完成要求前，Alfred 會先**推理與規劃**，想清楚需要哪些步驟和工具：
+
+1. 前往廚房  
+2. 使用咖啡機  
+3. 煮咖啡  
+4. 把咖啡端回來
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/reason-and-plan.jpg" alt="Reason and plan"/>
+
+有了計畫後，它就**必須行動**。為了執行計畫，**它可以從已知的工具清單中選用工具**。
+
+在這個例子中，它用咖啡機煮咖啡：啟動咖啡機，開始沖煮。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/make-coffee.jpg" alt="Make coffee"/>
+
+最後，Alfred 把剛煮好的咖啡端給我們。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/bring-coffee.jpg" alt="Bring coffee"/>
+
+這就是 agent：**能夠推理、規劃，並與環境互動的 AI 模型**。
+
+我們稱它為 agent，是因為它具備 _agency_，也就是與環境互動的能力。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/process.jpg" alt="Agent process"/>
+
+## 更正式的定義
+
+了解整體概念後，再來看更精確的定義：
+
+> agent 是利用 AI 模型與環境互動，以達成使用者指定目標的系統。它結合推理、規劃與行動執行（通常透過外部工具），藉此完成任務。
+
+你可以將 agent 想成兩個主要部分：
+
+1. **大腦（AI 模型）**
+
+所有思考都在這裡發生。AI 模型**負責推理與規劃**。
+它會依據情況，決定**該採取哪些行動**。
+
+2. **身體（能力與工具）**
+
+這個部分代表 **agent 具備的所有能力**。
+
+**能採取的行動範圍**，取決於 agent **配備了哪些能力與工具**。例如，人類沒有翅膀，無法執行「飛行」這個**行動**，卻能執行「走路」、「跑步」、「跳躍」、「抓取」等**行動**。
+
+### Agency 的程度
+
+依據上述定義，agent 的自主行動能力有不同程度，形成一個連續的光譜：
+
+| Agency 程度 | 說明 | 名稱 | 範例模式 |
+| --- | --- | --- | --- |
+| ☆☆☆ | agent 輸出不影響程式流程 | 簡單處理器 | `process_llm_output(llm_response)` |
+| ★☆☆ | agent 輸出決定基本控制流程 | 路由器 | `if llm_decision(): path_a() else: path_b()` |
+| ★★☆ | agent 輸出決定函式執行 | 工具呼叫器 | `run_function(llm_chosen_tool, llm_chosen_args)` |
+| ★★★ | agent 輸出控制迴圈與程式是否繼續執行 | 多步驟 agent | `while llm_should_continue(): execute_next_step()` |
+| ★★★ | 一個 agentic 工作流程能啟動另一個 agentic 工作流程 | 多 agent 系統 | `if llm_trigger(): execute_agent()` |
+
+表格來自 [smolagents 概念指南](https://huggingface.co/docs/smolagents/conceptual_guides/intro_agents)。
+
+## agent 使用哪些 AI 模型？
+
+agent 最常使用的 AI 模型是 LLM（大型語言模型），以**文字**為輸入，也輸出**文字**。
+
+知名範例包括 **OpenAI** 的 **GPT-4**、**Meta** 的 **Llama**、**Google** 的 **Gemini** 等。這些模型以大量文字訓練，具備良好的泛化能力。我們將在[下一節](what-are-llms)深入介紹 LLM。
+
+> [!TIP]
+> agent 的核心也能使用接受其他輸入類型的模型。例如視覺語言模型（VLM），它類似 LLM，但還能理解輸入的影像。目前我們先聚焦於 LLM，稍後再討論其他選擇。
+
+## AI 如何對環境採取行動？
+
+LLM 非常強大，但**只能產生文字**。
+
+然而，若你請 HuggingChat 或 ChatGPT 等知名聊天應用程式產生圖片，它們卻辦得到！這是怎麼做到的？
+
+答案是 HuggingChat、ChatGPT 等應用程式的開發者，實作了額外功能，稱為**工具**，讓 LLM 可以用來建立圖片。
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/eiffel_brocolis.jpg" alt="Eiffel Brocolis"/>
+<figcaption>模型使用影像生成工具產生了這張圖片。
+</figcaption>
+</figure>
+
+我們會在[工具](tools)一節進一步介紹。
+
+## agent 能執行哪些任務？
+
+只要我們透過**工具**實作相應功能，agent 就能使用工具完成**行動**，執行這些任務。
+
+例如，我在電腦上編寫一個像 Siri 的個人助理 agent，並請它「寄信給主管，詢問是否能延後今天的會議」。我可以提供寄信的程式碼，讓它成為 agent 需要寄信時就能使用的新工具。我們可以用 Python 撰寫：
+
+```python
+def send_message_to(recipient, message):
+    """Useful to send an e-mail message to a recipient"""
+    ...
+```
+
+如同稍後會看到的，LLM 在需要時會產生執行工具的程式碼，藉此完成指定任務。
+
+```python
+send_message_to("Manager", "Can we postpone today's meeting?")
+```
+
+**工具的設計非常重要，會大幅影響 agent 的品質**。有些任務需要量身打造特定工具，有些則能使用「web_search」等通用工具解決。
+
+> 請注意，**行動與工具並不相同**。例如，一個行動可能需要使用多個工具才能完成。
+
+讓 agent 能與環境互動，便能**為企業和個人帶來實際應用**。
+
+### 範例 1：個人虛擬助理
+
+Siri、Alexa 或 Google Assistant 等虛擬助理，代替使用者在數位環境中互動時，就扮演了 agent 的角色。
+
+它們接收使用者的提問、分析上下文、從資料庫取得資訊，並提供回應或採取行動，例如設定提醒、傳送訊息或控制智慧裝置。
+
+### 範例 2：客服聊天機器人
+
+許多公司會部署聊天機器人作為 agent，以自然語言與客戶互動。
+
+這些 agent 能回答問題、引導使用者排除故障、在內部資料庫建立問題紀錄，甚至完成交易。
+
+它們預先設定的目標可能包括提高使用者滿意度、縮短等待時間或提高銷售轉換率。透過直接與客戶互動、從對話中學習，並持續調整回應，它們展現了 agent 實際運作的核心原則。
+
+### 範例 3：電玩中的 AI 非玩家角色
+
+以 LLM 驅動的 AI agent 能讓非玩家角色（NPC）更靈活、更難預測。
+
+它們不再只遵循僵化的行為樹，而能**依據情境回應、適應玩家的互動**，並產生更細膩的對話。這種彈性能創造更生動、引人入勝的角色，隨著玩家的行動持續發展。
+
+---
+
+總結來說，agent 是以 AI 模型（通常是 LLM）為核心推理引擎的系統，能夠：
+
+- **理解自然語言：**正確理解人類指令，並做出有意義的回應。
+
+- **推理與規劃：**分析資訊、做決策，並擬定解決問題的策略。
+
+- **與環境互動：**收集資訊、採取行動，並觀察行動的結果。
+
+現在你已掌握 agent 的概念，先用一個簡短、不計分的測驗鞏固理解吧。接著，我們將深入探討 agent 的「大腦」：[LLM](what-are-llms)。

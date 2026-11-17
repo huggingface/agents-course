@@ -1,0 +1,66 @@
+![smolagents banner](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/license_to_call.png)
+# 為什麼使用 smolagents
+
+本模組將探討 [smolagents](https://huggingface.co/docs/smolagents/en/index) 的優缺點，協助你判斷它是否符合需求。
+
+## 什麼是 `smolagents`？
+
+`smolagents` 是簡單而強大的 AI agent 框架。它賦予 LLM 與現實世界互動的_行動能力_，例如搜尋資訊或產生影像。
+
+如第一單元所述，AI agent 是利用 LLM 根據**「觀察」**產生**「思考」**，再執行**「動作」**的程式。讓我們看看 smolagents 如何實作這個流程。
+
+### `smolagents` 的主要優點
+- **簡單：** 盡量減少程式碼複雜度與抽象層，讓框架容易理解、採用與擴充。
+- **彈性的 LLM 支援：** 整合 Hugging Face 工具與外部 API，能搭配各種 LLM。
+- **以程式碼為核心：** 完整支援直接用程式碼撰寫動作的 code agent，省去解析步驟，簡化工具呼叫。
+- **HF Hub 整合：** 與 Hugging Face Hub 緊密整合，能將 Gradio Spaces 作為工具使用。
+
+### 何時使用 smolagents？
+
+了解這些優點後，什麼情況適合選擇 smolagents？
+
+smolagents 適合以下情況：
+- 你需要**輕量、精簡的解決方案**。
+- 你希望**快速實驗**，不必處理複雜設定。
+- 你的**應用程式邏輯相對單純**。
+
+### 程式碼動作與 JSON 動作
+其他框架的 agent 常用 JSON 描述動作，`smolagents` 則**著重以程式碼呼叫工具**，簡化執行流程。因為輸出本身就能直接執行，不必先解析 JSON，再轉成呼叫工具的程式碼。
+
+下圖說明兩者的差異：
+
+![程式碼動作與 JSON 動作](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+
+你可以回顧[第一單元的動作章節](https://huggingface.co/learn/agents-course/unit1/actions#actions-enabling-the-agent-to-engage-with-its-environment)，複習程式碼動作與 JSON 動作的差異。
+
+### `smolagents` 的 agent 類型
+
+`smolagents` 中的 agent 都以**多步驟 agent** 的方式運作。
+
+每個 [`MultiStepAgent`](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.MultiStepAgent) 都會執行：
+- 一次思考
+- 一次工具呼叫與執行
+
+除了主要使用的 **[CodeAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.CodeAgent)**，smolagents 也支援用 JSON 撰寫工具呼叫的 **[ToolCallingAgent](https://huggingface.co/docs/smolagents/main/en/reference/agents#smolagents.ToolCallingAgent)**。
+
+接下來的章節將深入介紹這兩種 agent。
+
+> [!TIP]
+> 在 smolagents 中，可以使用 <code>@tool</code> 裝飾器包裝 Python 函式，或使用 <code>Tool</code> 類別來定義工具。
+
+### `smolagents` 的模型整合
+`smolagents` 提供彈性的 LLM 整合方式，只要是符合[特定條件](https://huggingface.co/docs/smolagents/main/en/reference/models)的可呼叫模型，都能使用。框架提供數個預先定義的類別，簡化模型連接：
+
+- **[TransformersModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.TransformersModel)：** 在本機實作 `transformers` pipeline，方便整合。
+- **[InferenceClientModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.InferenceClientModel)：** 支援[無伺服器推論](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference)呼叫，可透過 [Hugging Face 基礎設施](https://huggingface.co/docs/api-inference/index)，或持續增加的[第三方推論供應商](https://huggingface.co/docs/huggingface_hub/main/en/guides/inference#supported-providers-and-tasks)使用。
+- **[LiteLLMModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.LiteLLMModel)：** 透過 [LiteLLM](https://www.litellm.ai/) 提供輕量的模型互動方式。
+- **[OpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.OpenAIServerModel)：** 連接任何提供 OpenAI API 介面的服務。
+- **[AzureOpenAIServerModel](https://huggingface.co/docs/smolagents/main/en/reference/models#smolagents.AzureOpenAIServerModel)：** 支援整合 Azure OpenAI 部署。
+
+這樣的彈性讓開發者能依使用情境選擇最合適的模型和服務，也方便進行實驗。
+
+了解為什麼以及何時適合使用 smolagents 後，讓我們深入探索這個強大的函式庫！
+
+## 資源
+
+- [smolagents 部落格](https://huggingface.co/blog/smolagents) - smolagents 與程式碼互動簡介

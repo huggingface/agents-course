@@ -1,0 +1,118 @@
+# 測試你對 LangGraph 的理解
+
+讓我們透過簡短測驗，測試你對 `LangGraph` 的理解，並鞏固目前學到的關鍵概念！
+
+本測驗可自由參加，不計分。
+
+### Q1: LangGraph 的主要用途是什麼？
+哪個敘述最能描述 LangGraph 的設計目標？
+
+<Question
+choices={[
+  {
+    text: "為包含 LLM 的應用程式建立控制流程的框架",
+    explain: "LangGraph 專為建立與管理使用 LLM 的應用程式控制流程而設計。",
+    correct: true
+  },
+  {
+    text: "提供介面，讓程式與不同 LLM 模型互動的函式庫",
+    explain: "這比較符合 LangChain 的角色：提供模型互動的標準介面。LangGraph 則著重於控制流程。",
+  },
+  {
+    text: "用於工具呼叫的 agent 函式庫",
+    explain: "雖然 LangGraph 能搭配 agent 使用，但它的主要用途是協調流程。",
+  }
+]}
+/>
+
+---
+
+### Q2: 在「控制與自由度」的取捨中，LangGraph 的定位是什麼？
+哪個敘述最能描述 LangGraph 設計 agent 的方式？
+
+<Question
+choices={[
+  {
+    text: "LangGraph 提供最大的自由度，讓 LLM 獨立做出所有決策",
+    explain: "實際上，LangGraph 更重視控制，為 LLM 工作流程提供明確結構。",
+  },
+  {
+    text: "LangGraph 能掌握執行流程，同時運用 LLM 的決策能力",
+    explain: "當你需要控制 agent 的執行時，LangGraph 能透過結構化工作流程，提供可預測的行為。",
+    correct: true
+  },
+]}
+/>
+
+---
+
+### Q3: State 在 LangGraph 中扮演什麼角色？
+選出對 LangGraph 中 State 最準確的描述。
+
+<Question
+choices={[
+  {
+    text: "State 是 LLM 最新產生的內容",
+    explain: "State 是 LangGraph 中由使用者定義的類別，並非由 LLM 產生。欄位由使用者定義，而欄位值可以由 LLM 填入。",
+  },
+  {
+    text: "State 只用來追蹤執行期間的錯誤",
+    explain: "State 的用途遠超過錯誤追蹤，不過追蹤錯誤仍是實用的功能。",
+  },
+  {
+    text: "State 代表在 agent 應用程式中流動的資訊",
+    explain: "State 是 LangGraph 的核心，包含步驟之間決策所需的所有資訊。你可以提供需要處理的欄位，節點則能修改欄位值，決定後續分支。",
+    correct: true
+  },
+  {
+    text: "State 只在使用外部 API 時才有關",
+    explain: "State 是所有 LangGraph 應用程式的基礎，不限於使用外部 API 的情況。",
+  }
+]}
+/>
+
+### Q4: LangGraph 中的條件邊（Conditional Edge）是什麼？
+選出最準確的描述。
+
+<Question
+choices={[
+    {
+    text: "根據條件判斷，決定下一個執行節點的邊",
+    explain: "條件邊能依據目前狀態動態決定圖的路由，在工作流程中建立分支邏輯。",
+    correct: true
+  },
+  {
+    text: "只有在特定條件發生時才會經過的邊",
+    explain: "條件邊是根據應用程式的輸出控制流程，而非根據輸入。",
+  },
+  {
+    text: "必須取得使用者確認才能繼續的邊",
+    explain: "條件邊依據程式中的條件運作，並非使用者互動需求。",
+  }
+]}
+/>
+
+---
+
+### Q5: LangGraph 如何協助處理 LLM 的幻覺問題？
+選出最佳答案。
+
+<Question
+choices={[
+  {
+    text: "限制 LLM 回覆，完全消除幻覺",
+    explain: "沒有任何框架能完全消除 LLM 的幻覺，LangGraph 也不例外。",
+  },
+  {
+    text: "提供結構化工作流程，檢查並驗證 LLM 輸出",
+    explain: "透過包含驗證步驟、檢查節點及錯誤處理路徑的結構化工作流程，LangGraph 有助於減少幻覺的影響。",
+    correct: true
+  },
+  {
+    text: "對幻覺沒有任何影響",
+    explain: "LangGraph 的結構化流程能有效減輕幻覺的影響，但會犧牲一些速度。",
+  }
+]}
+/>
+
+恭喜完成測驗！🎉 如果有答錯的題目，可以回顧前面章節，加強理解。接下來將探索 LangGraph 更進階的功能，學習建立更複雜的 agent 工作流程。

@@ -1,0 +1,56 @@
+# LlamaHub 簡介
+
+**LlamaHub 是收錄數百種整合元件、agent 與工具的資源目錄，這些資源都能在 LlamaIndex 中使用。**
+
+![LlamaHub](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/llama-hub.png)
+
+本課程會用到多種整合元件，因此先來認識 LlamaHub，看看它如何協助開發。
+
+接下來，我們將學習如何尋找並安裝所需元件的相依套件。
+
+## 安裝
+
+你可以在結構清楚的 **[LlamaHub 網站](https://llamahub.ai/)** 找到 LlamaIndex 的安裝說明。
+初看可能有些複雜，但大多數**安裝指令都遵循容易記憶的格式**：
+
+```bash
+pip install llama-index-{component-type}-{framework-name}
+```
+
+讓我們透過 [Hugging Face Inference API 整合](https://llamahub.ai/l/llms/llama-index-llms-huggingface-api?from=llms)，安裝 LLM 元件所需的相依套件。
+
+```bash
+pip install llama-index-llms-huggingface-api llama-index-embeddings-huggingface
+```
+
+## 使用方式
+
+安裝後，就可以查看使用方式。你會發現匯入路徑就列在安裝指令之後！
+以下是 **Hugging Face Inference API LLM 元件**的使用範例。
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+import os
+from dotenv import load_dotenv
+
+# Load the .env file
+load_dotenv()
+
+# Retrieve HF_TOKEN from the environment variables
+hf_token = os.getenv("HF_TOKEN")
+
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    temperature=0.7,
+    max_tokens=100,
+    token=hf_token,
+    provider="auto"
+)
+
+response = llm.complete("Hello, how are you?")
+print(response)
+# I am good, how can I help you today?
+```
+
+現在我們知道如何尋找、安裝並使用所需元件的整合套件了。
+接下來，**讓我們深入認識這些元件**，看看如何運用它們建立自己的 agent。

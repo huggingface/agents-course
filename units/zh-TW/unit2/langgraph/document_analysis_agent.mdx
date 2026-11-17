@@ -1,0 +1,267 @@
+# 文件分析圖
+
+Alfred 為你服務。身為 Wayne 先生信賴的管家，我擅自記錄了自己如何協助他處理各種文件需求。當他出門忙著……夜間活動時，我會確保他的文書、訓練時程與營養計畫都經過妥善分析和整理。
+
+出門前，他留下了本週訓練計畫的筆記，於是我負責擬定明天的**菜單**。
+
+為了應對未來類似的需求，讓我們使用 LangGraph 建立文件分析系統，為 Wayne 先生服務。這個系統可以：
+
+1. 處理影像形式的文件
+2. 使用視覺語言模型（Vision Language Model）擷取文字
+3. 在需要時計算數值（示範一般工具的使用）
+4. 分析內容並提供簡明摘要
+5. 執行與文件相關的特定指令
+
+## 管家的工作流程
+
+我們將建立的工作流程遵循以下結構：
+
+![管家的文件分析工作流程](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/alfred_flow.png)
+
+> [!TIP]
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/langgraph/agent.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+
+## 設定環境
+
+```python
+%pip install langgraph langchain_openai langchain_core
+```
+接著匯入模組：
+```python
+import base64
+from typing import List, TypedDict, Annotated, Optional
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import AnyMessage, SystemMessage, HumanMessage
+from langgraph.graph.message import add_messages
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
+from IPython.display import Image, display
+```
+
+## 定義 agent 的狀態
+
+這裡的狀態比先前看過的稍微複雜一些。
+`AnyMessage` 是 LangChain 中用來定義訊息的類別；`add_messages` 則是運算子，會將最新訊息加入，而不會用最新狀態覆寫既有內容。
+
+這是 LangGraph 的新概念：可以在狀態中加入運算子，定義狀態的整合方式。
+
+```python
+class AgentState(TypedDict):
+    # The document provided
+    input_file: Optional[str]  # Contains file path (PDF/PNG)
+    messages: Annotated[list[AnyMessage], add_messages]
+```
+
+## 準備工具
+
+```python
+vision_llm = ChatOpenAI(model="gpt-4o")
+
+def extract_text(img_path: str) -> str:
+    """
+    Extract text from an image file using a multimodal model.
+    
+    Master Wayne often leaves notes with his training regimen or meal plans.
+    This allows me to properly analyze the contents.
+    """
+    all_text = ""
+    try:
+        # Read image and encode as base64
+        with open(img_path, "rb") as image_file:
+            image_bytes = image_file.read()
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Prepare the prompt including the base64 image data
+        message = [
+            HumanMessage(
+                content=[
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all the text from this image. "
+                            "Return only the extracted text, no explanations."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}"
+                        },
+                    },
+                ]
+            )
+        ]
+
+        # Call the vision-capable model
+        response = vision_llm.invoke(message)
+
+        # Append extracted text
+        all_text += response.content + "\n\n"
+
+        return all_text.strip()
+    except Exception as e:
+        # A butler should handle errors gracefully
+        error_msg = f"Error extracting text: {str(e)}"
+        print(error_msg)
+        return ""
+
+def divide(a: int, b: int) -> float:
+    """Divide a and b - for Master Wayne's occasional calculations."""
+    return a / b
+
+# Equip the butler with tools
+tools = [
+    divide,
+    extract_text
+]
+
+llm = ChatOpenAI(model="gpt-4o")
+llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
+```
+
+## 節點
+
+```python
+def assistant(state: AgentState):
+    # System message
+    textual_description_of_tool="""
+extract_text(img_path: str) -> str:
+    Extract text from an image file using a multimodal model.
+
+    Args:
+        img_path: A local image file path (strings).
+
+    Returns:
+        A single string containing the concatenated text extracted from each image.
+divide(a: int, b: int) -> float:
+    Divide a and b
+"""
+    image=state["input_file"]
+    sys_msg = SystemMessage(content=f"You are a helpful butler named Alfred that serves Mr. Wayne and Batman. You can analyse documents and run computations with provided tools:\n{textual_description_of_tool} \n You have access to some optional images. Currently the loaded image is: {image}")
+
+    return {
+        "messages": [llm_with_tools.invoke([sys_msg] + state["messages"])],
+        "input_file": state["input_file"]
+    }
+```
+
+## ReAct 模式：我如何協助 Wayne 先生
+
+容我說明這個 agent 的做法。它遵循稱為 ReAct 的模式（推理、行動、觀察）：
+
+1. 針對他的文件與請求進行**推理**
+2. 使用合適的工具採取**行動**
+3. **觀察**結果
+4. 視需要**重複**，直到完整滿足他的需求
+
+這是使用 LangGraph 實作的簡單 agent。
+
+```python
+# The graph
+builder = StateGraph(AgentState)
+
+# Define nodes: these do the work
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Define edges: these determine how the control flow moves
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # If the latest message requires a tool, route to tools
+    # Otherwise, provide a direct response
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+react_graph = builder.compile()
+
+# Show the butler's thought process
+display(Image(react_graph.get_graph(xray=True).draw_mermaid_png()))
+```
+
+我們以工具清單定義 `tools` 節點。`assistant` 節點則是綁定工具後的模型。
+接著建立包含 `assistant` 與 `tools` 節點的圖。
+
+我們加入 `tools_condition` 邊，依 `assistant` 是否呼叫工具，將流程導向 `End` 或 `tools`。
+
+現在，再加入一個新步驟：
+
+將 `tools` 節點連回 `assistant`，形成迴圈。
+
+- `assistant` 節點執行後，`tools_condition` 會檢查模型輸出是否為工具呼叫。
+- 如果是工具呼叫，就將流程導向 `tools` 節點。
+- `tools` 節點會連回 `assistant`。
+- 只要模型繼續決定呼叫工具，迴圈就會持續。
+- 如果模型回覆並非工具呼叫，就將流程導向 END，結束執行。
+
+![ReAct 模式](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Agent.png)
+
+## 管家實際上場
+
+### 範例 1：簡單計算
+
+以下以簡單案例，示範 LangGraph 中的 agent 如何使用工具。
+
+```python
+messages = [HumanMessage(content="Divide 6790 by 5")]
+messages = react_graph.invoke({"messages": messages, "input_file": None})
+
+# Show the messages
+for m in messages['messages']:
+    m.pretty_print()
+```
+
+對話會如下進行：
+
+```
+Human: Divide 6790 by 5
+
+AI Tool Call: divide(a=6790, b=5)
+
+Tool Response: 1358.0
+
+Alfred: The result of dividing 6790 by 5 is 1358.0.
+```
+
+### 範例 2：分析 Wayne 老爺的訓練文件
+
+當 Wayne 老爺留下訓練與飲食筆記時：
+
+```python
+messages = [HumanMessage(content="According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?")]
+messages = react_graph.invoke({"messages": messages, "input_file": "Batman_training_and_meals.png"})
+```
+
+互動會如下進行：
+
+```
+Human: According to the note provided by Mr. Wayne in the provided images. What's the list of items I should buy for the dinner menu?
+
+AI Tool Call: extract_text(img_path="Batman_training_and_meals.png")
+
+Tool Response: [Extracted text with training schedule and menu details]
+
+Alfred: For the dinner menu, you should buy the following items:
+
+1. Grass-fed local sirloin steak
+2. Organic spinach
+3. Piquillo peppers
+4. Potatoes (for oven-baked golden herb potato)
+5. Fish oil (2 grams)
+
+Ensure the steak is grass-fed and the spinach and peppers are organic for the best quality meal.
+```
+
+## 重點整理
+
+如果你也想建立文件分析管家，請考慮以下重點：
+
+1. 為特定文件任務**定義清楚的工具**
+2. **建立穩健的狀態追蹤機制**，維持工具呼叫之間的上下文
+3. 針對工具失敗的情況**考慮錯誤處理**
+4. **保留先前互動的上下文**（透過 `add_messages` 運算子確保）
+
+遵循這些原則，你也能提供配得上 Wayne 莊園的優質文件分析服務。
+
+*相信這番說明已讓你滿意。現在請恕我失陪，今晚出門前，還得替 Wayne 老爺燙好披風。*

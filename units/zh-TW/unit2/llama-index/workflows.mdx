@@ -1,0 +1,280 @@
+# 在 LlamaIndex 中建立 agentic 工作流程
+
+LlamaIndex 的工作流程提供結構化的方式，將程式碼組織成依序執行、易於管理的步驟。
+
+建立工作流程時，我們會定義由 `Events` 觸發的 `Steps`；步驟本身也會發出 `Events`，觸發後續步驟。
+讓我們看看 Alfred 如何運用 LlamaIndex 工作流程完成 RAG 任務。
+
+![工作流程示意圖](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflows.png)
+
+**工作流程具備幾項主要優勢：**
+
+- 將程式碼清楚組織為獨立步驟
+- 事件驅動架構提供靈活的控制流程
+- 步驟之間的通訊具備型別安全性
+- 內建狀態管理
+- 支援簡單及複雜的 agent 互動
+
+正如你可能已經想到的，**工作流程能在 agent 的自主性與整體流程的控制之間取得良好平衡。**
+
+接下來就學著建立自己的工作流程吧！
+
+## 建立工作流程
+
+> [!TIP]
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+
+### 建立基本工作流程
+
+<details>
+<summary>安裝 Workflow 套件</summary>
+如<a href="./llama-hub">LlamaHub 章節</a>所介紹的，可以使用以下指令安裝 Workflow 套件：
+
+```python
+pip install llama-index-utils-workflow
+```
+</details>
+
+定義一個繼承 `Workflow` 的類別，並使用 `@step` 裝飾函式，就能建立單一步驟的工作流程。
+我們也需要加入 `StartEvent` 與 `StopEvent`，這兩種特殊事件分別表示工作流程的開始與結束。
+
+```python
+from llama_index.core.workflow import StartEvent, StopEvent, Workflow, step
+
+class MyWorkflow(Workflow):
+    @step
+    async def my_step(self, ev: StartEvent) -> StopEvent:
+        # do something here
+        return StopEvent(result="Hello, world!")
+
+
+w = MyWorkflow(timeout=10, verbose=False)
+result = await w.run()
+```
+
+如你所見，現在呼叫 `w.run()` 就能執行工作流程。
+
+### 連接多個步驟
+
+要連接多個步驟，我們會**建立自訂事件，在步驟之間傳遞資料。**
+也就是加入在步驟間傳遞的 `Event`，將第一個步驟的輸出送到第二個步驟。
+
+```python
+from llama_index.core.workflow import Event
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent) -> ProcessingEvent:
+        # Process initial data
+        return ProcessingEvent(intermediate_result="Step 1 complete")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Use the intermediate result
+        final_result = f"Finished processing: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+w = MultiStepWorkflow(timeout=10, verbose=False)
+result = await w.run()
+result
+```
+
+型別提示在這裡很重要，能確保工作流程正確執行。接下來讓流程再複雜一點！
+
+### 迴圈與分支
+
+型別提示是工作流程最強大的部分，因為它讓我們能建立分支、迴圈與匯合點，支援更複雜的工作流程。
+
+以下示範使用聯集運算子 `|` **建立迴圈**。
+在這個範例中，`LoopEvent` 可以作為步驟的輸入，也可以作為輸出回傳。
+
+```python
+from llama_index.core.workflow import Event
+import random
+
+
+class ProcessingEvent(Event):
+    intermediate_result: str
+
+
+class LoopEvent(Event):
+    loop_output: str
+
+
+class MultiStepWorkflow(Workflow):
+    @step
+    async def step_one(self, ev: StartEvent | LoopEvent) -> ProcessingEvent | LoopEvent:
+        if random.randint(0, 1) == 0:
+            print("Bad thing happened")
+            return LoopEvent(loop_output="Back to step one.")
+        else:
+            print("Good thing happened")
+            return ProcessingEvent(intermediate_result="First step complete.")
+
+    @step
+    async def step_two(self, ev: ProcessingEvent) -> StopEvent:
+        # Use the intermediate result
+        final_result = f"Finished processing: {ev.intermediate_result}"
+        return StopEvent(result=final_result)
+
+
+w = MultiStepWorkflow(verbose=False)
+result = await w.run()
+result
+```
+
+### 繪製工作流程
+
+我們也能繪製工作流程。使用 `draw_all_possible_flows` 函式，就能將流程圖儲存在 HTML 檔案中。
+
+```python
+from llama_index.utils.workflow import draw_all_possible_flows
+
+w = ... # as defined in the previous section
+draw_all_possible_flows(w, "flow.html")
+```
+
+![工作流程圖](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/workflow-draw.png)
+
+本課程還會介紹最後一項實用技巧：為工作流程加入狀態。
+
+### 狀態管理
+
+如果想追蹤工作流程的狀態，讓每個步驟都能存取同一份狀態，就可以使用狀態管理。
+在步驟函式的參數上使用 `Context` 型別提示，即可達成。
+
+```python
+from llama_index.core.workflow import Context, StartEvent, StopEvent
+
+
+@step
+async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
+    # store query in the context
+    await ctx.store.set("query", "What is the capital of France?")
+
+    # do something with context and event
+    val = ...
+
+    # retrieve query from the context
+    query = await ctx.store.get("query")
+
+    return StopEvent(result=val)
+```
+
+太好了！現在你已經知道如何在 LlamaIndex 中建立基本工作流程！
+
+> [!TIP]
+> 工作流程還有更進階的細節，可以在 <a href="https://docs.llamaindex.ai/en/stable/understanding/workflows/">LlamaIndex 文件</a>中深入了解。
+
+另外，也可以透過 `AgentWorkflow` 類別建立工作流程。讓我們看看如何用它建立多 agent 工作流程。
+
+## 使用多 agent 工作流程自動化流程
+
+除了手動建立流程，我們也能使用 **`AgentWorkflow` 類別建立多 agent 工作流程**。
+`AgentWorkflow` 使用 Workflow agent，讓你建立由一個或多個 agent 組成的系統，各個 agent 能依專長協作並交接任務。
+這樣就能建立複雜的 agent 系統，讓不同 agent 負責任務的不同面向。
+我們會從 `llama_index.core.agent.workflow` 匯入 agent 類別，而非 `llama_index.core.agent`。
+在 `AgentWorkflow` 建構函式中，必須將一個 agent 指定為根 agent。
+使用者訊息傳入時，會先送往根 agent。
+
+接著，每個 agent 都可以：
+
+- 使用自己的工具直接處理請求
+- 將任務交給更合適的 agent
+- 向使用者回傳回覆
+
+讓我們看看如何建立多 agent 工作流程。
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow, ReActAgent
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Define some tools
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers."""
+    return a * b
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# we can pass functions directly without FunctionTool -- the fn/docstring are parsed for the name/description
+multiply_agent = ReActAgent(
+    name="multiply_agent",
+    description="Is able to multiply two integers",
+    system_prompt="A helpful assistant that can use a tool to multiply numbers.",
+    tools=[multiply],
+    llm=llm,
+)
+
+addition_agent = ReActAgent(
+    name="add_agent",
+    description="Is able to add two integers",
+    system_prompt="A helpful assistant that can use a tool to add numbers.",
+    tools=[add],
+    llm=llm,
+)
+
+# Create the workflow
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+)
+
+# Run the system
+response = await workflow.run(user_msg="Can you add 5 and 3?")
+```
+
+agent 的工具也能修改前面介紹的工作流程狀態。啟動流程前，可以提供初始狀態字典，讓所有 agent 共用。
+狀態儲存在工作流程上下文的 state 鍵中，並會注入 state_prompt，補充每則新使用者訊息的內容。
+
+以下修改前一個範例，加入計數器來計算函式呼叫次數：
+
+```python
+from llama_index.core.workflow import Context
+
+# Define some tools
+async def add(ctx: Context, a: int, b: int) -> int:
+    """Add two numbers."""
+    # update our count
+    cur_state = await ctx.store.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.store.set("state", cur_state)
+
+    return a + b
+
+async def multiply(ctx: Context, a: int, b: int) -> int:
+    """Multiply two numbers."""
+    # update our count
+    cur_state = await ctx.store.get("state")
+    cur_state["num_fn_calls"] += 1
+    await ctx.store.set("state", cur_state)
+
+    return a * b
+
+...
+
+workflow = AgentWorkflow(
+    agents=[multiply_agent, addition_agent],
+    root_agent="multiply_agent",
+    initial_state={"num_fn_calls": 0},
+    state_prompt="Current state: {state}. User message: {msg}",
+)
+
+# run the workflow with context
+ctx = Context(workflow)
+response = await workflow.run(user_msg="Can you add 5 and 3?", ctx=ctx)
+
+# pull out and inspect the state
+state = await ctx.store.get("state")
+print(state["num_fn_calls"])
+```
+
+恭喜！你已掌握 LlamaIndex 中 agent 的基礎知識！🎉
+
+接下來透過最後一個測驗，鞏固所學吧！🚀

@@ -1,0 +1,48 @@
+# 微調模型，讓它學會函式呼叫
+
+現在，我們準備好微調第一個具備函式呼叫能力的模型了 🔥。
+
+## 如何訓練模型進行函式呼叫？
+
+> 答案：我們需要**資料**
+
+模型訓練可以分成 3 個步驟：
+
+1. **先以大量資料預訓練模型**，得到**預訓練模型**，例如 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b)。這是基礎模型，只會**預測下一個 token，還不太能遵循指令**。
+
+2. 為了用於對話，模型接著需要經過**微調**，學會遵循指令。這一步可以由模型開發者、開源社群、你，或任何人來訓練。例如，[google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) 就是 Gemma 專案的 Google 團隊完成指令微調的模型。
+
+3. 接著，可以讓模型**對齊**開發者的偏好。例如，客服聊天模型必須始終禮貌地對待客戶。
+
+通常，Gemini 或 Mistral 這類完整產品**會經過全部 3 個步驟**；你在 Hugging Face 上找到的模型，則可能完成了其中一個或多個步驟。
+
+在本教學中，我們會以 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) 為基礎，建立函式呼叫模型。我們選擇經過微調的 [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)，而非基礎模型 [google/gemma-2-2b](https://huggingface.co/google/gemma-2-2b)，因為微調後的模型更適合我們的使用情境。
+
+如果從預訓練模型開始，**就需要更多訓練，才能學會遵循指令、對話，以及函式呼叫**。
+
+從完成指令微調的模型開始，**就能盡量減少模型還需要學習的資訊量**。
+
+## LoRA（大型語言模型的低秩適應）
+
+LoRA 是一種常見的輕量訓練技術，能大幅**減少需要訓練的參數數量**。
+
+它的做法是**在待訓練的模型中插入少量新權重，作為 adapter（適配器）**。這讓 LoRA 訓練更快、更節省記憶體，產生的模型權重也更小（數百 MB），便於儲存與分享。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/blog_multi-lora-serving_LoRA.gif" alt="LoRA inference" width="50%"/>
+
+LoRA 會在 Transformer 層中加入成對的秩分解矩陣，通常以線性層為主。訓練時，我們會「凍結」模型的其餘部分，只更新新增 adapter 的權重。
+
+因為只需要更新 adapter 的權重，需要訓練的**參數**數量就能大幅減少。
+
+推論時，輸入會送入 adapter 和基礎模型；也可以先將 adapter 的權重合併到基礎模型中，這樣就不會增加額外延遲。
+
+LoRA 特別適合讓**大型**語言模型適應特定任務或領域，同時將資源需求控制在可負擔的範圍內，也能減少訓練模型**所需**的記憶體。
+
+如果想進一步了解 LoRA 的運作原理，可以參考這份[教學](https://huggingface.co/learn/nlp-course/chapter11/4?fw=pt)。
+
+## 微調模型，加入函式呼叫能力
+
+你可以在 👉 [這裡](https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb) 開啟教學 notebook。
+
+接著點選 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/bonus-unit1/bonus-unit1.ipynb)，就能在 Colab Notebook 中執行。
+

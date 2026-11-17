@@ -1,0 +1,70 @@
+# 什麼是 GAIA？
+
+[GAIA](https://huggingface.co/papers/2311.12983) 是一項**評估 AI 助理處理真實世界任務能力的基準測試**。這些任務需要結合推理、多模態理解、網頁瀏覽，以及熟練運用工具等核心能力。
+
+這項基準測試最初發表於論文 _「[GAIA: A Benchmark for General AI Assistants](https://huggingface.co/papers/2311.12983)」_。
+
+基準測試包含 **466 道精心挑選的問題**，**對人類而言概念簡單**，卻**對目前的 AI 系統極具挑戰性**。
+
+以下數字呈現了兩者的差距：
+- **人類**：成功率約 92%
+- **搭配外掛程式的 GPT-4**：約 15%
+- **Deep Research（OpenAI）**：在驗證集上為 67.36%
+
+GAIA 凸顯了目前 AI 模型的限制，也提供嚴謹的評估基準，衡量我們距離真正通用的 AI 助理還有多遠。
+
+## 🌱 GAIA 的核心原則
+
+GAIA 以以下幾項核心原則精心設計：
+
+- 🔍 **真實世界的難度**：任務需要多步驟推理、多模態理解，以及與工具互動。
+- 🧾 **人類能理解**：雖然對 AI 很難，這些任務對人類而言仍概念簡單、容易理解。
+- 🛡️ **無法取巧**：必須完整執行任務才能得出正確答案，無法靠暴力窮舉奏效。
+- 🧰 **容易評估**：答案簡潔、符合事實且明確，適合作為基準測試。
+
+## 難度等級
+
+GAIA 任務分成**複雜度逐漸增加的三個等級**，各自測試特定技能：
+
+- **第 1 級**：少於 5 個步驟，且只需少量使用工具。
+- **第 2 級**：需要更複雜的推理、多項工具之間的協調，以及 5 至 10 個步驟。
+- **第 3 級**：需要長期規劃，並進階整合各種工具。
+
+![GAIA 等級](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_levels.png)
+
+## 一道高難度 GAIA 題目的範例
+
+> 2008 年的畫作「Embroidery from Uzbekistan」中出現的水果，有哪些也列在某艘遠洋客輪 1949 年 10 月的早餐菜單上？這艘客輪後來曾在電影「The Last Voyage」中用作漂浮道具。請從畫面中 12 點鐘方向開始，依水果在畫中的順時針排列順序，以逗號分隔列出各項水果，並使用每種水果的英文複數形式。
+
+可以看出，這道題目從多個面向考驗 AI 系統：
+
+- 要求**結構化的回覆格式**
+- 涉及**多模態推理**（例如分析影像）
+- 需要對彼此關聯的事實進行**多跳檢索**：
+  - 辨識畫中的水果
+  - 找出 *The Last Voyage* 使用的是哪艘遠洋客輪
+  - 查詢該艘船 1949 年 10 月的早餐菜單
+- 需要**正確安排先後順序**並進行高層次規劃，依適當順序解題
+
+這類任務凸顯了單靠 LLM 經常力有未逮的地方，因此 GAIA 很適合評估能跨多個步驟與模態進行推理、檢索及執行的 **agent 系統**。
+
+![GAIA 能力圖](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_capabilities.png)
+
+## 線上評估
+
+為了鼓勵持續評測，**GAIA 在 Hugging Face 上提供公開排行榜**，你可以使用 **300 道測試題目**評估自己的模型。
+
+👉 在[這裡](https://huggingface.co/spaces/gaia-benchmark/leaderboard)查看排行榜
+
+<iframe
+	src="https://gaia-benchmark-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+想更深入了解 GAIA 嗎？
+
+- 📄 [閱讀完整論文](https://huggingface.co/papers/2311.12983)
+- 📄 [OpenAI 的 Deep Research 發表文章](https://openai.com/index/introducing-deep-research/)
+- 📄 [開源 DeepResearch：解放我們的搜尋 agent](https://huggingface.co/blog/open-deep-research)

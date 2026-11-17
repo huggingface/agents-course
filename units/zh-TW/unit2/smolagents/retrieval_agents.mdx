@@ -1,0 +1,167 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# 建立 Agentic RAG 系統
+
+> [!TIP]
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/retrieval_agents.ipynb" target="_blank">這份 notebook</a> 的程式碼實作，並在 Google Colab 中執行。
+
+檢索增強生成（Retrieval Augmented Generation，RAG）系統結合資料檢索與生成模型的能力，提供能運用上下文的回答。例如，先將使用者的查詢傳給搜尋引擎，再將檢索結果和查詢一併提供給模型。模型接著根據查詢與取得的資訊產生回答。
+
+Agentic RAG（Retrieval-Augmented Generation）透過**結合自主 agent 與動態知識檢索**，擴充傳統 RAG 系統。
+
+傳統 RAG 系統使用 LLM，根據檢索到的資料回答問題；Agentic RAG 則**讓系統能聰明地控制檢索與生成流程**，提高效率與準確度。
+
+傳統 RAG 系統的主要限制包括**依賴單次檢索**，以及著重於與使用者查詢直接相關的語意相似度，因此可能漏掉相關資訊。
+
+Agentic RAG 讓 agent 自主擬定搜尋查詢、評估檢索結果並執行多次檢索，產生更符合需求且完整的輸出，藉此解決這些問題。
+
+## 使用 DuckDuckGo 進行基本檢索
+
+先建立一個能使用 DuckDuckGo 搜尋網頁的簡單 agent，讓它檢索資訊並整合成回答。透過 Agentic RAG，Alfred 的 agent 可以：
+
+* 搜尋最新的超級英雄派對趨勢
+* 調整搜尋結果，納入豪華元素
+* 將資訊整合成完整計畫
+
+以下是 Alfred 的 agent 的實作方式：
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+
+# Initialize the search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Initialize the model
+model = InferenceClientModel()
+
+agent = CodeAgent(
+    model=model,
+    tools=[search_tool],
+)
+
+# Example usage
+response = agent.run(
+    "Search for luxury superhero-themed party ideas, including decorations, entertainment, and catering."
+)
+print(response)
+```
+
+agent 會依照下列流程運作：
+
+1. **分析需求：** Alfred 的 agent 找出查詢的重點：規劃豪華的超級英雄主題派對，著重於裝飾、娛樂與餐飲。
+2. **執行檢索：** agent 使用 DuckDuckGo 搜尋最新且最相關的資訊，確保符合 Alfred 對豪華活動的細緻要求。
+3. **整合資訊：** 蒐集結果後，agent 將資訊整理成連貫、可執行的計畫，涵蓋派對的各個面向。
+4. **儲存供日後參考：** agent 儲存檢索到的資訊，方便規劃未來活動時取用，提升後續任務的效率。
+
+## 自訂知識庫工具
+
+對專業任務來說，自訂知識庫很有價值。讓我們建立一個工具，查詢儲存技術文件或專業知識的向量資料庫。透過語意搜尋，agent 能找出最符合 Alfred 需求的資訊。
+
+向量資料庫儲存文字或其他資料的數值表示（embedding），這些表示由機器學習模型建立。資料庫透過辨識高維空間中的相似語意，支援語意搜尋。
+
+這個方法結合預先定義的知識與語意搜尋，為活動規劃提供能運用上下文的解決方案。有了專業知識，Alfred 就能完善派對的每個細節。
+
+在這個範例中，我們將建立從自訂知識庫檢索派對規劃點子的工具。使用 BM25 檢索器搜尋知識庫並回傳排名最高的結果，再用 `RecursiveCharacterTextSplitter` 將文件切成較小的區塊，提升搜尋效率。
+
+```python
+from langchain_community.docstore.document import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from smolagents import Tool
+from langchain_community.retrievers import BM25Retriever
+from smolagents import CodeAgent, InferenceClientModel
+
+class PartyPlanningRetrieverTool(Tool):
+    name = "party_planning_retriever"
+    description = "Uses semantic search to retrieve relevant party planning ideas for Alfred’s superhero-themed party at Wayne Manor."
+    inputs = {
+        "query": {
+            "type": "string",
+            "description": "The query to perform. This should be a query related to party planning or superhero themes.",
+        }
+    }
+    output_type = "string"
+
+    def __init__(self, docs, **kwargs):
+        super().__init__(**kwargs)
+        self.retriever = BM25Retriever.from_documents(
+            docs, k=5  # Retrieve the top 5 documents
+        )
+
+    def forward(self, query: str) -> str:
+        assert isinstance(query, str), "Your search query must be a string"
+
+        docs = self.retriever.invoke(
+            query,
+        )
+        return "\nRetrieved ideas:\n" + "".join(
+            [
+                f"\n\n===== Idea {str(i)} =====\n" + doc.page_content
+                for i, doc in enumerate(docs)
+            ]
+        )
+
+# Simulate a knowledge base about party planning
+party_ideas = [
+    {"text": "A superhero-themed masquerade ball with luxury decor, including gold accents and velvet curtains.", "source": "Party Ideas 1"},
+    {"text": "Hire a professional DJ who can play themed music for superheroes like Batman and Wonder Woman.", "source": "Entertainment Ideas"},
+    {"text": "For catering, serve dishes named after superheroes, like 'The Hulk's Green Smoothie' and 'Iron Man's Power Steak.'", "source": "Catering Ideas"},
+    {"text": "Decorate with iconic superhero logos and projections of Gotham and other superhero cities around the venue.", "source": "Decoration Ideas"},
+    {"text": "Interactive experiences with VR where guests can engage in superhero simulations or compete in themed games.", "source": "Entertainment Ideas"}
+]
+
+source_docs = [
+    Document(page_content=doc["text"], metadata={"source": doc["source"]})
+    for doc in party_ideas
+]
+
+# Split the documents into smaller chunks for more efficient search
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=50,
+    add_start_index=True,
+    strip_whitespace=True,
+    separators=["\n\n", "\n", ".", " ", ""],
+)
+docs_processed = text_splitter.split_documents(source_docs)
+
+# Create the retriever tool
+party_planning_retriever = PartyPlanningRetrieverTool(docs_processed)
+
+# Initialize the agent
+agent = CodeAgent(tools=[party_planning_retriever], model=InferenceClientModel())
+
+# Example usage
+response = agent.run(
+    "Find ideas for a luxury superhero-themed party, including entertainment, catering, and decoration options."
+)
+
+print(response)
+```
+
+強化後的 agent 可以：
+1. 先查看文件，尋找相關資訊
+2. 整合知識庫中的見解
+3. 在記憶中保留對話上下文
+
+## 強化檢索能力
+
+建立 Agentic RAG 系統時，agent 可以採用以下進階策略：
+
+1. **查詢改寫：** 不直接使用原始查詢，而是擬定更符合目標文件的搜尋詞。
+2. **查詢分解：** 如果使用者的查詢包含多項資訊需求，可拆解為多個查詢，而非直接使用原始查詢。
+3. **查詢擴展：** 類似查詢改寫，但會產生多種表達方式，分別執行搜尋。
+4. **重新排序：** 使用 Cross-Encoder，針對檢索文件與查詢之間的語意相關性給出更全面的評分。
+5. **多步驟檢索：** 執行多次搜尋，利用初步結果調整後續查詢。
+6. **來源整合：** 結合網頁搜尋、本機文件等多個來源的資訊。
+7. **結果驗證：** 在將檢索內容納入回答前，分析其相關性與準確度。
+
+有效的 Agentic RAG 系統需要仔細考量幾個關鍵面向。agent **應根據查詢類型與上下文，從可用工具中做出選擇**。記憶系統能保留對話歷史，避免重複檢索；備援策略能確保主要檢索方式失敗時，系統仍有幫助；驗證步驟則有助於確保檢索資訊的準確度與相關性。
+
+## 資源
+
+- [Agentic RAG：透過查詢改寫與自我查詢，強化你的 RAG！🚀](https://huggingface.co/learn/cookbook/agent_rag) - 使用 smolagents 開發 Agentic RAG 系統的實作指南。

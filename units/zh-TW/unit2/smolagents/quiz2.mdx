@@ -1,0 +1,147 @@
+# 小測驗（不計分）[[quiz2]]
+
+來檢驗你對 *code agent*、*工具呼叫 agent* 與*工具*章節的理解！這份測驗可自由參加，不計分。
+
+---
+
+### Q1：在 smolagents 中，使用 `@tool` 裝飾器建立工具，與建立 `Tool` 子類別有什麼主要差異？
+
+哪個敘述最能描述這兩種工具定義方式的差異？
+
+<Question
+choices={[
+  {
+    text: "檢索工具必須使用 <code>@tool</code> 裝飾器，而 <code>Tool</code> 子類別只能用於文字生成任務",
+    explain: "兩種方式都適用於任何工具類型，包括檢索與文字生成工具。",
+  },
+  {
+    text: "簡單的函式工具建議使用 <code>@tool</code> 裝飾器；複雜功能或自訂中繼資料則可透過 <code>Tool</code> 子類別獲得更多彈性",
+    explain: "正確。裝飾器比較簡單，但子類別能提供更多自訂行為。",
+    correct: true
+  },
+  {
+    text: "<code>@tool</code> 只能用於多 agent 系統，<code>Tool</code> 子類別則適用於單一 agent 情境",
+    explain: "單一或多 agent 都能使用任一方式定義工具，沒有這種限制。",
+  },
+  {
+    text: "使用 <code>@tool</code> 裝飾函式就不需要 docstring，而子類別禁止包含 docstring",
+    explain: "兩種方式都受益於清楚的 docstring。裝飾器不能取代它，子類別也可以包含 docstring。",
+  }
+]}
+/>
+
+---
+
+### Q2：CodeAgent 如何使用 ReAct（Reason + Act）處理多步驟任務？
+
+哪個敘述正確描述 CodeAgent 透過一連串步驟解決任務的方式？
+
+<Question
+choices={[
+  {
+    text: "將每一步交給多 agent 系統中的不同 agent，再整合結果",
+    explain: "雖然多 agent 系統能分派任務，但 CodeAgent 本身也能使用 ReAct 獨立完成多個步驟。",
+  },
+  {
+    text: "將每個動作儲存為 JSON，方便解析後再一次全部執行",
+    explain: "這符合 ToolCallingAgent 使用 JSON 的做法，而非 CodeAgent。",
+  },
+  {
+    text: "循環執行撰寫內部思考、產生 Python 程式碼、執行程式碼與記錄結果，直到得到最終答案",
+    explain: "正確。這就是 CodeAgent 使用的 ReAct 模式，包括反覆推理與執行程式碼。",
+    correct: true
+  },
+  {
+    text: "先依賴視覺模組驗證程式碼輸出，再繼續下一步",
+    explain: "smolagents 支援視覺能力，但這不是 CodeAgent 或 ReAct 方法的預設必要條件。",
+  }
+]}
+/>
+
+---
+
+### Q3：在 Hugging Face Hub 分享工具的主要優點是什麼？
+
+選出開發者上傳並分享自訂工具的最佳理由。
+
+<Question
+choices={[
+  {
+    text: "自動將工具與 MultiStepAgent 整合，實作檢索增強生成",
+    explain: "分享工具不會自動設定檢索或多步驟邏輯，只是讓工具可供使用。",
+  },
+  {
+    text: "讓其他人不必額外設定，就能找到、重複使用並將工具整合到自己的 smolagents 中",
+    explain: "正確。在 Hub 分享後，任何人（包括你自己）都能快速下載並重複使用工具。",
+    correct: true
+  },
+  {
+    text: "確保只有 CodeAgents 能呼叫工具，ToolCallingAgents 則不能",
+    explain: "CodeAgents 與 ToolCallingAgents 都能呼叫分享的工具，沒有 agent 類型限制。",
+  },
+  {
+    text: "將工具轉成具備完整視覺能力的影像處理函式",
+    explain: "分享工具不會改變工具功能，也不會自動加入視覺能力。",
+  }
+]}
+/>
+
+---
+
+### Q4：ToolCallingAgent 與 CodeAgent 的動作執行方式不同，哪個敘述正確？
+
+選出準確描述 ToolCallingAgent 運作方式的選項。
+
+<Question
+choices={[
+  {
+    text: "ToolCallingAgent 只適用於多 agent 系統，而 CodeAgent 可以獨立執行",
+    explain: "兩種 agent 都能獨立使用，也能作為多 agent 系統的一部分。",
+  },
+  {
+    text: "ToolCallingAgent 將所有推理交給另一個檢索 agent，再回傳最終答案",
+    explain: "ToolCallingAgent 仍使用主要 LLM 進行推理，並非完全依賴檢索 agent。",
+  },
+  {
+    text: "ToolCallingAgent 輸出指定工具呼叫與參數的 JSON 指令，再由系統解析並執行",
+    explain: "正確。ToolCallingAgent 使用 JSON 定義工具呼叫。",
+    correct: true
+  },
+  {
+    text: "ToolCallingAgent 只適用於單步驟任務，呼叫一個工具後就會自動停止",
+    explain: "ToolCallingAgent 與 CodeAgent 一樣，能依需要執行多個步驟。",
+  }
+]}
+/>
+
+---
+
+### Q5：smolagents 的預設工具箱包含什麼？為什麼要使用它？
+
+哪個敘述最能描述 smolagents 預設工具箱的用途與內容？
+
+<Question
+choices={[
+  {
+    text: "提供 DuckDuckGo 搜尋、PythonInterpreterTool 與最終答案工具等常用工具，方便快速製作原型",
+    explain: "正確。預設工具箱包含這些現成工具，方便在建立 agent 時整合。",
+    correct: true
+  },
+  {
+    text: "預設只支援影像分類或 OCR 等視覺任務",
+    explain: "雖然 smolagents 可以整合視覺功能，但預設工具箱並非專為視覺任務設計。",
+  },
+  {
+    text: "專供多 agent 系統使用，無法搭配單一 CodeAgent",
+    explain: "預設工具箱適用於任何 agent 類型，包括單一與多 agent 架構。",
+  },
+  {
+    text: "加入進階檢索功能，支援使用向量儲存空間的大規模問答",
+    explain: "雖然可以自行建立檢索工具，但預設工具箱不會自動提供進階 RAG 功能。",
+  }
+]}
+/>
+
+---
+
+恭喜完成測驗！🎉 如果有題目讓你感到困難，請回顧 *code agent*、*工具呼叫 agent* 或*工具*章節，加深理解。如果全都答對了，你已經朝著打造穩健的 smolagents 應用程式邁進一大步！

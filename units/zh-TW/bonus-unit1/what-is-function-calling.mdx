@@ -1,0 +1,77 @@
+# 什麼是函式呼叫？
+
+函式呼叫是 **LLM 對環境採取行動的一種方式**。這項功能最早[於 GPT-4 推出](https://openai.com/index/function-calling-and-other-api-updates/)，後來其他模型也陸續採用。
+
+如同 agent 使用工具，函式呼叫讓模型能夠**對環境採取行動**。不過，函式呼叫能力是**模型透過學習取得的**，**對 prompt 的依賴比其他 agent 技術更少**。
+
+在第 1 單元，agent **並未經過使用工具的訓練**。我們只是提供工具清單，再仰賴模型**將既有能力泛化，規劃如何使用這些工具**。
+
+這裡則會**透過微調（訓練），讓 agent 學會使用工具，進行函式呼叫**。
+
+## 模型如何「學會」採取行動？
+
+在第 1 單元，我們探討過 agent 的一般工作流程。使用者提供工具，再以查詢作為 prompt 後，模型便會重複以下循環：
+
+1. *思考*：為了達成目標，需要採取哪些行動？
+2. *行動*：以正確的參數格式輸出行動，然後停止生成。
+3. *觀察*：取得執行結果。
+
+透過 API 與模型進行「一般」對話時，使用者與助理的訊息會交替出現，如下所示：
+
+```python
+conversation = [
+    {"role": "user", "content": "I need help with my order"},
+    {"role": "assistant", "content": "I'd be happy to help. Could you provide your order number?"},
+    {"role": "user", "content": "It's ORDER-123"},
+]
+```
+
+函式呼叫為對話帶來了**新的角色**！
+
+1. 一個代表**行動**的新角色
+2. 一個代表**觀察**的新角色
+
+以 [Mistral API](https://docs.mistral.ai/capabilities/function_calling/) 為例，對話會像這樣：
+
+```python
+conversation = [
+    {
+        "role": "user",
+        "content": "What's the status of my transaction T1001?"
+    },
+    {
+        "role": "assistant",
+        "content": "",
+        "function_call": {
+            "name": "retrieve_payment_status",
+            "arguments": "{\"transaction_id\": \"T1001\"}"
+        }
+    },
+    {
+        "role": "tool",
+        "name": "retrieve_payment_status",
+        "content": "{\"status\": \"Paid\"}"
+    },
+    {
+        "role": "assistant",
+        "content": "Your transaction T1001 has been successfully paid."
+    }
+]
+```
+
+> ……可是，你不是說函式呼叫會有新的角色嗎？
+
+**是，也不完全是。** 在這個例子和許多其他 API 中，模型會將要採取的行動格式化為「assistant」訊息。聊天範本接著會以函式呼叫的**特殊 token** 表示它。
+
+- `[AVAILABLE_TOOLS]` – 可用工具清單的起點  
+- `[/AVAILABLE_TOOLS]` – 可用工具清單的終點  
+- `[TOOL_CALLS]` – 呼叫工具（也就是採取「行動」）  
+- `[TOOL_RESULTS]` – 「觀察」行動結果  
+- `[/TOOL_RESULTS]` – 觀察結束（模型可以再次解碼）
+
+課程後續還會談到函式呼叫。如果想深入了解，也可以參閱[這份詳盡的文件](https://docs.mistral.ai/capabilities/function_calling/)。
+
+---
+現在，我們已經了解函式呼叫的概念與運作方式。接下來，要在模型中加入新的特殊 token，**讓原本還不具備這項能力的模型學會函式呼叫**：[google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)。
+
+在開始之前，**我們得先了解微調與 LoRA**。

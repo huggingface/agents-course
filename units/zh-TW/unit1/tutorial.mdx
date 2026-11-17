@@ -1,0 +1,244 @@
+# 使用 smolagents 建立第一個 agent
+
+上一節中，我們學會了如何使用 Python 程式碼從零建立 agent，也**體會到這個過程有多繁瑣**。幸好，許多 agent 函式庫會**代為處理大部分複雜工作**，讓開發更簡單。
+
+在這篇教學中，**你將建立第一個 agent**，讓它能產生圖片、搜尋網路、查詢時區等！
+
+你還會**將 agent 發布到 Hugging Face Space，與朋友和同事分享**。
+
+我們開始吧！
+
+
+## 什麼是 smolagents？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/smolagents.png" alt="smolagents"/>
+
+我們將使用 `smolagents` 建立這個 agent。這個函式庫**提供讓你輕鬆開發 agent 的框架**。
+
+這個輕量函式庫以簡單易用為設計目標，封裝了建立 agent 時的大部分複雜細節，讓你能專注於設計 agent 的行為。
+
+下一單元將深入介紹 smolagents。現在你也可以參閱這篇<a href="https://huggingface.co/blog/smolagents" target="_blank">部落格文章</a>，或函式庫的 <a href="https://github.com/huggingface/smolagents" target="_blank">GitHub 儲存庫</a>。
+
+`smolagents` 著重於 **codeAgent**：這類 agent 透過程式碼區塊執行**「行動」**，再藉由執行程式碼來**「觀察」**結果。
+
+以下是我們即將建立的範例！ 
+
+我們提供 **影像生成工具**給 agent，請它產生一張貓的圖片。
+
+`smolagents` 中的 agent，會展現**與先前自行建立的 agent 相同的行為**：持續**循環思考、行動與觀察**，直到得到最終答案：
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PQDKcWiuln4?si=ysSTDZoi8y55FVvA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+很令人期待吧？
+
+## 來建立 agent 吧！
+
+首先，複製這個 Space：<a href="https://huggingface.co/spaces/agents-course/First_agent_template" target="_blank">https://huggingface.co/spaces/agents-course/First_agent_template</a>
+> 感謝 <a href="https://huggingface.co/m-ric" target="_blank">Aymeric</a> 提供範本！🙌
+
+
+複製這個 Space，就是**在你自己的個人檔案下建立一份副本**：
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/duplicate-space.gif" alt="Duplicate"/>
+
+複製 Space 後，需要加入 Hugging Face API token，讓 agent 能存取模型 API：
+
+1. 如果還沒有 Hugging Face token，先到 [https://hf.co/settings/tokens](https://hf.co/settings/tokens) 取得具備推論權限的 token
+2. 前往複製好的 Space，點選 **Settings** 分頁
+3. 向下捲動到 **Variables and Secrets** 區段，點選 **New Secret**
+4. 建立名為 `HF_TOKEN` 的 secret，將 token 貼入值欄位
+5. 點選 **Save**，安全儲存 token
+
+這堂課只需要修改目前尚未完成的 **「app.py」**。你可以查看[範本中的原始檔案](https://huggingface.co/spaces/agents-course/First_agent_template/blob/main/app.py)。要找到自己的版本，請前往複製的 Space，點選 `Files` 分頁，再點選目錄中的 `app.py`。
+
+一起來看看程式碼的各個部分：
+
+- 檔案開頭先匯入一些簡單但必要的函式庫
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+```
+
+如先前所述，我們將直接使用 **smolagents** 的 **CodeAgent** 類別。
+
+
+### 工具
+
+接著來看工具！如果想複習工具的概念，歡迎回到課程的[工具](tools)一節。
+
+```python
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # it's important to specify the return type
+    # Keep this format for the tool description / args description but feel free to modify the tool
+    """A tool that does nothing yet 
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Create timezone object
+        tz = pytz.timezone(timezone)
+        # Get current time in that timezone
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+```
+
+
+本節鼓勵你自己打造工具！我們提供兩個範例：
+
+1. **尚無實際功能的模擬工具**：你可以修改它，加入有用的功能。
+2. **可以實際使用的工具**：取得世界上某個地方的目前時間。
+
+定義工具時，請務必注意：
+
+1. 提供函式的輸入與輸出型別，例如 `get_current_time_in_timezone(timezone: str) -> str:`
+2. **提供格式正確的 docstring**。`smolagents` 要求所有引數都要有 **docstring 中的文字說明**。
+
+### agent
+
+這個 agent 使用 [`Qwen/Qwen2.5-Coder-32B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct) 作為 LLM 引擎。這是一個能力很強的模型，我們將透過無伺服器 API 使用它。
+
+```python
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+# We're creating our CodeAgent
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # add your tools here (don't remove final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates
+)
+
+GradioUI(agent).launch()
+```
+
+這個 agent 的 **InferenceClientModel** 類別，背後仍使用先前介紹的 `InferenceClient`！
+
+第二單元介紹框架時，會提供更深入的範例。目前請先專注於透過 agent 的 `tools` 參數，**在工具清單中加入新工具**。
+
+例如，你可以使用程式碼第一行匯入的 `DuckDuckGoSearchTool`，或看看稍後從 Hub 載入的 `image_generation_tool`。
+
+**加入工具就能賦予 agent 新能力**，盡情發揮創意吧！
+
+### 系統 prompt
+
+agent 的系統 prompt 儲存在獨立的 `prompts.yaml` 檔案中。這個檔案包含預先定義的指令，用來引導 agent 的行為。
+
+將 prompt 儲存在 YAML 檔案，方便自訂，也能在不同 agent 或使用情境中重複使用。 
+
+你可以查看 [Space 的檔案結構](https://huggingface.co/spaces/agents-course/First_agent_template/tree/main)，了解 `prompts.yaml` 的位置，以及它在專案中的組織方式。
+
+完整的「app.py」： 
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel, load_tool, tool
+import datetime
+import requests
+import pytz
+import yaml
+from tools.final_answer import FinalAnswerTool
+
+from Gradio_UI import GradioUI
+
+# Below is an example of a tool that does nothing. Amaze us with your creativity!
+@tool
+def my_custom_tool(arg1:str, arg2:int)-> str: # it's important to specify the return type
+    # Keep this format for the tool description / args description but feel free to modify the tool
+    """A tool that does nothing yet 
+    Args:
+        arg1: the first argument
+        arg2: the second argument
+    """
+    return "What magic will you build ?"
+
+@tool
+def get_current_time_in_timezone(timezone: str) -> str:
+    """A tool that fetches the current local time in a specified timezone.
+    Args:
+        timezone: A string representing a valid timezone (e.g., 'America/New_York').
+    """
+    try:
+        # Create timezone object
+        tz = pytz.timezone(timezone)
+        # Get current time in that timezone
+        local_time = datetime.datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+        return f"The current local time in {timezone} is: {local_time}"
+    except Exception as e:
+        return f"Error fetching time for timezone '{timezone}': {str(e)}"
+
+
+final_answer = FinalAnswerTool()
+model = InferenceClientModel(
+    max_tokens=2096,
+    temperature=0.5,
+    model_id='Qwen/Qwen2.5-Coder-32B-Instruct',
+    custom_role_conversions=None,
+)
+
+
+# Import tool from Hub
+image_generation_tool = load_tool("agents-course/text-to-image", trust_remote_code=True)
+
+# Load system prompt from prompt.yaml file
+with open("prompts.yaml", 'r') as stream:
+    prompt_templates = yaml.safe_load(stream)
+    
+agent = CodeAgent(
+    model=model,
+    tools=[final_answer], # add your tools here (don't remove final_answer)
+    max_steps=6,
+    verbosity_level=1,
+    grammar=None,
+    planning_interval=None,
+    name=None,
+    description=None,
+    prompt_templates=prompt_templates # Pass system prompt to CodeAgent
+)
+
+
+GradioUI(agent).launch()
+```
+
+你的**目標**是熟悉這個 Space 與 agent。
+
+目前，範本中的 agent **還沒有使用任何工具，試著加入現成的工具，甚至自己建立新工具吧！**
+
+我們很期待在 Discord 的 **#agents-course-showcase** 頻道看到你的 agent 成果！
+
+
+---
+恭喜，你已建立第一個 agent！歡迎與朋友和同事分享。
+
+這是第一次嘗試，有些小錯誤或速度稍慢都很正常。後續單元會教你如何打造更好的 agent。
+
+最好的學習方式就是動手嘗試。歡迎修改 agent、加入更多工具，或試試其他模型。
+
+下一節將進行單元總測驗，並領取證書！
+

@@ -1,0 +1,111 @@
+# 快速自我檢測（不計分） [[quiz2]]
+
+什麼？！又是測驗？我們懂、我們懂……😅 不過，這個簡短的不計分測驗能**幫助你鞏固剛學到的關鍵概念**。
+
+本測驗涵蓋 agent 工作流程與互動，這些都是建立有效 AI agent 的核心要素。
+
+### Q1: LlamaIndex 中的 AgentWorkflow 有什麼用途？
+
+<Question
+choices={[
+{
+text: "執行一個或多個具備工具的 agent",
+explain: "正確，AgentWorkflow 是快速建立單一或多 agent 系統的主要方式。",
+correct: true
+},
+{
+text: "建立一個能查詢資料、但不保留記憶的 agent",
+explain: "不對，AgentWorkflow 的能力不只如此；簡單的資料查詢可以使用 QueryEngine。",
+},
+{
+text: "自動為 agent 建立工具",
+explain: "AgentWorkflow 不會建立工具，這是開發者的工作。",
+},
+{
+text: "管理 agent 的記憶與狀態",
+explain: "管理記憶與狀態並非 AgentWorkflow 的主要用途。",
+}
+]}
+/>
+
+---
+
+### Q2: 哪個物件用來追蹤工作流程的狀態？
+
+<Question
+choices={[
+{
+text: "State",
+explain: "State 並非管理工作流程狀態的正確物件。",
+},
+{
+text: "Context",
+explain: "Context 是用來追蹤工作流程狀態的正確物件。",
+correct: true
+},
+{
+text: "WorkflowState",
+explain: "WorkflowState 並非正確物件。",
+},
+{
+text: "Management",
+explain: "Management 並非有效的工作流程狀態物件。",
+}
+]}
+/>
+
+---
+
+### Q3: 如果希望 agent 記住先前的互動，應該使用哪個方法？
+
+<Question
+choices={[
+{
+text: "run(query_str)",
+explain: ".run(query_str) 不會保留對話紀錄。",
+},
+{
+text: "chat(query_str, ctx=ctx)",
+explain: "chat() 並非工作流程的有效方法。",
+},
+{
+text: "interact(query_str)",
+explain: "interact() 並非 agent 互動的有效方法。",
+},
+{
+text: "run(query_str, ctx=ctx)",
+explain: "傳入並持續維護上下文，就能保留狀態！",
+correct: true
+}
+]}
+/>
+
+---
+
+### Q4: Agentic RAG 的關鍵特性是什麼？
+
+<Question
+choices={[
+{
+text: "只能使用文件相關工具，在 RAG 工作流程中回答問題",
+explain: "Agentic RAG 可以使用各種工具，包括文件相關工具。",
+},
+{
+text: "像聊天機器人一樣，不使用工具就自動回答問題",
+explain: "Agentic RAG 確實會使用工具回答問題。",
+},
+{
+text: "可以自行決定使用哪種工具回答問題，包括 RAG 工具",
+explain: "Agentic RAG 能靈活選擇不同工具回答問題。",
+correct: true
+},
+{
+text: "只能搭配具備函式呼叫能力的 agent",
+explain: "Agentic RAG 不限於具備函式呼叫能力的 agent。",
+}
+]}
+/>
+
+---
+
+都理解了嗎？太好了！現在讓我們**簡單回顧本單元！**

@@ -1,0 +1,28 @@
+# Agentic 檢索增強生成（RAG）
+
+本單元將介紹如何運用 Agentic RAG，協助 Alfred 準備這場精彩的晚宴。
+
+> [!TIP]
+> 前一單元已介紹過檢索增強生成（RAG）與 Agentic RAG。如果你已熟悉這些概念，可以直接跳到後面的內容。
+
+LLM 透過大量資料訓練，學習一般知識。
+然而，LLM 掌握的世界知識未必與當下需求相關，也未必是最新資訊。
+**RAG 會從你的資料中找出並擷取相關資訊，再傳給 LLM，以解決這個問題。**
+
+![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
+
+現在想想 Alfred 的工作方式：
+
+1. 我們請 Alfred 協助規劃晚宴
+2. Alfred 需要尋找最新消息與天氣資訊
+3. Alfred 需要整理賓客資訊，並能搜尋這些資料
+
+就像 Alfred 必須搜尋你家中的相關資訊才能提供協助，任何 agent 都需要一套方法，來尋找並理解相關資料。
+**Agentic RAG 能有效運用 agent，回答關於你所持有資料的問題。** 我們可以提供各種工具，協助 Alfred 回答問題。
+不過，Alfred 不必只根據文件自動回答，也可以自行決定使用其他工具或流程來解答。
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+開始**建立我們的 Agentic RAG 工作流程吧！**
+
+首先，建立 RAG 工具來擷取受邀賓客的最新詳細資料。接著，開發網頁搜尋、天氣查詢，以及 Hugging Face Hub 模型下載統計工具。最後，整合所有元件，讓我們的 Agentic RAG agent 正式運作！
