@@ -1,0 +1,221 @@
+<CourseFloatingBanner 
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+# 使用 smolagents 建立視覺 agent
+
+> [!WARNING]
+> 本節範例需要使用能力強大的 VLM。我們以 GPT-4o API 進行測試。
+> 不過，<a href="./why_use_smolagents">為什麼使用 smolagents</a> 一節也介紹了 smolagents 與 Hugging Face 支援的其他方案。想探索其他選擇，請參考該節。
+
+要解決超出文字處理範圍的任務，視覺能力非常重要。許多實際挑戰，例如網頁瀏覽或文件理解，都需要分析豐富的視覺內容。幸好，`smolagents` 內建支援視覺語言模型（VLM），讓 agent 能有效處理並解讀影像。
+
+在這個範例中，假設韋恩莊園的管家 Alfred 負責確認派對賓客的身分。他不一定認識每位來賓，因此我們可以建立 agent，使用 VLM 搜尋來賓外貌的視覺資訊，協助確認身分。這能讓 Alfred 有根據地決定誰可以入場。一起來實作吧！
+
+
+## 在 agent 開始執行時提供影像
+
+> [!TIP]
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb" target="_blank">這份 notebook</a> 的程式碼實作，並在 Google Colab 中執行。
+
+這個方法會在 agent 開始執行時傳入影像，與任務 prompt 一起儲存為 `task_images`。agent 在執行過程中會持續處理這些影像。
+
+假設 Alfred 想確認出席派對的超級英雄身分。他已經有過往派對的影像資料集，裡面附有賓客姓名。取得新訪客的影像後，agent 就能與現有資料集比對，決定是否讓對方入場。
+
+這次有位賓客想入場，但 Alfred 懷疑對方是小丑（The Joker）假扮的神力女超人（Wonder Woman）。Alfred 需要確認身分，避免不受歡迎的人混入。
+
+開始實作吧！首先載入影像。為了讓範例保持精簡，我們使用維基百科上的圖片，但你可以想像這個功能還能用在哪些情境！
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg", # Joker image
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg" # Joker image
+]
+
+images = []
+for url in image_urls:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" 
+    }
+    response = requests.get(url,headers=headers)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+取得影像後，agent 將告訴我們，這位賓客究竟是超級英雄（神力女超人），還是反派（小丑）。
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+# Instantiate the agent
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Describe the costume and makeup that the comic character in these photos is wearing and return the description.
+    Tell me if the guest is The Joker or Wonder Woman.
+    """,
+    images=images
+)
+```
+
+我執行時得到以下輸出。不過，正如前面提到的，你的結果可能不同：
+
+```python
+    {
+        'Costume and Makeup - First Image': (
+            'Purple coat and a purple silk-like cravat or tie over a mustard-yellow shirt.',
+            'White face paint with exaggerated features, dark eyebrows, blue eye makeup, red lips forming a wide smile.'
+        ),
+        'Costume and Makeup - Second Image': (
+            'Dark suit with a flower on the lapel, holding a playing card.',
+            'Pale skin, green hair, very red lips with an exaggerated grin.'
+        ),
+        'Character Identity': 'This character resembles known depictions of The Joker from comic book media.'
+    }
+```
+
+在這個例子中，輸出指出對方正在冒充他人，因此我們可以阻止小丑進入派對！
+
+## 透過動態檢索提供影像
+
+> [!TIP]
+> 你可以參照<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py" target="_blank">這份 Python 檔案</a>中的程式碼實作。
+
+前一個方法很有用，也有許多潛在應用。不過，如果資料庫中沒有這位賓客，就需要其他辨識方式。一個可行方案是動態取得外部來源的影像與資訊，例如瀏覽網頁尋找細節。
+
+這個方法會在執行過程中，動態將影像加入 agent 的記憶。如前所述，`smolagents` 的 agent 以 `MultiStepAgent` 類別為基礎，這個類別是 ReAct 框架的抽象實作。它會在結構化的循環中運作，於不同階段記錄各種變數與知識：
+
+1. **SystemPromptStep：** 儲存系統 prompt。
+2. **TaskStep：** 記錄使用者查詢與提供的輸入。
+3. **ActionStep：** 記錄 agent 的動作與結果。
+
+這樣的結構讓 agent 能動態納入視覺資訊，隨任務變化調整回應。下圖是先前看過的流程圖，說明動態工作流程，以及各步驟如何整合至 agent 的生命週期。瀏覽網頁時，agent 可以擷取螢幕畫面，並以 `observation_images` 儲存在 `ActionStep` 中。
+
+![動態影像檢索](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/smolagents-can-see/diagram_adding_vlms_smolagents.png)
+
+了解需求後，就來建立完整範例。Alfred 希望完全掌握賓客身分確認流程，因此透過網頁瀏覽尋找細節是可行的做法。這個範例需要為 agent 準備一組新工具，另外還會使用 Selenium 與 Helium 這兩套瀏覽器自動化工具。這樣就能建立瀏覽網頁的 agent，搜尋潛在賓客的詳細資訊並取得身分確認資料。先安裝所需工具：
+
+```bash
+pip install "smolagents[all]" helium selenium python-dotenv
+```
+
+我們需要一組專為瀏覽設計的 agent 工具，例如 `search_item_ctrl_f`、`go_back` 和 `close_popups`，讓 agent 能像人一樣操作網頁。
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Searches for text on the current page via Ctrl + F and jumps to the nth occurrence.
+    Args:
+        text: The text to search for
+        nth_result: Which occurrence to jump to (default: 1)
+    """
+    elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{text}')]")
+    if nth_result > len(elements):
+        raise Exception(f"Match n°{nth_result} not found (only {len(elements)} matches found)")
+    result = f"Found {len(elements)} matches for '{text}'."
+    elem = elements[nth_result - 1]
+    driver.execute_script("arguments[0].scrollIntoView(true);", elem)
+    result += f"Focused on element {nth_result} of {len(elements)}"
+    return result
+
+
+@tool
+def go_back() -> None:
+    """Goes back to previous page."""
+    driver.back()
+
+
+@tool
+def close_popups() -> str:
+    """
+    Closes any visible modal or pop-up on the page. Use this to dismiss pop-up windows! This does not work on cookie consent banners.
+    """
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+```
+
+我們也需要儲存螢幕截圖的功能，這是 VLM agent 完成任務的重要環節。這個功能擷取畫面後，會存入 `step_log.observations_images = [image.copy()]`，讓 agent 能在瀏覽時動態儲存並處理影像。
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)  # Let JavaScript animations happen before taking the screenshot
+    driver = helium.get_driver()
+    current_step = step_log.step_number
+    if driver is not None:
+        for step_logs in agent.logs:  # Remove previous screenshots from logs for lean processing
+            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+                step_logs.observations_images = None
+        png_bytes = driver.get_screenshot_as_png()
+        image = Image.open(BytesIO(png_bytes))
+        print(f"Captured a browser screenshot: {image.size} pixels")
+        step_log.observations_images = [image.copy()]  # Create a copy to ensure it persists, important!
+
+    # Update observations with current URL
+    url_info = f"Current url: {driver.current_url}"
+    step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
+    return
+```
+
+這個函式會以 `step_callback` 傳給 agent，在每一步結束時觸發，讓 agent 能在整個流程中動態擷取並儲存螢幕截圖。
+
+現在可以建立瀏覽網頁的視覺 agent，將剛才建立的工具與 `DuckDuckGoSearchTool` 一併提供給它。這個搜尋工具將協助 agent 取得必要資訊，根據視覺線索確認賓客身分。
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+如此一來，Alfred 就能開始確認賓客身分，並決定是否讓他們入場：
+
+```python
+agent.run("""
+I am Alfred, the butler of Wayne Manor, responsible for verifying the identity of guests at party. A superhero has arrived at the entrance claiming to be Wonder Woman, but I need to confirm if she is who she says she is.
+
+Please search for images of Wonder Woman and generate a detailed visual description based on those images. Additionally, navigate to Wikipedia to gather key details about her appearance. With this information, I can determine whether to grant her access to the event.
+""" + helium_instructions)
+```
+
+注意，我們把 `helium_instructions` 納入任務中。這段特殊的 prompt 用來引導 agent 瀏覽網頁，確保它依照正確步驟操作。
+
+下方影片展示實際運作過程：
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/rObJel7-OLc?si=TnNwQ8rqXqun_pqE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+這是最終輸出：
+
+```python
+Final answer: Wonder Woman is typically depicted wearing a red and gold bustier, blue shorts or skirt with white stars, a golden tiara, silver bracelets, and a golden Lasso of Truth. She is Princess Diana of Themyscira, known as Diana Prince in the world of men.
+```
+
+我們成功建立派對的身分確認工具了！Alfred 現在有了所需工具，能確保只有合適的賓客進門。一切準備就緒，可以在韋恩莊園好好享受派對！
+
+
+## 延伸閱讀
+
+- [我們讓 smolagents 看得見了](https://huggingface.co/blog/smolagents-can-see) - 介紹視覺 agent 功能的部落格文章。
+- [使用 agent 自動操作瀏覽器 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - 使用視覺 agent 瀏覽網頁的範例。
+- [瀏覽器視覺 agent 範例](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - 使用視覺 agent 瀏覽網頁的範例。

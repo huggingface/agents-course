@@ -1,0 +1,150 @@
+# 透過思考、行動、觀察迴圈理解 AI agent
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-3.jpg" alt="Unit 1 planning"/>
+
+在前面的章節中，我們學到了：
+
+- **如何在系統 prompt 中提供 agent 可用的工具**。
+- **AI agent 是能夠「推理」、規劃並與環境互動的系統**。
+
+本節將**探索 AI agent 的完整工作流程**，也就是我們所定義的思考、行動、觀察迴圈。 
+
+接著，我們會深入介紹其中的每個步驟。
+
+
+## 核心要素
+
+agent 的運作是一個持續的迴圈：**思考（Thought）→ 行動（Act）與觀察（Observe）**。
+
+讓我們逐一看看這些步驟：
+
+1. **思考**：agent 中的 LLM 決定下一步該做什麼。
+2. **行動：**agent 以對應的引數呼叫工具，採取行動。
+3. **觀察：**模型根據工具的回應反思。
+
+## 思考、行動、觀察迴圈
+
+這三項要素會在持續的迴圈中一起運作。用程式設計來比喻，agent 使用的是 **while 迴圈**：持續重複，直到達成目標。
+
+用圖示表示如下：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AgentCycle.gif" alt="Think, Act, Observe cycle"/>
+
+許多 agent 框架會**將規則與指引直接寫入系統 prompt**，確保每一輪都遵循指定的邏輯。
+
+簡化後的系統 prompt 可能如下：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/system_prompt_cycle.png" alt="Think, Act, Observe cycle"/>
+
+可以看到，我們在系統訊息中定義了：
+
+- *agent 的行為*。
+- 如上一節所述，*agent 能使用的工具*。
+- 寫入 LLM 指令中的*思考、行動、觀察迴圈*。
+
+在深入每個步驟之前，先用一個小例子了解整個流程。
+
+## 天氣 agent Alfred
+
+我們建立了一個天氣 agent，名叫 Alfred。
+
+使用者問 Alfred：「紐約現在的天氣如何？」
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent.jpg" alt="Alfred Agent"/>
+
+Alfred 的任務是使用天氣 API 工具回答這個問題。 
+
+以下是迴圈的運作過程：
+
+### 思考
+
+**內部推理：**
+
+收到提問後，Alfred 的內部對話可能是：
+
+*「使用者需要紐約目前的天氣資訊。我有一個能取得天氣資料的工具。首先，我需要呼叫天氣 API，取得最新資訊。」*
+
+這一步呈現 agent 如何拆解問題：先收集必要資料。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-1.jpg" alt="Alfred Agent"/>
+
+### 行動
+
+**使用工具：**
+
+根據推理結果，以及已知的 `get_weather` 工具，Alfred 準備了一個 JSON 格式的指令，呼叫天氣 API 工具。例如，第一個行動可能是：
+
+思考：我需要查詢紐約目前的天氣。
+
+ ```
+    {
+      "action": "get_weather",
+      "action_input": {
+        "location": "New York"
+      }
+    }
+ ```
+
+這個行動明確指定要呼叫的工具（例如 get_weather），以及要傳入的參數（「location」為「New York」）。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-2.jpg" alt="Alfred Agent"/>
+
+### 觀察
+
+**環境回饋：**
+
+呼叫工具後，Alfred 會收到觀察結果，可能是 API 提供的原始天氣資料，例如：
+
+*「紐約目前天氣：局部多雲，15°C，濕度 60%。」*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-3.jpg" alt="Alfred Agent"/>
+
+這項觀察接著會加入 prompt，作為額外的上下文。它提供實際環境的回饋，確認行動是否成功，並補充所需資訊。
+
+
+### 更新後的思考
+
+**反思：**
+
+取得觀察結果後，Alfred 會更新內部推理：
+
+*「現在已經有紐約的天氣資料，可以整理答案給使用者了。」*
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-4.jpg" alt="Alfred Agent"/>
+
+
+### 最終行動
+
+接著，Alfred 依照我們指定的格式，產生最終回應：
+
+思考：我現在有天氣資料了。紐約目前局部多雲，氣溫 15°C，濕度 60%。
+
+最終答案：紐約目前局部多雲，氣溫 15°C，濕度 60%。
+
+這個最終行動會將答案傳回給使用者，完成迴圈。
+
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/alfred-agent-5.jpg" alt="Alfred Agent"/>
+
+
+從這個範例可以看到：
+
+- **agent 會持續重複迴圈，直到達成目標：**
+    
+**Alfred 的流程是循環的**。它先思考，接著呼叫工具採取行動，最後觀察結果。如果觀察結果顯示發生錯誤或資料不完整，Alfred 就能再進入下一輪，調整做法。
+    
+- **工具整合：**
+
+能夠呼叫天氣 API 等工具，讓 Alfred **突破靜態知識的限制，取得即時資料**。這是許多 AI agent 的重要能力。
+
+- **動態調整：**
+
+每一輪都能讓 agent 將新資訊（觀察）整合到推理（思考）中，確保最終答案有根據且準確。
+    
+這個範例展現了 *ReAct 迴圈*的核心概念（下一節會進一步說明）：**思考、行動與觀察彼此配合，讓 AI agent 能透過反覆嘗試解決複雜任務**。 
+
+理解並運用這些原則，你就能設計出會針對任務推理、**有效運用外部工具完成任務**的 agent，並讓它根據環境回饋持續改善輸出。
+
+---
+
+接著，讓我們深入探討流程中的每個步驟：思考、行動與觀察。

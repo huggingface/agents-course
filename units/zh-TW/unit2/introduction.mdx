@@ -1,0 +1,40 @@
+# agent 框架簡介
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/thumbnail.jpg" alt="Thumbnail"/>
+
+歡迎來到第二單元！**我們將探索各種 agent 框架**，學習如何用它們打造功能強大的 agent 應用程式。
+
+我們將學習：
+
+- 單元 2.1：[smolagents](https://huggingface.co/docs/smolagents/en/index)
+- 單元 2.2：[LlamaIndex](https://www.llamaindex.ai/)
+- 單元 2.3：[LangGraph](https://www.langchain.com/langgraph)
+
+讓我們開始吧！🕵
+
+## 何時使用 agent 框架
+
+**開發以 LLM 為核心的應用程式時，不一定需要 agent 框架**。這些框架讓工作流程更有彈性，有助於有效解決特定任務，但並非所有情況都需要。
+
+有時，**預先定義的工作流程就足以滿足使用者需求**，不需要用到 agent 框架。如果 agent 的設計很簡單，例如只是一連串 prompt，直接撰寫程式碼可能就夠了。這樣的好處是，開發者**可以完全掌握並理解系統，不必透過抽象層**。
+
+不過，當工作流程變得複雜，例如需要讓 LLM 呼叫函式或使用多個 agent 時，這些抽象設計就開始派上用場。
+
+從這些需求出發，我們可以列出幾項需要的功能：
+
+* 驅動系統的 *LLM 引擎*。
+* agent 可以使用的*工具清單*。
+* 從 LLM 輸出中擷取工具呼叫的*解析器*。
+* 與解析器配合的*系統 prompt*。
+* *記憶系統*。
+* 控管 LLM 錯誤的*錯誤紀錄與重試機制*。
+
+我們將探索 `smolagents`、`LlamaIndex` 和 `LangGraph` 等框架如何處理這些需求。
+
+## agent 框架單元
+
+| 框架 | 說明 | 單元作者 |
+|------------|----------------|----------------|
+| [smolagents](./smolagents/introduction) | Hugging Face 開發的 agent 框架。 | Sergio Paniego - [HF](https://huggingface.co/sergiopaniego) - [X](https://x.com/sergiopaniego) - [Linkedin](https://www.linkedin.com/in/sergio-paniego-blanco) |
+| [Llama-Index](./llama-index/introduction) | 將上下文增強 AI agent 部署至正式環境的端到端工具。 | David Berenstein - [HF](https://huggingface.co/davidberenstein1957) - [X](https://x.com/davidberenstei) - [Linkedin](https://www.linkedin.com/in/davidberenstein) |
+| [LangGraph](./langgraph/introduction) | 支援有狀態 agent 協調的框架。 | Joffrey THOMAS - [HF](https://huggingface.co/Jofthomas) - [X](https://x.com/Jthmas404) - [Linkedin](https://www.linkedin.com/in/joffrey-thomas) |

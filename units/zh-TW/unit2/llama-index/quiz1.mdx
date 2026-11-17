@@ -1,0 +1,117 @@
+# 小測驗（不計分） [[quiz1]]
+
+到目前為止，我們已介紹 LlamaIndex 的主要元件與工具。
+來做個小測驗吧！**自我測試**是最好的學習方式，也能[避免能力錯覺](https://www.coursera.org/lecture/learning-how-to-learn/illusions-of-competence-BuFzf)。
+這能幫助您找出**哪些知識需要加強**。
+
+本測驗可自由參加，不計分。
+
+### Q1: QueryEngine 是什麼？
+以下哪個選項最能描述 QueryEngine 元件？
+
+<Question
+choices={[
+{
+text: "只處理靜態文字、不具備檢索能力的系統。",
+explain: "QueryEngine 必須能檢索並處理相關資訊。",
+},
+{
+text: "在 RAG 流程中尋找並檢索相關資訊的元件。",
+explain: "這正是 QueryEngine 元件的核心用途。",
+correct: true
+},
+{
+text: "只儲存向量嵌入、不具備搜尋功能的工具。",
+explain: "QueryEngine 不只儲存嵌入，也會主動搜尋並檢索資訊。",
+},
+{
+text: "只評估回覆品質的元件。",
+explain: "評估與 QueryEngine 的主要檢索用途是不同的工作。",
+}
+]}
+/>
+
+---
+
+### Q2: FunctionTools 的用途是什麼？
+為什麼 FunctionTools 對 agent 很重要？
+
+<Question
+choices={[
+{
+text: "處理大量資料儲存。",
+explain: "FunctionTools 的主要用途並非資料儲存。",
+},
+{
+text: "將 Python 函式轉換為 agent 可使用的工具。",
+explain: "FunctionTools 會封裝 Python 函式，讓 agent 能夠使用。",
+correct: true
+},
+{
+text: "讓 agent 隨機建立函式定義。",
+explain: "FunctionTools 的特定用途，是讓 agent 能使用函式。",
+},
+{
+text: "只處理文字資料。",
+explain: "FunctionTools 能搭配各種類型的函式，不限於文字處理。",
+}
+]}
+/>
+
+---
+
+### Q3: LlamaIndex 中的 Toolspecs 是什麼？
+Toolspecs 的主要用途是什麼？
+
+<Question
+choices={[
+{
+text: "不提供額外功能的多餘元件。",
+explain: "Toolspecs 在 LlamaIndex 生態系中有重要用途。",
+},
+{
+text: "社群建立的工具集，用來擴充 agent 的能力。",
+explain: "Toolspecs 讓社群能分享並重複使用工具。",
+correct: true
+},
+{
+text: "專門用於記憶體管理。",
+explain: "Toolspecs 用於提供工具，並非管理記憶體。",
+},
+{
+text: "只能用於文字處理。",
+explain: "Toolspecs 可以包含各種類型的工具，不限於文字處理。",
+}
+]}
+/>
+
+---
+
+### Q4: 建立工具需要什麼？
+建立工具時，必須提供哪些資訊？
+
+<Question
+choices={[
+{
+text: "必須定義函式、名稱與描述。",
+explain: "這些都是工具的組成部分，但名稱與描述可以從函式和說明字串解析取得。",
+},
+{
+text: "只需要名稱。",
+explain: "還需要函式與描述／說明字串，才能提供完整的工具說明。",
+},
+{
+text: "只需要描述。",
+explain: "必須提供函式，agent 選擇工具後才有程式碼可以執行。",
+},
+{
+text: "只需要函式。",
+explain: "名稱與描述預設取自所提供函式的名稱與說明字串。",
+correct: true
+}
+]}
+/>
+
+---
+
+恭喜完成測驗 🥳！如果有答錯的地方，請花時間重讀章節、鞏固知識。如果都答對了，就準備好深入學習如何運用這些元件了！

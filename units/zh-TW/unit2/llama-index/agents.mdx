@@ -1,0 +1,161 @@
+# 在 LlamaIndex 中使用 agent
+
+還記得先前那位熱心的管家 agent Alfred 嗎？他即將升級了！
+現在我們已認識 LlamaIndex 提供的工具，可以賦予 Alfred 新能力，讓他更有效地協助我們。
+
+不過，在繼續之前，先回顧一下 Alfred 這類 agent 的運作原理。
+在第 1 單元中，我們學到：
+
+> agent 是利用 AI 模型與環境互動，以達成使用者所定義目標的系統。它結合推理、規劃與行動執行（通常透過外部工具）來完成任務。
+
+LlamaIndex 支援**三種主要的推理 agent：**
+
+![agent](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agents.png)
+
+1. `Function Calling Agents`：搭配能呼叫特定函式的 AI 模型使用。
+2. `ReAct Agents`：可搭配任何提供聊天或文字端點的 AI，處理複雜的推理任務。
+3. `Advanced Custom Agents`：使用更複雜的方法，處理更複雜的任務與工作流程。
+
+> [!TIP]
+> 如需進一步了解進階 agent，請參考 <a href="https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/agent/workflow/base_agent.py">BaseWorkflowAgent</a>。
+
+## 初始化 agent
+
+> [!TIP]
+> 您可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+
+建立 agent 時，首先要提供**一組函式或工具，定義它具備的能力**。
+讓我們看看如何使用基本工具建立 agent。截至撰寫本文時，agent 會自動使用函式呼叫 API（若可用），否則使用標準的 ReAct agent 迴圈。
+
+支援工具／函式 API 的 LLM 雖然較新，卻提供了強大的工具呼叫方式：不需要特別設計 prompt，LLM 就能依照提供的結構描述產生工具呼叫。
+
+ReAct agent 也擅長複雜推理任務，可搭配任何具備聊天或文字補全能力的 LLM。它們的輸出較詳細，會顯示採取特定行動背後的推理過程。
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.core.tools import FunctionTool
+
+# define sample Tool -- type annotations, function names, and docstrings, are all included in parsed schemas!
+def multiply(a: int, b: int) -> int:
+    """Multiplies two integers and returns the resulting integer"""
+    return a * b
+
+# initialize llm
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# initialize agent
+agent = AgentWorkflow.from_tools_or_functions(
+    [FunctionTool.from_defaults(multiply)],
+    llm=llm
+)
+```
+
+**agent 預設不保留狀態**，不過可以透過 `Context` 物件記住先前的互動。
+當 agent 需要記住先前互動時，這就很有用，例如要在多則訊息之間維持上下文的聊天機器人，或需要持續追蹤進度的任務管理工具。
+
+```python
+# stateless
+response = await agent.run("What is 2 times 2?")
+
+# remembering state
+from llama_index.core.workflow import Context
+
+ctx = Context(agent)
+
+response = await agent.run("My name is Bob.", ctx=ctx)
+response = await agent.run("What was my name again?", ctx=ctx)
+```
+
+您會發現 `LlamaIndex` 的 agent 使用 Python 的 `await` 運算子，以非同步方式執行。如果您剛接觸 Python 非同步程式，或需要複習，可以參考這份[實用的非同步指南](https://docs.llamaindex.ai/en/stable/getting_started/async_python/)。
+
+掌握基礎後，讓我們看看如何在 agent 中使用更複雜的工具。
+
+## 使用 QueryEngineTools 建立 RAG agent
+
+**Agentic RAG 是運用 agent 回答資料相關問題的強大方式。** 我們可以為 Alfred 提供各種工具，協助他回答問題。
+Alfred 不會自動只依據文件作答，而是可以自行決定使用其他工具或流程來回答問題。
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+將 **`QueryEngine` 封裝為 agent 的工具**很簡單。
+我們需要**定義名稱與描述**，讓 LLM 能根據這些資訊正確使用工具。
+以下使用[元件章節](components)建立的 `QueryEngine`，示範如何載入 `QueryEngineTool`。
+
+```python
+from llama_index.core.tools import QueryEngineTool
+
+query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # as shown in the Components in LlamaIndex section
+
+query_engine_tool = QueryEngineTool.from_defaults(
+    query_engine=query_engine,
+    name="name",
+    description="a specific description",
+    return_direct=False,
+)
+query_engine_agent = AgentWorkflow.from_tools_or_functions(
+    [query_engine_tool],
+    llm=llm,
+    system_prompt="You are a helpful assistant that has access to a database containing persona descriptions. "
+)
+```
+
+## 建立多 agent 系統
+
+`AgentWorkflow` 類別也直接支援多 agent 系統。為每個 agent 指定名稱與描述後，系統會維持一個目前發話的 agent，而每個 agent 都能將任務交接給其他 agent。
+
+縮小各個 agent 的職責範圍，有助於提升它們回覆使用者訊息的整體準確度。
+
+**LlamaIndex 中的 agent 也能直接作為其他 agent 的工具**，用於更複雜、需要自訂的情境。
+
+```python
+from llama_index.core.agent.workflow import (
+    AgentWorkflow,
+    FunctionAgent,
+    ReActAgent,
+)
+
+# Define some tools
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+
+def subtract(a: int, b: int) -> int:
+    """Subtract two numbers."""
+    return a - b
+
+
+# Create agent configs
+# NOTE: we can use FunctionAgent or ReActAgent here.
+# FunctionAgent works for LLMs with a function calling API.
+# ReActAgent works for any LLM.
+calculator_agent = ReActAgent(
+    name="calculator",
+    description="Performs basic arithmetic operations",
+    system_prompt="You are a calculator assistant. Use your tools for any math operation.",
+    tools=[add, subtract],
+    llm=llm,
+)
+
+query_agent = ReActAgent(
+    name="info_lookup",
+    description="Looks up information about XYZ",
+    system_prompt="Use your tool to query a RAG system to answer information about XYZ",
+    tools=[query_engine_tool],
+    llm=llm
+)
+
+# Create and run the workflow
+agent = AgentWorkflow(
+    agents=[calculator_agent, query_agent], root_agent="calculator"
+)
+
+# Run the system
+response = await agent.run(user_msg="Can you add 5 and 3?")
+```
+
+> [!TIP]
+> 還想深入學習嗎？<a href="https://docs.llamaindex.ai/en/stable/examples/agent/agent_workflow_basic/">AgentWorkflow 基礎介紹</a>和<a href="https://docs.llamaindex.ai/en/stable/understanding/agent/">agent 學習指南</a>提供更多 LlamaIndex agent 與工具的內容，包括串流、上下文序列化與人工介入（human-in-the-loop）！
+
+現在我們已了解 LlamaIndex 的 agent 與工具基礎，接下來看看如何**建立可設定且易於管理的工作流程！**

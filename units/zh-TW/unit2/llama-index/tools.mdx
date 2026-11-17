@@ -1,0 +1,142 @@
+# 在 LlamaIndex 中使用工具
+
+**定義清楚的工具集對效能至關重要。** 正如[第 1 單元](../../unit1/tools)所討論的，清楚的工具介面能讓 LLM 更容易使用工具。
+就像工程師使用軟體 API 一樣，工具的運作方式越容易理解，LLM 就越能善用它。
+
+LlamaIndex 主要提供**四種工具類型**：
+
+![工具](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/tools.png)
+
+1. `FunctionTool`：將任意 Python 函式轉換為 agent 可使用的工具，並自動解析函式的運作方式。
+2. `QueryEngineTool`：讓 agent 使用查詢引擎的工具。由於 agent 本身也是以查詢引擎為基礎，因此也能將其他 agent 作為工具使用。
+3. `Toolspecs`：社群建立的現成工具集，通常包含特定服務（例如 Gmail）的相關工具。
+4. `Utility Tools`：協助處理其他工具所回傳的大量資料的特殊工具。
+
+以下將逐一介紹使用方式。
+
+## 建立 FunctionTool
+
+> [!TIP]
+> 您可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+
+FunctionTool 能輕鬆將任何 Python 函式封裝為 agent 可用的工具。
+您可以傳入同步或非同步函式，也可以選擇指定 `name` 與 `description` 參數。
+工具名稱與描述尤其重要，能幫助 agent 了解何時及如何有效使用工具。
+以下示範如何建立並呼叫 FunctionTool。
+
+```python
+from llama_index.core.tools import FunctionTool
+
+def get_weather(location: str) -> str:
+    """Useful for getting the weather for a given location."""
+    print(f"Getting weather for {location}")
+    return f"The weather in {location} is sunny"
+
+tool = FunctionTool.from_defaults(
+    get_weather,
+    name="my_weather_tool",
+    description="Useful for getting the weather for a given location.",
+)
+tool.call("New York")
+```
+
+> [!TIP]
+> 使用具備函式呼叫能力的 agent 或 LLM 時，工具的選擇與傳入的參數，很大程度取決於工具名稱、用途及參數描述。詳情請參考<a href="https://docs.llamaindex.ai/en/stable/examples/workflow/function_calling_agent/">函式呼叫指南</a>。
+
+## 建立 QueryEngineTool
+
+上一節定義的 `QueryEngine`，可以透過 `QueryEngineTool` 類別輕鬆轉換為工具。
+以下示範如何從 `QueryEngine` 建立 `QueryEngineTool`。
+
+```python
+from llama_index.core import VectorStoreIndex
+from llama_index.core.tools import QueryEngineTool
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.chroma import ChromaVectorStore
+
+embed_model = HuggingFaceEmbedding("BAAI/bge-small-en-v1.5")
+
+db = chromadb.PersistentClient(path="./alfred_chroma_db")
+chroma_collection = db.get_or_create_collection("alfred")
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+
+index = VectorStoreIndex.from_vector_store(vector_store, embed_model=embed_model)
+
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+query_engine = index.as_query_engine(llm=llm)
+tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", description="some useful description")
+```
+
+## 建立 Toolspecs
+
+您可以將 `ToolSpecs` 視為一組相互配合的工具，就像整理完善的專業工具箱。
+正如機械師的工具箱包含互補的車輛維修工具，`ToolSpec` 會將相關工具組合起來，完成特定用途。
+例如，會計 agent 的 `ToolSpec` 可以整合試算表、電子郵件與計算工具，準確有效地處理財務任務。
+
+<details>
+<summary>安裝 Google Toolspec</summary>
+如<a href="./llama-hub">LlamaHub 章節</a>所介紹的，可以使用以下指令安裝 Google toolspec：
+
+```python
+pip install llama-index-tools-google
+```
+</details>
+
+現在我們可以載入工具規格，並將其轉換為工具清單。
+
+```python
+from llama_index.tools.google import GmailToolSpec
+
+tool_spec = GmailToolSpec()
+tool_spec_list = tool_spec.to_tool_list()
+```
+
+若想進一步了解這些工具，可以查看每個工具的`後設資料`。
+
+```python
+[(tool.metadata.name, tool.metadata.description) for tool in tool_spec_list]
+```
+
+### LlamaIndex 中的 Model Context Protocol（MCP）
+
+LlamaIndex 也能透過 [LlamaHub 上的 ToolSpec](https://llamahub.ai/l/tools/llama-index-tools-mcp?from=) 使用 MCP 工具。
+只要啟動 MCP 伺服器，就能透過以下實作開始使用。
+
+如果想深入了解 MCP，可以參考我們的[免費 MCP 課程](https://huggingface.co/learn/mcp-course/)。
+
+<details>
+<summary>安裝 MCP Toolspec</summary>
+如<a href="./llama-hub">LlamaHub 章節</a>所介紹的，可以使用以下指令安裝 MCP toolspec：
+
+```python
+pip install llama-index-tools-mcp
+```
+</details>
+
+```python
+from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
+
+# We consider there is a mcp server running on 127.0.0.1:8000, or you can use the mcp client to connect to your own mcp server.
+mcp_client = BasicMCPClient("http://127.0.0.1:8000/sse")
+mcp_tool = McpToolSpec(client=mcp_client)
+
+# get the agent
+agent = await get_agent(mcp_tool)
+
+# create the agent context
+agent_context = Context(agent)
+```
+
+## 輔助工具
+
+直接查詢 API 往往**可能回傳過多資料**，其中有些內容與任務無關、超出 LLM 的上下文視窗，或造成不必要的 token 消耗。
+讓我們認識兩種主要的輔助工具：
+
+1. `OnDemandToolLoader`：可將任何現有的 LlamaIndex 資料載入器（BaseReader 類別）轉換為 agent 可用的工具。呼叫時需傳入載入器 `load_data` 所需的全部參數，以及自然語言查詢字串。執行時會先載入資料、建立索引（例如使用向量儲存），再按需查詢。三個步驟都在一次工具呼叫中完成。
+2. `LoadAndSearchToolSpec`：接受任何現有工具作為輸入。它實作了 `to_tool_list` 方法，呼叫後會回傳載入工具與搜尋工具。載入工具會呼叫底層工具，並為輸出建立索引（預設使用向量索引）；搜尋工具則接受查詢字串，並呼叫底層索引進行查詢。
+
+> [!TIP]
+> 您可以在 <a href="https://llamahub.ai/">LlamaHub</a> 找到各種工具規格與輔助工具。
+
+現在我們已了解 LlamaIndex 的 agent 與工具基礎，接下來看看如何**建立可設定且易於管理的工作流程！**

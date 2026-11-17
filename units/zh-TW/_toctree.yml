@@ -1,0 +1,172 @@
+- title: 第 0 單元：歡迎加入課程
+  sections:
+  - local: unit0/introduction
+    title: 歡迎加入課程 🤗
+  - local: unit0/onboarding
+    title: 課前準備
+  - local: unit0/discord101
+    title: （選修）Discord 入門
+- title: 直播 1：課程進行方式與問答
+  sections:
+  - local: communication/live1
+    title: 直播 1：課程進行方式與問答
+- title: 第 1 單元：agent 入門
+  sections:
+  - local: unit1/introduction
+    title: 簡介
+  - local: unit1/what-are-agents
+    title: 什麼是 agent？
+  - local: unit1/quiz1
+    title: 隨堂測驗 1
+  - local: unit1/what-are-llms
+    title: 什麼是 LLM？
+  - local: unit1/messages-and-special-tokens
+    title: 訊息與特殊 token
+  - local: unit1/tools
+    title: 什麼是工具？
+  - local: unit1/quiz2
+    title: 隨堂測驗 2
+  - local: unit1/agent-steps-and-structure
+    title: 透過思考、行動與觀察循環理解 AI agent
+  - local: unit1/thoughts
+    title: 思考、內部推理與 Re-Act 方法
+  - local: unit1/actions
+    title: 行動：讓 agent 與環境互動
+  - local: unit1/observations
+    title: 觀察：整合回饋以反思與調整
+  - local: unit1/dummy-agent-library
+    title: 簡易 agent 函式庫
+  - local: unit1/tutorial
+    title: 使用 smolagents 建立第一個 agent
+  - local: unit1/final-quiz
+    title: 第 1 單元總測驗
+  - local: unit1/conclusion
+    title: 結語
+- title: 第 2 單元：AI agent 框架
+  sections:
+  - local: unit2/introduction
+    title: AI agent 框架
+- title: 第 2.1 單元：smolagents 框架
+  sections:
+  - local: unit2/smolagents/introduction
+    title: smolagents 簡介
+  - local: unit2/smolagents/why_use_smolagents
+    title: 為什麼使用 smolagents？
+  - local: unit2/smolagents/quiz1
+    title: 隨堂測驗 1
+  - local: unit2/smolagents/code_agents
+    title: 建立使用程式碼的 agent
+  - local: unit2/smolagents/tool_calling_agents
+    title: 以程式碼片段或 JSON 撰寫行動
+  - local: unit2/smolagents/tools
+    title: 工具
+  - local: unit2/smolagents/retrieval_agents
+    title: 檢索 agent
+  - local: unit2/smolagents/quiz2
+    title: 隨堂測驗 2
+  - local: unit2/smolagents/multi_agent_systems
+    title: 多 agent 系統
+  - local: unit2/smolagents/vision_agents
+    title: 視覺與瀏覽器 agent
+  - local: unit2/smolagents/final_quiz
+    title: 總測驗
+  - local: unit2/smolagents/conclusion
+    title: 結語
+- title: 第 2.2 單元：LlamaIndex 框架
+  sections:
+  - local: unit2/llama-index/introduction
+    title: LlamaIndex 簡介
+  - local: unit2/llama-index/llama-hub
+    title: LlamaHub 簡介
+  - local: unit2/llama-index/components
+    title: LlamaIndex 中的元件是什麼？
+  - local: unit2/llama-index/tools
+    title: 在 LlamaIndex 中使用工具
+  - local: unit2/llama-index/quiz1
+    title: 隨堂測驗 1
+  - local: unit2/llama-index/agents
+    title: 在 LlamaIndex 中使用 agent
+  - local: unit2/llama-index/workflows
+    title: 在 LlamaIndex 中建立 agentic 工作流程
+  - local: unit2/llama-index/quiz2
+    title: 隨堂測驗 2
+  - local: unit2/llama-index/conclusion
+    title: 結語
+- title: 第 2.3 單元：LangGraph 框架
+  sections:
+  - local: unit2/langgraph/introduction
+    title: LangGraph 簡介
+  - local: unit2/langgraph/when_to_use_langgraph
+    title: 什麼是 LangGraph？
+  - local: unit2/langgraph/building_blocks
+    title: LangGraph 的基本元件
+  - local: unit2/langgraph/first_graph
+    title: 建立第一個 LangGraph
+  - local: unit2/langgraph/document_analysis_agent
+    title: 文件分析圖
+  - local: unit2/langgraph/quiz1
+    title: 隨堂測驗 1
+  - local: unit2/langgraph/conclusion
+    title: 結語
+- title: 第 3 單元：Agentic RAG 應用案例
+  sections:
+  - local: unit3/agentic-rag/introduction
+    title: Agentic RAG 應用案例簡介
+  - local: unit3/agentic-rag/agentic-rag
+    title: Agentic 檢索增強生成（RAG）
+  - local: unit3/agentic-rag/invitees
+    title: 為賓客故事建立 RAG 工具
+  - local: unit3/agentic-rag/tools
+    title: 為 agent 建立並整合工具
+  - local: unit3/agentic-rag/agent
+    title: 建立晚宴 agent
+  - local: unit3/agentic-rag/conclusion
+    title: 結語
+- title: 第 4 單元：期末專案——建立、測試並認證你的 agent
+  sections:
+  - local: unit4/introduction
+    title: 最後一個單元簡介
+  - local: unit4/what-is-gaia
+    title: 什麼是 GAIA？
+  - local: unit4/hands-on
+    title: 期末實作
+  - local: unit4/get-your-certificate
+    title: 取得卓越證書
+  - local: unit4/conclusion
+    title: 課程結語
+  - local: unit4/additional-readings
+    title: 接下來該學什麼？
+- title: 加碼單元 1：微調 LLM 以支援函式呼叫
+  sections:
+  - local: bonus-unit1/introduction
+    title: 簡介
+  - local: bonus-unit1/what-is-function-calling
+    title: 什麼是函式呼叫？
+  - local: bonus-unit1/fine-tuning
+    title: 微調模型以支援函式呼叫
+  - local: bonus-unit1/conclusion
+    title: 結語
+- title: 加碼單元 2：agent 可觀測性與評估
+  sections:
+  - local: bonus-unit2/introduction
+    title: 簡介
+  - local: bonus-unit2/what-is-agent-observability-and-evaluation
+    title: 什麼是 agent 可觀測性與評估？
+  - local: bonus-unit2/monitoring-and-evaluating-agents-notebook
+    title: 監控與評估 agent
+  - local: bonus-unit2/quiz
+    title: 測驗
+- title: 加碼單元 3：寶可夢遊戲中的 agent
+  sections:
+  - local: bonus-unit3/introduction
+    title: 簡介
+  - local: bonus-unit3/state-of-art
+    title: 在遊戲中運用 LLM 的最新進展
+  - local: bonus-unit3/from-llm-to-agents
+    title: 從 LLM 到 AI agent
+  - local: bonus-unit3/building_your_pokemon_agent
+    title: 建立自己的寶可夢對戰 agent
+  - local: bonus-unit3/launching_agent_battle
+    title: 啟動寶可夢對戰 agent
+  - local: bonus-unit3/conclusion
+    title: 結語

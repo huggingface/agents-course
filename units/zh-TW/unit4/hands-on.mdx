@@ -1,0 +1,52 @@
+# 動手實作
+
+既然你已準備好進一步打造期末專案的 agent，就來看看如何提交成果，接受評分。
+
+## 資料集
+
+這個排行榜使用的資料集，包含從 GAIA **驗證集**第 1 級題目中選出的 20 道問題。
+
+篩選題目的依據，是回答問題所需的工具數量與步驟數。
+
+根據 GAIA 基準測試目前的表現，我們認為以第 1 級題目達到 30% 得分率為目標，是合理的測驗標準。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/leaderboard%20GAIA%2024%3A04%3A2025.png" alt="GAIA current status!" />
+
+## 提交流程
+
+你現在可能最想知道：「我要怎麼開始提交？」
+
+我們為這個單元建立了 API，讓你取得問題，並傳送答案以進行評分。
+以下是各個路由的簡介（互動式說明請見[即時文件](https://agents-course-unit4-scoring.hf.space/docs)）：
+
+* **`GET /questions`**：取得篩選後的完整評估題目清單。
+* **`GET /random-question`**：從清單中隨機取得一道問題。
+* **`GET /files/{task_id}`**：下載與指定任務 ID 相關的特定檔案。
+* **`POST /submit`**：提交 agent 的答案、計算分數，並更新排行榜。
+
+提交函式會以**完全相符（EXACT MATCH）**的方式比對標準答案，因此請仔細設計 prompt！GAIA 團隊在[這裡](https://huggingface.co/spaces/gaia-benchmark/leaderboard)分享了可供 agent 使用的 prompt 範例（在本課程中，請確保提交內容不包含「FINAL ANSWER」這段文字，讓 agent 只回覆答案即可）。
+
+🎨 **打造你自己的範本！**
+
+為了示範與 API 互動的流程，我們提供了一份[基本範本](https://huggingface.co/spaces/agents-course/Final_Assignment_Template)，讓你作為起點。
+
+歡迎你修改、擴充，甚至完全重新規劃範本，**我們也非常鼓勵你這麼做**！依照自己的方法與創意，調整成最適合的形式。
+
+為了提交結果，這份範本會準備 API 所需的三項資料：
+
+* **使用者名稱：**你的 Hugging Face 使用者名稱（這裡透過 Gradio 登入取得），用來識別你的提交紀錄。
+* **程式碼連結（`agent_code`）：**連向 Hugging Face Space 程式碼（`.../tree/main`）的 URL，供驗證使用，因此請將 Space 設為公開。
+* **答案（`answers`）：**agent 產生的回答清單（`{"task_id": ..., "submitted_answer": ...}`），供評分使用。
+
+因此，建議你先將這份[範本](https://huggingface.co/spaces/agents-course/Final_Assignment_Template)複製到自己的 Hugging Face 帳號。
+
+🏆 在[這裡](https://huggingface.co/spaces/agents-course/Students_leaderboard)查看排行榜
+
+*溫馨提醒：這個排行榜是為了讓大家開心交流！我們知道，提交分數時未必能完成所有驗證。如果出現太多沒有公開連結佐證的高分紀錄，我們可能需要審查、調整或移除部分項目，以維持排行榜的參考價值。*
+排行榜會顯示你的 Space 程式碼連結。這是專供學員使用的排行榜，如果你取得了引以為傲的分數，請將 Space 設為公開。
+<iframe
+	src="https://agents-course-students-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>

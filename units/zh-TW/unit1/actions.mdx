@@ -1,0 +1,121 @@
+# 行動：讓 agent 與環境互動
+
+> [!TIP]
+> 本節將探討 AI agent 與環境互動時採取的具體步驟。
+>
+> 我們會介紹如何表示行動（使用 JSON 或程式碼）、「停止並解析」方法的重要性，以及不同類型的 agent。
+
+行動就是 **AI agent 與環境互動時採取的具體步驟**。
+
+無論是上網查找資訊，或控制實體裝置，每個行動都是 agent 有意執行的操作。
+
+例如，協助客服工作的 agent 可能會查找客戶資料、提供支援文章，或將問題轉交給真人客服。
+
+## agent 的行動類型
+
+不同類型的 agent，採取行動的方式也不同：
+
+| agent 類型 | 說明 |
+|------------------------|--------------------------------------------------------------------------------------------------|
+| JSON agent | 以 JSON 格式指定要執行的行動。 |
+| 程式碼 agent | agent 撰寫程式碼區塊，由外部解譯執行。 |
+| 函式呼叫 agent | JSON agent 的子類別，經過微調，能為每個行動產生一則新訊息。 |
+
+行動本身可以有不同用途：
+
+| 行動類型 | 說明 |
+|--------------------------|------------------------------------------------------------------------------------------|
+| 收集資訊 | 搜尋網路、查詢資料庫或取得文件。 |
+| 使用工具 | 呼叫 API、進行計算及執行程式碼。 |
+| 與環境互動 | 操作數位介面或控制實體裝置。 |
+| 溝通 | 透過聊天與使用者互動，或與其他 agent 協作。 |
+
+LLM 只處理文字，並以文字描述它想採取的行動，以及要提供給工具的參數。為了讓 agent 正常運作，LLM 在輸出定義完整行動所需的所有 token 後，必須停止產生新的 token。這會將控制權從 LLM 交還給 agent，並確保輸出能被解析，無論預期格式是 JSON、程式碼或函式呼叫。
+
+## 停止並解析方法
+
+實作行動的一個重要方法是**停止並解析**。這能確保 agent 的輸出有結構且可預期：
+
+1. **以結構化格式產生輸出：**
+
+agent 以明確、預先指定的格式（JSON 或程式碼），輸出它打算採取的行動。
+
+2. **停止繼續產生內容：**
+
+定義行動的文字輸出完畢後，**LLM 就停止產生額外的 token**，避免多餘或錯誤的輸出。
+
+3. **解析輸出：**
+
+外部解析器讀取格式化的行動，判斷要呼叫哪個工具，並擷取所需參數。
+
+例如，需要查詢天氣的 agent 可能輸出：
+
+```json
+Thought: I need to check the current weather for New York.
+Action :
+{
+  "action": "get_weather",
+  "action_input": {"location": "New York"}
+}
+```
+
+框架就能輕鬆解析出要呼叫的函式名稱，以及應傳入的引數。
+
+這種清楚、機器可讀的格式能減少錯誤，讓外部工具準確處理 agent 的指令。
+
+注意：函式呼叫 agent 的運作方式類似，會將每個行動整理成指定結構，讓指定函式以正確的引數被呼叫。
+我們會在後續單元深入介紹這些 agent 類型。
+
+## 程式碼 agent
+
+另一種方式是使用*程式碼 agent*。
+其概念是：**不輸出簡單的 JSON 物件**，而是產生**可執行的程式碼區塊，通常使用 Python 等高階語言**。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/code-vs-json-actions.png" alt="Code Agents" />
+
+這種方式有幾個優點：
+
+- **表達能力：**程式碼能自然表達複雜邏輯，包括迴圈、條件判斷與巢狀函式，比 JSON 更有彈性。
+- **模組化與重複使用：**產生的程式碼可包含函式和模組，供不同的行動或任務重複使用。
+- **容易除錯：**程式語法定義明確，通常較容易找出並修正程式碼錯誤。
+- **直接整合：**程式碼 agent 能直接整合外部函式庫與 API，執行資料處理或即時決策等更複雜的操作。
+
+請記得，執行 LLM 產生的程式碼可能帶來安全風險，包括 prompt 注入及執行有害程式碼。
+因此，建議使用 `smolagents` 等內建預設防護措施的 AI agent 框架。
+若想進一步了解風險與降低風險的方法，[請參閱這篇專門說明](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution)。
+
+例如，負責取得天氣資訊的程式碼 agent 可能產生以下 Python 程式碼：
+
+```python
+# Code Agent Example: Retrieve Weather Information
+def get_weather(city):
+    import requests
+    api_url = f"https://api.weather.com/v1/location/{city}?apiKey=YOUR_API_KEY"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data.get("weather", "No weather information available")
+    else:
+        return "Error: Unable to fetch weather data."
+
+# Execute the function and prepare the final answer
+result = get_weather("New York")
+final_answer = f"The current weather in New York is: {result}"
+print(final_answer)
+```
+
+在這個範例中，程式碼 agent 會：
+
+- **透過 API 呼叫**取得天氣資料，
+- 處理回應，
+- 使用 print() 函式輸出最終答案。
+
+這種方式**同樣遵循停止並解析方法**：明確標示程式碼區塊的範圍，並在執行完畢時發出訊號（此處是印出 final_answer）。
+
+---
+
+我們學到了，行動透過執行明確、有結構的任務，串連 agent 的內部推理與現實世界的互動，無論它使用的是 JSON、程式碼或函式呼叫。
+
+有意識地執行這些步驟，能確保每個行動精準明確，並透過停止並解析方法，讓外部系統接手處理。下一節將介紹觀察，看看 agent 如何取得並整合環境回饋。
+
+接著，我們**終於可以準備建立第一個 agent 了！**

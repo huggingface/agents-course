@@ -1,0 +1,37 @@
+# 從 LLM 到 AI agent
+
+在課程的[第 1 單元](https://huggingface.co/learn/agents-course/unit1/introduction)，我們學到 AI agent 能夠規劃並做出決策。  
+LLM 已經讓玩家與 NPC 的互動更加自然；Agentic AI 則更進一步，讓角色能自主決策、規劃行動，並適應環境變化。
+
+以經典 RPG 遊戲中的 NPC 為例，就能看出兩者的差異：
+
+- 使用 LLM：NPC 能更自然、更多樣地回答你的問題。這很適合對話，但 NPC 依然被動，除非你先做些什麼，否則它不會行動。
+- 使用 Agentic AI：即使你沒有直接與 NPC 互動，它也能決定去尋求協助、設下陷阱，或完全避開你。
+
+這個小小的轉變帶來了全面改變。遊戲角色從依腳本回應，轉變為遊戲世界中自主行動的參與者。
+
+這代表 NPC 現在能透過目標導向的行為，直接與環境互動，帶來更有變化、更難以預測的玩法。
+
+Agentic AI 賦予 NPC 以下能力：
+
+- **自主性**：根據遊戲狀態，獨立做出決策。
+- **適應性**：因應玩家行動調整策略。
+- **持續性**：記住過去的互動，作為未來行為的依據。
+
+這讓 NPC 從只會回應玩家輸入的被動角色，轉變為遊戲世界中的主動參與者，開啟創新玩法的可能性。
+
+## agent 的主要限制：**速度慢**（目前如此）
+
+不過，先別太樂觀。Agentic AI 雖然很有潛力，目前在即時應用中仍面臨挑戰。
+
+推理與規劃過程會帶來延遲，因此較不適合 *Doom* 或 *Super Mario Bros.* 這類快節奏遊戲。
+
+以 [_Claude Plays Pokémon_](https://www.twitch.tv/claudeplayspokemon) 為例。考量**思考**所需的 token，再加上**行動**所需的 token，就會發現：要讓即時遊玩成為可能，我們需要截然不同的解碼策略。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit3/claude-plays-pokemon.png" alt="Claude plays Pokémon"/>
+
+多數遊戲需要以約 30 FPS 執行，也就是即時 AI agent 每秒得採取 30 次行動。以目前的 agentic LLM 而言，還無法做到。
+
+不過，*寶可夢*這類回合制遊戲是理想的應用情境，因為 AI 有足夠時間思考並制定策略。
+
+因此，下一節你將打造自己的 AI agent，參與寶可夢風格的回合制對戰，甚至親自挑戰它。開始吧！

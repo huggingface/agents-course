@@ -1,0 +1,142 @@
+# 小測驗（不計分）[[quiz1]]
+
+用一份簡短測驗，檢驗你對 `smolagents` 的理解！自我測驗能鞏固所學，也能找出需要複習的部分。
+
+這份測驗可自由參加，不計分。
+
+### Q1：相較於其他框架，選擇 `smolagents` 的主要優點之一是什麼？
+哪個敘述最能描述 `smolagents` 的核心優勢？
+
+<Question
+choices={[
+  {
+    text: "它使用高度專門化的設定檔與陡峭的學習曲線，確保只有專業開發者才能使用",
+    explain: "smolagents 的設計追求簡單與低程式碼複雜度，而非陡峭的學習曲線。",
+  },
+  {
+    text: "它以程式碼為核心，盡量減少抽象層，讓 agent 直接透過 Python 函式呼叫互動",
+    explain: "正確，smolagents 強調直接、以程式碼為核心的設計，並盡量減少抽象層。",
+    correct: true
+  },
+  {
+    text: "它著重於 JSON 動作，讓 agent 完全不需要撰寫程式碼",
+    explain: "雖然 smolagents 支援 JSON 工具呼叫（ToolCallingAgents），但主要強調 CodeAgents 這類以程式碼為核心的做法。",
+  },
+  {
+    text: "它與單一 LLM 供應商和專用硬體深度整合",
+    explain: "smolagents 支援多家模型供應商，也不需要專用硬體。",
+  }
+]}
+/>
+
+---
+
+### Q2：哪種情況最能發揮 smolagents 的優勢？
+哪個情境最符合 smolagents 的強項？
+
+<Question
+choices={[
+  {
+    text: "快速建立 agent 邏輯的原型或進行實驗，尤其是應用程式邏輯較單純時",
+    explain: "正確。smolagents 讓你能簡單、靈活地建立 agent，不必花費大量心力設定。",
+    correct: true
+  },
+  {
+    text: "建立需要數十個微服務與即時資料管線的大型企業系統",
+    explain: "雖然可以做到，但 smolagents 更著重輕量、以程式碼為核心的實驗，而非龐大的企業基礎設施。",
+  },
+  {
+    text: "需要只支援雲端 LLM、禁止本機推論的框架",
+    explain: "smolagents 能彈性整合本機或託管模型，不限於雲端 LLM。",
+  },
+  {
+    text: "需要內建進階協調、多模態感知與企業規模功能的情境",
+    explain: "雖然可以整合進階能力，但 smolagents 的核心設計仍是輕量、精簡。",
+  }
+]}
+/>
+
+---
+
+### Q3：smolagents 提供彈性的模型整合方式，哪個敘述最符合它的做法？
+選出最準確描述 smolagents 如何與 LLM 配合使用的選項。
+
+<Question
+choices={[
+  {
+    text: "它只提供一個內建模型，不允許自訂整合",
+    explain: "smolagents 支援多種後端與使用者自訂模型。",
+  },
+  {
+    text: "每次使用 LLM，都必須自行實作模型連接器",
+    explain: "框架提供多種現成連接器，讓 LLM 整合更簡單。",
+  },
+  {
+    text: "它只能整合開源 LLM，無法使用商業 API",
+    explain: "smolagents 能整合開源模型與商業模型 API。",
+  },
+  {
+    text: "它能搭配多種 LLM，並提供 TransformersModel、InferenceClientModel 和 LiteLLMModel 等預先定義的類別",
+    explain: "正確。smolagents 透過多種類別，支援彈性的模型整合。",
+    correct: true
+  }
+]}
+/>
+
+---
+
+### Q4：smolagents 如何看待程式碼動作與 JSON 動作的選擇？
+哪個敘述正確描述 smolagents 對動作格式的設計理念？
+
+<Question
+choices={[
+  {
+    text: "所有 agent 任務都只能使用 JSON 動作，並需要解析器擷取工具呼叫",
+    explain: "ToolCallingAgent 使用 JSON 呼叫，但 smolagents 也提供主要選項 CodeAgent，以 Python 程式碼撰寫動作。",
+  },
+  {
+    text: "主要透過 CodeAgent 使用程式碼動作，也透過 ToolCallingAgent 支援 JSON 工具呼叫",
+    explain: "正確，smolagents 主要建議使用程式碼動作，也為偏好或需要 JSON 的使用者提供替代選項。",
+    correct: true
+  },
+  {
+    text: "禁止任何外部函式呼叫，所有邏輯都必須完全在 LLM 內部執行",
+    explain: "smolagents 的設計正是為了讓 LLM 能呼叫外部工具或程式碼。",
+  },
+  {
+    text: "執行 agent 前，使用者必須手動將每個程式碼片段轉成 JSON 物件",
+    explain: "使用 CodeAgent 時，smolagents 能自動管理程式碼片段的建立，不需要手動轉成 JSON。",
+  }
+]}
+/>
+
+---
+
+### Q5：smolagents 整合 Hugging Face Hub，帶來了什麼額外好處？
+哪個敘述準確描述 Hub 整合的主要優點之一？
+
+<Question
+choices={[
+  {
+    text: "自動將所有公開模型升級為商業授權等級",
+    explain: "Hub 整合不會改變模型或工具的授權等級。",
+  },
+  {
+    text: "完全停用本機推論，強制只使用遠端模型",
+    explain: "使用者仍可選擇本機推論；上傳到 Hub 不會改變本機使用方式。",
+  },
+  {
+    text: "可以上傳並分享 agent 或工具，讓其他開發者容易找到並重複使用",
+    explain: "smolagents 支援將 agent 與工具上傳到 HF Hub，供其他人重複使用。",
+    correct: true
+  },
+  {
+    text: "永久儲存所有 code agent，禁止任何更新或版本控制",
+    explain: "Hub 儲存庫支援更新與版本控制，你可以隨時修改 code agent。",
+  }
+]}
+/>
+
+---
+
+恭喜完成測驗！🎉 如果有答錯的題目，建議回顧*為什麼使用 smolagents*，加深理解。如果答得不錯，就可以繼續探索 smolagents 的進階主題了！

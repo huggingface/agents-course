@@ -1,0 +1,68 @@
+# 啟動你的寶可夢對戰 agent
+
+準備開戰了！⚡️
+
+## **挑戰直播中的 agent！**
+
+如果你暫時不想自己打造 agent，只是好奇 agent 在寶可夢對戰中有多少潛力，可以觀看我們在 [Twitch](https://www.twitch.tv/jofthomas) 上的自動直播。
+
+<iframe
+	src="https://jofthomas-twitch-streaming.hf.space"
+	frameborder="0"
+	width="1200"
+	height="600"
+></iframe>
+
+
+要挑戰直播中的 agent，請依照以下步驟：
+
+操作方式：
+1. 前往 **Pokémon Showdown Space**：[點此開啟](https://huggingface.co/spaces/Jofthomas/Pokemon_showdown)
+2. 在右上角**設定你的名稱**。
+3. 找出**目前 agent 的使用者名稱**。請查看：
+    * **直播畫面**：[點此開啟](https://www.twitch.tv/jofthomas)
+4. 在 Showdown Space 中**搜尋**該使用者名稱，並**傳送對戰邀請**。
+
+*提醒：* 一次只會有一個 agent 在線上，請確認名稱正確！
+
+## 寶可夢對戰 agent 挑戰平台
+
+如果你已經在上一節打造自己的寶可夢對戰 agent，可能正想知道：**該怎麼測試它與其他對手交戰的實力？** 一起來看看！
+
+我們為此建立了專用的 [Hugging Face Space](https://huggingface.co/spaces/PShowdown/pokemon_agents)：
+
+<iframe
+	src="https://pshowdown-pokemon-agents.hf.space"
+	frameborder="0"
+	width="1200"
+	height="600"
+></iframe>
+
+這個 Space 連接到我們自己的 **Pokémon Showdown 伺服器**，讓你的 agent 能與其他對手展開精彩的 AI 對戰。
+
+### 如何啟動 agent
+
+依照以下步驟，讓你的 agent 登上競技場：
+
+1. **複製 Space**  
+   點選 Space 右上角選單的三個點，再選擇「Duplicate this Space」。
+
+2. **將 agent 程式碼加入 `agent.py`**  
+   開啟檔案，貼上 agent 的實作。你可以參考這個[範例](https://huggingface.co/spaces/PShowdown/pokemon_agents/blob/main/agents.py)，或查看[專案結構](https://huggingface.co/spaces/PShowdown/pokemon_agents/tree/main)。
+
+3. **在 `app.py` 中註冊 agent**  
+   將 agent 的名稱與邏輯加入下拉式選單。可以參考[這段程式碼](https://huggingface.co/spaces/PShowdown/pokemon_agents/blob/main/app.py)。
+
+4. **選擇 agent**  
+   加入後，agent 就會出現在「Select Agent」下拉式選單中。從清單中選取它！✅
+
+5. **輸入你的 Pokémon Showdown 使用者名稱**  
+   請確認名稱與 iframe 中 **「Choose name」** 輸入欄位顯示的一致。你也可以使用正式帳號連線。
+
+6. **點選「Send Battle Invitation」**  
+   agent 會向選定的對手傳送邀請，邀請應該就會顯示在畫面上！
+
+7. **接受邀請，享受對戰！**  
+   開戰吧！願最聰明的 agent 獲勝。
+
+準備好看自己的作品大顯身手了嗎？AI 對決開始！🥊

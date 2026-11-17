@@ -1,0 +1,321 @@
+# 什麼是工具？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-2.jpg" alt="Unit 1 planning"/>
+
+AI agent 的重要能力之一，就是採取**行動**。如前面所見，它們透過**工具**來做到這一點。
+
+本節將介紹什麼是工具、如何有效設計工具，以及如何透過系統訊息將工具整合到 agent 中。
+
+為 agent 配備合適的工具，並清楚描述工具的運作方式，就能大幅拓展 AI 的能力。開始吧！
+
+
+## 什麼是 AI 工具？
+
+**工具就是提供給 LLM 的函式**。這個函式應該達成**明確的目的**。
+
+以下是 AI agent 常用的工具：
+
+| 工具 | 說明 |
+|----------------|---------------------------------------------------------------|
+| 網路搜尋 | 讓 agent 從網路取得最新資訊。 |
+| 影像生成 | 根據文字描述建立圖片。 |
+| 檢索 | 從外部來源取得資訊。 |
+| API 介面 | 與外部 API 互動，例如 GitHub、YouTube、Spotify 等。 |
+
+以上只是範例，你可以為任何使用情境建立工具！
+
+好的工具應該能**補足 LLM 的能力**。
+
+例如，需要算術運算時，提供**計算機工具**給 LLM，會比只依賴模型本身的能力得到更好的結果。
+
+此外，**LLM 根據訓練資料預測 prompt 的後續內容**，表示其內部知識只涵蓋訓練之前的事件。因此，若 agent 需要最新資料，就必須透過工具提供。
+
+例如，不使用搜尋工具，直接向 LLM 詢問今天的天氣，它可能會產生幻覺，隨意編造天氣。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/weather.jpg" alt="Weather"/>
+
+- 工具應該包含：
+
+  - **函式功能的文字說明**。
+  - *可呼叫物件*（用來執行行動）。
+  - 附有型別的*引數*。
+  - （選用）附有型別的輸出。
+
+## 工具如何運作？
+
+如前所述，LLM 只能接收文字輸入並產生文字輸出，無法自行呼叫工具。我們所說的提供工具給 agent，是讓 LLM 知道有哪些工具，並指示它在需要時產生文字形式的呼叫指令。
+
+例如，我們提供一個能從網路查詢各地天氣的工具，再詢問 LLM 巴黎的天氣。LLM 就會辨識出可以使用「天氣」工具。它不會自行取得天氣資料，而是產生代表工具呼叫的文字，例如 call weather_tool('Paris')。 
+
+接著，**agent** 讀取回應，辨識出需要呼叫工具，就代替 LLM 執行工具，取得真正的天氣資料。 
+
+工具呼叫的步驟通常不會顯示給使用者。agent 會將它們附加為新訊息，再將更新後的對話傳給 LLM。LLM 處理這些新增的上下文後，產生自然的回應給使用者。從使用者的角度看，好像是 LLM 直接與工具互動，實際上則是 agent 在背後處理完整的執行流程。
+
+後續章節會更詳細說明這個流程。
+
+## 如何提供工具給 LLM？
+
+完整做法可能看起來很複雜，但基本上，我們是透過系統 prompt，向模型提供可用工具的文字說明：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt.png" alt="System prompt for tools"/>
+
+要讓它正常運作，必須非常精確地說明：
+
+1. **工具的功能**
+2. **工具預期接收哪些輸入**
+
+因此，工具說明通常使用表達力強且精確的結構，例如程式語言或 JSON。不過這並非*必要*，任何精確、一致的格式都可以。
+
+如果這些聽起來太抽象，就透過具體範例來了解吧。
+
+我們要實作一個簡化的**計算機**工具，只負責將兩個整數相乘。Python 實作如下：
+
+```python
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+```
+
+工具名稱是 `calculator`，功能是**將兩個整數相乘**，需要以下輸入：
+
+- **`a`**（*int*）：一個整數。
+- **`b`**（*int*）：一個整數。
+
+工具的輸出也是整數，可以這樣描述：
+- （*int*）：`a` 與 `b` 的乘積。
+
+這些細節都很重要。我們將它們整理成文字字串，向 LLM 說明工具的功能。
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+> **提醒：**這段文字說明，就是*我們希望 LLM 知道的工具資訊*。
+
+將上述字串作為輸入的一部分傳給 LLM，模型就能辨識出這是工具，知道需要傳入什麼，以及預期會得到什麼輸出。
+
+如果要提供更多工具，就必須維持一致，總是使用相同格式。這個過程容易出錯，我們可能不小心漏掉某些細節。
+
+有更好的方法嗎？
+
+### 自動整理工具說明的格式
+
+工具是以 Python 撰寫的，實作中已經提供所有需要的資訊：
+
+- 能表達功能的名稱：`calculator`
+- 函式 docstring 提供的詳細說明：`Multiply two integers.`
+- 輸入與型別：函式明確要求兩個 `int`。
+- 輸出的型別。
+
+人們使用程式語言是有原因的：它們表達力強、簡潔而精確。
+
+我們可以將 Python 原始碼作為工具的*規格*提供給 LLM，但工具的實作方式並不重要。重要的是名稱、功能、預期輸入與輸出。
+
+我們會運用 Python 的內省功能，從原始碼自動建立工具說明。只要工具實作包含型別提示、docstring 與合適的函式名稱，再撰寫一些程式碼，就能擷取原始碼中的相關資訊。
+
+完成後，只需使用 Python 裝飾器，標示 `calculator` 函式是一個工具：
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+請注意函式定義前的 `@tool` 裝飾器。
+
+透過接下來的實作，我們可以使用裝飾器提供的 `to_string()` 函式，自動從原始碼取得以下文字：
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+可以看到，這與先前手動撰寫的內容相同！
+
+### 通用工具實作
+
+我們建立一個通用的 `Tool` 類別，之後需要工具時就能重複使用。
+
+> **說明：**這是為範例設計的實作，但與大部分函式庫的實際做法相當接近。
+
+```python
+from typing import Callable
+
+
+class Tool:
+    """
+    A class representing a reusable piece of code (Tool).
+
+    Attributes:
+        name (str): Name of the tool.
+        description (str): A textual description of what the tool does.
+        func (callable): The function this tool wraps.
+        arguments (list): A list of arguments.
+        outputs (str or list): The return type(s) of the wrapped function.
+    """
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 func: Callable,
+                 arguments: list,
+                 outputs: str):
+        self.name = name
+        self.description = description
+        self.func = func
+        self.arguments = arguments
+        self.outputs = outputs
+
+    def to_string(self) -> str:
+        """
+        Return a string representation of the tool,
+        including its name, description, arguments, and outputs.
+        """
+        args_str = ", ".join([
+            f"{arg_name}: {arg_type}" for arg_name, arg_type in self.arguments
+        ])
+
+        return (
+            f"Tool Name: {self.name},"
+            f" Description: {self.description},"
+            f" Arguments: {args_str},"
+            f" Outputs: {self.outputs}"
+        )
+
+    def __call__(self, *args, **kwargs):
+        """
+        Invoke the underlying function (callable) with provided arguments.
+        """
+        return self.func(*args, **kwargs)
+```
+
+看起來可能有點複雜，但逐步閱讀就能了解它的功能。我們定義的 **`Tool`** 類別包含：
+
+- **`name`**（*str*）：工具名稱。
+- **`description`**（*str*）：工具功能的簡短說明。
+- **`function`**（*callable*）：工具執行的函式。
+- **`arguments`**（*list*）：預期的輸入參數。
+- **`outputs`**（*str* 或 *list*）：工具預期的輸出。
+- **`__call__()`**：呼叫工具實例時，執行對應的函式。
+- **`to_string()`**：將工具屬性轉換成文字表示。
+
+使用這個類別，可以透過以下程式碼建立工具：
+
+```python
+calculator_tool = Tool(
+    "calculator",                   # name
+    "Multiply two integers.",       # description
+    calculator,                     # function to call
+    [("a", "int"), ("b", "int")],   # inputs (names and types)
+    "int",                          # output
+)
+```
+
+我們也能使用 Python 的 `inspect` 模組，自動取得所有資訊！這就是 `@tool` 裝飾器的功能。
+
+> 如果有興趣，可以展開以下區塊，查看裝飾器的實作。
+
+<details>
+<summary> 裝飾器程式碼</summary>
+
+```python
+import inspect
+
+def tool(func):
+    """
+    A decorator that creates a Tool instance from the given function.
+    """
+    # Get the function signature
+    signature = inspect.signature(func)
+
+    # Extract (param_name, param_annotation) pairs for inputs
+    arguments = []
+    for param in signature.parameters.values():
+        annotation_name = (
+            param.annotation.__name__
+            if hasattr(param.annotation, '__name__')
+            else str(param.annotation)
+        )
+        arguments.append((param.name, annotation_name))
+
+    # Determine the return annotation
+    return_annotation = signature.return_annotation
+    if return_annotation is inspect._empty:
+        outputs = "No return annotation"
+    else:
+        outputs = (
+            return_annotation.__name__
+            if hasattr(return_annotation, '__name__')
+            else str(return_annotation)
+        )
+
+    # Use the function's docstring as the description (default if None)
+    description = func.__doc__ or "No description provided."
+
+    # The function name becomes the Tool name
+    name = func.__name__
+
+    # Return a new Tool instance
+    return Tool(
+        name=name,
+        description=description,
+        func=func,
+        arguments=arguments,
+        outputs=outputs
+    )
+```
+
+</details>
+
+再複習一次，有了這個裝飾器，就能這樣實作工具：
+
+```python
+@tool
+def calculator(a: int, b: int) -> int:
+    """Multiply two integers."""
+    return a * b
+
+print(calculator.to_string())
+```
+
+接著使用 `Tool` 的 `to_string` 方法，就能自動取得適合提供給 LLM 的工具說明文字：
+
+```text
+Tool Name: calculator, Description: Multiply two integers., Arguments: a: int, b: int, Outputs: int
+```
+
+這段說明會被**插入**系統 prompt。以本節開頭的範例來看，替換 `tools_description` 後的內容如下：
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/Agent_system_prompt_tools.png" alt="System prompt for tools"/>
+
+在[行動](actions)一節，我們會進一步了解 agent 如何**呼叫**剛才建立的工具。
+
+### Model Context Protocol（MCP）：統一的工具介面
+
+Model Context Protocol（MCP）是一種**開放協定**，將應用程式**提供工具給 LLM 的方式**標準化。
+MCP 提供：
+
+- 持續增加的現成整合，讓 LLM 能直接連接使用
+- 彈性切換 LLM 供應商的能力
+- 保護基礎設施內資料的最佳實務
+
+這表示**任何實作 MCP 的框架，都能使用依照協定定義的工具**，不必為每個框架重新實作相同的工具介面。
+
+若想深入了解 MCP，請參閱我們的[免費 MCP 課程](https://huggingface.co/learn/mcp-course/)。 
+
+---
+
+工具在增強 AI agent 能力方面，扮演關鍵角色。
+
+我們學到了：
+
+- *什麼是工具*：提供 LLM 額外能力的函式，例如進行計算或存取外部資料。
+
+- *如何定義工具*：提供清楚的文字說明、輸入、輸出及可呼叫的函式。
+
+- *工具為何重要*：讓 agent 能突破靜態模型訓練的限制，處理即時任務並執行特定行動。
+
+接著，前往 [agent 工作流程](agent-steps-and-structure)，看看 agent 如何觀察、思考與行動。這會**串起目前學過的所有內容**，為建立功能完整的 AI agent 做好準備。
+
+不過，在那之前，先來做另一個小測驗吧！

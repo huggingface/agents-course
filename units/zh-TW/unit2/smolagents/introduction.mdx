@@ -1,0 +1,66 @@
+# `smolagents` 簡介
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/thumbnail.jpg" alt="Unit 2.1 Thumbnail"/>
+
+歡迎來到本模組！你將學習如何使用 [`smolagents`](https://github.com/huggingface/smolagents) 函式庫**打造有效的 agent**。這個輕量框架能協助你建立功能強大的 AI agent。
+
+`smolagents` 是 Hugging Face 開發的函式庫。如果你願意到 smolagents 的 [`儲存庫`](https://github.com/huggingface/smolagents) **按下 Star** 為我們加油，我們會非常感謝：
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/star_smolagents.gif" alt="staring smolagents"/>
+
+## 模組概覽
+
+本模組將完整介紹使用 `smolagents` 建立 agent 的關鍵概念與實用策略。
+
+開源框架的選擇很多，因此我們需要了解 `smolagents` 的組成與功能，才能判斷它何時適合使用，以及何時該考慮其他方案。
+
+我們將探索幾種重要的 agent 類型：為軟體開發任務設計的 code agent、以函式建立模組化工作流程的工具呼叫 agent，以及存取並整合資訊的檢索 agent。
+
+此外，我們也會介紹如何協調多個 agent，以及整合視覺能力和網頁瀏覽功能，為動態、能運用上下文的應用程式開拓更多可能性。
+
+第一單元的 agent 阿爾弗雷德（Alfred）回來了！這次，他的內部運作改用 `smolagents` 框架。我們將隨著 Alfred 處理各種任務，一起探索這個框架的關鍵概念。韋恩一家 🦇 不在家，Alfred 正忙著在韋恩莊園籌辦派對，還有許多事情等著他完成。跟著我們看看，他如何用 `smolagents` 逐一完成這些任務！
+
+> [!TIP]
+> 本單元將教你使用 `smolagents` 函式庫建立 AI agent。你的 agent 將能搜尋資料、執行程式碼並與網頁互動。你也會學到如何結合多個 agent，打造更強大的系統。
+
+![Alfred the agent](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/this-is-alfred.jpg)
+
+## 內容
+
+本單元將介紹以下 `smolagents` 主題：
+
+### 1️⃣ [為什麼使用 smolagents](./why_use_smolagents)
+
+`smolagents` 是可用於應用程式開發的眾多開源 agent 框架之一。其他選擇包括 `LlamaIndex` 和 `LangGraph`，本課程也會在其他模組介紹。`smolagents` 的幾項特色讓它很適合某些使用情境，但選擇框架時仍應全面評估。我們將探討它的優缺點，協助你根據專案需求做出判斷。
+
+### 2️⃣ [CodeAgents](./code_agents)
+
+`CodeAgents` 是 `smolagents` 的主要 agent 類型。它們透過產生 Python 程式碼來執行動作，而非輸出 JSON 或文字。本模組將介紹其用途、功能與運作方式，並透過實作範例展示它們的能力。
+
+### 3️⃣ [ToolCallingAgents](./tool_calling_agents)
+
+`ToolCallingAgents` 是 `smolagents` 支援的第二種 agent 類型。不同於產生 Python 程式碼的 `CodeAgents`，這類 agent 會輸出 JSON 或文字區塊，由系統解析後執行動作。本模組將介紹它們的功能、與 `CodeAgents` 的主要差異，並以範例說明用法。
+
+### 4️⃣ [工具](./tools)
+
+如第一單元所述，工具是 LLM 在 agent 系統中可以使用的函式，也是 agent 行為的基本組件。本模組將介紹工具的結構、建立方式，以及如何使用 `Tool` 類別或 `@tool` 裝飾器實作工具。你也會認識預設工具箱，學習如何與社群分享工具，以及載入社群提供的工具供 agent 使用。
+
+### 5️⃣ [檢索 agent](./retrieval_agents)
+
+檢索 agent 讓模型能存取知識庫，從多個來源搜尋、整合及檢索資訊。它們利用向量儲存空間提高檢索效率，實作**檢索增強生成（Retrieval-Augmented Generation，RAG）**模式。這類 agent 特別適合整合網頁搜尋與自訂知識庫，並透過記憶系統保留對話上下文。本模組將探討實作策略，包括在檢索失敗時採用的備援機制。
+
+### 6️⃣ [多 agent 系統](./multi_agent_systems)
+
+有效協調多個 agent，是建立強大多 agent 系統的關鍵。將不同能力的 agent 結合，例如網頁搜尋 agent 與程式碼執行 agent，就能打造更進階的解決方案。本模組著重於多 agent 系統的設計、實作與管理，以提升效率和可靠性。
+
+### 7️⃣ [視覺與瀏覽器 agent](./vision_agents)
+
+視覺 agent 整合**視覺語言模型（Vision-Language Models，VLM）**，擴充傳統 agent 的能力，讓它們能處理並解讀視覺資訊。本模組將介紹如何設計及整合由 VLM 驅動的 agent，實作影像推理、視覺資料分析與多模態互動等進階功能。我們也會利用視覺 agent 建立能瀏覽網頁並擷取資訊的瀏覽器 agent。
+
+## 資源
+
+- [smolagents 文件](https://huggingface.co/docs/smolagents) - smolagents 函式庫的官方文件
+- [打造有效的 agent](https://www.anthropic.com/research/building-effective-agents) - 探討 agent 架構的研究文章
+- [agent 指南](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - 建立可靠 agent 的最佳實務
+- [LangGraph agent](https://langchain-ai.github.io/langgraph/) - 更多 agent 實作範例
+- [函式呼叫指南](https://platform.openai.com/docs/guides/function-calling) - 認識 LLM 的函式呼叫
+- [RAG 最佳實務](https://www.pinecone.io/learn/retrieval-augmented-generation/) - 實作有效 RAG 的指南

@@ -1,0 +1,431 @@
+# 為 agent 建立並整合工具
+
+本節將讓 Alfred 存取網路，取得最新消息與世界各地的動態。
+此外，他也能取得天氣資料與 Hugging Face Hub 模型下載統計，藉此聊聊最新話題。
+
+## 讓 agent 存取網路
+
+別忘了，我們希望 Alfred 成為博學多聞、具有文藝復興精神的主人。
+
+為此，必須確保 Alfred 能取得世界各地的最新消息與資訊。
+
+先為 Alfred 建立網頁搜尋工具吧！
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import DuckDuckGoSearchTool
+
+# Initialize the DuckDuckGo search tool
+search_tool = DuckDuckGoSearchTool()
+
+# Example usage
+results = search_tool("Who's the current President of France?")
+print(results)
+```
+
+預期輸出：
+
+```
+The current President of France in Emmanuel Macron.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.tools.duckduckgo import DuckDuckGoSearchToolSpec
+from llama_index.core.tools import FunctionTool
+
+# Initialize the DuckDuckGo search tool
+tool_spec = DuckDuckGoSearchToolSpec()
+
+search_tool = FunctionTool.from_defaults(tool_spec.duckduckgo_full_search)
+# Example usage
+response = search_tool("Who's the current President of France?")
+print(response.raw_output[-1]['body'])
+```
+
+預期輸出：
+
+```
+The President of the French Republic is the head of state of France. The current President is Emmanuel Macron since 14 May 2017 defeating Marine Le Pen in the second round of the presidential election on 7 May 2017. List of French presidents (Fifth Republic) N° Portrait Name ...
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_community.tools import DuckDuckGoSearchRun
+
+search_tool = DuckDuckGoSearchRun()
+results = search_tool.invoke("Who's the current President of France?")
+print(results)
+```
+
+預期輸出：
+
+```
+Emmanuel Macron (born December 21, 1977, Amiens, France) is a French banker and politician who was elected president of France in 2017...
+```
+
+</hfoption>
+</hfoptions>
+
+## 建立自訂天氣資訊工具，安排煙火施放時機
+
+完美的晚宴應該在晴朗的夜空下施放煙火，我們得確保煙火秀不會因為壞天氣而取消。
+
+來建立一個自訂工具，呼叫外部天氣 API，取得指定地點的天氣資訊。
+
+> [!TIP]
+> 為了簡化範例，我們使用模擬的天氣 API。如果想使用真正的天氣 API，可以像<a href="../../unit1/tutorial">第 1 單元</a>一樣，實作使用 OpenWeatherMap API 的天氣工具。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+import random
+
+class WeatherInfoTool(Tool):
+    name = "weather_info"
+    description = "Fetches dummy weather information for a given location."
+    inputs = {
+        "location": {
+            "type": "string",
+            "description": "The location to get weather information for."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, location: str):
+        # Dummy weather data
+        weather_conditions = [
+            {"condition": "Rainy", "temp_c": 15},
+            {"condition": "Clear", "temp_c": 25},
+            {"condition": "Windy", "temp_c": 20}
+        ]
+        # Randomly select a weather condition
+        data = random.choice(weather_conditions)
+        return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialize the tool
+weather_info_tool = WeatherInfoTool()
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+
+def get_weather_info(location: str) -> str:
+    """Fetches dummy weather information for a given location."""
+    # Dummy weather data
+    weather_conditions = [
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20}
+    ]
+    # Randomly select a weather condition
+    data = random.choice(weather_conditions)
+    return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialize the tool
+weather_info_tool = FunctionTool.from_defaults(get_weather_info)
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_core.tools import Tool
+import random
+
+def get_weather_info(location: str) -> str:
+    """Fetches dummy weather information for a given location."""
+    # Dummy weather data
+    weather_conditions = [
+        {"condition": "Rainy", "temp_c": 15},
+        {"condition": "Clear", "temp_c": 25},
+        {"condition": "Windy", "temp_c": 20}
+    ]
+    # Randomly select a weather condition
+    data = random.choice(weather_conditions)
+    return f"Weather in {location}: {data['condition']}, {data['temp_c']}°C"
+
+# Initialize the tool
+weather_info_tool = Tool(
+    name="get_weather_info",
+    func=get_weather_info,
+    description="Fetches dummy weather information for a given location."
+)
+```
+
+</hfoption>
+</hfoptions>
+
+## 建立 Hub 統計工具，與具影響力的 AI 開發者交流
+
+出席晚宴的賓客中，有許多 AI 開發界的重要人物。Alfred 想透過討論他們最受歡迎的模型、資料集與 Space，讓他們留下深刻印象。我們將建立一個工具，根據使用者名稱，從 Hugging Face Hub 取得模型統計資料。
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import Tool
+from huggingface_hub import list_models
+
+class HubStatsTool(Tool):
+    name = "hub_stats"
+    description = "Fetches the most downloaded model from a specific author on the Hugging Face Hub."
+    inputs = {
+        "author": {
+            "type": "string",
+            "description": "The username of the model author/organization to find models from."
+        }
+    }
+    output_type = "string"
+
+    def forward(self, author: str):
+        try:
+            # List models from the specified author, sorted by downloads
+            models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+            
+            if models:
+                model = models[0]
+                return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+            else:
+                return f"No models found for author {author}."
+        except Exception as e:
+            return f"Error fetching models for {author}: {str(e)}"
+
+# Initialize the tool
+hub_stats_tool = HubStatsTool()
+
+# Example usage
+print(hub_stats_tool("facebook")) # Example: Get the most downloaded model by Facebook
+```
+
+預期輸出：
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 downloads.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+import random
+from llama_index.core.tools import FunctionTool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Fetches the most downloaded model from a specific author on the Hugging Face Hub."""
+    try:
+        # List models from the specified author, sorted by downloads
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+        else:
+            return f"No models found for author {author}."
+    except Exception as e:
+        return f"Error fetching models for {author}: {str(e)}"
+
+# Initialize the tool
+hub_stats_tool = FunctionTool.from_defaults(get_hub_stats)
+
+# Example usage
+print(hub_stats_tool("facebook")) # Example: Get the most downloaded model by Facebook
+```
+
+預期輸出：
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 12,544,550 downloads.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from langchain_core.tools import Tool
+from huggingface_hub import list_models
+
+def get_hub_stats(author: str) -> str:
+    """Fetches the most downloaded model from a specific author on the Hugging Face Hub."""
+    try:
+        # List models from the specified author, sorted by downloads
+        models = list(list_models(author=author, sort="downloads", direction=-1, limit=1))
+
+        if models:
+            model = models[0]
+            return f"The most downloaded model by {author} is {model.id} with {model.downloads:,} downloads."
+        else:
+            return f"No models found for author {author}."
+    except Exception as e:
+        return f"Error fetching models for {author}: {str(e)}"
+
+# Initialize the tool
+hub_stats_tool = Tool(
+    name="get_hub_stats",
+    func=get_hub_stats,
+    description="Fetches the most downloaded model from a specific author on the Hugging Face Hub."
+)
+
+# Example usage
+print(hub_stats_tool.invoke("facebook")) # Example: Get the most downloaded model by Facebook
+```
+
+預期輸出：
+
+```
+The most downloaded model by facebook is facebook/esmfold_v1 with 13,109,861 downloads.
+```
+
+</hfoption>
+</hfoptions>
+
+有了 Hub 統計工具，Alfred 現在可以聊聊這些具影響力的 AI 開發者最受歡迎的模型，讓他們留下好印象。
+
+## 將工具整合到 Alfred
+
+所有工具都準備好了，接下來把它們整合到 Alfred 這個 agent 中：
+
+<hfoptions id="agents-frameworks">
+<hfoption id="smolagents">
+
+```python
+from smolagents import CodeAgent, InferenceClientModel
+
+# Initialize the Hugging Face model
+model = InferenceClientModel()
+
+# Create Alfred with all the tools
+alfred = CodeAgent(
+    tools=[search_tool, weather_info_tool, hub_stats_tool], 
+    model=model
+)
+
+# Example query Alfred might receive during the gala
+response = alfred.run("What is Facebook and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+預期輸出：
+
+```
+🎩 Alfred's Response:
+Facebook is a social networking website where users can connect, share information, and interact with others. The most downloaded model by Facebook on the Hugging Face Hub is ESMFold_v1.
+```
+
+</hfoption>
+<hfoption id="llama-index">
+
+```python
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+
+# Initialize the Hugging Face model
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Create Alfred with all the tools
+alfred = AgentWorkflow.from_tools_or_functions(
+    [search_tool, weather_info_tool, hub_stats_tool],
+    llm=llm
+)
+
+# Example query Alfred might receive during the gala
+response = await alfred.run("What is Facebook and what's their most popular model?")
+
+print("🎩 Alfred's Response:")
+print(response)
+```
+
+預期輸出：
+
+```
+🎩 Alfred's Response:
+Facebook is a social networking service and technology company based in Menlo Park, California. It was founded by Mark Zuckerberg and allows people to create profiles, connect with friends and family, share photos and videos, and join groups based on shared interests. The most popular model by Facebook on the Hugging Face Hub is `facebook/esmfold_v1` with 13,109,861 downloads.
+```
+
+</hfoption>
+<hfoption id="langgraph">
+
+```python
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage, HumanMessage, AIMessage
+from langgraph.prebuilt import ToolNode
+from langgraph.graph import START, StateGraph
+from langgraph.prebuilt import tools_condition
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+
+# Generate the chat interface, including the tools
+llm = HuggingFaceEndpoint(
+    repo_id="Qwen/Qwen2.5-Coder-32B-Instruct",
+    huggingfacehub_api_token=HUGGINGFACEHUB_API_TOKEN,
+)
+
+chat = ChatHuggingFace(llm=llm, verbose=True)
+tools = [search_tool, weather_info_tool, hub_stats_tool]
+chat_with_tools = chat.bind_tools(tools)
+
+# Generate the AgentState and Agent graph
+class AgentState(TypedDict):
+    messages: Annotated[list[AnyMessage], add_messages]
+
+def assistant(state: AgentState):
+    return {
+        "messages": [chat_with_tools.invoke(state["messages"])],
+    }
+
+## The graph
+builder = StateGraph(AgentState)
+
+# Define nodes: these do the work
+builder.add_node("assistant", assistant)
+builder.add_node("tools", ToolNode(tools))
+
+# Define edges: these determine how the control flow moves
+builder.add_edge(START, "assistant")
+builder.add_conditional_edges(
+    "assistant",
+    # If the latest message requires a tool, route to tools
+    # Otherwise, provide a direct response
+    tools_condition,
+)
+builder.add_edge("tools", "assistant")
+alfred = builder.compile()
+
+messages = [HumanMessage(content="Who is Facebook and what's their most popular model?")]
+response = alfred.invoke({"messages": messages})
+
+print("🎩 Alfred's Response:")
+print(response['messages'][-1].content)
+```
+
+預期輸出：
+
+```
+🎩 Alfred's Response:
+Facebook is a social media company known for its social networking site, Facebook, as well as other services like Instagram and WhatsApp. The most downloaded model by Facebook on the Hugging Face Hub is facebook/esmfold_v1 with 13,202,321 downloads.
+```
+</hfoption>
+</hfoptions>
+
+## 結語
+
+整合這些工具後，Alfred 就能處理各種任務，從網頁搜尋到天氣更新與模型統計資料都難不倒他，確保他成為晚宴中消息最靈通、最能帶動話題的主人。
+
+> [!TIP]
+> 試著實作一個工具，用來取得特定主題的最新消息。
+>
+> 完成後，請將自訂工具實作在 <code>tools.py</code> 檔案中。

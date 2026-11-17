@@ -1,0 +1,219 @@
+# 什麼是 LLM？
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/whiteboard-check-1.jpg" alt="Unit 1 planning"/>
+
+上一節介紹過，每個 agent 都需要**以 AI 模型為核心**，而 LLM 是最常用來擔任這個角色的 AI 模型。
+
+接下來，我們要了解什麼是 LLM，以及它如何驅動 agent。
+
+本節會簡要說明使用 LLM 的技術基礎。如果想深入學習，可以參考我們的<a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">免費自然語言處理課程</a>。
+
+## 什麼是大型語言模型？
+
+大型語言模型（LLM）是一種擅長**理解與生成人類語言**的 AI 模型。它透過大量文字資料訓練，學習語言的模式、結構，甚至細微的語意差異。這類模型通常具有數百萬個以上的參數。
+
+目前大多數 LLM 都**採用 Transformer 架構**。這是一種以「注意力」（Attention）演算法為基礎的深度學習架構，自 Google 在 2018 年發布 BERT 後，便受到廣泛關注。
+
+<figure>
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/transformer.jpg" alt="Transformer"/>
+<figcaption>原始的 Transformer 架構如下圖所示，左側是編碼器，右側是解碼器。
+</figcaption>
+</figure>
+
+Transformer 可分為三種類型：
+
+1. **編碼器（Encoder）**  
+   以編碼器為基礎的 Transformer 接收文字（或其他資料），輸出該文字的密集表示（或嵌入向量）。
+
+   - **範例**：Google 的 BERT
+   - **應用情境**：文字分類、語意搜尋、命名實體辨識
+   - **常見規模**：數百萬個參數
+
+2. **解碼器（Decoder）**  
+   以解碼器為基礎的 Transformer 專注於**逐一生成新的 token，以完成序列**。
+
+   - **範例**：Meta 的 Llama
+   - **應用情境**：文字生成、聊天機器人、程式碼生成
+   - **常見規模**：數十億個參數（英文 billion 採美式用法，即 10^9）
+
+3. **Seq2Seq（編碼器–解碼器）**  
+   序列到序列的 Transformer _結合_了編碼器與解碼器。編碼器先將輸入序列處理為上下文表示，再由解碼器生成輸出序列。
+
+   - **範例**：T5、BART
+   - **應用情境**：翻譯、摘要、改寫
+   - **常見規模**：數百萬個參數
+
+大型語言模型雖有多種形式，但 LLM 通常指具有數十億個參數、以解碼器為基礎的模型。以下列出一些知名的 LLM：
+
+| **模型**                          | **提供者**                              |
+|-----------------------------------|-------------------------------------------|
+| **Deepseek-R1**                    | DeepSeek                                  |
+| **GPT4**                           | OpenAI                                    |
+| **Llama 3**                        | Meta (Facebook AI Research)               |
+| **SmolLM2**                       | Hugging Face     |
+| **Gemma**                          | Google                                    |
+| **Mistral**                        | Mistral                                |
+
+LLM 的基本原理簡單卻很有效：**根據前面的一連串 token，預測下一個 token**。token 是 LLM 處理資訊的單位。你可以先把 token 想成一個「詞」，但為了效率，LLM 並不直接以完整的詞作為單位。
+
+例如，英文估計有 60 萬個詞，但 LLM 的詞彙表可能只有約 32,000 個 token（Llama 2 就是如此）。tokenization 通常會將文字切成可以互相組合的子詞單位。
+
+舉例來說，token「interest」與「ing」可以組成「interesting」，也可以在「interest」後面加上「ed」，形成「interested」。
+
+你可以在下方的互動介面中，試用不同的 tokenizer：
+
+<iframe
+	src="https://agents-course-the-tokenizer-playground.static.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+每個 LLM 都有模型專屬的**特殊 token**，用來標示生成內容中各個結構的起點與終點，例如序列、訊息或回覆的開始與結束。我們傳給模型的輸入 prompt 也會使用特殊 token 來組織結構。其中最重要的是**序列結束 token**（End of Sequence，EOS）。
+
+不同模型提供者使用的特殊 token，形式可能差異很大。
+
+下表列出一些特殊 token，說明這種多樣性。
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>模型</strong></th>
+      <th><strong>提供者</strong></th>
+      <th><strong>EOS token</strong></th>
+      <th><strong>功能</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>GPT4</strong></td>
+      <td>OpenAI</td>
+      <td><code>&lt;|endoftext|&gt;</code></td>
+      <td>訊息文字結束</td>
+    </tr>
+    <tr>
+      <td><strong>Llama 3</strong></td>
+      <td>Meta (Facebook AI Research)</td>
+      <td><code>&lt;|eot_id|&gt;</code></td>
+      <td>序列結束</td>
+    </tr>
+    <tr>
+      <td><strong>Deepseek-R1</strong></td>
+      <td>DeepSeek</td>
+      <td><code>&lt;｜end▁of▁sentence｜&gt;</code></td>
+      <td>訊息文字結束</td>
+    </tr>
+    <tr>
+      <td><strong>SmolLM2</strong></td>
+      <td>Hugging Face</td>
+      <td><code>&lt;|im_end|&gt;</code></td>
+      <td>指令或訊息結束</td>
+    </tr>
+    <tr>
+      <td><strong>Gemma</strong></td>
+      <td>Google</td>
+      <td><code>&lt;end_of_turn&gt;</code></td>
+      <td>對話回合結束</td>
+    </tr>
+  </tbody>
+</table>
+
+> [!TIP]
+> 不需要背下這些特殊 token，但你應該了解它們各有不同，也要知道它們在 LLM 文字生成中扮演的角色。如果想進一步了解特殊 token，可以查看模型在 Hub 儲存庫中的設定。例如，SmolLM2 的特殊 token 就列在它的 <a href="https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/main/tokenizer_config.json">tokenizer_config.json</a> 中。
+
+## 理解下一個 token 預測
+
+LLM 具有**自迴歸**特性，也就是**這一次運算的輸出，會成為下一次運算的輸入**。這個迴圈會持續下去，直到模型預測下一個 token 為 EOS token，此時模型就可以停止。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AutoregressionSchema.gif" alt="Visual Gif of autoregressive decoding" width="60%">
+
+換句話說，LLM 會持續解碼文字，直到遇到 EOS。不過，每一次解碼迴圈裡會發生什麼事？
+
+完整過程涉及不少技術細節，就學習 agent 而言，可以先掌握以下概念：
+
+- 輸入文字經過 **tokenization** 後，模型會計算序列的表示，其中包含輸入序列中每個 token 的語意與位置資訊。
+- 這個表示會送入模型，由模型為詞彙表中的每個 token 計算分數，排列它們成為序列中下一個 token 的可能性。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/DecodingFinal.gif" alt="Visual Gif of decoding" width="60%">
+
+根據這些分數，我們可以採用不同策略，選擇用來完成句子的 token。
+
+- 最簡單的解碼策略，就是每次都選擇分數最高的 token。
+
+你可以在下方的 Space 中，使用 SmolLM2 親自操作解碼過程（記得，模型會一直解碼，直到遇到 **EOS** token；這個模型的 EOS token 是 **<|im_end|>**）：
+
+<iframe
+	src="https://agents-course-decoding-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+- 還有更進階的解碼策略。例如，*束搜尋（beam search）*會探索多個候選序列，找出總分最高的序列，即使其中某些 token 的個別分數較低也沒關係。
+
+<iframe
+	src="https://agents-course-beam-search-visualizer.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+如果想進一步了解解碼，可以參考 [NLP 課程](https://huggingface.co/learn/nlp-course)。
+
+## Attention is all you need
+
+Transformer 架構的關鍵之一是**注意力機制（Attention）**。預測下一個詞時，句子中每個詞的重要性並不相同。例如，在 *「The capital of France is ...」* 這個句子中，「France」與「capital」帶有最重要的語意。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit1/AttentionSceneFinal.gif" alt="Visual Gif of Attention" width="60%">
+這種找出最相關的詞、藉此預測下一個 token 的方式，已證實非常有效。
+
+從 GPT-2 至今，LLM 預測下一個 token 的基本原理並沒有改變，但在擴大神經網路規模，以及讓注意力機制處理更長的序列方面，都有顯著進展。
+
+如果你曾使用 LLM，可能聽過*上下文長度*，也就是 LLM 能處理的最大 token 數量，以及注意力機制能涵蓋的最大範圍。
+
+## 提供給 LLM 的 prompt 很重要
+
+LLM 的工作就是查看所有輸入 token，判斷哪些 token「重要」，並預測下一個 token。因此，輸入序列的措辭非常重要。
+
+你提供給 LLM 的輸入序列稱為 *prompt*。仔細設計 prompt，能讓你更容易**引導 LLM 生成符合預期的輸出**。
+
+## LLM 如何訓練？
+
+LLM 使用大型文字資料集訓練，透過自監督學習或遮罩語言模型的訓練目標，學習預測序列中的下一個詞。
+
+透過這種非監督式學習，模型學會語言結構與**文字背後的模式，進而能將所學運用到未曾見過的資料**。
+
+完成最初的*預訓練*後，可以再以監督式學習目標微調 LLM，讓它執行特定任務。例如，有些模型針對對話結構或工具使用訓練，其他模型則著重分類或程式碼生成。
+
+## 如何使用 LLM？
+
+主要有兩種選擇：
+
+1. **在本機執行**（前提是硬體資源足夠）。
+
+2. **使用雲端服務／API**（例如透過 Hugging Face Serverless Inference API）。
+
+本課程主要會透過 Hugging Face Hub 上的 API 使用模型。稍後也會介紹如何在自己的硬體上執行這些模型。
+
+
+## LLM 如何應用在 AI agent 中？
+
+LLM 是 AI agent 的重要元件，**提供理解與生成人類語言的基礎能力**。
+
+它能理解使用者指令、維持對話中的上下文、制定計畫，並決定要使用哪些工具。
+
+本單元稍後會深入介紹這些步驟。目前只要先了解：LLM 就是 **agent 的大腦**。
+
+---
+
+這一節的資訊量不少！我們介紹了 LLM 的基本概念、運作方式，以及它在 AI agent 中扮演的角色。
+
+如果想更深入探索語言模型與自然語言處理，歡迎參考我們的<a href="https://huggingface.co/learn/nlp-course/chapter1/1" target="_blank">免費 NLP 課程</a>。
+
+現在我們已了解 LLM 的運作方式，接下來要看看 **LLM 如何在對話情境中組織生成內容的結構**。
+
+若要執行<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit1/dummy_agent_library.ipynb" target="_blank">這份 Notebook</a>，**需要 Hugging Face token**，可以在 <a href="https://hf.co/settings/tokens" target="_blank">https://hf.co/settings/tokens</a> 取得。
+
+如需了解如何執行 Jupyter Notebook，請參閱 <a href="https://huggingface.co/docs/hub/notebooks">Hugging Face Hub 上的 Jupyter Notebook</a>。
+
+你也需要申請 <a href="https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct" target="_blank">Meta Llama 模型</a>的存取權。

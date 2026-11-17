@@ -1,0 +1,126 @@
+# LangGraph 的基本構成要素
+
+要使用 LangGraph 建立應用程式，需要先了解它的核心元件。讓我們探索構成 LangGraph 應用程式的基本要素。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/Building_blocks.png" alt="Building Blocks" width="70%"/>
+
+LangGraph 應用程式從**進入點（entrypoint）**開始，依執行情況前往不同函式，直到抵達 END。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/application.png" alt="Application"/>
+
+## 1. 狀態（State）
+
+**State** 是 LangGraph 的核心概念，代表應用程式中流動的所有資訊。
+
+```python
+from typing_extensions import TypedDict
+
+class State(TypedDict):
+    graph_state: str
+```
+
+狀態由**使用者自行定義**，因此需要仔細設計欄位，納入決策過程所需的全部資料！
+
+> 💡 **提示：** 仔細思考應用程式需要在步驟之間追蹤哪些資訊。
+
+## 2. 節點（Nodes）
+
+**節點**是 Python 函式。每個節點都會：
+- 接收狀態作為輸入
+- 執行某項操作
+- 回傳狀態更新
+
+```python
+def node_1(state):
+    print("---Node 1---")
+    return {"graph_state": state['graph_state'] +" I am"}
+
+def node_2(state):
+    print("---Node 2---")
+    return {"graph_state": state['graph_state'] +" happy!"}
+
+def node_3(state):
+    print("---Node 3---")
+    return {"graph_state": state['graph_state'] +" sad!"}
+```
+
+例如，節點可以包含：
+- **LLM 呼叫**：產生文字或做出決策
+- **工具呼叫**：與外部系統互動
+- **條件邏輯**：決定後續步驟
+- **人工介入**：取得使用者輸入
+
+> 💡 **補充：** LangGraph 已直接提供 START 和 END 等工作流程所需的節點。
+
+## 3. 邊（Edges）
+
+**邊**會連接節點，定義圖中可能的執行路徑：
+
+```python
+import random
+from typing import Literal
+
+def decide_mood(state) -> Literal["node_2", "node_3"]:
+    
+    # Often, we will use state to decide on the next node to visit
+    user_input = state['graph_state'] 
+    
+    # Here, let's just do a 50 / 50 split between nodes 2, 3
+    if random.random() < 0.5:
+
+        # 50% of the time, we return Node 2
+        return "node_2"
+    
+    # 50% of the time, we return Node 3
+    return "node_3"
+```
+
+邊可以分為：
+- **直接邊**：固定從節點 A 前往節點 B
+- **條件邊**：根據目前狀態選擇下一個節點
+
+## 4. 狀態圖（StateGraph）
+
+**StateGraph** 是容納整個 agent 工作流程的容器：
+
+```python
+from IPython.display import Image, display
+from langgraph.graph import StateGraph, START, END
+
+# Build graph
+builder = StateGraph(State)
+builder.add_node("node_1", node_1)
+builder.add_node("node_2", node_2)
+builder.add_node("node_3", node_3)
+
+# Logic
+builder.add_edge(START, "node_1")
+builder.add_conditional_edges("node_1", decide_mood)
+builder.add_edge("node_2", END)
+builder.add_edge("node_3", END)
+
+# Add
+graph = builder.compile()
+```
+
+接著就能將它視覺化！
+```python
+# View
+display(Image(graph.get_graph().draw_mermaid_png()))
+```
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/LangGraph/basic_graph.jpeg" alt="Graph Visualization"/>
+
+更重要的是，可以呼叫它來執行：
+```python
+graph.invoke({"graph_state" : "Hi, this is Lance."})
+```
+輸出：
+```
+---Node 1---
+---Node 3---
+{'graph_state': 'Hi, this is Lance. I am sad!'}
+```
+
+## 接下來呢？
+
+下一節將透過建立第一個圖，把這些概念付諸實作。這個圖會讓 Alfred 接收電子郵件、分類，並為正常郵件草擬初步回覆。

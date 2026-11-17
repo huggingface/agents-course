@@ -1,0 +1,94 @@
+# 入門準備：踏出第一步 ⛵
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit0/time-to-onboard.jpg" alt="Time to Onboard" width="100%"/>
+
+現在你已了解課程詳情，開始動手準備吧！我們要做四件事：
+
+1. **建立 Hugging Face 帳號**（如果還沒有帳號）
+2. **加入 Discord 並自我介紹**（別害羞 🤗）
+3. **在 Hub 上追蹤 Hugging Face Agents 課程**
+4. **分享課程**，讓更多人知道
+
+### 步驟 1：建立 Hugging Face 帳號
+
+如果還沒有 Hugging Face 帳號，請在<a href='https://huggingface.co/join' target='_blank'>這裡</a>建立。
+
+### 步驟 2：加入我們的 Discord 社群
+
+👉🏻 在<a href="https://discord.gg/UrrTSsSyjb" target="_blank">這裡</a>加入我們的 Discord 伺服器。
+
+加入後，記得到 `#introduce-yourself` 頻道自我介紹。
+
+所有課程相關問題，都可以到 `Hugging Face Hub` 下的 `courses` 頻道詢問。
+
+如果這是你第一次使用 Discord，我們準備了 Discord 101，介紹實用的使用技巧。請參閱[下一節](discord101)。
+
+### 步驟 3：追蹤 Hugging Face Agents 課程組織
+
+**追蹤 Hugging Face Agents 課程組織**，隨時掌握最新教材、更新與公告。
+
+👉 前往<a href="https://huggingface.co/agents-course" target="_blank">這裡</a>，點選 **follow**。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/hf_course_follow.gif" alt="Follow" width="100%"/>
+
+### 步驟 4：分享課程
+
+幫助我們讓更多人看見這門課程！你可以透過兩種方式幫忙：
+
+1. 為<a href="https://github.com/huggingface/agents-course" target="_blank">課程儲存庫</a>加上 ⭐，表達你的鼓勵。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/please_star.gif" alt="Repo star"/>
+
+2. 分享學習歷程：讓大家**知道你正在修習這門課程**！我們準備了一張圖片，供你在社群媒體貼文中使用。
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png">
+
+點選 👉 [這裡](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/communication/share.png?download=true)下載圖片。
+
+### 步驟 5：使用 Ollama 在本機執行模型（遇到額度限制時適用）
+
+1. **安裝 Ollama**
+
+    請依照<a href="https://ollama.com/download" target="_blank">這裡的官方說明</a>安裝。
+
+2. **將模型下載到本機**
+
+    ```bash
+    ollama pull qwen2:7b
+    ```
+
+    這裡下載的是 <a href="https://ollama.com/library/qwen2:7b" target="_blank">qwen2:7b 模型</a>。你可以到 <a href="https://ollama.com/search" target="_blank">Ollama 網站</a>尋找更多模型。
+
+3. **在背景啟動 Ollama（使用一個終端機）**
+    ``` bash
+    ollama serve
+    ``` 
+
+    如果遇到「listen tcp 127.0.0.1:11434: bind: address already in use」錯誤，可以使用 `sudo lsof -i :11434` 指令，找出目前使用這個連接埠的行程 ID（PID）。如果該行程是 `ollama`，很可能是前面的安裝指令碼已啟動 Ollama 服務，你就可以跳過這個啟動 Ollama 的指令。
+
+4. **以 `LiteLLMModel` 取代 `InferenceClientModel`**
+
+   若要在 `smolagents` 中使用 `LiteLLMModel` 模組，可以執行 `pip` 指令安裝。
+
+``` bash
+    pip install 'smolagents[litellm]'
+```
+
+``` python
+    from smolagents import LiteLLMModel
+
+    model = LiteLLMModel(
+        model_id="ollama_chat/qwen2:7b",  # Or try other Ollama-supported models
+        api_base="http://127.0.0.1:11434",  # Default Ollama local server
+        num_ctx=8192,
+    )
+```
+
+5. **為什麼這樣可行？**
+- Ollama 會透過 `http://localhost:11434` 上與 OpenAI 相容的 API，在本機提供模型服務。
+- `LiteLLMModel` 能與任何支援 OpenAI chat/completion API 格式的模型通訊。
+- 因此，只要將 `InferenceClientModel` 換成 `LiteLLMModel`，就能直接使用，不需要更動其他程式碼。
+
+恭喜！🎉 **你已完成入門準備**！現在可以開始學習 AI agent 了。祝你學習愉快！
+
+持續學習，保持熱情 🤗
