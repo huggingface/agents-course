@@ -22,7 +22,7 @@ LlamaIndex 支援**三種主要的推理 agent：**
 ## 初始化 agent
 
 > [!TIP]
-> 您可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
 
 建立 agent 時，首先要提供**一組函式或工具，定義它具備的能力**。
 讓我們看看如何使用基本工具建立 agent。截至撰寫本文時，agent 會自動使用函式呼叫 API（若可用），否則使用標準的 ReAct agent 迴圈。
@@ -67,7 +67,7 @@ response = await agent.run("My name is Bob.", ctx=ctx)
 response = await agent.run("What was my name again?", ctx=ctx)
 ```
 
-您會發現 `LlamaIndex` 的 agent 使用 Python 的 `await` 運算子，以非同步方式執行。如果您剛接觸 Python 非同步程式，或需要複習，可以參考這份[實用的非同步指南](https://docs.llamaindex.ai/en/stable/getting_started/async_python/)。
+你會發現 `LlamaIndex` 的 agent 使用 Python 的 `await` 運算子，以非同步方式執行。如果你剛接觸 Python 非同步程式，或需要複習，可以參考這份[實用的非同步指南](https://docs.llamaindex.ai/en/stable/getting_started/async_python/)。
 
 掌握基礎後，讓我們看看如何在 agent 中使用更複雜的工具。
 

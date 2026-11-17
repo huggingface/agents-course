@@ -17,10 +17,10 @@ LlamaIndex 主要提供**四種工具類型**：
 ## 建立 FunctionTool
 
 > [!TIP]
-> 您可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/tools.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
 
 FunctionTool 能輕鬆將任何 Python 函式封裝為 agent 可用的工具。
-您可以傳入同步或非同步函式，也可以選擇指定 `name` 與 `description` 參數。
+你可以傳入同步或非同步函式，也可以選擇指定 `name` 與 `description` 參數。
 工具名稱與描述尤其重要，能幫助 agent 了解何時及如何有效使用工具。
 以下示範如何建立並呼叫 FunctionTool。
 
@@ -70,7 +70,7 @@ tool = QueryEngineTool.from_defaults(query_engine, name="some useful name", desc
 
 ## 建立 Toolspecs
 
-您可以將 `ToolSpecs` 視為一組相互配合的工具，就像整理完善的專業工具箱。
+你可以將 `ToolSpecs` 視為一組相互配合的工具，就像整理完善的專業工具箱。
 正如機械師的工具箱包含互補的車輛維修工具，`ToolSpec` 會將相關工具組合起來，完成特定用途。
 例如，會計 agent 的 `ToolSpec` 可以整合試算表、電子郵件與計算工具，準確有效地處理財務任務。
 
@@ -137,6 +137,6 @@ agent_context = Context(agent)
 2. `LoadAndSearchToolSpec`：接受任何現有工具作為輸入。它實作了 `to_tool_list` 方法，呼叫後會回傳載入工具與搜尋工具。載入工具會呼叫底層工具，並為輸出建立索引（預設使用向量索引）；搜尋工具則接受查詢字串，並呼叫底層索引進行查詢。
 
 > [!TIP]
-> 您可以在 <a href="https://llamahub.ai/">LlamaHub</a> 找到各種工具規格與輔助工具。
+> 你可以在 <a href="https://llamahub.ai/">LlamaHub</a> 找到各種工具規格與輔助工具。
 
 現在我們已了解 LlamaIndex 的 agent 與工具基礎，接下來看看如何**建立可設定且易於管理的工作流程！**

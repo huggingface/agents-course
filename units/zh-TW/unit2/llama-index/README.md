@@ -1,6 +1,6 @@
 # 目錄
 
-本 LlamaIndex 框架大綱是課程第 2 單元的一部分。您可以在 hf.co/learn 閱讀關於 LlamaIndex 的第 2 單元內容 👉 <a href="https://hf.co/learn/agents-course/unit2/llama-index/introduction">由此進入</a>
+本 LlamaIndex 框架大綱是課程第 2 單元的一部分。你可以在 hf.co/learn 閱讀關於 LlamaIndex 的第 2 單元內容 👉 <a href="https://hf.co/learn/agents-course/unit2/llama-index/introduction">由此進入</a>
 
 | 標題 | 說明 |
 | --- | --- |

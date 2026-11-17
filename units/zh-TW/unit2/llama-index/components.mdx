@@ -9,14 +9,14 @@ LlamaIndex 有許多元件，**我們將聚焦於 `QueryEngine` 元件。**
 
 那麼，RAG 是什麼？LLM 透過大量資料訓練，學習一般知識。
 不過，訓練資料未必包含相關且最新的資訊。
-RAG 會從您的資料中尋找並擷取相關資訊，提供給 LLM，藉此解決這個問題。
+RAG 會從你的資料中尋找並擷取相關資訊，提供給 LLM，藉此解決這個問題。
 
 ![RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/rag.png)
 
 想想 Alfred 的工作方式：
 
-1. 您請 Alfred 協助規劃晚宴
-2. Alfred 需要查看您的行事曆、飲食偏好，以及過往成功的菜單
+1. 你請 Alfred 協助規劃晚宴
+2. Alfred 需要查看你的行事曆、飲食偏好，以及過往成功的菜單
 3. `QueryEngine` 協助 Alfred 找到這些資訊，並用來規劃晚宴
 
 因此，`QueryEngine` 是在 LlamaIndex 中**建立 Agentic RAG 工作流程的關鍵元件**。
@@ -28,9 +28,9 @@ RAG 會從您的資料中尋找並擷取相關資訊，提供給 LLM，藉此解
 ## 使用元件建立 RAG 管線
 
 > [!TIP]
-> 您可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/components.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
 
-RAG 有五個關鍵階段，也會成為您所建立的大多數大型應用程式的一部分：
+RAG 有五個關鍵階段，也會成為你所建立的大多數大型應用程式的一部分：
 
 1. **載入**：將資料從原本的位置帶入工作流程，不論來源是文字檔、PDF、網站、資料庫或 API。LlamaHub 提供數百種整合元件可供選擇。
 2. **索引**：建立可供查詢資料的資料結構。對 LLM 而言，這幾乎總是代表建立向量嵌入，也就是以數值表示資料的語意。索引也可以涵蓋其他後設資料策略，方便根據屬性準確找出符合上下文的資料。
@@ -42,7 +42,7 @@ RAG 有五個關鍵階段，也會成為您所建立的大多數大型應用程�
 
 ### 載入文件並建立嵌入
 
-如前所述，LlamaIndex 能處理您自己的資料，但**存取資料之前，必須先載入資料。**
+如前所述，LlamaIndex 能處理你自己的資料，但**存取資料之前，必須先載入資料。**
 將資料載入 LlamaIndex 主要有三種方式：
 
 1. `SimpleDirectoryReader`：內建載入器，可從本機目錄載入多種檔案類型。
@@ -124,7 +124,7 @@ pipeline = IngestionPipeline(
 ```
 
 > [!TIP]
-> 您可以在 <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">LlamaIndex 文件</a>中查看各種向量儲存的概覽。
+> 你可以在 <a href="https://docs.llamaindex.ai/en/stable/module_guides/storing/vector_stores/">LlamaIndex 文件</a>中查看各種向量儲存的概覽。
 
 向量嵌入在此派上用場：將查詢與節點嵌入同一個向量空間，就能找出相關內容。
 `VectorStoreIndex` 會替我們處理這些工作，並使用與資料匯入階段相同的嵌入模型，確保一致性。
@@ -176,7 +176,7 @@ query_engine.query("What is the meaning of life?")
 - `tree_summarize`：逐一處理檢索到的文字區塊，以樹狀結構組織答案，產生詳細回覆。
 
 > [!TIP]
-> 您可以透過<a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">低階組合 API</a> 精細控制查詢流程。這個 API 能讓您依需求自訂與微調查詢的每個步驟，也很適合搭配<a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">工作流程</a>使用。
+> 你可以透過<a href="https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/usage_pattern/#low-level-composition-api">低階組合 API</a> 精細控制查詢流程。這個 API 能讓你依需求自訂與微調查詢的每個步驟，也很適合搭配<a href="https://docs.llamaindex.ai/en/stable/module_guides/workflow/">工作流程</a>使用。
 
 語言模型的行為不一定可預測，因此無法保證答案永遠正確。我們可以**評估答案品質**來處理這個問題。
 

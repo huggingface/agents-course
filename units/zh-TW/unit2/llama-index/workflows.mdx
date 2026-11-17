@@ -15,14 +15,14 @@ LlamaIndex 的工作流程提供結構化的方式，將程式碼組織成依序
 - 內建狀態管理
 - 支援簡單及複雜的 agent 互動
 
-正如您可能已經想到的，**工作流程能在 agent 的自主性與整體流程的控制之間取得良好平衡。**
+正如你可能已經想到的，**工作流程能在 agent 的自主性與整體流程的控制之間取得良好平衡。**
 
 接下來就學著建立自己的工作流程吧！
 
 ## 建立工作流程
 
 > [!TIP]
-> 您可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
+> 你可以跟著<a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/workflows.ipynb" target="_blank">這份 notebook</a> 的程式碼操作，並使用 Google Colab 執行。
 
 ### 建立基本工作流程
 
@@ -52,7 +52,7 @@ w = MyWorkflow(timeout=10, verbose=False)
 result = await w.run()
 ```
 
-如您所見，現在呼叫 `w.run()` 就能執行工作流程。
+如你所見，現在呼叫 `w.run()` 就能執行工作流程。
 
 ### 連接多個步驟
 
@@ -164,7 +164,7 @@ async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
     return StopEvent(result=val)
 ```
 
-太好了！現在您已經知道如何在 LlamaIndex 中建立基本工作流程！
+太好了！現在你已經知道如何在 LlamaIndex 中建立基本工作流程！
 
 > [!TIP]
 > 工作流程還有更進階的細節，可以在 <a href="https://docs.llamaindex.ai/en/stable/understanding/workflows/">LlamaIndex 文件</a>中深入了解。
@@ -174,7 +174,7 @@ async def query(self, ctx: Context, ev: StartEvent) -> StopEvent:
 ## 使用多 agent 工作流程自動化流程
 
 除了手動建立流程，我們也能使用 **`AgentWorkflow` 類別建立多 agent 工作流程**。
-`AgentWorkflow` 使用 Workflow agent，讓您建立由一個或多個 agent 組成的系統，各個 agent 能依專長協作並交接任務。
+`AgentWorkflow` 使用 Workflow agent，讓你建立由一個或多個 agent 組成的系統，各個 agent 能依專長協作並交接任務。
 這樣就能建立複雜的 agent 系統，讓不同 agent 負責任務的不同面向。
 我們會從 `llama_index.core.agent.workflow` 匯入 agent 類別，而非 `llama_index.core.agent`。
 在 `AgentWorkflow` 建構函式中，必須將一個 agent 指定為根 agent。
@@ -275,6 +275,6 @@ state = await ctx.store.get("state")
 print(state["num_fn_calls"])
 ```
 
-恭喜！您已掌握 LlamaIndex 中 agent 的基礎知識！🎉
+恭喜！你已掌握 LlamaIndex 中 agent 的基礎知識！🎉
 
 接下來透過最後一個測驗，鞏固所學吧！🚀
