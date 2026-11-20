@@ -55,7 +55,7 @@ class AgentState(TypedDict):
 ## Preparing Tools
 
 ```python
-vision_llm = ChatOpenAI(model="gpt-4o")
+vision_llm = ChatOpenAI(model="gpt-6-luna", reasoning_effort="none", use_responses_api=False)
 
 def extract_text(img_path: str) -> str:
     """
@@ -116,7 +116,7 @@ tools = [
     extract_text
 ]
 
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatOpenAI(model="gpt-6-luna", reasoning_effort="none", use_responses_api=False)
 llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)
 ```
 
