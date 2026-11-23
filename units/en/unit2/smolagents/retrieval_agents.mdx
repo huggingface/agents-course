@@ -20,9 +20,9 @@ Traditional RAG systems face key limitations, such as **relying on a single retr
 
 Agentic RAG addresses these issues by allowing the agent to autonomously formulate search queries, critique retrieved results, and conduct multiple retrieval steps for a more tailored and comprehensive output.
 
-## Basic Retrieval with DuckDuckGo
+## Basic Retrieval with Web Search Tool
 
-Let's build a simple agent that can search the web using DuckDuckGo. This agent will retrieve information and synthesize responses to answer queries. With Agentic RAG, Alfred's agent can:
+Let's build a simple agent that can search the web using `WebSearchTool`. This agent will retrieve information and synthesize responses to answer queries. With Agentic RAG, Alfred's agent can:
 
 * Search for latest superhero party trends
 * Refine results to include luxury elements
@@ -31,10 +31,10 @@ Let's build a simple agent that can search the web using DuckDuckGo. This agent 
 Here's how Alfred's agent can achieve this:
 
 ```python
-from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
+from smolagents import CodeAgent, WebSearchTool, InferenceClientModel
 
 # Initialize the search tool
-search_tool = DuckDuckGoSearchTool()
+search_tool = WebSearchTool()
 
 # Initialize the model
 model = InferenceClientModel()
@@ -54,7 +54,7 @@ print(response)
 The agent follows this process:
 
 1. **Analyzes the Request:** Alfred’s agent identifies the key elements of the query—luxury superhero-themed party planning, with focus on decor, entertainment, and catering.
-2. **Performs Retrieval:**  The agent leverages DuckDuckGo to search for the most relevant and up-to-date information, ensuring it aligns with Alfred’s refined preferences for a luxurious event.
+2. **Performs Retrieval:**  The agent leverages `WebSearchTool` to search for the most relevant and up-to-date information, ensuring it aligns with Alfred’s refined preferences for a luxurious event.
 3. **Synthesizes Information:** After gathering the results, the agent processes them into a cohesive, actionable plan for Alfred, covering all aspects of the party.
 4. **Stores for Future Reference:** The agent stores the retrieved information for easy access when planning future events, optimizing efficiency in subsequent tasks.
 

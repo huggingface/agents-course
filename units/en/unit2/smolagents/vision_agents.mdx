@@ -173,14 +173,14 @@ def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
 
 This function is passed to the agent as `step_callback`, as it's triggered at the end of each step during the agent's execution. This allows the agent to dynamically capture and store screenshots throughout its process.
 
-Now, we can generate our vision agent for browsing the web, providing it with the tools we created, along with the `DuckDuckGoSearchTool` to explore the web. This tool will help the agent retrieve necessary information for verifying guests' identities based on visual cues.
+Now, we can generate our vision agent for browsing the web, providing it with the tools we created, along with the `WebSearchTool` to explore the web. This tool will help the agent retrieve necessary information for verifying guests' identities based on visual cues.
 
 ```python
-from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+from smolagents import CodeAgent, OpenAIServerModel, WebSearchTool
 model = OpenAIServerModel(model_id="gpt-4o")
 
 agent = CodeAgent(
-    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    tools=[WebSearchTool(), go_back, close_popups, search_item_ctrl_f],
     model=model,
     additional_authorized_imports=["helium"],
     step_callbacks=[save_screenshot],
