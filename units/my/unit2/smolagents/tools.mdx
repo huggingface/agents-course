@@ -1,0 +1,318 @@
+## Tools (ကိရိယာများ)
+
+<CourseFloatingBanner
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/#fileId=https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb"},
+]}
+askForHelpUrl="http://hf.co/join/discord" />
+
+[Unit 1](https://huggingface.co/learn/agents-course/unit1/tools) မှာ ကျွန်တော်တို့ လေ့လာခဲ့ရတဲ့အတိုင်း၊ Agent တွေဟာ လုပ်ဆောင်ချက်အမျိုးမျိုးကို လုပ်ဆောင်ဖို့အတွက် **Tools (ကိရိယာများ)** ကို အသုံးပြုကြပါတယ်။ `smolagents` Framework မှာတော့ Tools တွေကို **LLM (Large Language Model) က Agent စနစ်အတွင်းမှာ ခေါ်ဆိုနိုင်တဲ့ Functions များ** အဖြစ် သတ်မှတ်ထားပါတယ်။
+
+Tool တစ်ခုနဲ့ အပြန်အလှန် ဆက်သွယ်ဖို့အတွက် LLM ဟာ အောက်ပါ အဓိက အစိတ်အပိုင်းများ ပါဝင်တဲ့ **Interface ဖော်ပြချက်** ကို လိုအပ်ပါတယ်။
+
+*   **Name (အမည်):** Tool ကို ဘယ်လို ခေါ်ဆိုသလဲ။
+*   **Tool description (Tool ဖော်ပြချက်):** Tool က ဘာတွေ လုပ်ဆောင်ပေးနိုင်သလဲ။
+*   **Input types and descriptions (ထည့်သွင်းဒေတာ အမျိုးအစားနှင့် ဖော်ပြချက်):** Tool က ဘယ်လို Arguments တွေကို လက်ခံသလဲ။
+*   **Output type (ထွက်ရှိဒေတာ အမျိုးအစား):** Tool က ဘာကို ပြန်ပေးမလဲ။
+
+ဥပမာအားဖြင့်၊ Wayne Manor မှာ ပါတီပွဲတစ်ခုအတွက် ပြင်ဆင်နေတဲ့ Alfred ဟာ Catering ဝန်ဆောင်မှုတွေ ရှာဖွေတာကနေ ပါတီ Theme Idea တွေ ရှာဖွေတာအထိ အချက်အလက် စုဆောင်းဖို့အတွက် Tool အမျိုးမျိုး လိုအပ်ပါတယ်။ ရိုးရှင်းတဲ့ Search Tool ရဲ့ Interface ပုံစံက အောက်ပါအတိုင်း ဖြစ်နိုင်ပါတယ်။
+
+*   **Name:** `web_search`
+*   **Tool description:** သတ်မှတ်ထားသော မေးမြန်းချက်များအတွက် ဝက်ဘ်ကို ရှာဖွေပေးသည်။
+*   **Input:** `query` (string) - ရှာဖွေရမည့် စကားလုံး သို့မဟုတ် ဝါကျ။
+*   **Output:** ရှာဖွေမှု ရလဒ်များ ပါဝင်သော String။
+
+ဒီ Tool တွေကို အသုံးပြုခြင်းအားဖြင့် Alfred ဟာ အချက်အလက် အားလုံးကို စုဆောင်းပြီး ပြီးပြည့်စုံတဲ့ ပါတီပွဲကို စီစဉ်ဖို့အတွက် အသိဉာဏ်ရှိရှိ ဆုံးဖြတ်ချက်တွေ ချနိုင်မှာ ဖြစ်ပါတယ်။
+
+အောက်မှာ Tool ခေါ်ဆိုမှုကို ဘယ်လို စီမံခန့်ခွဲသလဲဆိုတာကို သရုပ်ဖော်ထားတဲ့ Animation ကို ကြည့်ရှုနိုင်ပါတယ်။
+
+![Agentic pipeline from https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/Agent_ManimCE.gif)
+
+## Tool ဖန်တီးနည်းများ (Tool Creation Methods)
+
+`smolagents` မှာ Tools တွေကို နည်းလမ်း (၂) မျိုးနဲ့ သတ်မှတ်နိုင်ပါတယ်။
+
+1.  ရိုးရှင်းတဲ့ Function-based Tools တွေအတွက် **`@tool` decorator ကို အသုံးပြုခြင်း**။
+2.  ပိုမိုရှုပ်ထွေးတဲ့ လုပ်ဆောင်ချက်တွေအတွက် **`Tool` ရဲ့ Subclass တစ်ခုကို ဖန်တီးခြင်း**။
+
+### `@tool` Decorator ကို အသုံးပြုခြင်း
+
+`@tool` decorator ဟာ **ရိုးရှင်းတဲ့ Tools တွေကို သတ်မှတ်ဖို့အတွက် အကြံပြုထားတဲ့ နည်းလမ်း** ဖြစ်ပါတယ်။ အတွင်းပိုင်းမှာ `smolagents` က Python Function ထဲက အခြေခံ အချက်အလက်တွေကို စစ်ဆေးအတည်ပြု (Parse) ယူပါတယ်။ ဒါကြောင့် သင်ဟာ Function ကို ရှင်းလင်းတဲ့ နာမည်ပေးပြီး ကောင်းမွန်တဲ့ Docstring (ရှင်းလင်းချက်) ရေးသားထားမယ်ဆိုရင် LLM အတွက် အသုံးပြုရ ပိုမိုလွယ်ကူစေမှာပါ။
+
+ဒီနည်းလမ်းကို အသုံးပြုတဲ့အခါ၊ ကျွန်တော်တို့ဟာ Function တစ်ခုကို အောက်ပါအတိုင်း သတ်မှတ်ပါတယ်။
+
+*   **ရှင်းလင်းပြီး ဖော်ပြချက်ပါတဲ့ Function Name** (LLM က ရည်ရွယ်ချက်ကို နားလည်စေဖို့ ကူညီပေးပါတယ်)။
+*   **Inputs နဲ့ Outputs နှစ်ခုလုံးအတွက် Type Hints များ** (မှန်ကန်စွာ အသုံးပြုနိုင်ဖို့ သေချာစေပါတယ်)။
+*   **အသေးစိတ် ဖော်ပြချက်**၊ အထူးသဖြင့် `Args:` ကဏ္ဍမှာ Argument တစ်ခုချင်းစီကို ရှင်းရှင်းလင်းလင်း ဖော်ပြထားရပါမယ်။ ဒီဖော်ပြချက်တွေဟာ LLM အတွက် အဖိုးတန်တဲ့ Context တွေကို ပေးစွမ်းတာကြောင့် သေသေချာချာ ရေးသားဖို့ အရေးကြီးပါတယ်။
+
+#### အမြင့်ဆုံး Rating ရရှိထားသော Catering ကို ရှာဖွေပေးမည့် Tool ကို ဖန်တီးခြင်း
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-catering.jpg" alt="Alfred Catering"/>
+
+> [!TIP]
+> သင်ဟာ Google Colab ကို အသုံးပြုပြီး [ဒီ Notebook](https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/tools.ipynb) ထဲက Code တွေကို လိုက်လံလုပ်ဆောင်နိုင်ပါတယ်။
+
+Alfred ဟာ ပါတီပွဲအတွက် Menu ကို ဆုံးဖြတ်ပြီးပြီလို့ စိတ်ကူးကြည့်ရအောင်။ ဒါပေမယ့် ဧည့်သည် အများအပြားအတွက် အစားအသောက် ပြင်ဆင်ဖို့ အကူအညီ လိုအပ်ပါတယ်။ ဒါကြောင့် သူဟာ Catering ဝန်ဆောင်မှုကို ငှားရမ်းချင်ပြီး အမြင့်ဆုံး Rating ရရှိထားတဲ့ ရွေးချယ်စရာတွေကို ရှာဖွေဖို့ လိုအပ်ပါတယ်။ Alfred ဟာ သူ့ပတ်ဝန်းကျင်မှာ အကောင်းဆုံး Catering ဝန်ဆောင်မှုတွေကို ရှာဖွေဖို့ Tool တစ်ခုကို အသုံးပြုနိုင်ပါတယ်။
+
+အောက်ပါ ဥပမာက Alfred ဟာ `@tool` decorator ကို အသုံးပြုပြီး ဒီလိုလုပ်ဆောင်ချက်ကို ဘယ်လို ဖန်တီးနိုင်သလဲဆိုတာကို ပြသထားပါတယ်။
+
+```python
+from smolagents import CodeAgent, InferenceClientModel, tool
+
+# အမြင့်ဆုံး Rating ရရှိထားသော Catering ဝန်ဆောင်မှုများကို ရှာဖွေပေးသည့် Function တစ်ခုရှိသည်ဟု ယူဆပါစို့။
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    ဒီ Tool က Gotham City မှာ အမြင့်ဆုံး Rating ရရှိထားတဲ့ Catering ဝန်ဆောင်မှုကို ပြန်ပေးပါတယ်။
+
+    Args:
+        query: Catering ဝန်ဆောင်မှုများ ရှာဖွေရန်အတွက် ရှာဖွေမှု စကားလုံး။
+    """
+    # Catering ဝန်ဆောင်မှုများနှင့် ၎င်းတို့၏ Rating များ၏ ဥပမာ စာရင်း
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+
+    # အမြင့်ဆုံး Rating ရရှိထားသော Catering ဝန်ဆောင်မှုကို ရှာဖွေခြင်း (Search Query Filtering ကို အတုယူခြင်း)
+    best_service = max(services, key=services.get)
+
+    return best_service
+
+
+agent = CodeAgent(tools=[catering_service_tool], model=InferenceClientModel())
+
+# အကောင်းဆုံး Catering ဝန်ဆောင်မှုကို ရှာဖွေရန် Agent ကို Run ခြင်း
+result = agent.run(
+    "Can you give me the name of the highest-rated catering service in Gotham City?"
+)
+
+print(result)   # Output: Gotham Catering Co.
+```
+
+### Python Class အဖြစ် Tool တစ်ခုကို သတ်မှတ်ခြင်း
+
+ဒီနည်းလမ်းကတော့ [`Tool`](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools#smolagents.Tool) ရဲ့ Subclass တစ်ခုကို ဖန်တီးခြင်း ပါဝင်ပါတယ်။ ပိုမိုရှုပ်ထွေးတဲ့ Tools တွေအတွက်၊ ကျွန်တော်တို့ဟာ Python Function အစား Class တစ်ခုကို အကောင်အထည်ဖော်နိုင်ပါတယ်။ ဒီ Class က Function ကို Metadata များဖြင့် ထုပ်ပိုးပေးပြီး LLM က ထိရောက်စွာ အသုံးပြုနိုင်ဖို့ ကူညီပေးပါတယ်။ ဒီ Class မှာ ကျွန်တော်တို့ အောက်ပါတို့ကို သတ်မှတ်ပါတယ်။
+
+*   `name`: Tool ရဲ့ အမည်။
+*   `description`: Agent ရဲ့ System Prompt ကို ဖြည့်စွက်ဖို့ အသုံးပြုတဲ့ ဖော်ပြချက်။
+*   `inputs`: `type` နဲ့ `description` Key များပါဝင်တဲ့ Dictionary တစ်ခု (Python Interpreter က Input တွေကို စီမံဆောင်ရွက်ဖို့ ကူညီပေးတဲ့ အချက်အလက်များ)။
+*   `output_type`: မျှော်မှန်းထားတဲ့ Output အမျိုးအစားကို သတ်မှတ်ခြင်း။
+*   `forward`: လုပ်ဆောင်ရမည့် Inference Logic ပါဝင်တဲ့ Method။
+
+အောက်မှာ `Tool` ကို အသုံးပြုပြီး တည်ဆောက်ထားတဲ့ Tool ဥပမာတစ်ခုနဲ့ ၎င်းကို `CodeAgent` ထဲမှာ ဘယ်လို ပေါင်းစပ်ထားသလဲဆိုတာကို ကြည့်ရှုနိုင်ပါတယ်။
+
+#### Superhero-themed Party Idea များ ဖန်တီးပေးမည့် Tool ကို ဖန်တီးခြင်း
+
+Alfred ရဲ့ Mansion မှာလုပ်မယ့် ပါတီပွဲက **Superhero-themed Event** ဖြစ်ပေမယ့်၊ တကယ်ကို ထူးခြားတဲ့ Idea တွေ လိုအပ်နေပါတယ်။ အကောင်းဆုံး Host တစ်ဦးအနေနဲ့ သူဟာ ဧည့်သည်တွေကို ထူးခြားတဲ့ Theme တစ်ခုနဲ့ အံ့အားသင့်စေချင်ပါတယ်။
+
+ဒီလိုလုပ်ဖို့အတွက်၊ သူဟာ ပေးထားတဲ့ Category ကို အခြေခံပြီး Superhero-themed Party Idea တွေကို ဖန်တီးပေးမယ့် Agent တစ်ခုကို အသုံးပြုနိုင်ပါတယ်။ ဒီနည်းနဲ့ Alfred ဟာ ဧည့်သည်တွေကို အံ့အားသင့်စေမယ့် ပြီးပြည့်စုံတဲ့ Party Theme ကို ရှာတွေ့နိုင်မှာပါ။
+
+```python
+from smolagents import Tool, CodeAgent, InferenceClientModel
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    ဒီ Tool က Category ကို အခြေခံပြီး စိတ်ကူးကောင်းတဲ့ Superhero-themed Party Idea တွေကို အကြံပြုပေးပါတယ်။
+    ထူးခြားတဲ့ Party Theme Idea တစ်ခုကို ပြန်ပေးပါတယ်။"""
+
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "Superhero Party အမျိုးအစား (ဥပမာ - 'classic heroes', 'villain masquerade', 'futuristic Gotham')။",
+        }
+    }
+
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Justice League Gala: ဧည့်သည်များက ၎င်းတို့ အကြိုက်ဆုံး DC Heroes များအဖြစ် ဝတ်ဆင်လာပြီး 'The Kryptonite Punch' ကဲ့သို့သော Theme ပါသော Cocktails များဖြင့် ဧည့်ခံခြင်း။",
+            "villain masquerade": "Gotham Rogues' Ball: ဧည့်သည်များက Classic Batman Villains များအဖြစ် ဝတ်ဆင်လာသော လျှို့ဝှက်ဆန်းကြယ်သော မျက်နှာဖုံးစွပ် ပါတီ။",
+            "futuristic gotham": "Neo-Gotham Night: Neon မီးအလှဆင်မှုများနှင့် Futuristic Gadgets များဖြင့် Batman Beyond ကို အတုယူထားသော Cyberpunk ပုံစံ ပါတီ။"
+        }
+
+        return themes.get(category.lower(), "Theme ပါတီ Idea ကို ရှာမတွေ့ပါ။ 'classic heroes', 'villain masquerade', သို့မဟုတ် 'futuristic Gotham' ကို စမ်းကြည့်ပါ။")
+
+# Tool ကို စတင်အသုံးပြုခြင်း
+party_theme_tool = SuperheroPartyThemeTool()
+agent = CodeAgent(tools=[party_theme_tool], model=InferenceClientModel())
+
+# Party Theme Idea ကို ဖန်တီးရန် Agent ကို Run ခြင်း
+result = agent.run(
+    "What would be a good superhero party idea for a 'villain masquerade' theme?"
+)
+
+print(result)  # Output: "Gotham Rogues' Ball: ဧည့်သည်များက Classic Batman Villains များအဖြစ် ဝတ်ဆင်လာသော လျှို့ဝှက်ဆန်းကြယ်သော မျက်နှာဖုံးစွပ် ပါတီ။"
+```
+
+ဒီ Tool ကြောင့် Alfred ဟာ ဧည့်သည်တွေကို မမေ့နိုင်စရာ Superhero-themed Party နဲ့ အထင်ကြီးစေမယ့် အကောင်းဆုံး Super Host ဖြစ်လာမှာပါ။ 🦸‍♂️🦸‍♀️
+
+## မူရင်း Toolbox (Default Toolbox)
+
+`smolagents` မှာ သင့် Agent ထဲကို တိုက်ရိုက် ထည့်သွင်းနိုင်တဲ့ ကြိုတင်တည်ဆောက်ထားသော Tools အစုအဝေး ပါဝင်ပါတယ်။ [Default Toolbox](https://huggingface.co/docs/smolagents/guided_tour?build-a-tool=Decorate+a+function+with+%40tool#default-toolbox) မှာ အောက်ပါတို့ ပါဝင်ပါတယ်။
+
+*   **PythonInterpreterTool** (Python Code များကို လုပ်ဆောင်ရန်)
+*   **FinalAnswerTool** (နောက်ဆုံးအဖြေကို ထုတ်ပေးရန်)
+*   **UserInputTool** (အသုံးပြုသူထံမှ Input ရယူရန်)
+*   **DuckDuckGoSearchTool** (ဝက်ဘ်ရှာဖွေရန်)
+*   **GoogleSearchTool** (Google ဖြင့် ရှာဖွေရန်)
+*   **VisitWebpageTool** (ဝက်ဘ်စာမျက်နှာတစ်ခုကို ဝင်ရောက်ကြည့်ရှုရန်)
+
+Alfred ဟာ Wayne Manor မှာ အပြစ်အနာအဆာကင်းတဲ့ ပါတီပွဲတစ်ခု ဖြစ်စေဖို့အတွက် Tool အမျိုးမျိုးကို အသုံးပြုနိုင်ပါတယ်။
+
+*   ပထမဆုံး၊ သူဟာ စိတ်ကူးကောင်းတဲ့ Superhero-themed Party Idea တွေကို ရှာဖွေဖို့ **`DuckDuckGoSearchTool`** ကို အသုံးပြုနိုင်ပါတယ်။
+*   Catering အတွက်၊ Gotham မှာ အမြင့်ဆုံး Rating ရရှိထားတဲ့ ဝန်ဆောင်မှုတွေကို ရှာဖွေဖို့ **`GoogleSearchTool`** ကို အားကိုးပါလိမ့်မယ်။
+*   ထိုင်ခုံစီစဉ်မှုတွေကို စီမံခန့်ခွဲဖို့အတွက် **`PythonInterpreterTool`** နဲ့ တွက်ချက်မှုတွေ လုပ်ဆောင်နိုင်ပါတယ်။
+*   အရာအားလုံး စုဆောင်းပြီးတာနဲ့၊ သူဟာ **`FinalAnswerTool`** ကို အသုံးပြုပြီး စီမံကိန်းကို စုစည်းပါလိမ့်မယ်။
+
+ဒီ Tool တွေကြောင့် Alfred ဟာ ပါတီပွဲကို ထူးခြားပြီး ချောမွေ့စွာ ကျင်းပနိုင်ဖို့ အာမခံနိုင်ပါတယ်။ 🦇💡
+
+## Tools များကို မျှဝေခြင်းနှင့် ထည့်သွင်းခြင်း (Sharing and Importing Tools)
+
+**smolagents** ရဲ့ အစွမ်းထက်ဆုံး လုပ်ဆောင်ချက်တွေထဲက တစ်ခုကတော့ Custom Tools တွေကို Hub မှာ မျှဝေနိုင်ခြင်းနဲ့ Community မှ ဖန်တီးထားတဲ့ Tools တွေကို ချောမွေ့စွာ ပေါင်းစပ်နိုင်ခြင်းပဲ ဖြစ်ပါတယ်။ ဒါဟာ **HF Spaces** နဲ့ **LangChain Tools** တွေနဲ့ ချိတ်ဆက်ခြင်းကိုပါ ဆိုလိုပြီး၊ Alfred ဟာ Wayne Manor မှာ မမေ့နိုင်စရာ ပါတီပွဲတစ်ခုကို စီစဉ်ဖို့အတွက် သိသိသာသာ အထောက်အကူ ဖြစ်စေပါတယ်။ 🎭
+
+ဒီပေါင်းစပ်မှုတွေကြောင့် Alfred ဟာ အဆင့်မြင့် Event-planning Tools တွေကို အသုံးပြုနိုင်ပါတယ်။ ဥပမာ - ပြီးပြည့်စုံတဲ့ အငွေ့အသက်အတွက် မီးရောင်ကို ချိန်ညှိတာ၊ ပါတီအတွက် အကောင်းဆုံး Playlist ကို စီစဉ်တာ၊ ဒါမှမဟုတ် Gotham ရဲ့ အကောင်းဆုံး Caterers တွေနဲ့ ပူးပေါင်းဆောင်ရွက်တာမျိုးတွေ လုပ်ဆောင်နိုင်ပါတယ်။
+
+ဒီလုပ်ဆောင်ချက်တွေက ပါတီပွဲ အတွေ့အကြုံကို ဘယ်လို မြှင့်တင်ပေးနိုင်သလဲဆိုတဲ့ ဥပမာတွေကို အောက်မှာ ဖော်ပြထားပါတယ်။
+
+### Tool တစ်ခုကို Hub သို့ မျှဝေခြင်း
+
+သင်၏ Custom Tool ကို Community နဲ့ မျှဝေဖို့က လွယ်ကူပါတယ်။ `push_to_hub()` Method ကို အသုံးပြုပြီး Hugging Face Account သို့ Upload လုပ်ရုံပါပဲ။
+
+ဥပမာအားဖြင့်၊ Alfred ဟာ Gotham မှာ အကောင်းဆုံး Catering ဝန်ဆောင်မှုတွေကို ရှာဖွေဖို့အတွက် သူ့ရဲ့ `party_theme_tool` ကို အခြားသူတွေကို ကူညီဖို့ မျှဝေနိုင်ပါတယ်။ ဒီလိုလုပ်ဆောင်ပုံက အောက်ပါအတိုင်း ဖြစ်ပါတယ်။
+
+```python
+party_theme_tool.push_to_hub("{your_username}/party_theme_tool", token="<YOUR_HUGGINGFACEHUB_API_TOKEN>")
+```
+
+### Hub မှ Tool တစ်ခုကို ထည့်သွင်းခြင်း (Importing)
+
+အခြားအသုံးပြုသူများ ဖန်တီးထားသော Tools များကို `load_tool()` Function ကို အသုံးပြုပြီး အလွယ်တကူ ထည့်သွင်းနိုင်ပါတယ်။ ဥပမာ - Alfred ဟာ ပါတီပွဲအတွက် ကြော်ငြာပုံရိပ်တစ်ခုကို AI အသုံးပြုပြီး ဖန်တီးချင်တယ်ဆိုပါစို့။ Tool ကို အစကနေ တည်ဆောက်မယ့်အစား၊ Community မှ ကြိုတင်သတ်မှတ်ထားသော Tool တစ်ခုကို အသုံးပြုနိုင်ပါတယ်။
+
+```python
+from smolagents import load_tool, CodeAgent, InferenceClientModel
+
+image_generation_tool = load_tool(
+    "m-ric/text-to-image",
+    trust_remote_code=True
+)
+
+agent = CodeAgent(
+    tools=[image_generation_tool],
+    model=InferenceClientModel()
+)
+
+agent.run("Generate an image of a luxurious superhero-themed party at Wayne Manor with made-up superheros.")
+```
+
+### Hugging Face Space တစ်ခုကို Tool အဖြစ် ထည့်သွင်းခြင်း
+
+သင်ဟာ `Tool.from_space()` ကို အသုံးပြုပြီး HF Space တစ်ခုကို Tool အဖြစ် ထည့်သွင်းနိုင်ပါတယ်။ ဒါက Image Generation ကနေ Data Analysis အထိ Tasks များအတွက် Community မှ ထောင်ပေါင်းများစွာသော Spaces များနှင့် ပေါင်းစပ်နိုင်မယ့် အခွင့်အလမ်းတွေကို ဖွင့်ပေးပါတယ်။
+
+ဒီ Tool ဟာ `gradio_client` ကို အသုံးပြုပြီး Space ရဲ့ Gradio Backend နဲ့ ချိတ်ဆက်မှာ ဖြစ်တဲ့အတွက်၊ သင့်မှာ မရှိသေးရင် `pip` ကနေတစ်ဆင့် Install လုပ်ဖို့ သေချာပါစေ။
+
+ပါတီပွဲအတွက်၊ Alfred ဟာ ကြိုတင်တည်ဆောက်ထားတဲ့ Tool အစား ကြေညာချက်မှာ အသုံးပြုမယ့် AI-generated Image ကို ဖန်တီးဖို့အတွက် ရှိပြီးသား HF Space တစ်ခုကို အသုံးပြုနိုင်ပါတယ်။ ဒါကို တည်ဆောက်ကြည့်ရအောင်!
+
+```python
+from smolagents import CodeAgent, InferenceClientModel, Tool
+
+image_generation_tool = Tool.from_space(
+    "black-forest-labs/FLUX.1-schnell",
+    name="image_generator",
+    description="Generate an image from a prompt"
+)
+
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+agent = CodeAgent(tools=[image_generation_tool], model=model)
+
+agent.run(
+    "Improve this prompt, then generate an image of it.",
+    additional_args={'user_prompt': 'A grand superhero-themed party at Wayne Manor, with Alfred overseeing a luxurious gala'}
+)
+```
+
+### LangChain Tool တစ်ခုကို ထည့်သွင်းခြင်း
+
+လာမယ့် အခန်းတွေမှာ `LangChain` Framework အကြောင်း ဆွေးနွေးပါမယ်။ အခုတော့ LangChain Tools တွေကို သင့်ရဲ့ `smolagents` Workflow မှာ ပြန်လည်အသုံးပြုနိုင်တယ်ဆိုတာကို မှတ်သားထားပါ။
+
+`Tool.from_langchain()` Method ကို အသုံးပြုပြီး LangChain Tools တွေကို အလွယ်တကူ Load လုပ်နိုင်ပါတယ်။ Alfred ဟာ Waynes တွေ မရှိတဲ့အချိန်မှာ Wayne Manor မှာ ခမ်းနားတဲ့ Superhero Night အတွက် ပြင်ဆင်နေတဲ့ စုံလင်သူတစ်ဦးပါ။ အသေးစိတ်တိုင်း မျှော်မှန်းထားတာထက် ပိုကောင်းစေဖို့အတွက်၊ သူဟာ ထိပ်တန်း ဖျော်ဖြေရေး Idea တွေကို ရှာဖွေဖို့ LangChain Tools တွေကို အသုံးပြုပါတယ်။
+
+`Tool.from_langchain()` ကို အသုံးပြုခြင်းအားဖြင့် Alfred ဟာ သူ့ရဲ့ `smolagent` ထဲကို အဆင့်မြင့် Search လုပ်ဆောင်ချက်တွေကို အလွယ်တကူ ထည့်သွင်းနိုင်ပြီး၊ Command အနည်းငယ်နဲ့သာ သီးသန့် ပါတီ Idea တွေနဲ့ ဝန်ဆောင်မှုတွေကို ရှာဖွေနိုင်ပါတယ်။
+
+သူဘယ်လိုလုပ်သလဲဆိုတာ အောက်မှာ ဖော်ပြထားပါတယ်။
+
+ပထမဆုံး၊ `smolagents` အတွက် `langchain` Integration ကို Install လုပ်ဖို့ လိုပါတယ်။
+
+```bash
+pip install -U langchain-community
+```
+
+LangChain Integration ကို Install လုပ်ပြီးနောက်၊ သင်၏ SerpAPI Key ကို သတ်မှတ်ဖို့ သေချာပါစေ။ Search-based Tools များ (ဥပမာ - `SerpAPITool`) အတွက် ဒါက လိုအပ်ပါတယ်။
+
+```python
+os.environ['SERPAPI_API_KEY'] = '...'
+```
+
+SerpAPI Key ကို [ဒီနေရာမှာ](https://serpapi.com/) ဖန်တီးနိုင်ပါတယ်။
+
+```python
+from langchain.agents import load_tools
+from smolagents import CodeAgent, InferenceClientModel, Tool
+
+search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
+
+agent = CodeAgent(tools=[search_tool], model=model)
+
+agent.run("Search for luxury entertainment ideas for a superhero-themed event, such as live performances and interactive experiences.")
+```
+
+### မည်သည့် MCP Server မှမဆို Tool Collection တစ်ခုကို ထည့်သွင်းခြင်း
+
+`smolagents` သည် [glama.ai](https://glama.ai/mcp/servers) သို့မဟုတ် [smithery.ai](https://smithery.ai) တွင် ရရှိနိုင်သော ရာနှင့်ချီသော MCP Servers များမှ Tools များကို ထည့်သွင်းနိုင်ပါတယ်။ MCP အကြောင်း ပိုမိုနက်ရှိုင်းစွာ သိရှိလိုပါက၊ ကျွန်တော်တို့ရဲ့ [အခမဲ့ MCP Course](https://huggingface.co/learn/mcp-course/) ကို စစ်ဆေးကြည့်ရှုနိုင်ပါတယ်။
+
+<details>
+<summary>mcp client ကို Install လုပ်ခြင်း</summary>
+
+ပထမဆုံး၊ `smolagents` အတွက် `mcp` Integration ကို Install လုပ်ဖို့ လိုပါတယ်။
+
+```bash
+pip install "smolagents[mcp]"
+```
+</details>
+
+MCP Servers Tools များကို အောက်ပါအတိုင်း ToolCollection Object ထဲသို့ Load လုပ်နိုင်ပါတယ်။
+
+```python
+import os
+from smolagents import ToolCollection, CodeAgent
+from mcp import StdioServerParameters
+from smolagents import InferenceClientModel
+
+
+model = InferenceClientModel("Qwen/Qwen2.5-Coder-32B-Instruct")
+
+
+server_parameters = StdioServerParameters(
+    command="uvx",
+    args=["--quiet", "pubmedmcp@0.1.3"],
+    env={"UV_PYTHON": "3.12", **os.environ},
+)
+
+with ToolCollection.from_mcp(server_parameters, trust_remote_code=True) as tool_collection:
+    agent = CodeAgent(tools=[*tool_collection.tools], model=model, add_base_tools=True)
+    agent.run("Please find a remedy for hangover.")
+```
+
+ဒီ Setup ကြောင့် Alfred ဟာ ဇိမ်ခံ ဖျော်ဖြေရေး ရွေးချယ်စရာတွေကို လျင်မြန်စွာ ရှာဖွေနိုင်ပြီး၊ Gotham ရဲ့ ထိပ်တန်း ဧည့်သည်တွေအတွက် မမေ့နိုင်စရာ အတွေ့အကြုံကို သေချာစေပါတယ်။ ဒီ Tool က Wayne Manor အတွက် ပြီးပြည့်စုံတဲ့ Superhero-themed Event ကို စီစဉ်ရာမှာ ကူညီပေးပါတယ်။ 🎉
+
+## အရင်းအမြစ်များ (Resources)
+
+*   [Tools Tutorial](https://huggingface.co/docs/smolagents/tutorials/tools) - Tools များကို ထိရောက်စွာ အသုံးပြုနည်းကို လေ့လာရန် ဤ Tutorial ကို ကြည့်ရှုပါ။
+*   [Tools Documentation](https://huggingface.co/docs/smolagents/v1.8.1/en/reference/tools) - Tools များဆိုင်ရာ ပြည့်စုံသော Reference Documentation။
+*   [Tools Guided Tour](https://huggingface.co/docs/smolagents/v1.8.1/en/guided_tour#tools) - Tools များကို ထိရောက်စွာ တည်ဆောက်ပြီး အသုံးပြုနိုင်ရန် အဆင့်ဆင့် လမ်းညွှန်ထားသော Tour။
+*   [Building Effective Agents](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - ယုံကြည်စိတ်ချရပြီး စွမ်းဆောင်ရည်မြင့် Custom Function Agent များ တည်ဆောက်ရန်အတွက် အကောင်းဆုံး အလေ့အကျင့်များဆိုင်ရာ အသေးစိတ် လမ်းညွှန်။

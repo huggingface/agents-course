@@ -1,0 +1,166 @@
+# LlamaIndex တွင် Agent များကို အသုံးပြုခြင်း
+
+ကျွန်တော်တို့ အရင်က သိခဲ့တဲ့ အကူအညီပေးတတ်တဲ့ Alfred ဆိုတဲ့ Agent လေးကို မှတ်မိကြဦးမယ် ထင်ပါတယ်။ အခုဆိုရင် သူဟာ Upgrade လုပ်ဖို့ အချိန်တန်ပါပြီ!
+
+LlamaIndex မှာ ရရှိနိုင်တဲ့ Tool တွေကို နားလည်ပြီးတဲ့နောက်မှာ၊ Alfred ကို ကျွန်တော်တို့ ပိုမိုကောင်းမွန်စွာ ဝန်ဆောင်မှုပေးနိုင်ဖို့အတွက် စွမ်းဆောင်ရည်အသစ်တွေ ပေးနိုင်ပါပြီ။
+
+ဒါပေမယ့် ဆက်မသွားခင်မှာ Alfred လို Agent တွေ ဘယ်လို အလုပ်လုပ်သလဲဆိုတာကို ပြန်လည် သတိရကြရအောင်။ Unit 1 မှာ ကျွန်တော်တို့ လေ့လာခဲ့တာက-
+
+> Agent ဆိုတာဟာ အသုံးပြုသူ သတ်မှတ်ထားတဲ့ ရည်မှန်းချက်တစ်ခုကို အောင်မြင်ဖို့အတွက် AI Model ကို အသုံးပြုပြီး သူ့ရဲ့ ပတ်ဝန်းကျင်နဲ့ ထိတွေ့ဆက်ဆံတဲ့ စနစ်တစ်ခု ဖြစ်ပါတယ်။ ၎င်းဟာ လုပ်ငန်းတာဝန်တွေကို ပြီးမြောက်စေဖို့အတွက် ဆင်ခြင်သုံးသပ်ခြင်း (Reasoning)၊ စီမံကိန်းချမှတ်ခြင်း (Planning) နဲ့ လုပ်ဆောင်ချက် အကောင်အထည်ဖော်ခြင်း (Action Execution) (ပြင်ပ Tool များမှတစ်ဆင့်) တို့ကို ပေါင်းစပ်ထားပါတယ်။
+
+LlamaIndex ဟာ **အဓိက ဆင်ခြင်သုံးသပ်နိုင်သော Agent အမျိုးအစား (၃) မျိုး** ကို ထောက်ပံ့ပေးပါတယ်။
+
+![Agents](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agents.png)
+
+1.  `Function Calling Agents` - ၎င်းတို့သည် သီးခြား Function များကို ခေါ်ဆိုနိုင်သော AI Model များနှင့် အလုပ်လုပ်ပါတယ်။
+2.  `ReAct Agents` - ၎င်းတို့သည် Chat သို့မဟုတ် Text Endpoint များ လုပ်ဆောင်နိုင်သော မည်သည့် AI နှင့်မဆို အလုပ်လုပ်နိုင်ပြီး ရှုပ်ထွေးသော ဆင်ခြင်သုံးသပ်မှု လုပ်ငန်းများကို ကိုင်တွယ်ဖြေရှင်းနိုင်ပါတယ်။
+3.  `Advanced Custom Agents` - ၎င်းတို့သည် ပိုမိုရှုပ်ထွေးသော လုပ်ငန်းများနှင့် Workflow များကို ကိုင်တွယ်ဖြေရှင်းရန် ပိုမိုရှုပ်ထွေးသော နည်းလမ်းများကို အသုံးပြုပါတယ်။
+
+> [!TIP]
+> Advanced Agent များအကြောင်း ပိုမိုသိရှိလိုပါက [BaseWorkflowAgent](https://github.com/run-llama/llama_index/blob/main/llama-index-core/llama_index/core/agent/workflow/base_agent.py) တွင် ရှာဖွေနိုင်ပါတယ်။
+
+## Agent များကို စတင်တည်ဆောက်ခြင်း (Initialising Agents)
+
+> [!TIP]
+> [ဒီ Notebook](https://huggingface.co/agents-course/notebooks/blob/main/unit2/llama-index/agents.ipynb) ထဲက Code တွေကို Google Colab ကို အသုံးပြုပြီး လိုက်လံလုပ်ဆောင်နိုင်ပါတယ်။
+
+Agent တစ်ခုကို ဖန်တီးဖို့အတွက်၊ ကျွန်တော်တို့ဟာ Agent ရဲ့ စွမ်းဆောင်ရည်တွေကို သတ်မှတ်ပေးမယ့် **Functions/Tools အစုအဝေးတစ်ခု** ကို ပေးအပ်ခြင်းဖြင့် စတင်ရပါမယ်။
+
+အခြေခံ Tool အချို့နဲ့ Agent တစ်ခုကို ဘယ်လို ဖန်တီးရမလဲဆိုတာ ကြည့်ကြရအောင်။ ဒီလို ရေးသားနေချိန်မှာ Agent ဟာ Function Calling API (ရရှိနိုင်ပါက) ကို အလိုအလျောက် အသုံးပြုမှာဖြစ်ပြီး၊ မရရှိပါက Standard ReAct Agent Loop ကို အသုံးပြုမှာ ဖြစ်ပါတယ်။
+
+Tool/Function API ကို ထောက်ပံ့ပေးတဲ့ LLM တွေဟာ အတော်လေး အသစ်ဖြစ်ပေမယ့်၊ ၎င်းတို့ဟာ သီးခြား Prompt ပေးစရာမလိုဘဲ LLM ကို ပေးထားတဲ့ Schema တွေအပေါ် အခြေခံပြီး Tool Calls တွေကို ဖန်တီးခွင့်ပြုခြင်းဖြင့် Tool တွေကို ခေါ်ဆိုဖို့အတွက် အစွမ်းထက်တဲ့ နည်းလမ်းတစ်ခုကို ပေးပါတယ်။
+
+ReAct Agent တွေဟာလည်း ရှုပ်ထွေးတဲ့ ဆင်ခြင်သုံးသပ်မှု လုပ်ငန်းတွေမှာ ကောင်းမွန်ပြီး Chat သို့မဟုတ် Text Completion စွမ်းရည်ရှိတဲ့ မည်သည့် LLM နဲ့မဆို အလုပ်လုပ်နိုင်ပါတယ်။ ၎င်းတို့ဟာ ပိုမို အသေးစိတ်ကျပြီး၊ ၎င်းတို့ လုပ်ဆောင်တဲ့ သီးခြား Actions တွေရဲ့ နောက်ကွယ်က ဆင်ခြင်သုံးသပ်မှုတွေကို ပြသပေးပါတယ်။
+
+```python
+from llama_index.llms.huggingface_api import HuggingFaceInferenceAPI
+from llama_index.core.agent.workflow import AgentWorkflow
+from llama_index.core.tools import FunctionTool
+
+# Tool ဥပမာကို သတ်မှတ်ခြင်း -- Type annotations, function names, နှင့် docstrings များအားလုံးကို parsed schemas များတွင် ထည့်သွင်းထားပါသည်။
+def multiply(a: int, b: int) -> int:
+    """ဂဏန်းနှစ်လုံးကို မြှောက်ပြီး ရလဒ်ကို ပြန်ပေးသည်"""
+    return a * b
+
+# llm ကို စတင်တည်ဆောက်ခြင်း
+llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+
+# agent ကို စတင်တည်ဆောက်ခြင်း
+agent = AgentWorkflow.from_tools_or_functions(
+    [FunctionTool.from_defaults(multiply)],
+    llm=llm
+)
+```
+
+**Agent များသည် မူရင်းအတိုင်း Stateless (အခြေအနေကို မမှတ်မိသော) ဖြစ်ပါတယ်**။ သို့သော် ၎င်းတို့သည် `Context` Object ကို အသုံးပြုပြီး အတိတ်က ထိတွေ့ဆက်ဆံမှုများကို မှတ်မိနိုင်ပါတယ်။
+
+ဒါဟာ မက်ဆေ့ချ်များစွာကို ဖြတ်သန်းပြီး Context ကို ထိန်းသိမ်းထားဖို့ လိုအပ်တဲ့ Chatbot တစ်ခုလိုမျိုး၊ ဒါမှမဟုတ် အချိန်ကြာလာတာနဲ့အမျှ တိုးတက်မှုကို ခြေရာခံဖို့ လိုအပ်တဲ့ Task Manager တစ်ခုလိုမျိုး အရင်က ထိတွေ့ဆက်ဆံမှုတွေကို မှတ်မိဖို့ လိုအပ်တဲ့ Agent တစ်ခုကို အသုံးပြုချင်တယ်ဆိုရင် အသုံးဝင်နိုင်ပါတယ်။
+
+```python
+# stateless (အခြေအနေ မမှတ်မိ)
+response = await agent.run("What is 2 times 2?")
+
+# remembering state (အခြေအနေ မှတ်မိ)
+from llama_index.core.workflow import Context
+
+ctx = Context(agent)
+
+response = await agent.run("My name is Bob.", ctx=ctx)
+response = await agent.run("What was my name again?", ctx=ctx)
+```
+
+LlamaIndex မှ Agent များသည် Python ၏ `await` Operator ကို အသုံးပြုသောကြောင့် Async (တစ်ပြိုင်နက်တည်း လုပ်ဆောင်နိုင်သော) ဖြစ်သည်ကို သတိပြုမိပါလိမ့်မယ်။ Python တွင် Async Code ကို အသစ်ဖြစ်ပါက သို့မဟုတ် ပြန်လည်လေ့လာရန် လိုအပ်ပါက၊ ၎င်းတို့တွင် [အလွန်ကောင်းမွန်သော Async Guide](https://docs.llamaindex.ai/en/stable/getting_started/async_python/) ရှိပါတယ်။
+
+အခြေခံများကို သိရှိပြီးနောက်၊ ကျွန်တော်တို့ရဲ့ Agent တွေမှာ ပိုမိုရှုပ်ထွေးတဲ့ Tool တွေကို ဘယ်လို အသုံးပြုနိုင်မလဲဆိုတာ ကြည့်ကြရအောင်။
+
+## QueryEngineTools ဖြင့် RAG Agent များ ဖန်တီးခြင်း
+
+**Agentic RAG ဆိုတာဟာ သင့်ရဲ့ ဒေတာအကြောင်း မေးခွန်းတွေကို ဖြေဖို့အတွက် Agent တွေကို အသုံးပြုတဲ့ အစွမ်းထက်တဲ့ နည်းလမ်းတစ်ခု ဖြစ်ပါတယ်။** ကျွန်တော်တို့ရဲ့ Alfred ကို မေးခွန်းတွေ ဖြေဖို့အတွက် Tool အမျိုးမျိုးကို ပေးနိုင်ပါတယ်။
+
+ဒါပေမယ့် Document တွေအပေါ်မှာ မေးခွန်းကို အလိုအလျောက် ဖြေမယ့်အစား၊ Alfred ဟာ မေးခွန်းကို ဖြေဖို့အတွက် အခြား Tool သို့မဟုတ် Flow တစ်ခုခုကို အသုံးပြုဖို့ ဆုံးဖြတ်နိုင်ပါတယ်။
+
+![Agentic RAG](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/agentic-rag.png)
+
+`QueryEngine` ကို Agent တစ်ခုအတွက် **Tool အဖြစ် ထုပ်ပိုးခြင်း (Wrap)** ဟာ လွယ်ကူပါတယ်။
+
+ဒီလိုလုပ်တဲ့အခါမှာ ကျွန်တော်တို့ဟာ **နာမည်နဲ့ ဖော်ပြချက် (Name and Description)** ကို သတ်မှတ်ပေးဖို့ လိုအပ်ပါတယ်။ LLM ဟာ Tool ကို မှန်ကန်စွာ အသုံးပြုနိုင်ဖို့အတွက် ဒီအချက်အလက်တွေကို အသုံးပြုမှာ ဖြစ်ပါတယ်။
+
+[Component Section](components) မှာ ကျွန်တော်တို့ ဖန်တီးခဲ့တဲ့ `QueryEngine` ကို အသုံးပြုပြီး `QueryEngineTool` ကို ဘယ်လို Load လုပ်ရမလဲဆိုတာ ကြည့်ကြရအောင်။
+
+```python
+from llama_index.core.tools import QueryEngineTool
+
+query_engine = index.as_query_engine(llm=llm, similarity_top_k=3) # Components in LlamaIndex အပိုင်းတွင် ပြထားသည့်အတိုင်း
+
+query_engine_tool = QueryEngineTool.from_defaults(
+    query_engine=query_engine,
+    name="name",
+    description="a specific description",
+    return_direct=False,
+)
+query_engine_agent = AgentWorkflow.from_tools_or_functions(
+    [query_engine_tool],
+    llm=llm,
+    system_prompt="You are a helpful assistant that has access to a database containing persona descriptions. "
+)
+```
+
+## Multi-agent စနစ်များ ဖန်တီးခြင်း (Creating Multi-agent systems)
+
+`AgentWorkflow` Class ဟာ Multi-agent စနစ်များကိုလည်း တိုက်ရိုက် ထောက်ပံ့ပေးပါတယ်။ Agent တစ်ခုစီကို နာမည်နဲ့ ဖော်ပြချက် ပေးခြင်းအားဖြင့်၊ စနစ်ဟာ Active Speaker တစ်ဦးတည်းကို ထိန်းသိမ်းထားပြီး Agent တစ်ခုစီက အခြား Agent တစ်ခုဆီကို အလုပ်လွှဲပြောင်းပေးနိုင်ပါတယ်။
+
+Agent တစ်ခုစီရဲ့ လုပ်ငန်းနယ်ပယ်ကို ကျဉ်းမြောင်းအောင် လုပ်ဆောင်ခြင်းအားဖြင့်၊ အသုံးပြုသူ မက်ဆေ့ချ်တွေကို တုံ့ပြန်တဲ့အခါ ၎င်းတို့ရဲ့ ယေဘုယျ တိကျမှုကို မြှင့်တင်ပေးနိုင်ပါတယ်။
+
+LlamaIndex မှ Agent များသည် ပိုမိုရှုပ်ထွေးပြီး Custom ဖြစ်သော အခြေအနေများအတွက် အခြား Agent များအတွက် **Tool များအဖြစ် တိုက်ရိုက် အသုံးပြုနိုင်ပါတယ်**။
+
+```python
+from llama_index.core.agent.workflow import (
+    AgentWorkflow,
+    FunctionAgent,
+    ReActAgent,
+)
+
+# Tool အချို့ကို သတ်မှတ်ခြင်း
+def add(a: int, b: int) -> int:
+    """ဂဏန်းနှစ်လုံးကို ပေါင်းသည်"""
+    return a + b
+
+
+def subtract(a: int, b: int) -> int:
+    """ဂဏန်းနှစ်လုံးကို နုတ်သည်"""
+    return a - b
+
+
+# Agent Config များကို ဖန်တီးခြင်း
+# မှတ်ချက်: ဤနေရာတွင် FunctionAgent သို့မဟုတ် ReActAgent ကို အသုံးပြုနိုင်ပါသည်။
+# FunctionAgent သည် Function Calling API ပါသော LLM များအတွက် အလုပ်လုပ်သည်။
+# ReActAgent သည် မည်သည့် LLM အတွက်မဆို အလုပ်လုပ်သည်။
+calculator_agent = ReActAgent(
+    name="calculator",
+    description="Performs basic arithmetic operations",
+    system_prompt="You are a calculator assistant. Use your tools for any math operation.",
+    tools=[add, subtract],
+    llm=llm,
+)
+
+query_agent = ReActAgent(
+    name="info_lookup",
+    description="Looks up information about XYZ",
+    system_prompt="Use your tool to query a RAG system to answer information about XYZ",
+    tools=[query_engine_tool],
+    llm=llm
+)
+
+# Workflow ကို ဖန်တီးပြီး လုပ်ဆောင်ခြင်း
+agent = AgentWorkflow(
+    agents=[calculator_agent, query_agent], root_agent="calculator"
+)
+
+# စနစ်ကို လုပ်ဆောင်ခြင်း
+response = await agent.run(user_msg="Can you add 5 and 3?")
+```
+
+> [!TIP]
+> လုံလောက်အောင် မလေ့လာရသေးဘူးလား? LlamaIndex မှာ Agent တွေနဲ့ Tool တွေအကြောင်း ပိုမိုလေ့လာစရာတွေ အများကြီး ရှိပါသေးတယ်။ [AgentWorkflow Basic Introduction](https://docs.llamaindex.ai/en/stable/examples/agent/agent_workflow_basic/) သို့မဟုတ် [Agent Learning Guide](https://docs.llamaindex.ai/en/stable/understanding/agent/) မှာ Streaming, Context Serialization, နှင့် Human-in-the-loop အကြောင်းတွေကို ပိုမိုဖတ်ရှုနိုင်ပါတယ်။
+
+အခုဆိုရင် LlamaIndex မှာ Agent တွေနဲ့ Tool တွေရဲ့ အခြေခံတွေကို နားလည်သွားပြီဖြစ်လို့၊ **Configurable နှင့် Manageable ဖြစ်တဲ့ Workflow တွေကို ဖန်တီးဖို့အတွက် LlamaIndex ကို ဘယ်လို အသုံးပြုနိုင်မလဲ** ဆိုတာ ကြည့်ကြရအောင်!
