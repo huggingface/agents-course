@@ -42,7 +42,11 @@ def multiply(a: int, b: int) -> int:
     return a * b
 
 # initialize llm
-llm = HuggingFaceInferenceAPI(model_name="Qwen/Qwen2.5-Coder-32B-Instruct")
+# Check available providers: https://huggingface.co/inference/models
+llm = HuggingFaceInferenceAPI(
+    model_name="Qwen/Qwen2.5-Coder-32B-Instruct",
+    provider="auto"
+)
 
 # initialize agent
 agent = AgentWorkflow.from_tools_or_functions(
