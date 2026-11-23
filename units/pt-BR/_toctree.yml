@@ -1,0 +1,8 @@
+- title: Unidade 0. Boas-vindas ao curso
+  sections:
+    - local: unit0/introduction
+      title: Boas-vindas ao curso
+    - local: unit0/onboarding
+      title: Primeiros passos
+    - local: unit0/discord101
+      title: (Opcional) Discord 101
