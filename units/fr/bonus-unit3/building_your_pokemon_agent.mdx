@@ -163,7 +163,7 @@ class LLMAgentBase(Player):
                 move_name = args.get("move_name")
                 if move_name:
                     chosen_move = self._find_move_by_name(battle, move_name)
-                    if chosen_move and chosen_move in battle.available_moves:
+                    if chosen_move:
                         action_taken = True
                         chat_msg = f"AI Decision: Using move '{chosen_move.id}'."
                         print(chat_msg)
@@ -176,7 +176,7 @@ class LLMAgentBase(Player):
                 pokemon_name = args.get("pokemon_name")
                 if pokemon_name:
                     chosen_switch = self._find_pokemon_by_name(battle, pokemon_name)
-                    if chosen_switch and chosen_switch in battle.available_switches:
+                    if chosen_switch:
                         action_taken = True
                         chat_msg = f"AI Decision: Switching to '{chosen_switch.species}'."
                         print(chat_msg)
