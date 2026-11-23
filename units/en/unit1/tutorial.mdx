@@ -126,7 +126,7 @@ with open("prompts.yaml", 'r') as stream:
 # We're creating our CodeAgent
 agent = CodeAgent(
     model=model,
-    tools=[final_answer], # add your tools here (don't remove final_answer)
+    tools=[final_answer, get_current_time_in_timezone], # add your tools here (don't remove final_answer)
     max_steps=6,
     verbosity_level=1,
     grammar=None,
@@ -195,6 +195,7 @@ def get_current_time_in_timezone(timezone: str) -> str:
 
 
 final_answer = FinalAnswerTool()
+DuckDuckGoSearch_tool = DuckDuckGoSearchTool()
 model = InferenceClientModel(
     max_tokens=2096,
     temperature=0.5,
@@ -212,7 +213,7 @@ with open("prompts.yaml", 'r') as stream:
     
 agent = CodeAgent(
     model=model,
-    tools=[final_answer], # add your tools here (don't remove final_answer)
+    tools=[final_answer, image_generation_tool, DuckDuckGoSearch_tool, get_current_time_in_timezone], # add your tools here (don't remove final_answer)
     max_steps=6,
     verbosity_level=1,
     grammar=None,
@@ -224,7 +225,7 @@ agent = CodeAgent(
 
 
 GradioUI(agent).launch()
-```
+```__
 
 Your **Goal** is to get familiar with the Space and the Agent.
 
