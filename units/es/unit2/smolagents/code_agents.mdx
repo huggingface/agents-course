@@ -89,7 +89,9 @@ Ejecutar un agente es bastante sencillo:
 ```python
 from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
 
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+web_search = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)
+
+agent = CodeAgent(tools=[web_search], model=InferenceClientModel())
 
 agent.run("Busca las mejores recomendaciones de música para una fiesta en la mansión de los Wayne.")
 ```
@@ -278,11 +280,12 @@ class SuperheroPartyThemeTool(Tool):
         
         return themes.get(category.lower(), "Idea de fiesta temática no encontrada. Prueba con 'héroes clásicos', 'mascarada de villanos' o 'Gotham futurista'.")
 
+web_search = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)
 
 # Alfred, el mayordomo, preparando el menú para la fiesta
 agent = CodeAgent(
     tools=[
-        DuckDuckGoSearchTool(), 
+        web_search, 
         VisitWebpageTool(),
         suggest_menu,
         catering_service_tool,

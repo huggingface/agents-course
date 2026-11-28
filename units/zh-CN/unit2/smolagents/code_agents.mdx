@@ -89,7 +89,9 @@ login()
 ```python
 from smolagents import CodeAgent, DuckDuckGoSearchTool, InferenceClientModel
 
-agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=InferenceClientModel())
+web_search = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)
+
+agent = CodeAgent(tools=[web_search], model=InferenceClientModel())
 
 agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
 ```
@@ -279,11 +281,12 @@ class SuperheroPartyThemeTool(Tool):
         
         return themes.get(category.lower(), "Themed party idea not found. Try 'classic heroes', 'villain masquerade', or 'futuristic Gotham'.")
 
+web_search = DuckDuckGoSearchTool(max_results=5, rate_limit=2.0)
 
 # 管家阿尔弗雷德，为派对准备菜单
 agent = CodeAgent(
     tools=[
-        DuckDuckGoSearchTool(), 
+        web_search, 
         VisitWebpageTool(),
         suggest_menu,
         catering_service_tool,
