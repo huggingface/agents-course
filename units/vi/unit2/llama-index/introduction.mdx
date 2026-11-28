@@ -1,0 +1,27 @@
+# Giới thiệu về LlamaIndex
+
+Chào mừng bạn đến với mô-đun này, nơi bạn sẽ học cách xây dựng Agent sử dụng LLM với bộ công cụ [LlamaIndex](https://www.llamaindex.ai/).
+
+LlamaIndex là **bộ công cụ hoàn chỉnh để tạo Agent sử dụng LLM trên dữ liệu của bạn thông qua các chỉ mục và quy trình làm việc**. Trong khóa học này, chúng ta sẽ tập trung vào ba phần chính giúp xây dựng Agent trong LlamaIndex: **Components** (Thành phần), **Agents and Tools** (Tác nhân và Công cụ) và **Workflows** (Quy trình làm việc).
+
+![LlamaIndex](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/llama-index/thumbnail.png)
+
+Hãy cùng xem các phần quan trọng này của LlamaIndex và cách chúng hỗ trợ Agent:
+
+- **Component** hay thành phần là các khối xây dựng cơ bản trong LlamaIndex. Chúng bao gồm các yếu tố như prompt, model và cơ sở dữ liệu. Các thành phần thường giúp kết nối LlamaIndex với các công cụ và thư viện khác.
+- **Tool** hay công cụ là các thành phần cung cấp khả năng chuyên biệt như tìm kiếm, tính toán hoặc truy cập dịch vụ bên ngoài. Chúng là nền tảng giúp Agent thực hiện các tác vụ.
+- **Agent** hay tác nhân là các thành phần tự trị có thể sử dụng công cụ và đưa ra quyết định. Chúng phối hợp sử dụng công cụ để đạt được mục tiêu phức tạp.
+- **Workflow** hay quy trình làm việc là các quy trình từng bước xử lý logic cùng nhau. Workflow (hoặc agentic workflow) là cách cấu trúc hành vi của Agent mà không cần sử dụng Agent một cách tường minh.
+
+## Điều gì làm nên sự khác biệt của LlamaIndex?
+
+Dù LlamaIndex có một số điểm tương đồng với các framework khác như smolagents (một framework nhỏ gọn để xây dựng Agent), nó có những ưu điểm chính:
+
+- **Hệ thống Workflow rõ ràng**. Workflow giúp phân tách cách Agent đưa ra quyết định từng bước bằng cú pháp ưu tiên sự kiện và bất đồng bộ. Điều này giúp bạn tổ chức và sắp xếp logic một cách rõ ràng.
+- **Phân tích tài liệu nâng cao với LlamaParse** LlamaParse được tạo riêng cho LlamaIndex nên tích hợp liền mạch, dù đây là tính năng trả phí.
+- **Nhiều thành phần sẵn có** LlamaIndex đã tồn tại một thời gian nên tương thích với nhiều framework khác. Điều này có nghĩa nó sở hữu nhiều thành phần đã được kiểm nghiệm như LLMs, retrievers, indexes...
+- **LlamaHub** là kho lưu trữ hàng trăm thành phần, Agent và công cụ mà bạn có thể sử dụng trong LlamaIndex.
+
+Tất cả các khái niệm này đều cần thiết trong các kịch bản khác nhau để tạo ra Agent hữu ích. Trong các phần tiếp theo, chúng ta sẽ đi sâu vào từng khái niệm. Sau khi nắm vững lý thuyết, chúng mình sẽ áp dụng kiến thức để **tạo các use case thực tế với Agent Alfred**!
+
+Được trực tiếp làm việc với LlamaIndex thật thú vị phải không nào? Vậy còn chờ gì nữa? Hãy cùng bắt đầu với **tìm và cài đặt các tích hợp cần thiết qua LlamaHub thôi! 🚀**

@@ -1,0 +1,70 @@
+# GAIA là gì?
+
+[GAIA](https://huggingface.co/papers/2311.12983) là một **benchmark (tiêu chuẩn đánh giá) được thiết kế để đánh giá các trợ lý AI trên các nhiệm vụ thực tế** đòi hỏi sự kết hợp của các khả năng cốt lõi — như suy luận, hiểu đa phương thức, duyệt web và sử dụng công cụ thành thạo.
+
+Nó được giới thiệu trong bài báo _"[GAIA: A Benchmark for General AI Assistants](https://huggingface.co/papers/2311.12983)"_.
+
+Benchmark này bao gồm **466 câu hỏi được tuyển chọn cẩn thận**, **về mặt khái niệm đơn giản đối với con người**, nhưng **lại cực kỳ thách thức đối với các hệ thống AI hiện tại**.
+
+Để minh họa khoảng cách:
+- **Con người**: tỷ lệ thành công ~92%  
+- **GPT-4 với plugins**: ~15%  
+- **Deep Research (OpenAI)**: 67.36% trên tập kiểm định
+
+GAIA nêu bật những hạn chế hiện tại của các mô hình AI và cung cấp một benchmark nghiêm ngặt để đánh giá tiến trình hướng tới các trợ lý AI thực sự đa năng.
+
+## 🌱 Nguyên tắc Cốt lõi của GAIA
+
+GAIA được thiết kế cẩn thận dựa trên các trụ cột sau:
+
+- 🔍 **Độ khó thực tế**: Các nhiệm vụ đòi hỏi suy luận nhiều bước, hiểu đa phương thức và tương tác với công cụ.
+- 🧾 **Khả năng diễn giải của con người**: Mặc dù khó đối với AI, các nhiệm vụ vẫn đơn giản về mặt khái niệm và dễ theo dõi đối với con người.
+- 🛡️ **Không thể gian lận**: Câu trả lời đúng đòi hỏi thực hiện đầy đủ nhiệm vụ, khiến việc dùng vũ lực (brute-forcing) trở nên vô hiệu.
+- 🧰 **Đơn giản trong đánh giá**: Câu trả lời ngắn gọn, thực tế và rõ ràng — lý tưởng cho việc đánh giá benchmark.
+
+## Các Mức độ Khó
+
+Các nhiệm vụ của GAIA được tổ chức thành **ba cấp độ phức tạp tăng dần**, mỗi cấp độ kiểm tra các kỹ năng cụ thể:
+
+- **Cấp độ 1**: Yêu cầu ít hơn 5 bước và sử dụng công cụ tối thiểu.
+- **Cấp độ 2**: Bao gồm suy luận phức tạp hơn và sự phối hợp giữa nhiều công cụ với 5-10 bước.
+- **Cấp độ 3**: Đòi hỏi lập kế hoạch dài hạn và tích hợp nâng cao nhiều công cụ khác nhau.
+
+![Các cấp độ GAIA](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_levels.png)
+
+## Ví dụ về một Câu hỏi GAIA Khó
+
+> Trong số các loại trái cây được thể hiện trong bức tranh năm 2008 "Embroidery from Uzbekistan", những loại nào đã được phục vụ trong thực đơn bữa sáng tháng 10 năm 1949 của con tàu du lịch mà sau này được sử dụng làm đạo cụ nổi cho bộ phim "The Last Voyage"? Hãy liệt kê các mục dưới dạng danh sách phân tách bằng dấu phẩy, sắp xếp chúng theo chiều kim đồng hồ dựa trên cách bố trí trong bức tranh bắt đầu từ vị trí 12 giờ. Sử dụng dạng số nhiều của mỗi loại trái cây.
+
+Như bạn có thể thấy, câu hỏi này thách thức các hệ thống AI theo nhiều cách:
+
+- Yêu cầu **định dạng phản hồi có cấu trúc**
+- Liên quan đến **suy luận đa phương thức** (ví dụ: phân tích hình ảnh)
+- Đòi hỏi **truy xuất đa bước** các sự kiện phụ thuộc lẫn nhau:
+  - Xác định các loại trái cây trong bức tranh
+  - Khám phá con tàu du lịch nào đã được sử dụng trong *The Last Voyage*
+  - Tra cứu thực đơn bữa sáng từ tháng 10 năm 1949 của con tàu đó
+- Cần **sắp xếp trình tự chính xác** và lập kế hoạch cấp cao để giải quyết theo đúng thứ tự
+
+Loại nhiệm vụ này làm nổi bật nơi mà các LLM độc lập thường không đáp ứng được, khiến GAIA trở thành một benchmark lý tưởng cho **các hệ thống dựa trên agent (tác nhân)** có thể suy luận, truy xuất và thực thi qua nhiều bước và phương thức.
+
+![Biểu đồ khả năng của GAIA](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit4/gaia_capabilities.png)
+
+## Đánh giá Trực tiếp (Live Evaluation)
+
+Để khuyến khích đánh benchmark liên tục, **GAIA cung cấp bảng xếp hạng công khai được lưu trữ trên Hugging Face**, nơi bạn có thể kiểm tra các mô hình của mình với **300 câu hỏi kiểm tra**.
+
+👉 Xem bảng xếp hạng tại [đây](https://huggingface.co/spaces/gaia-benchmark/leaderboard)
+
+<iframe
+	src="https://gaia-benchmark-leaderboard.hf.space"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Bạn muốn tìm hiểu sâu hơn về GAIA?
+
+- 📄 [Đọc toàn văn bài báo](https://huggingface.co/papers/2311.12983)
+- 📄 [Bài đăng phát hành Deep Research của OpenAI](https://openai.com/index/introducing-deep-research/)
+- 📄 [DeepResearch mã nguồn mở – Giải phóng các agent tìm kiếm của chúng ta](https://huggingface.co/blog/open-deep-research)

@@ -1,0 +1,43 @@
+# Khả năng Quan sát và Đánh giá AI Agent
+
+## 🔎 Khả năng Quan sát là gì?
+
+Observability (khả năng quan sát) là khả năng hiểu được những gì đang xảy ra bên trong AI agent của bạn bằng cách xem xét các tín hiệu bên ngoài như logs, metrics và traces. Đối với AI agent, điều này có nghĩa là theo dõi các hành động, cách sử dụng công cụ, lệnh gọi mô hình và phản hồi để gỡ lỗi và cải thiện hiệu suất của agent.
+
+![Observability dashboard](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/langfuse-dashboard.png)
+
+## 🔭 Tại sao Quan sát Agent lại quan trọng
+
+Nếu không có observability, AI agent sẽ là những "hộp đen". Các công cụ observability giúp agent trở nên minh bạch, cho phép bạn:
+
+- Hiểu được sự đánh đổi giữa chi phí và độ chính xác
+- Đo độ trễ
+- Phát hiện ngôn ngữ độc hại & prompt injection
+- Theo dõi phản hồi từ người dùng
+
+Nói cách khác, nó biến agent demo của bạn thành sản phẩm sẵn sàng cho production!
+
+## 🔨 Công cụ Quan sát
+
+Các công cụ quan sát phổ biến cho AI agent bao gồm các nền tảng như [Langfuse](https://langfuse.com) và [Arize](https://www.arize.com). Những công cụ này giúp thu thập traces chi tiết và cung cấp dashboard để theo dõi metrics theo thời gian thực, giúp phát hiện vấn đề và tối ưu hiệu suất dễ dàng.
+
+Các công cụ quan sát có tính năng và khả năng rất đa dạng. Một số công cụ là mã nguồn mở, được hưởng lợi từ cộng đồng lớn giúp định hình lộ trình phát triển và tích hợp mở rộng. Ngoài ra, một số công cụ chuyên về các khía cạnh cụ thể của LLMOps - như khả năng quan sát, đánh giá hoặc quản lý prompt - trong khi số khác được thiết kế để bao quát toàn bộ quy trình LLMOps. Chúng mình khuyến khích bạn khám phá tài liệu của các lựa chọn khác nhau để chọn giải pháp phù hợp.
+
+Nhiều framework agent như [smolagents](https://huggingface.co/docs/smolagents/v1.12.0/en/index) sử dụng chuẩn [OpenTelemetry](https://opentelemetry.io/docs/) để xuất metadata cho các công cụ observability. Bên cạnh đó, các công cụ observability xây dựng instrumentation tùy chỉnh để linh hoạt hơn trong thế giới LLM đang phát triển nhanh. Bạn nên kiểm tra tài liệu của công cụ đang dùng để xem những gì được hỗ trợ.
+
+## 🔬Traces và Spans
+
+Các công cụ quan sát thường biểu diễn quá trình chạy agent dưới dạng traces và spans.
+
+- **Traces** đại diện cho một tác vụ agent hoàn chỉnh từ đầu đến cuối (như xử lý truy vấn người dùng).
+- **Spans** là các bước riêng lẻ trong trace (như gọi language mô hình hoặc truy xuất dữ liệu).
+
+![Example of a smolagent trace in Langfuse](https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit2/trace-tree.png)
+
+## 📊 Các Metrics Chính Cần Theo Dõi
+
+Dưới đây là một số metrics phổ biến nhất mà các công cụ quan sát theo dõi:
+
+**Độ trễ (Latency):** Agent phản hồi nhanh thế nào? Thời gian chờ lâu ảnh hưởng tiêu cực đến trải nghiệm người dùng. Bạn nên đo độ trễ cho các tác vụ và từng bước bằng cách trace quá trình chạy agent. Ví dụ: agent mất 20 giây cho tất cả lệnh gọi mô hình có thể được tăng tốc bằng cách dùng mô hình nhanh hơn hoặc chạy các lệnh gọi song song.
+
+**Chi phí (Costs):** Chi phí cho mỗi

@@ -1,0 +1,222 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/vision_agents.ipynb"},
+]} />
+
+# Các Agent thị giác với smolagents
+
+<Tip warning={true}>
+Các ví dụ trong phần này yêu cầu truy cập vào một VLM model mạnh. Chúng mình đã thử nghiệm chúng bằng GPT-4o API.  
+Tuy nhiên, bài viết <a href="./why_use_smolagents">Tại sao nên dùng smolagents</a> thảo luận về các giải pháp thay thế được hỗ trợ bởi smolagents và Hugging Face. Nếu bạn muốn khám phá các lựa chọn khác, hãy xem qua phần đó.
+</Tip>
+
+Trao quyền xử lý thị giác cho các Agent là yếu tố quan trọng để giải quyết các tác vụ vượt ra ngoài xử lý văn bản. Nhiều thách thức thực tế như duyệt web hay hiểu tài liệu đòi hỏi phân tích nội dung hình ảnh phong phú. May mắn thay, `smolagents` cung cấp hỗ trợ sẵn cho các vision-language models (VLMs), giúp agent có thể xử lý và phân tích hình ảnh hiệu quả.
+
+Trong ví dụ này, hãy tưởng tượng Alfred - quản gia tại Dinh Wayne - được giao nhiệm vụ xác minh danh tính các vị khách tham dự bữa tiệc. Như bạn có thể đoán, Alfred có thể không quen biết tất cả mọi người. Để giúp ông ấy, ta có thể dùng một agent xác minh danh tính bằng cách tìm kiếm thông tin hình ảnh về ngoại hình thông qua VLM. Điều này sẽ giúp Alfred đưa ra quyết định sáng suốt về việc ai được phép vào. Hãy cùng xây dựng ví dụ này!
+
+
+## Cung cấp hình ảnh khi khởi chạy Agent
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_agents.ipynb" target="_blank">notebook này</a> và chạy trên Google Colab.
+</Tip>
+
+Với cách tiếp cận này, hình ảnh được truyền cho agent ngay từ đầu và lưu dưới dạng `task_images` cùng với prompt nhiệm vụ. Agent sẽ xử lý các hình ảnh này trong suốt quá trình chạy.
+
+Xét trường hợp Alfred muốn xác minh danh tính các siêu anh hùng tham dự tiệc. Ông ấy đã có sẵn dataset hình ảnh từ các bữa tiệc trước với tên khách mời. Khi có hình ảnh khách mới, agent có thể so sánh với dataset hiện có và đưa ra quyết định.
+
+Trong trường hợp này, một vị khách đang cố vào cửa và Alfred nghi ngờ đây là Joker đang đóng giả Wonder Woman. Alfred cần xác minh danh tính để ngăn kẻ không mong muốn vào.
+
+Hãy bắt đầu xây dựng ví dụ. Đầu tiên, ta load các hình ảnh. Ở đây chúng ta dùng hình từ Wikipedia để minh họa:
+
+```python
+from PIL import Image
+import requests
+from io import BytesIO
+
+image_urls = [
+    "https://upload.wikimedia.org/wikipedia/commons/e/e8/The_Joker_at_Wax_Museum_Plus.jpg", # Ảnh Joker
+    "https://upload.wikimedia.org/wikipedia/en/9/98/Joker_%28DC_Comics_character%29.jpg" # Ảnh Joker
+]
+
+images = []
+for url in image_urls:
+    response = requests.get(url)
+    image = Image.open(BytesIO(response.content)).convert("RGB")
+    images.append(image)
+```
+
+Giờ đây agent sẽ cho chúng ta biết liệu một vị khách có thực sự là siêu anh hùng (Wonder Woman) hay là phản diện (The Joker).
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel
+
+model = OpenAIServerModel(model_id="gpt-4o")
+
+# Khởi tạo agent
+agent = CodeAgent(
+    tools=[],
+    model=model,
+    max_steps=20,
+    verbosity_level=2
+)
+
+response = agent.run(
+    """
+    Mô tả trang phục và trang điểm của nhân vật truyện tranh trong các ảnh này và trả về mô tả.
+    Cho biết vị khách này là The Joker hay Wonder Woman.
+    """,
+    images=images
+)
+```
+
+Kết quả chạy thử của mình như sau (kết quả của bạn có thể khác):
+
+```python
+    {
+        'Costume and Makeup - First Image': (
+            'Áo khoác tím và cà vạt lụa tím trên áo sơ mi màu vàng mù tạt.',
+            'Sơn mặt trắng với các đường nét phóng đại, lông mày đen, trang điểm mắt xanh, môi đỏ tạo nụ cười rộng.'
+        ),
+        'Costume and Makeup - Second Image': (
+            'Vest đen với hoa cài ve áo, cầm lá bài.',
+            'Da xanh xao, tóc xanh lá, môi đỏ với nụ cười khoác lác.'
+        ),
+        'Character Identity': 'Nhân vật này giống với mô tả về The Joker từ truyện tranh.'
+    }
+```
+
+Trường hợp này, kết quả cho thấy đây là kẻ mạo danh nên ta có thể ngăn Joker vào tiệc!
+
+## Thu thập hình ảnh động trong quá trình chạy
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/vision_web_browser.py" target="_blank">file Python này</a>
+</Tip>
+
+Cách tiếp cận trước rất hữu ích nhưng trong trường hợp khách không có trong database, ta cần phương án khác. Một giải pháp là thu thập hình ảnh/thông tin động từ nguồn bên ngoài như duyệt web.
+
+Ở cách này, hình ảnh được thêm động vào bộ nhớ agent khi chạy. Các agent trong `smolagents` dựa trên lớp `MultiStepAgent` - một abstraction của framework ReAct. Lớp này hoạt động theo chu kỳ có cấu trúc:
+
+1. **SystemPromptStep:** Lưu prompt hệ thống
+2. **TaskStep:** Ghi nhận truy vấn người dùng và input
+3. **ActionStep:** Ghi lại logs từ hành động và kết quả
+
+Cách tiếp cận này cho phép agent tích hợp thông tin hình ảnh động và phản ứng linh hoạt. Dưới đây là sơ đồ minh họa quy trình làm việc động:
+
+![Thu thập hình ảnh động](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/smolagents-can-see/diagram_adding_vlms_smolagents.png)
+
+Giờ hãy xây dựng ví dụ hoàn chỉnh. Lần này Alfred muốn toàn quyền kiểm soát quy trình xác minh qua duyệt web. Ta cần một bộ tools mới cho agent, sử dụng Selenium và Helium để tự động hóa trình duyệt. Hãy cài đặt các thư viện cần thiết:
+
+```bash
+pip install "smolagents[all]" helium selenium python-dotenv
+```
+
+Chúng ta cần các tools duyệt web như `search_item_ctrl_f`, `go_back`, và `close_popups` để agent hành xử như người dùng thực:
+
+```python
+@tool
+def search_item_ctrl_f(text: str, nth_result: int = 1) -> str:
+    """
+    Tìm kiếm text trên trang hiện tại bằng Ctrl + F và nhảy đến kết quả thứ n.
+    Args:
+        text: Chuỗi cần tìm
+        nth_result: Vị trí kết quả cần nhảy đến (mặc định: 1)
+    """
+    elements = driver.find_elements(By.XPATH, f"//*[contains(text(), '{text}')]")
+    if nth_result > len(elements):
+        raise Exception(f"Match n°{nth_result} not found (only {len(elements)} matches found)")
+    result = f"Found {len(elements)} matches for '{text}'."
+    elem = elements[nth_result - 1]
+    driver.execute_script("arguments[0].scrollIntoView(true);", elem)
+    result += f"Focused on element {nth_result} of {len(elements)}"
+    return result
+
+
+@tool
+def go_back() -> None:
+    """Quay lại trang trước."""
+    driver.back()
+
+
+@tool
+def close_popups() -> str:
+    """
+    Đóng các pop-up/modal hiển thị trên trang. Dùng để tắt các cửa sổ pop-up! Không áp dụng cho banner cookie.
+    """
+    webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+```
+
+Chúng ta cần chức năng chụp màn hình để VLM agent xử lý. Chức năng này chụp ảnh và lưu vào `step_log.observations_images = [image.copy()]`:
+
+```python
+def save_screenshot(step_log: ActionStep, agent: CodeAgent) -> None:
+    sleep(1.0)  # Chờ animation JavaScript trước khi chụp
+    driver = helium.get_driver()
+    current_step = step_log.step_number
+    if driver is not None:
+        for step_logs in agent.logs:  # Xóa ảnh cũ để xử lý tối ưu
+            if isinstance(step_log, ActionStep) and step_log.step_number <= current_step - 2:
+                step_logs.observations_images = None
+        png_bytes = driver.get_screenshot_as_png()
+        image = Image.open(BytesIO(png_bytes))
+        print(f"Đã chụp ảnh màn hình trình duyệt: {image.size} pixels")
+        step_log.observations_images = [image.copy()]  # Tạo bản sao để đảm bảo lưu trữ
+
+    # Cập nhật thông tin URL hiện tại
+    url_info = f"Current url: {driver.current_url}"
+    step_log.observations = url_info if step_logs.observations is None else step_log.observations + "\n" + url_info
+    return
+```
+
+Hàm này được truyền vào agent qua `step_callback` để kích hoạt sau mỗi bước chạy.
+
+Giờ ta có thể tạo vision agent duyệt web, cung cấp các tools đã tạo cùng `DuckDuckGoSearchTool` để thu thập thông tin xác minh danh tính:
+
+```python
+from smolagents import CodeAgent, OpenAIServerModel, DuckDuckGoSearchTool
+model = OpenAIServerModel(model_id="gpt-4o")
+
+agent = CodeAgent(
+    tools=[DuckDuckGoSearchTool(), go_back, close_popups, search_item_ctrl_f],
+    model=model,
+    additional_authorized_imports=["helium"],
+    step_callbacks=[save_screenshot],
+    max_steps=20,
+    verbosity_level=2,
+)
+```
+
+Với setup này, Alfred đã sẵn sàng kiểm tra danh tính khách mời:
+
+```python
+agent.run("""
+Tôi là Alfred, quản gia Dinh Wayne, chịu trách nhiệm xác minh danh tính khách tới dự tiệc. Một siêu anh hùng tự nhận là Wonder Woman vừa đến cổng.
+
+Hãy tìm kiếm hình ảnh Wonder Woman và tạo mô tả chi tiết. Đồng thời truy cập Wikipedia để thu thập thông tin ngoại hình. Từ đó tôi có thể quyết định cho phép cô ấy vào hay không.
+""" + helium_instructions)
+```
+
+Chúng ta thêm `helium_instructions` vào prompt để điều hướng agent duyệt web đúng cách.
+
+Xem cách hoạt động qua video sau:
+
+<video controls>
+  <source src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/VisionBrowserAgent.mp4" type="video/mp4">
+</video>
+
+Kết quả cuối cùng:
+
+```python
+Final answer: Wonder Woman thường được mô tả mặc áo nịt ngực đỏ và vàng, quần/váy xanh dương có sao trắng, vương miện vàng, vòng tay bạc và dây thừng vàng Lasso of Truth. Cô là Công chúa Diana của Themyscira, được biết đến với tên Diana Prince.
+```
+
+Vậy là chúng ta đã tạo thành công bộ xác minh danh tính cho bữa tiệc! Alfred giờ đã có công cụ cần thiết để đảm bảo chỉ đúng người được vào. Mọi thứ đã sẵn sàng cho một bữa tiệc vui vẻ tại Dinh Wayne!
+
+
+## Đọc thêm
+
+- [We just gave sight to smolagents](https://huggingface.co/blog/smolagents-can-see) - Blog mô tả chức năng vision agent
+- [Web Browser Automation with Agents 🤖🌐](https://huggingface.co/docs/smolagents/examples/web_browser) - Ví dụ về duyệt web bằng vision agent
+- [Web Browser Vision Agent Example](https://github.com/huggingface/smolagents/blob/main/src/smolagents/vision_web_browser.py) - Ví dụ về duyệt web bằng vision agent

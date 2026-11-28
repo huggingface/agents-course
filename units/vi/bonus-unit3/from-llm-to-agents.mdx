@@ -1,0 +1,37 @@
+# Từ LLMs đến AI Agent
+
+Chúng ta đã học trong [chương đầu tiên](https://huggingface.co/learn/agents-course/unit1/introduction) của khóa học rằng AI Agent có thể lập kế hoạch và đưa ra quyết định.  
+Và trong khi LLMs đã cho phép tương tác tự nhiên hơn với NPC (nhân vật không phải người chơi), Agentic AI tiến thêm một bước bằng cách cho phép các nhân vật đưa ra quyết định, lập kế hoạch hành động và thích nghi với môi trường thay đổi.
+
+Để minh họa sự khác biệt, hãy nghĩ về một NPC RPG (trò chơi nhập vai) cổ điển:
+
+- Với LLM: NPC có thể trả lời câu hỏi của bạn một cách tự nhiên và đa dạng hơn. Tuyệt vời cho đối thoại, nhưng NPC vẫn tĩnh tại chỗ, nó sẽ không hành động trừ khi bạn làm điều gì đó trước.
+- Với Agentic AI: NPC có thể quyết định đi tìm sự giúp đỡ, đặt bẫy hoặc tránh bạn hoàn toàn, ngay cả khi bạn không tương tác trực tiếp với nó.
+
+Sự thay đổi nhỏ này thay đổi mọi thứ. Chúng ta đang chuyển từ những người phản hồi theo kịch bản sang các tác nhân tự trị trong thế giới trò chơi.
+
+Sự thay đổi này có nghĩa là NPC giờ đây có thể tương tác trực tiếp với môi trường của chúng thông qua các hành vi hướng mục tiêu, cuối cùng dẫn đến lối chơi năng động và khó đoán hơn.
+
+Agentic AI (trí tuệ nhân tạo tác nhân) trao quyền cho NPC với:
+
+- **Tính tự chủ**: Đưa ra quyết định độc lập dựa trên trạng thái trò chơi.
+- **Khả năng thích ứng**: Điều chỉnh chiến lược để phản ứng với hành động của người chơi.
+- **Tính kiên trì**: Ghi nhớ các tương tác trong quá khứ để thông báo cho hành vi tương lai.
+
+Điều này biến NPC từ các thực thể phản ứng (phản ứng với đầu vào của bạn) thành những người tham gia chủ động trong thế giới trò chơi, mở ra cánh cửa cho lối chơi sáng tạo.
+
+## Hạn chế lớn của Agent: **nó chậm** (hiện tại)
+
+Tuy nhiên, chúng ta đừng quá lạc quan vội. Mặc dù có tiềm năng, Agentic AI hiện đang đối mặt với thách thức trong các ứng dụng thực tế.
+
+Quá trình suy nghĩ và lập kế hoạng có thể gây ra độ trễ, làm giảm tính khả thi trong các trò chơi nhanh chóng như *Doom* hoặc *Super Mario Bros.*
+
+Hãy xem ví dụ của [_Claude Plays Pokémon_](https://www.twitch.tv/claudeplayspokemon). Nếu bạn xem xét số lượng token cần thiết để **suy nghĩ**, cộng với token cần thiết để **hành động**, ta có thể thấy rằng chúng ta cần phải sử dụng chiến lược giải mã hoàn toàn khác để làm cho việc chơi thực tế khả thi.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/bonus-unit3/claude-plays-pokemon.png" alt="Claude plays Pokémon"/>
+
+Hầu hết các trò chơi cần chạy ở tốc độ khoảng 30 FPS, nghĩa là một agent AI thực tế cần phải hành động 30 lần mỗi giây, hiện tại không khả thi với các LLM Agentic hiện nay.
+
+Tuy nhiên, các trò chơi theo lượt như *Pokémon* là ứng cử viên lý tưởng, vì chúng cho phép AI có đủ thời gian để cân nhắc và đưa ra quyết định chiến lược.
+
+Đó là lý do tại sao trong phần tiếp theo, bạn sẽ xây dựng Agent AI của riêng mình để tham gia vào chiến đấu theo lượt kiểu Pokémon, và thậm chí thách đấu nó! Hãy bắt đầu thôi!

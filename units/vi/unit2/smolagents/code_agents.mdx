@@ -1,0 +1,386 @@
+<CourseFloatingBanner chapter={2}
+  classNames="absolute z-10 right-0 top-0"
+  notebooks={[
+    {label: "Google Colab", value: "https://colab.research.google.com/github/huggingface/agents-course/blob/main/notebooks/unit2/smolagents/code_agents.ipynb"},
+]} />
+
+# Xây dựng Agent sử dụng code
+
+Code Agent là loại Agent mặc định trong `smolagents`. Chúng tạo ra các lệnh gọi công cụ Python để thực hiện hành động, đạt được biểu diễn hành động hiệu quả, biểu cảm và chính xác.
+
+Cách tiếp cận tối giản này giúp giảm số lượng hành động cần thiết, đơn giản hóa các thao tác phức tạp và cho phép tái sử dụng các hàm code có sẵn. `smolagents` cung cấp một framework nhẹ để xây dựng code agent, được triển khai trong khoảng 1,000 dòng code.
+
+![Hành động dạng code so với JSON](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/code_vs_json_actions.png)
+Đồ họa từ bài báo [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030)
+
+<Tip>
+Nếu muốn tìm hiểu thêm về lý do code agent hiệu quả, hãy xem <a href="https://huggingface.co/docs/smolagents/en/conceptual_guides/intro_agents#code-agents" target="_blank">hướng dẫn này</a> từ tài liệu smolagents.
+</Tip>
+
+## Tại sao nên dùng Code Agent?
+
+Trong quy trình đa bước của Agent, LLM viết và thực thi các hành động, thường liên quan đến lệnh gọi công cụ bên ngoài. Cách tiếp cận truyền thống sử dụng định dạng JSON để chỉ định tên công cụ và đối số dưới dạng chuỗi, **mà hệ thống phải phân tích để xác định công cụ cần thực thi**.
+
+Tuy nhiên, nghiên cứu cho thấy **LLM thực thi công cụ hoạt động hiệu quả hơn khi làm việc trực tiếp với code**. Đây là nguyên lý cốt lõi của `smolagents`, như minh họa trong biểu đồ trên từ [Executable Code Actions Elicit Better LLM Agents](https://huggingface.co/papers/2402.01030).
+
+Viết hành động bằng code thay vì JSON mang lại nhiều lợi thế chính:
+
+* **Khả năng kết hợp**: Dễ dàng kết hợp và tái sử dụng hành động
+* **Quản lý đối tượng**: Làm việc trực tiếp với các cấu trúc phức tạp như hình ảnh
+* **Tính tổng quát**: Biểu diễn mọi tác vụ có thể tính toán được
+* **Tự nhiên với LLM**: Dữ liệu training của LLM đã chứa code chất lượng cao
+
+## Code Agent hoạt động thế nào?
+
+![Từ https://huggingface.co/docs/smolagents/conceptual_guides/react](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolagents/codeagent_docs.png)
+
+Biểu đồ trên minh họa cách `CodeAgent.run()` hoạt động, theo framework ReAct mà ta đã đề cập ở Chương 1. Khái niệm chính cho Agent trong `smolagents` là `MultiStepAgent`, đóng vai trò là khối xây dựng cốt lõi. `CodeAgent` là một dạng đặc biệt của `MultiStepAgent`, như ta sẽ thấy trong ví dụ dưới đây.
+
+Một `CodeAgent` thực hiện hành động thông qua chu trình các bước, với các biến và kiến thức hiện có được tích hợp vào ngữ cảnh của Agent, được lưu trong nhật ký thực thi:
+
+1. Prompt hệ thống được lưu trong `SystemPromptStep`, và truy vấn người dùng được ghi lại trong `TaskStep`.
+
+2. Sau đó, vòng lặp while sau được thực thi:
+
+    2.1 Phương thức `agent.write_memory_to_messages()` ghi nhật ký của Agent vào danh sách [tin nhắn chat](https://huggingface.co/docs/transformers/main/en/chat_templating) mà LLM có thể đọc được.
+    
+    2.2 Các tin nhắn này được gửi tới `Model`, nơi tạo ra phần hoàn thành.
+    
+    2.3 Phần hoàn thành được phân tích để trích xuất hành động, trong trường hợp của chúng ta nên là một đoạn code vì ta đang làm việc với `CodeAgent`.  
+    
+    2.4 Hành động được thực thi.
+    
+    2.5 Kết quả được ghi vào bộ nhớ trong `ActionStep`.
+
+Cuối mỗi bước, nếu Agent chứa bất kỳ lệnh gọi hàm nào (trong `agent.step_callback`), chúng sẽ được thực thi.
+
+## Cùng xem ví dụ
+
+<Tip>
+Bạn có thể theo dõi code trong <a href="https://huggingface.co/agents-course/notebooks/blob/main/unit2/smolagents/code_agents.ipynb" target="_blank">notebook này</a> và chạy bằng Google Colab.
+</Tip>
+
+Alfred đang lên kế hoạch tổ chức tiệc tại biệt thự gia đình Wayne và cần bạn giúp đảm bảo mọi thứ diễn ra suôn sẻ. Để hỗ trợ anh ấy, chúng ta sẽ áp dụng những gì đã học về cách hoạt động của `CodeAgent` đa bước.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-party.jpg" alt="Alfred tổ chức tiệc"/>
+
+Nếu chưa cài đặt `smolagents`, bạn có thể chạy lệnh sau:
+
+```bash
+pip install smolagents -U
+```
+
+Đồng thời đăng nhập vào Hugging Face Hub để truy cập Serverless Inference API.
+
+```python
+from huggingface_hub import login
+
+login()
+```
+
+### Lựa chọn playlist cho bữa tiệc bằng `smolagents`
+
+Âm nhạc là phần thiết yếu của một bữa tiệc thành công! Alfred cần giúp đỡ để chọn playlist. May mắn thay, `smolagents` đã có sẵn giải pháp! Chúng ta có thể xây dựng một Agent có khả năng tìm kiếm web bằng DuckDuckGo. Để cấp quyền truy cập công cụ này cho Agent, chúng ta thêm nó vào danh sách công cụ khi tạo Agent.
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-playlist.jpg" alt="Alfred chọn playlist"/>
+
+Về mô hình, chúng ta sẽ dùng `HfApiModel` để truy cập [Serverless Inference API](https://huggingface.co/docs/api-inference/index) của Hugging Face. Mô hình mặc định là `"Qwen/Qwen2.5-Coder-32B-Instruct"` - mô hình hiệu năng cao và có sẵn cho inference nhanh, nhưng bạn có thể chọn bất kỳ mô hình tương thích nào từ Hub.
+
+Chạy Agent khá đơn giản:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
+
+agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=HfApiModel())
+
+agent.run("Search for the best music recommendations for a party at the Wayne's mansion.")
+```
+
+Khi chạy ví dụ này, đầu ra sẽ **hiển thị lộ trình các bước workflow được thực thi**. Nó cũng in code Python tương ứng với thông báo:
+
+```python
+ ─ Executing parsed code: ──────────────────────────────────────────────────────────────────────────────────────── 
+  results = web_search(query="best music for a Batman party")                                                      
+  print(results)                                                                                                   
+ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+```
+
+Sau vài bước, bạn sẽ thấy playlist được tạo ra mà Alfred có thể dùng cho bữa tiệc! 🎵
+
+### Sử dụng công cụ tùy chỉnh để chuẩn bị thực đơn
+
+<img src="https://huggingface.co/datasets/agents-course/course-images/resolve/main/en/unit2/smolagents/alfred-menu.jpg" alt="Alfred chuẩn bị thực đơn"/>
+
+Giờ đã có playlist, chúng ta cần sắp xếp thực đơn cho khách. Một lần nữa, Alfred có thể tận dụng `smolagents` để làm điều này. Ở đây, chúng ta dùng decorator `@tool` để định nghĩa hàm tùy chỉnh đóng vai trò công cụ. Chúng ta sẽ tìm hiểu chi tiết về tạo công cụ sau, hiện tại cứ chạy code trước.
+
+Như bạn thấy trong ví dụ dưới, chúng ta sẽ tạo công cụ bằng decorator `@tool` và thêm vào danh sách `tools`.
+
+```python
+from smolagents import CodeAgent, tool, HfApiModel
+
+# Công cụ đề xuất thực đơn theo dịp
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Đề xuất thực đơn dựa trên dịp.
+    Args:
+        occasion (str): Loại dịp cho bữa tiệc. Giá trị cho phép:
+                        - "casual": Thực đơn tiệc thông thường.
+                        - "formal": Thực đơn tiệc trang trọng.
+                        - "superhero": Thực đơn tiệc siêu anh hùng.
+                        - "custom": Thực đơn tùy chỉnh.
+    """
+    if occasion == "casual":
+        return "Pizza, đồ ăn nhẹ và đồ uống."
+    elif occasion == "formal":
+        return "Bữa tối 3 món với rượu và tráng miệng."
+    elif occasion == "superhero":
+        return "Tiệc tự chọn với đồ ăn giàu năng lượng và lành mạnh."
+    else:
+        return "Thực đơn tùy chỉnh cho quản gia."
+
+# Alfred, quản gia, chuẩn bị thực đơn cho bữa tiệc
+agent = CodeAgent(tools=[suggest_menu], model=HfApiModel())
+
+# Chuẩn bị thực đơn tiệc trang trọng
+agent.run("Prepare a formal menu for the party.")
+```
+
+Agent sẽ chạy qua vài bước cho đến khi tìm ra câu trả lời. Việc chỉ rõ giá trị cho phép trong docstring giúp định hướng Agent đến các giá trị `occasion` hợp lệ và hạn chế ảo giác.
+
+Thực đơn đã sẵn sàng! 🥗
+
+### Sử dụng import Python trong Agent
+
+Đã có playlist và thực đơn, nhưng cần kiểm tra một chi tiết quan trọng: thời gian chuẩn bị!
+
+Alfred cần tính toán mọi thứ sẽ sẵn sàng vào lúc nào nếu bắt đầu ngay bây giờ, phòng trường hợp cần sự trợ giúp từ các siêu anh hùng khác.
+
+`smolagents` chuyên về các Agent viết và thực thi đoạn code Python, cung cấp môi trường thực thi an toàn.  
+**Việc thực thi code có các biện pháp bảo mật nghiêm ngặt** - các import ngoài danh sách an toàn định trước bị chặn mặc định. Tuy nhiên, bạn có thể ủy quyền thêm import bằng cách truyền chúng dưới dạng chuỗi trong `additional_authorized_imports`.
+Để biết thêm chi tiết về thực thi code an toàn, xem [hướng dẫn chính thức](https://huggingface.co/docs/smolagents/tutorials/secure_code_execution).
+
+Khi tạo Agent, chúng ta sẽ dùng `additional_authorized_imports` để cho phép import module `datetime`.
+
+```python
+from smolagents import CodeAgent, HfApiModel
+import numpy as np
+import time
+import datetime
+
+agent = CodeAgent(tools=[], model=HfApiModel(), additional_authorized_imports=['datetime'])
+
+agent.run(
+    """
+    Alfred cần chuẩn bị cho bữa tiệc. Các công việc bao gồm:
+    1. Chuẩn bị đồ uống - 30 phút
+    2. Trang trí biệt thự - 60 phút
+    3. Chuẩn bị thực đơn - 45 phút
+    4. Chuẩn bị âm nhạc và playlist - 45 phút
+
+    Nếu bắt đầu ngay bây giờ, mấy giờ mọi thứ sẽ sẵn sàng?
+    """
+)
+```
+
+Những ví dụ này mới chỉ là khởi đầu cho những gì bạn có thể làm với code agent, và chúng ta đã thấy được tiện ích của chúng trong việc chuẩn bị tiệc.  
+Bạn có thể tìm hiểu thêm về cách xây dựng code agent trong [tài liệu smolagents](https://huggingface.co/docs/smolagents).
+
+Tóm lại, `smolagents` chuyên về các Agent viết và thực thi đoạn code Python, cung cấp môi trường thực thi an toàn. Nó hỗ trợ cả mô hình ngôn ngữ local và dựa trên API, giúp thích ứng với nhiều môi trường phát triển khác nhau.
+
+### Chia sẻ Agent chuẩn bị tiệc tới Hub
+
+Sẽ **tuyệt vời thế nào nếu chia sẻ Agent Alfred của chúng ta với cộng đồng**? Bằng cách này, mọi người có thể dễ dàng tải và dùng Agent trực tiếp từ Hub, mang đến công cụ lên kế hoạch tiệc tối ưu của Gotham! Hãy biến điều này thành hiện thực! 🎉
+
+Thư viện `smolagents` cho phép thực hiện điều này bằng cách chia sẻ toàn bộ Agent với cộng đồng và tải về để dùng ngay. Đơn giản như sau:
+
+```python
+# Đổi thành username và repo name của bạn
+agent.push_to_hub('sergiopaniego/AlfredAgent')
+```
+
+Để tải lại Agent, dùng code sau:
+
+```python
+# Đổi thành username và repo name của bạn
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
+```
+
+Điều thú vị là các Agent được chia sẻ có sẵn dưới dạng Hugging Face Spaces, cho phép bạn tương tác thời gian thực. Bạn có thể khám phá các Agent khác [tại đây](https://huggingface.co/spaces/davidberenstein1957/smolagents-and-tools).
+
+Ví dụ, _AlfredAgent_ có sẵn [tại đây](https://huggingface.co/spaces/sergiopaniego/AlfredAgent). Bạn có thể dùng thử trực tiếp bên dưới:
+
+<iframe
+	src="https://sergiopaniego-alfredagent.hf.space/"
+	frameborder="0"
+	width="850"
+	height="450"
+></iframe>
+
+Bạn có thể thắc mắc - làm thế nào Alfred xây dựng được Agent như vậy bằng `smolagents`? Bằng cách tích hợp nhiều công cụ, anh ấy có thể tạo ra Agent như sau. Đừng lo về các công cụ hiện tại, vì chúng ta sẽ có phần riêng trong chương này để tìm hiểu chi tiết:
+
+```python
+from smolagents import CodeAgent, DuckDuckGoSearchTool, FinalAnswerTool, HfApiModel, Tool, tool, VisitWebpageTool
+
+@tool
+def suggest_menu(occasion: str) -> str:
+    """
+    Đề xuất thực đơn dựa trên dịp.
+    Args:
+        occasion: Loại dịp cho bữa tiệc.
+    """
+    if occasion == "casual":
+        return "Pizza, đồ ăn nhẹ và đồ uống."
+    elif occasion == "formal":
+        return "Bữa tối 3 món với rượu và tráng miệng."
+    elif occasion == "superhero":
+        return "Tiệc tự chọn với đồ ăn giàu năng lượng và lành mạnh."
+    else:
+        return "Thực đơn tùy chỉnh cho quản gia."
+
+@tool
+def catering_service_tool(query: str) -> str:
+    """
+    Công cụ trả về dịch vụ catering được đánh giá cao nhất tại Gotham City.
+    
+    Args:
+        query: Từ khóa tìm kiếm dịch vụ catering.
+    """
+    # Danh sách dịch vụ catering và đánh giá
+    services = {
+        "Gotham Catering Co.": 4.9,
+        "Wayne Manor Catering": 4.8,
+        "Gotham City Events": 4.7,
+    }
+    
+    # Tìm dịch vụ có đánh giá cao nhất (mô phỏng tìm kiếm)
+    best_service = max(services, key=services.get)
+    
+    return best_service
+
+class SuperheroPartyThemeTool(Tool):
+    name = "superhero_party_theme_generator"
+    description = """
+    Công cụ đề xuất ý tưởng tiệc theo chủ đề siêu anh hùng sáng tạo dựa trên thể loại.
+    Trả về ý tưởng chủ đề tiệc độc đáo."""
+    
+    inputs = {
+        "category": {
+            "type": "string",
+            "description": "Thể loại tiệc siêu anh hùng (vd: 'classic heroes', 'villain masquerade', 'futuristic Gotham').",
+        }
+    }
+    
+    output_type = "string"
+
+    def forward(self, category: str):
+        themes = {
+            "classic heroes": "Tiệc Justice League: Khách mặc trang phục siêu anh hùng DC yêu thích với cocktail chủ đề như 'The Kryptonite Punch'.",
+            "villain masquerade": "Dạ hội Gotham Rogues: Lễ hội hóa trang bí ẩn nơi khách mặc trang như phản diện Batman.",
+            "futuristic Gotham": "Đêm Neo-Gotham: Tiệc phong cách cyberpunk lấy cảm hứng từ Batman Beyond, với trang trí neon và gadget tương lai."
+        }
+        
+        return themes.get(category.lower(), "Không tìm thấy ý tưởng chủ đề. Thử 'classic heroes', 'villain masquerade' hoặc 'futuristic Gotham'.")
+
+
+# Alfred, quản gia, chuẩn bị thực đơn cho bữa tiệc
+agent = CodeAgent(
+    tools=[
+        DuckDuckGoSearchTool(), 
+        VisitWebpageTool(),
+        suggest_menu,
+        catering_service_tool,
+        SuperheroPartyThemeTool()
+    ], 
+    model=HfApiModel(),
+    max_steps=10,
+    verbosity_level=2
+)
+
+agent.run("Give me the best playlist for a party at the Wayne's mansion. The party idea is a 'villain masquerade' theme")
+```
+
+Như bạn thấy, chúng ta đã tạo `CodeAgent` với nhiều công cụ mở rộng chức năng, biến nó thành công cụ lên kế hoạch tiệc hoàn hảo sẵn sàng chia sẻ với cộng đồng! 🎉
+
+Giờ đến lượt bạn: hãy xây dựng Agent của riêng mình và chia sẻ với cộng đồng bằng kiến thức vừa học! 🕵️‍♂️💡
+
+<Tip>
+Nếu muốn chia sẻ dự án Agent, hãy tạo một Space và tag <a href="https://huggingface.co/agents-course">agents-course</a> trên Hugging Face Hub. Chúng mình rất muốn xem những gì bạn tạo ra!
+</Tip>
+
+### Kiểm tra Agent chuẩn bị tiệc với OpenTelemetry và Langfuse 📡
+
+Khi Alfred tinh chỉnh Agent chuẩn bị tiệc, anh ấy cảm thấy mệt mỏi với việc gỡ lỗi các lần chạy. Vốn dĩ Agent khó đoán và khó kiểm tra. Nhưng vì muốn xây dựng Agent chuẩn bị tiệc tối ưu và triển khai production, anh ấy cần khả năng theo dõi quá trình chạy để giám sát và phân tích sau này.
+
+Một lần nữa, `smolagents` giải cứu! Nó áp dụng chuẩn [OpenTelemetry](https://opentelemetry.io/) để theo dõi các lần chạy Agent, cho phép ghi log và kiểm tra liền mạch. Với sự trợ giúp của [Langfuse](https://langfuse.com/) và `SmolagentsInstrumentor`, Alfred có thể dễ dàng theo dõi và phân tích hành vi Agent.
+
+Cài đặt rất đơn giản!  
+
+Đầu tiên, cần cài các dependency cần thiết:  
+
+```bash
+pip install opentelemetry-sdk opentelemetry-exporter-otlp openinference-instrumentation-smolagents
+```
+
+Tiếp theo, Alfred đã tạo tài khoản Langfuse và có sẵn API key. Nếu chưa có, bạn có thể đăng ký Langfuse Cloud [tại đây](https://cloud.langfuse.com/) hoặc xem [lựa chọn khác](https://huggingface.co/docs/smolagents/tutorials/inspect_runs).  
+
+Sau khi có API key, cấu hình chúng như sau:
+
+```python
+import os
+import base64
+
+LANGFUSE_PUBLIC_KEY="pk-lf-..."
+LANGFUSE_SECRET_KEY="sk-lf-..."
+LANGFUSE_AUTH=base64.b64encode(f"{LANGFUSE_PUBLIC_KEY}:{LANGFUSE_SECRET_KEY}".encode()).decode()
+
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://cloud.langfuse.com/api/public/otel" # Khu vực dữ liệu EU
+# os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "https://us.cloud.langfuse.com/api/public/otel" # Khu vực dữ liệu US
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {LANGFUSE_AUTH}"
+```
+
+Cuối cùng, Alfred sẵn sàng khởi tạo `SmolagentsInstrumentor` và bắt đầu theo dõi hiệu suất Agent.  
+
+```python
+from opentelemetry.sdk.trace import TracerProvider
+
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+
+trace_provider = TracerProvider()
+trace_provider.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter()))
+
+SmolagentsInstrumentor().instrument(tracer_provider=trace_provider)
+```
+
+Alfred đã kết nối thành công 🔌! Các lần chạy từ `smolagents` được ghi log vào Langfuse, cho anh ấy cái nhìn toàn diện về hành vi Agent. Với setup này, anh ấy có thể xem lại các lần chạy trước và cải thiện Agent chuẩn bị tiệc.  
+
+```python
+from smolagents import CodeAgent, HfApiModel
+
+agent = CodeAgent(tools=[], model=HfApiModel())
+alfred_agent = agent.from_hub('sergiopaniego/AlfredAgent', trust_remote_code=True)
+alfred_agent.run("Give me the best playlist for a party at Wayne's mansion. The party idea is a 'villain masquerade' theme")  
+```
+
+Alfred có thể truy cập các log này [tại đây](https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z) để xem xét và phân tích.  
+
+<Tip>
+Thực tế đã xảy ra lỗi nhỏ trong quá trình thực thi. Bạn có thể phát hiện ra nó trong log không? Thử theo dõi cách Agent xử lý và vẫn trả về kết quả hợp lệ. <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">Đây</a> là link trực tiếp đến lỗi nếu bạn muốn kiểm tra. Dĩ nhiên lỗi đã được sửa, chi tiết xem trong <a href="https://cloud.langfuse.com/project/cm7bq0abj025rad078ak3luwi/traces/995fc019255528e4f48cf6770b0ce27b?timestamp=2025-02-19T10%3A28%3A36.929Z&observation=80ca57ace4f69b52">issue</a> này.
+</Tip>
+
+Trong khi đó, [playlist được đề xuất](https://open.spotify.com/playlist/0gZMMHjuxMrrybQ7wTMTpw) tạo không khí hoàn hảo cho việc chuẩn bị tiệc. Thật tuyệt phải không? 🎶  
+
+---
+
+Giờ đã tạo xong Code Agent đầu tiên, hãy **học cách tạo Tool Calling Agent** - loại Agent thứ hai có sẵn trong `smolagents`.
+
+## Tài nguyên
+
+- [Blog smolagents](https://huggingface.co/blog/smolagents) - Giới thiệu về smolagents và tương tác code
+- [smolagents: Xây dựng Agent tốt](https://huggingface.co/docs/smolagents/tutorials/building_good_agents) - Best practices cho Agent đáng tin cậy
+- [Xây dựng Agent hiệu quả - Anthropic](https://www.anthropic.com/research/building-effective-agents) - Nguyên tắc thiết kế Agent
+- [Chia sẻ lần chạy với OpenTelemetry](https://huggingface.co/docs/smolagents/tutorials/inspect_runs) - Chi tiết cách cài OpenTelemetry để theo dõi Agent.
