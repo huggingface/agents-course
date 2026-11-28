@@ -249,28 +249,30 @@ By using `Tool.from_langchain()`, Alfred effortlessly adds advanced search funct
 
 Here's how he does it:
 
-We first need to install the `langchain` integration for `smolagents`.
+We first need to install the LangChain community integration and the SerpAPI package.
 
 ```bash
-pip install -U langchain-community
+pip install -U langchain-community google-search-results
 ```
 
 After installing the langchain integration, make sure to set your SerpAPI key.
 This is required for search-based tools such as `SerpAPITool`:
 
 ```python
+import os
+
 os.environ['SERPAPI_API_KEY'] = '...'
 ```
 
 You can create a SerpAPI key [here](https://serpapi.com/)
 
 ```python
-from langchain.agents import load_tools
+from langchain_community.agent_toolkits.load_tools import load_tools
 from smolagents import CodeAgent, InferenceClientModel, Tool
 
 search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 
-agent = CodeAgent(tools=[search_tool], model=model)
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
 
 agent.run("Search for luxury entertainment ideas for a superhero-themed event, such as live performances and interactive experiences.")
 ```

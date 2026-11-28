@@ -248,12 +248,12 @@ Al usar `Tool.from_langchain()`, Alfred añade sin esfuerzo funcionalidades de b
 Así es como lo hace:
 
 ```python
-from langchain.agents import load_tools
+from langchain_community.agent_toolkits.load_tools import load_tools
 from smolagents import CodeAgent, InferenceClientModel, Tool
 
 search_tool = Tool.from_langchain(load_tools(["serpapi"])[0])
 
-agent = CodeAgent(tools=[search_tool], model=model)
+agent = CodeAgent(tools=[search_tool], model=InferenceClientModel())
 
 agent.run("Busca ideas de entretenimiento de lujo para un evento temático de superhéroes, como actuaciones en vivo y experiencias interactivas.")
 ```
